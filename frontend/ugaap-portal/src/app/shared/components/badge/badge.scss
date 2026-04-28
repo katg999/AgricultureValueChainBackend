@@ -1,0 +1,123 @@
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    white-space: nowrap;
+  
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+  
+    &.badge-active {
+      background: #FFF5F0;
+      color: #c44a1e;
+      border: 1px solid rgba(242, 93, 39, 0.2);
+      .dot { background: #F25D27; }
+    }
+  
+    &.badge-pending {
+      background: #FFF8E6;
+      color: #B07800;
+      border: 1px solid rgba(240, 160, 48, 0.25);
+      .dot { background: #EF9F27; }
+    }
+  
+    &.badge-inactive {
+      background: #F2F2F2;
+      color: #533C59;
+      border: 1px solid #E8E6ED;
+      .dot { background: #B4B2A9; }
+    }
+  
+    &.badge-suspended {
+      background: #FCEBEB;
+      color: #8C342B;
+      border: 1px solid rgba(240, 149, 149, 0.4);
+      .dot { background: #8C342B; }
+    }
+  
+    &.badge-overdue {
+      background: #FCEBEB;
+      color: #8C342B;
+      border: 1px solid rgba(240, 149, 149, 0.4);
+      .dot { background: #8C342B; }
+    }
+  
+    &.badge-settled {
+      background: #EAF3DE;
+      color: #27500A;
+      border: 1px solid rgba(151, 196, 89, 0.3);
+      .dot { background: #2D7A3A; }
+    }
+  
+    &.badge-partial {
+      background: #FFF8E6;
+      color: #B07800;
+      border: 1px solid rgba(240, 160, 48, 0.25);
+      .dot { background: #EF9F27; }
+    }
+  
+    &.badge-verified {
+      background: #EAF3DE;
+      color: #27500A;
+      border: 1px solid rgba(151, 196, 89, 0.3);
+      .dot { background: #2D7A3A; }
+    }
+  
+    &.badge-failed {
+      background: #FCEBEB;
+      color: #8C342B;
+      border: 1px solid rgba(240, 149, 149, 0.4);
+      .dot { background: #8C342B; }
+    }
+  
+    &.badge-draft {
+      background: #F2F2F2;
+      color: #533C59;
+      border: 1px solid #E8E6ED;
+      .dot { background: #B4B2A9; }
+    }
+  
+    &.badge-open {
+      background: #FFF5F0;
+      color: #c44a1e;
+      border: 1px solid rgba(242, 93, 39, 0.2);
+      .dot { background: #F25D27; }
+    }
+  
+    &.badge-closed {
+      background: #EAF3DE;
+      color: #27500A;
+      border: 1px solid rgba(151, 196, 89, 0.3);
+      .dot { background: #2D7A3A; }
+    }
+  
+    &.badge-healthy {
+      background: #EAF3DE;
+      color: #27500A;
+      border: 1px solid rgba(151, 196, 89, 0.3);
+      .dot { background: #2D7A3A; }
+    }
+  
+    &.badge-low {
+      background: #FFF8E6;
+      color: #B07800;
+      border: 1px solid rgba(240, 160, 48, 0.25);
+      .dot { background: #EF9F27; }
+    }
+  
+    &.badge-info {
+      background: #E6F1FB;
+      color: #0C447C;
+      border: 1px solid rgba(77, 168, 255, 0.25);
+      .dot { background: #4da8ff; }
+    }
+  }

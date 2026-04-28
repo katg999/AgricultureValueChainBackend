@@ -1,0 +1,123 @@
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    text-decoration: none;
+    position: relative;
+  
+    // Sizes
+    &.btn-sm {
+      height: 32px;
+      padding: 0 12px;
+      font-size: 12px;
+      border-radius: 6px;
+    }
+  
+    &.btn-md {
+      height: 40px;
+      padding: 0 16px;
+      font-size: 13px;
+    }
+  
+    &.btn-lg {
+      height: 48px;
+      padding: 0 24px;
+      font-size: 14px;
+    }
+  
+    // Full width
+    &.btn-full {
+      width: 100%;
+    }
+  
+    // Variants
+    &.btn-primary {
+      background: #F25D27;
+      color: #ffffff;
+      border: 1px solid #F25D27;
+  
+      &:hover:not(:disabled) {
+        background: #d94e1f;
+        border-color: #d94e1f;
+      }
+  
+      &:active:not(:disabled) {
+        background: #c04418;
+      }
+    }
+  
+    &.btn-secondary {
+      background: #ffffff;
+      color: #1A1A2E;
+      border: 1px solid #E8E6ED;
+  
+      &:hover:not(:disabled) {
+        background: #F7F6F8;
+        border-color: #D0CDD8;
+      }
+    }
+  
+    &.btn-ghost {
+      background: transparent;
+      color: #F25D27;
+      border: 1px solid transparent;
+  
+      &:hover:not(:disabled) {
+        background: rgba(242, 93, 39, 0.06);
+        border-color: rgba(242, 93, 39, 0.2);
+      }
+    }
+  
+    &.btn-danger {
+      background: #FCEBEB;
+      color: #8C342B;
+      border: 1px solid #F09595;
+  
+      &:hover:not(:disabled) {
+        background: #F9D5D5;
+        border-color: #E07070;
+      }
+    }
+  
+    &.btn-warning {
+      background: #FFF8E6;
+      color: #B07800;
+      border: 1px solid #EFD080;
+  
+      &:hover:not(:disabled) {
+        background: #FFF0C0;
+      }
+    }
+  
+    // States
+    &.btn-disabled,
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+  
+    &.btn-loading {
+      cursor: wait;
+      pointer-events: none;
+    }
+  }
+  
+  .btn-icon {
+    font-size: 14px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+  }
+  
+  .btn-text-hidden {
+    opacity: 0;
+  }
