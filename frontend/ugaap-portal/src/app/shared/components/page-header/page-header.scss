@@ -1,0 +1,58 @@
+.page-header {
+    margin-bottom: 20px;
+  }
+  
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 6px;
+  }
+  
+  .crumb {
+    font-size: 12px;
+    color: #6B6B7B;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  
+    &:last-child {
+      color: #1A1A2E;
+      font-weight: 500;
+    }
+  }
+  
+  .crumb-sep {
+    color: #D0CDD8;
+  }
+  
+  .header-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  
+  .header-left {
+    flex: 1;
+  }
+  
+  .page-title {
+    font-size: 22px;
+    font-weight: 600;
+    color: #1A1A2E;
+    margin-bottom: 2px;
+  }
+  
+  .page-subtitle {
+    font-size: 13px;
+    color: #6B6B7B;
+    line-height: 1.5;
+  }
+  
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }

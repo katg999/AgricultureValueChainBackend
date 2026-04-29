@@ -1,0 +1,29 @@
+<button
+  [type]="type"
+  [class]="classes"
+  [disabled]="disabled || loading"
+  (click)="onClick()">
+
+  <!-- Left icon -->
+  <span class="btn-icon" *ngIf="iconLeft && !loading">
+    {{ iconLeft }}
+  </span>
+
+  <!-- Spinner when loading -->
+  <app-spinner
+    *ngIf="loading"
+    size="sm"
+    color="white">
+  </app-spinner>
+
+  <!-- Content -->
+  <span [class.btn-text-hidden]="loading">
+    <ng-content></ng-content>
+  </span>
+
+  <!-- Right icon -->
+  <span class="btn-icon" *ngIf="iconRight && !loading">
+    {{ iconRight }}
+  </span>
+
+</button>

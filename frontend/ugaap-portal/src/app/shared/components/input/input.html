@@ -1,0 +1,32 @@
+<div class="input-field" [class.has-error]="error">
+
+    <label *ngIf="label">
+      {{ label }}
+      <span class="required" *ngIf="required">*</span>
+    </label>
+  
+    <div class="input-wrapper">
+  
+      <input
+        [type]="inputType"
+        [placeholder]="placeholder"
+        [disabled]="disabled"
+        [value]="value"
+        (input)="onInput($event)"
+        (blur)="onBlur()"
+        [class.input-password]="type === 'password'"/>
+  
+      <button
+        type="button"
+        class="toggle-password"
+        *ngIf="type === 'password'"
+        (click)="togglePassword()">
+        {{ showPassword ? 'Hide' : 'Show' }}
+      </button>
+  
+    </div>
+  
+    <span class="hint" *ngIf="hint && !error">{{ hint }}</span>
+    <span class="error-msg" *ngIf="error">{{ error }}</span>
+  
+  </div>
