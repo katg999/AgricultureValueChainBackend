@@ -84,6 +84,21 @@ public class AuthController {
                 ApiResponse.ok("Profile fetched", profile));
     }
 
+    // GET /password-reset/request
+
+    @PostMapping("/password-reset/request")
+    public ResponseEntity<ApiResponse<Void>> requestOtp(@Valid @RequestBody OtpRequest.Request request) {
+        otpService.generateAndSendOtp(request.getEmail());
+        return ResponseEntity.ok(ApiResponse.success("OTP sent to your email", null));
+    }
+
+    // POST /password-reset/verify
+    @PostMapping("/password-reset/verify")
+    public ResponseEntity<ApiResponse<Void>> verifyOtp(@Valid @RequestBody OtpRequest.Verify request) {
+        otpService.verifyAndResetPassword(request.getEmail(), request.getOtp(), request.getNewPassword());
+        return ResponseEntity.ok(ApiResponse.success("Password reset successful", null));
+    }
+
 
 
     private String extractBearerToken(HttpServletRequest request) {

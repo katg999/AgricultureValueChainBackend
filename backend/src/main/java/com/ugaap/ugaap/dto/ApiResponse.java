@@ -5,9 +5,15 @@ package com.ugaap.ugaap.dto;
 import lombok.Builder;
 import lombok.Data;
 import java.time.LocalDateTime;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+
+
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class ApiResponse<T> {
     private boolean success;
     private String  message;
@@ -19,7 +25,7 @@ public class ApiResponse<T> {
                 .success(true)
                 .message(message)
                 .data(data)
-                .timestamp(LocalDateTime.now())
+                .timestamp(LocalDateTime.parse(LocalDateTime.now().toString()))
                 .build();
     }
 
@@ -27,7 +33,8 @@ public class ApiResponse<T> {
         return ApiResponse.<T>builder()
                 .success(false)
                 .message(message)
-                .timestamp(LocalDateTime.now())
+                .data(null)
+                .timestamp(LocalDateTime.parse(LocalDateTime.now().toString()))
                 .build();
     }
 }

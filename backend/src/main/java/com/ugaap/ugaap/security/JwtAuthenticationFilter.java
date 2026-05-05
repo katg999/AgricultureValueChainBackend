@@ -7,16 +7,20 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -26,41 +30,57 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
+                                    @NonNull HttpServletResponse response,
+                                    @NonNull FilterChain filterChain)
             throws ServletException, IOException {
 
-        String header = request.getHeader("Authorization");
+        final String authHeader = request.getHeader("Authorization");
+        final String jwt;
+        final String userEmail;
+        final String clientId;
 
-        if (header == null || !header.startsWith("Bearer ")) {
+        // 1. Skip if no Bearer token
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String token = header.substring(7);
+        jwt = authHeader.substring(7);
+
+        // 2. Critical Security Check: Is this token blacklisted in Redis?
+        if (authService.isTokenBlacklisted(jwt)) {
+            log.warn("Blacklisted token access attempt: {}", jwt);
+            filterChain.doFilter(request, response); // Will result in 403/401 by SecurityConfig
+            return;
+        }
 
         try {
-            if (!authService.isTokenBlacklisted(token)
-                    && jwtUtil.isValid(token)
-                    && jwtUtil.isAccessToken(token)) {
+            if (jwtUtil.isValid(jwt) && jwtUtil.isAccessToken(jwt)) {
+                userEmail = jwtUtil.extractEmail(jwt);
+                clientId = jwtUtil.extractClientId(jwt);
 
-                String clientId = jwtUtil.extractClientId(token);
-                String role     = jwtUtil.extractRole(token);
+                if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    String role = jwtUtil.extractRole(jwt);
+                    List<SimpleGrantedAuthority> authorities =
+                            Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role));
 
-                var auth = new UsernamePasswordAuthenticationToken(
-                        new User(
-                                clientId,   // userDetails.getUsername() == clientId in /auth/me
-                                "",
-                                List.of(new SimpleGrantedAuthority("ROLE_" + role))
-                        ),
-                        null,
-                        List.of(new SimpleGrantedAuthority("ROLE_" + role))
-                );
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            userEmail,
+                            null,
+                            authorities
+                    );
 
-                SecurityContextHolder.getContext().setAuthentication(auth);
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                    // 3. Set the security context
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+
+                    // Add clientId to request attributes so controllers can use it easily
+                    request.setAttribute("clientId", clientId);
+                }
             }
         } catch (Exception e) {
-            SecurityContextHolder.clearContext();
+            log.error("Could not set user authentication in security context", e);
         }
 
         filterChain.doFilter(request, response);
