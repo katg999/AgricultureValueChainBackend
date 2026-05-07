@@ -1,0 +1,90 @@
+.stat-card {
+    background: #ffffff;
+    border: 1px solid #E8E6ED;
+    border-radius: 10px;
+    padding: 16px;
+    transition: box-shadow 0.15s;
+  
+    &:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+  
+    &.stat-card-warning {
+      border-color: rgba(240, 160, 48, 0.3);
+      background: #FFFBF5;
+  
+      .stat-value { color: #B07800; }
+    }
+  
+    &.stat-card-danger {
+      border-color: rgba(240, 149, 149, 0.3);
+      background: #FFFAFA;
+  
+      .stat-value { color: #8C342B; }
+    }
+  
+    &.stat-card-success {
+      border-color: rgba(151, 196, 89, 0.3);
+      background: #F8FDF2;
+  
+      .stat-value { color: #27500A; }
+    }
+  }
+  
+  .stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6B6B7B;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+  }
+  
+  .stat-value {
+    font-size: 26px;
+    font-weight: 600;
+    color: #1A1A2E;
+    font-family: 'IBM Plex Mono', 'Courier New', monospace;
+    line-height: 1.1;
+    margin-bottom: 4px;
+  }
+  
+  .stat-trend {
+    font-size: 11px;
+    color: #6B6B7B;
+    margin-top: 4px;
+  
+    &.trend-up { color: #2D7A3A; }
+    &.trend-down { color: #8C342B; }
+  }
+  
+  /* // Loading skeleton */
+  .stat-loading {
+    .skeleton {
+      background: linear-gradient(
+        90deg,
+        #F2F2F2 25%,
+        #E8E6ED 50%,
+        #F2F2F2 75%
+      );
+      background-size: 200% 100%;
+      animation: shimmer 1.2s infinite;
+      border-radius: 4px;
+    }
+  
+    .skeleton-label {
+      height: 12px;
+      width: 60%;
+      margin-bottom: 12px;
+    }
+  
+    .skeleton-value {
+      height: 28px;
+      width: 80%;
+    }
+  }
+  
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }

@@ -1,0 +1,51 @@
+<!-- 
+  Account Locked Page
+  
+  Informational page shown when account is locked
+  Uses reusable components: Logo, Alert
+  Custom lock icon (unique to this page)
+-->
+
+<div class="auth-page">
+  <div class="auth-card">
+
+    <!-- UGAAP Logo (Reusable Component) -->
+    <app-logo size="md" [showSubtitle]="false"></app-logo>
+
+    <!-- Lock Icon (Custom - Unique to this page) -->
+    <div class="icon-circle">
+      <svg width="32" height="32" viewBox="0 0 24 24" 
+        fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+    </div>
+
+    <!-- Page Title and Subtitle -->
+    <h1 class="card-title">Account Temporarily Locked</h1>
+    <p class="card-subtitle">
+      For your security, your account has been temporarily locked.
+    </p>
+
+    <!-- Info Alert (Reusable Component) -->
+    <app-alert variant="info">
+      <p>
+        Your account was locked after <strong>{{ failedAttempts }}</strong> 
+        failed login attempts. It will automatically unlock in 
+        <strong>{{ unlockMinutes }}</strong> minutes.
+      </p>
+    </app-alert>
+
+    <!-- Support Contact Link -->
+    <p class="support-text">
+      Need immediate access? 
+      <a href="mailto:support@ugaap.ug" class="support-link">Contact Support</a>
+    </p>
+
+    <!-- Back to Login Link -->
+    <div class="back-row">
+      <a routerLink="/auth/login">← Back to Login</a>
+    </div>
+
+  </div>
+</div>

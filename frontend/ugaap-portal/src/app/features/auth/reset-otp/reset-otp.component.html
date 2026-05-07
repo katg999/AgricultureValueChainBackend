@@ -1,0 +1,108 @@
+<!-- 
+  Reset OTP Page
+  
+  Password reset OTP verification
+  
+-->
+
+<div class="auth-page">
+  <div class="auth-card">
+
+    <!-- UGAAP Logo (Reusable Component) -->
+    <app-logo size="md" [showSubtitle]="false"></app-logo>
+
+    <!-- Page Title and Subtitle -->
+    <h1 class="card-title">Verify your identity</h1>
+    <p class="card-subtitle">
+      A 4-digit code has been sent to verify your identity before you can reset your password
+    </p>
+
+    <!-- Error Alert (Reusable Component) -->
+    <app-alert 
+      variant="error" 
+      [message]="errorMessage"
+      *ngIf="errorMessage">
+    </app-alert>
+
+    <!-- Visual OTP Boxes (Custom - Unique to this page) -->
+    <div class="otp-inputs" (click)="focusHidden()">
+      <div
+        *ngFor="let box of boxes; let i = index"
+        class="otp-box"
+        [class.filled]="box !== ''"
+        [class.active]="i === activeIndex && !isComplete">
+        {{ box }}
+        <!-- Blinking cursor -->
+        <span
+          class="cursor"
+          *ngIf="i === activeIndex && !isComplete">
+        </span>
+      </div>
+    </div>
+
+    <!-- Hidden Input (Captures keystrokes) -->
+    <input
+      #hiddenInput
+      class="hidden-input"
+      type="text"
+      inputmode="numeric"
+      autocomplete="one-time-code"
+      [value]="otpValue"
+      (input)="onHiddenInput($event)"
+      (keydown)="onHiddenKeyDown($event)"/>
+
+    <!-- Verify Button (Reusable Component) -->
+    <app-button
+      type="button"
+      variant="primary"
+      size="lg"
+      [fullWidth]="true"
+      [loading]="isLoading"
+      [disabled]="!isComplete"
+      loadingText="Verifying..."
+      (clicked)="verify()">
+      Verify Code
+    </app-button>
+
+    <!-- Resend Code Section -->
+    <div class="resend-row">
+      <span>Didn't receive the code?</span>
+      <button
+        type="button"
+        class="resend-btn"
+        [disabled]="resendCooldown > 0"
+        (click)="resendOtp()">
+        <span *ngIf="resendCooldown === 0">Resend</span>
+        <span *ngIf="resendCooldown > 0">
+          Resend in {{ resendCooldown }}s
+        </span>
+      </button>
+    </div>
+
+    <!-- Back Link -->
+    <div class="back-row">
+      <a routerLink="/auth/forgot-password">← Back</a>
+    </div>
+
+  </div>
+
+  <!-- Security Footer Info -->
+  <div class="footer-info">
+    <div class="footer-item">
+      <svg width="14" height="14" viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+      <span>SECURE CHANNEL</span>
+    </div>
+    <div class="footer-item">
+      <svg width="14" height="14" viewBox="0 0 24 24"
+        fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+      <span>{{ formattedTime }} REMAINING</span>
+    </div>
+  </div>
+
+</div>
