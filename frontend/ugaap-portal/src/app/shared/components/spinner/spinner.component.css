@@ -1,0 +1,76 @@
+/**
+ * Spinner Component Styles
+ * 
+ * Pure CSS rotating spinner animation
+ * Uses UGAAP universal design tokens for colors
+ */
+
+/*  
+   BASE SPINNER STYLES
+     */
+
+.spinner {
+  display: inline-block;
+  border-radius: 50%;
+  border-style: solid;
+  border-top-color: transparent; /* Creates the rotating effect */
+  animation: spin 0.7s linear infinite;
+}
+
+/*  
+   SIZE VARIANTS
+     */
+
+/* Small - For buttons and compact UI */
+.spinner-sm {
+  width: 14px;
+  height: 14px;
+  border-width: 2px;
+}
+
+/* Medium - Default size for content areas */
+.spinner-md {
+  width: 20px;
+  height: 20px;
+  border-width: 2px;
+}
+
+/* Large - For page-level loading */
+.spinner-lg {
+  width: 32px;
+  height: 32px;
+  border-width: 3px;
+}
+
+/*  
+   COLOR VARIANTS
+   Uses design system colors
+     */
+
+/* White - For colored backgrounds (buttons, overlays) */
+.spinner-white {
+  border-color: rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+}
+
+/* Orange - Brand color (Primary) */
+.spinner-orange {
+  border-color: rgba(242, 93, 39, 0.2);
+  border-top-color: var(--primary); /* #F25D27 */
+}
+
+/* Grey - Subtle loading state */
+.spinner-grey {
+  border-color: rgba(107, 107, 123, 0.2);
+  border-top-color: #6B6B7B;
+}
+
+/*  
+   ANIMATION
+     */
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
