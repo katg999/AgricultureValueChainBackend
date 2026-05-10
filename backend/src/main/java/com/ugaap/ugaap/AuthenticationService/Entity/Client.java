@@ -2,83 +2,48 @@ package com.ugaap.ugaap.AuthenticationService.Entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDateTime;
+import javax.management.relation.Role;
 import java.util.UUID;
 
 @Entity
 @Table(name = "clients")
-@Getter @Setter
+@Getter
+@Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class Client {
-
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", updatable = false, nullable = false)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    @Column(name = "email", unique = true, nullable = false)
+    private String name;
     private String email;
 
-   @Column(name = "password_hash", nullable = false)
-   private String passwordHash;
+    @ManyToOne
+    @JoinColumn(name = "role_id")
+    private Role role;
 
-    @Column(name = "company_name", nullable = false)
-    private String companyName;
+    @ManyToOne
+    @JoinColumn(name = "cooperative_id")
+    private Cooperative cooperative;
 
-    @Column(name = "phone_number")
-    private String phoneNumber;
+    // --- HIERARCHY LINKS ---
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false)
-    private ClientRole role;
+    @ManyToOne
+    @JoinColumn(name = "referred_by_id")
+    private Client referredBy; // Links Farmer to Field Agent
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private ClientStatus status;
+    @ManyToOne
+    @JoinColumn(name = "onboarded_by_id")
+    private Client onboardedBy; // Links Farmer to Branch Manager/Coop Admin
 
-    @Column(name = "failed_login_attempts", nullable = false)
-    private int failedLoginAttempts = 0;
+    @ManyToOne
+    @JoinColumn(name = "managed_by_id")
+    private Client managedBy; // Logical reporting line for operational visibility
 
-    @Column(name = "locked_until")
-    private LocalDateTime lockedUntil;
-
-    @Column(name = "last_login_at")
-    private LocalDateTime lastLoginAt;
-
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-
-
-    public boolean isLocked() {
-        return lockedUntil != null && lockedUntil.isAfter(LocalDateTime.now());
-    }
-
-    public boolean isActive() {
-        return status == ClientStatus.ACTIVE;
-    }
-
-
-
-    public enum ClientRole {
-        CLIENT,       
-        ADMIN,
-        AUDITOR
-    }
-
-    public enum ClientStatus {
-        ACTIVE,
-        INACTIVE,
-        SUSPENDED
-    }
+    // --- STATUS FLAGS ---
+    private boolean approvedByAdmin = false;
+    private boolean produceSold = false; // Trigger for payroll eligibility
 }
