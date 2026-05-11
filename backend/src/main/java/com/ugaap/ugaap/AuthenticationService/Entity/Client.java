@@ -1,5 +1,6 @@
 package com.ugaap.ugaap.AuthenticationService.Entity;
 
+import com.ugaap.ugaap.Membership.domain.Cooperative;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -41,6 +42,14 @@ public class Client {
     @Column(name = "status", nullable = false)
     private ClientStatus status;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cooperative_id")
+    private Cooperative cooperative; // Fixes 'cannot resolve cooperative'
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "onboarded_by_id")
+    private Client onboardedBy; // Fixes 'cannot resolve onboardedBy'
+
     @Column(name = "failed_login_attempts", nullable = false)
     private int failedLoginAttempts = 0;
 
@@ -68,6 +77,19 @@ public class Client {
         return status == ClientStatus.ACTIVE;
     }
 
+    public void setStatus(String active) {
+    }
+
+    public void setApprovedByAdmin(boolean b) {
+    }
+
+    public Object getCooperative() {
+        return cooperative;
+    }
+
+    public void setCooperative(Object cooperative) {
+        this.cooperative = (Cooperative) cooperative;
+    }
 
 
     public enum ClientRole {
