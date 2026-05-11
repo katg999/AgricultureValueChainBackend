@@ -1,0 +1,16 @@
+package com.ugaap.ugaap.Membership.annotation;
+
+import java.lang.annotation.*;
+
+/**
+ * PRODUCTION READY: Enforces RBAC, Multi-tenancy, and MFA.
+ * module: Functional area (e.g., MEMBERSHIP, CONFIG)
+ * action: Operation type (VIEW, CREATE, EDIT, DELETE, APPROVE)
+ */
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface RequiresPermission {
+    String module();
+    String action();
+}
