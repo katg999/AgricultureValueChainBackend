@@ -1,6 +1,6 @@
 package com.ugaap.ugaap;
 
-import com.ugaap.ugaap.config.AppProperties;
+import com.ugaap.ugaap.shared.config.AppProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -14,3 +14,4 @@ public class UGAAPApplication {
 		SpringApplication.run(UGAAPApplication.class, args);
 	}
 }
+
