@@ -1,0 +1,245 @@
+<div class="stock-disbursed-page">
+  <div class="page-header-row">
+    <app-page-header
+      title="Stock Disbursed"
+      subtitle="All inputs allocated and issued to farmers."
+      [breadcrumb]="['Inventory', 'Stock Disbursed']">
+    </app-page-header>
+
+    <app-button
+      type="button"
+      variant="secondary"
+      size="md"
+      iconLeft="↓"
+      (clicked)="downloadReport()">
+      Download report
+    </app-button>
+  </div>
+
+  <div class="stats-grid">
+    <app-stat-card
+      label="TOTAL ALLOCATIONS"
+      [value]="(summary.totalAllocations | number) ?? ''"
+      variant="default">
+    </app-stat-card>
+
+    <app-stat-card
+      label="FULLY RECOVERED"
+      [value]="(summary.fullyRecovered | number) ?? ''"
+      variant="success">
+    </app-stat-card>
+
+    <app-stat-card
+      label="TOTAL VALUE"
+      [value]="'UGX ' + ((summary.totalValue | number:'1.0-0') ?? '0')"
+      variant="default">
+    </app-stat-card>
+
+    <app-stat-card
+      label="PARTIALLY RECOVERED"
+      [value]="(summary.partiallyRecovered | number:'1.0-0') ?? ''"
+      variant="warning">
+    </app-stat-card>
+
+    <app-stat-card
+      label="OVERDUE"
+      [value]="(summary.overdue | number:'1.0-0') ?? ''"
+      variant="danger">
+    </app-stat-card>
+
+    <app-stat-card
+      label="RECOVERY RATE"
+      [value]="summary.recoveryRate + '%'"
+      variant="default">
+    </app-stat-card>
+  </div>
+
+  <div class="filter-section">
+    <div class="search-input">
+      <app-input
+        placeholder="Farmer or allocation search..."
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="applyFilters()">
+      </app-input>
+    </div>
+
+    <select title="Item type" class="select" [(ngModel)]="filterItemType" (ngModelChange)="applyFilters()">
+      <option value="">Item type</option>
+      <option *ngFor="let t of itemTypes" [value]="t">{{ t }}</option>
+    </select>
+
+    <select title="Branch" class="select" [(ngModel)]="filterBranch" (ngModelChange)="applyFilters()">
+      <option value="">All Branches</option>
+      <option *ngFor="let b of branches" [value]="b">{{ b }}</option>
+    </select>
+
+    <app-button
+      title="Advanced filters"
+      size="sm"
+      variant="ghost"
+      type="button"
+      iconLeft="☰"
+      (clicked)="toggleAdvancedFilters()">
+      Filters
+    </app-button>
+  </div>
+
+  <app-alert
+    *ngIf="showAdvancedFilters"
+    variant="info"
+    message="Advanced stock disbursement filters will be added when more allocation fields are available.">
+  </app-alert>
+
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ALLOCATION ID</th>
+          <th>FARMER NAME</th>
+          <th>BRANCH</th>
+          <th>ITEM TYPE</th>
+          <th>QUANTITY</th>
+          <th>TOTAL VALUE</th>
+          <th>ISSUE DATE</th>
+          <th>OUTSTANDING</th>
+          <th>STATUS</th>
+          <th>ACTION</th>
+          <th>ALLOCATION DATE</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let row of visibleAllocations; trackBy: trackById">
+          <td class="id-cell">{{ row.id }}</td>
+          <td class="name-cell">{{ row.farmerName }}</td>
+          <td>{{ row.branch }}</td>
+          <td>
+            <app-badge variant="info">{{ row.itemType }}</app-badge>
+          </td>
+          <td>{{ row.quantity }}</td>
+          <td class="value-cell">UGX {{ row.totalValue | number }}</td>
+          <td>{{ row.issueDate }}</td>
+          <td [ngClass]="{ 'text-danger': row.outstanding > 0 }">
+            UGX {{ row.outstanding | number:'1.0-0' }}
+          </td>
+          <td>
+            <app-badge [variant]="getStatusVariant(row.status)" [dot]="true">
+              {{ row.status | titlecase }}
+            </app-badge>
+          </td>
+          <td>
+            <a class="view-link" [routerLink]="['/allocations', row.id]">View details</a>
+          </td>
+          <td>{{ row.allocationDate }}</td>
+        </tr>
+
+        <tr *ngIf="visibleAllocations.length === 0">
+          <td colspan="11" class="empty-row">No disbursed stock entries match your filters.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="table-footer">
+      <span>Showing {{ pageStart }}-{{ pageEnd }} of {{ totalAllocations }} entries</span>
+
+      <div class="pagination">
+        <app-button
+          title="Previous page"
+          size="sm"
+          variant="ghost"
+          type="button"
+          iconLeft=""
+          [disabled]="currentPage === 1"
+          (clicked)="prevPage()">
+        </app-button>
+
+        <app-button
+          *ngFor="let p of visiblePages"
+          class="page-btn"
+          size="sm"
+          [variant]="p === currentPage ? 'primary' : 'ghost'"
+          type="button"
+          (clicked)="goToPage(p)">
+          {{ p }}
+        </app-button>
+
+        <app-button
+          title="Next page"
+          size="sm"
+          variant="ghost"
+          type="button"
+          iconLeft=">"
+          [disabled]="currentPage === totalPages"
+          (clicked)="nextPage()">
+        </app-button>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-row">
+    <section class="chart-card">
+      <h3>Input versus delivery performance</h3>
+      <p>Comparing disbursements against seasonal produce collection value.</p>
+
+      <div class="chart-legend">
+        <span class="legend-dot legend-dot-inputs"></span> Inputs
+        <span class="legend-dot legend-dot-produce"></span> Produce
+      </div>
+
+      <div class="perf-bar-group">
+        <div class="perf-bar-label">
+          <span>INPUT DISBURSEMENT</span>
+          <span>UGX {{ performance.inputDisbursement }}M</span>
+        </div>
+        <div class="bar-track">
+          <div
+            class="bar-fill bar-fill-inputs"
+            [style.width.%]="getBarPercent(performance.inputDisbursement, performance.maxValue)">
+          </div>
+        </div>
+      </div>
+
+      <div class="perf-bar-group">
+        <div class="perf-bar-label">
+          <span>PRODUCE COLLECTED</span>
+          <span>UGX {{ performance.produceCollected }}M</span>
+        </div>
+        <div class="bar-track">
+          <div
+            class="bar-fill bar-fill-produce"
+            [style.width.%]="getBarPercent(performance.produceCollected, performance.maxValue)">
+          </div>
+        </div>
+      </div>
+
+      <div class="liquidity-callout">
+        <div>
+          <p class="liquidity-heading">Positive Liquidity Gap</p>
+          <p>Produce value exceeds disbursed inputs by 36.9%.</p>
+        </div>
+        <strong>UGX 15.5M</strong>
+      </div>
+    </section>
+
+    <aside class="issues-card">
+      <h4>RECENT ISSUES</h4>
+
+      <div class="issues-list">
+        <app-alert
+          *ngFor="let issue of recentIssues"
+          [variant]="issue.variant"
+          [message]="issue.message">
+        </app-alert>
+      </div>
+
+      <app-button
+        type="button"
+        variant="secondary"
+        size="md"
+        [fullWidth]="true"
+        (clicked)="downloadReport()">
+        Download full report
+      </app-button>
+    </aside>
+  </div>
+</div>
