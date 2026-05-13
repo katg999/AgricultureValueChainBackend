@@ -1,6 +1,6 @@
 package com.ugaap.ugaap.AuthenticationService.Entity;
 
-import com.ugaap.ugaap.Membership.domain.Cooperative;
+import com.ugaap.ugaap.Membership.entity.Cooperative;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -50,6 +50,10 @@ public class Client {
     @JoinColumn(name = "onboarded_by_id")
     private Client onboardedBy; // Fixes 'cannot resolve onboardedBy'
 
+    
+    @Column(name = "is_approved")
+    private boolean approvedByAdmin;
+
     @Column(name = "failed_login_attempts", nullable = false)
     private int failedLoginAttempts = 0;
 
@@ -83,7 +87,7 @@ public class Client {
     public void setApprovedByAdmin(boolean b) {
     }
 
-    public Object getCooperative() {
+    public Cooperative getCooperative() {
         return cooperative;
     }
 

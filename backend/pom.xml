@@ -10,7 +10,6 @@
 	</parent>
 	<groupId>com.agaap</groupId>
 	<artifactId>spring-boot-starter-data-jpa</artifactId>
-	<artifactId>UGAAP</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name/>
 	<description/>
@@ -33,7 +32,7 @@
 	</properties>
 	<dependencies>
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
+			<groupId>org.springframework.boot</groupId>```````````````````````````````
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
 		<dependency>
@@ -139,8 +138,8 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
-					<source>8</source>
-					<target>8</target>
+					<source>25</source>
+					<target>25</target>
 				</configuration>
 			</plugin>
 		</plugins>

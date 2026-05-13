@@ -2,8 +2,8 @@ package com.ugaap.ugaap.Membership.service;
 
 import com.ugaap.ugaap.AuthenticationService.Entity.Client;
 import com.ugaap.ugaap.Membership.annotation.RequiresPermission;
-import com.ugaap.ugaap.Membership.domain.Cooperative;
-import com.ugaap.ugaap.Membership.domain.SaccoConfig;
+import com.ugaap.ugaap.Membership.entity.Cooperative;
+import com.ugaap.ugaap.Membership.entity.SaccoConfig;
 import com.ugaap.ugaap.Membership.repository.SaccoConfigRepository;
 import com.ugaap.ugaap.AuthenticationService.Repository.ClientRepository;
 import lombok.RequiredArgsConstructor;

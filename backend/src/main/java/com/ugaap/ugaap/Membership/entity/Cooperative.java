@@ -1,4 +1,4 @@
-package com.ugaap.ugaap.Membership.domain;
+package com.ugaap.ugaap.Membership.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

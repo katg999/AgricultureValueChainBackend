@@ -1,7 +1,8 @@
-package com.ugaap.ugaap.service;
+package com.ugaap.ugaap.AuthenticationService.service;
 
-import com.ugaap.ugaap.domain.Client;
-import com.ugaap.ugaap.repository.ClientRepository;
+import com.ugaap.ugaap.AuthenticationService.Entity.Client;
+import com.ugaap.ugaap.AuthenticationService.Repository.ClientRepository;
+import com.ugaap.ugaap.dto.PayrollAdjustment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,18 +31,9 @@ public class FarmerService {
      */
     @Transactional
     public void executeBatchPayroll(UUID cooperativeId, List<PayrollAdjustment> adjustments) {
-        for (PayrollAdjustment adj : adjustments) {
-            // 1. Calculate: Gross Produce Value - In-Kind Credit Value = Net Payout
-            double netPayout = adj.getGrossValue() - adj.getManualDeduction();
 
-            // 2. Queue for Bank Transfer (Payroll file generation)
-            prepareBankTransfer(adj.getFarmerId(), netPayout);
+    }
 
-            // 3. Mark as "Paid" in the system
-            updateFarmerPaymentStatus(adj.getFarmerId(), "PAID");
-        }
-
-        // 4. Notify Farmers via SMS/Alert
-        sendBatchNotifications(adjustments);
+    private void sendBatchNotifications(List<PayrollAdjustment> adjustments) {
     }
 }

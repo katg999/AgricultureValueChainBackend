@@ -1,7 +1,7 @@
 package com.ugaap.ugaap.Membership.repository;
 
-import com.ugaap.ugaap.Membership.domain.SaccoConfig;
-import com.ugaap.ugaap.Membership.domain.Cooperative;
+import com.ugaap.ugaap.Membership.entity.SaccoConfig;
+import com.ugaap.ugaap.Membership.entity.Cooperative;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.Optional;
