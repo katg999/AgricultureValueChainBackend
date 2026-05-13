@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-export const INVENTORY_ROUTES: Routes = [
+export const INVENTORY_ROUTES = [
   {
     path: 'add-stock-item',
     loadComponent: () =>
