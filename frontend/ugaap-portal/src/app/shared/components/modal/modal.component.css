@@ -1,0 +1,262 @@
+/**
+ * Modal Component Styles
+ * 
+ * Uses UGAAP design tokens
+ */
+
+/* 
+   BACKDROP OVERLAY
+    */
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(32, 11, 38, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 
+   MODAL CONTAINER
+    */
+
+.modal-container {
+  background: var(--surface-lowest);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(32, 11, 38, 0.15);
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease-out;
+  position: relative;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Size Variants */
+.modal-sm {
+  width: 100%;
+  max-width: 400px;
+}
+
+.modal-md {
+  width: 100%;
+  max-width: 560px;
+}
+
+.modal-lg {
+  width: 100%;
+  max-width: 800px;
+}
+
+/* 
+   MODAL HEADER
+    */
+
+.modal-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 32px 32px 0 32px;
+  position: relative;
+}
+
+.modal-header-text {
+  width: 100%;
+}
+
+.modal-title {
+  font-family: var(--font-human);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--secondary);
+  margin: 0 0 8px 0;
+}
+
+.modal-subtitle {
+  font-family: var(--font-human);
+  font-size: 14px;
+  font-weight: 400;
+  color: #6B6B7B;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Close Button */
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: transparent;
+  border: none;
+  font-size: 32px;
+  line-height: 1;
+  color: #9E9E9E;
+  cursor: pointer;
+  padding: 4px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.15s;
+}
+
+.modal-close:hover {
+  background: #F5F5F5;
+  color: var(--secondary);
+}
+
+/* 
+   MODAL ICON
+    */
+
+.modal-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px auto;
+  box-shadow: 0 0 0 8px rgba(255, 255, 255, 0.8);
+}
+
+.modal-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+/* Icon Variants */
+.modal-icon-success {
+  background: linear-gradient(135deg, #66BB6A, #43A047);
+  color: white;
+  box-shadow: 0 0 0 12px rgba(102, 187, 106, 0.15);
+}
+
+.modal-icon-warning {
+  background: linear-gradient(135deg, #FFA726, #FB8C00);
+  color: white;
+  box-shadow: 0 0 0 12px rgba(255, 167, 38, 0.15);
+}
+
+.modal-icon-danger {
+  background: linear-gradient(135deg, #EF5350, #E53935);
+  color: white;
+  box-shadow: 0 0 0 12px rgba(239, 83, 80, 0.15);
+}
+
+.modal-icon-info {
+  background: linear-gradient(135deg, #42A5F5, #1E88E5);
+  color: white;
+  box-shadow: 0 0 0 12px rgba(66, 165, 245, 0.15);
+}
+
+/* 
+   MODAL BODY
+    */
+
+.modal-body {
+  padding: 24px 32px;
+  font-family: var(--font-human);
+  font-size: 14px;
+  color: var(--secondary);
+  line-height: 1.6;
+}
+
+/* 
+   MODAL FOOTER
+    */
+
+.modal-footer {
+  padding: 0 32px 32px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.modal-footer app-button {
+  flex: 1;
+  max-width: 200px;
+}
+
+/* 
+   RESPONSIVE DESIGN
+    */
+
+@media (max-width: 600px) {
+  .modal-backdrop {
+    padding: 16px;
+  }
+
+  .modal-sm,
+  .modal-md,
+  .modal-lg {
+    max-width: 100%;
+  }
+
+  .modal-header {
+    padding: 24px 24px 0 24px;
+  }
+
+  .modal-body {
+    padding: 20px 24px;
+  }
+
+  .modal-footer {
+    padding: 0 24px 24px 24px;
+    flex-direction: column;
+  }
+
+  .modal-footer app-button {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .modal-title {
+    font-size: 18px;
+  }
+
+  .modal-subtitle {
+    font-size: 13px;
+  }
+
+  .modal-icon {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 12px;
+  }
+
+  .modal-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+}
