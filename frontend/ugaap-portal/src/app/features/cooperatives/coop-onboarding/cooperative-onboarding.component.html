@@ -1,0 +1,356 @@
+<!-- 
+  Cooperative Onboarding Page
+  
+  Multi-step form for registering new cooperatives
+-->
+
+<div class="page">
+  <div class="page-container">
+    
+    <!-- Page Header -->
+    <div class="page-header">
+      <app-logo size="sm" [showSubtitle]="false"></app-logo>
+      <h1 class="page-title">Organisation Onboarding</h1>
+      <p class="page-subtitle">
+        Provide the core legal and operational details of the cooperative to establish the root account identity.
+      </p>
+    </div>
+
+    <!-- Progress Stepper -->
+    <app-stepper [steps]="steps" [currentStep]="currentStep"></app-stepper>
+
+    <!-- Step Content -->
+    <div class="step-content">
+
+      <!-- STEP 1: PROFILE -->
+      <div class="step-panel" *ngIf="currentStep === 0">
+        <form [formGroup]="profileForm">
+          
+          <!-- Organization Name -->
+          <div class="form-row">
+            <app-input
+              label="Organisation Name"
+              type="text"
+              placeholder="e.g., Kasese Farmers Union"
+              formControlName="organizationName"
+              [required]="true"
+              [error]="getFieldError('organizationName')">
+            </app-input>
+          </div>
+
+          <!-- Registration Number & Country -->
+          <div class="form-row form-row-2col">
+            <app-input
+              label="Registration Number"
+              type="text"
+              placeholder="UGA-COOP-8821"
+              formControlName="registrationNumber"
+              [required]="true"
+              [error]="getFieldError('registrationNumber')">
+            </app-input>
+
+            <div class="form-field">
+              <label class="form-label">Country <span class="required">*</span></label>
+              <select class="form-select" formControlName="country">
+                <option value="">Choose Country</option>
+                <option value="Uganda">Uganda</option>
+                <option value="Kenya">Kenya</option>
+                <option value="Tanzania">Tanzania</option>
+              </select>
+              <span class="field-error" *ngIf="getFieldError('country')">
+                {{ getFieldError('country') }}
+              </span>
+            </div>
+          </div>
+
+          <!-- P.O. Box & Website -->
+          <div class="form-row form-row-2col">
+            <app-input
+              label="P.O. Box"
+              type="text"
+              placeholder="John Doe"
+              formControlName="poBox">
+            </app-input>
+
+            <app-input
+              label="Website Url"
+              type="text"
+              placeholder="+256 758 384 857"
+              formControlName="websiteUrl">
+            </app-input>
+          </div>
+
+          <!-- Headquarters Location -->
+          <div class="form-row">
+            <app-input
+              label="Headquarters Location"
+              type="text"
+              placeholder="Plot 14, High Street, Kasese District"
+              formControlName="headquarters"
+              [required]="true"
+              [error]="getFieldError('headquarters')">
+            </app-input>
+          </div>
+
+          <!-- Data Verification Notice -->
+          <app-alert variant="info">
+            <p><strong>Data Verification</strong></p>
+            <p>Ensure the organisation name matches your official registration certificate. This name will be used for all legal invoicing and logistics manifests.</p>
+          </app-alert>
+
+        </form>
+
+        <!-- Sidebar Info (Why this matters) -->
+        <aside class="sidebar-info">
+          <h3 class="sidebar-title">Why this matters?</h3>
+          <ul class="sidebar-list">
+            <li>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              <span>Establishes trust with export partners through verified certificates.</span>
+            </li>
+            <li>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              <span>Enables district-level aggregate reporting for government subsidy eligibility.</span>
+            </li>
+          </ul>
+        </aside>
+      </div>
+
+      <!-- STEP 2: ADMIN -->
+      <div class="step-panel" *ngIf="currentStep === 1">
+        <div class="admin-panel">
+          <h2 class="section-title">Link Two cooperative admin users</h2>
+          <p class="section-subtitle">
+            Search for and assign the two primary administrators for the Mubende Warehouse. This user will have full authority over ledger entries and member management.
+          </p>
+
+          <!-- Search Input -->
+          <div class="search-input">
+            <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+              <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <input
+              type="text"
+              placeholder="Search by name, email, or phone number..."
+              [(ngModel)]="searchQuery"
+              (input)="onSearchUsers()">
+          </div>
+
+          <!-- Available Users -->
+          <div class="user-list">
+            <app-user-card
+              *ngFor="let user of filteredUsers"
+              [user]="user"
+              [selectable]="true"
+              (selected)="onUserSelected($event)">
+            </app-user-card>
+
+            <!-- No Results -->
+            <div class="no-results" *ngIf="filteredUsers.length === 0 && searchQuery">
+              <p>"{{searchQuery}}" not found in the system.</p>
+              <button class="add-user-link">Add new user to system</button>
+            </div>
+          </div>
+
+          <!-- Selected Administrators -->
+          <div class="selected-admins" *ngIf="selectedAdmins.length > 0">
+            <h3 class="selected-title">LINKED ADMINISTRATOR</h3>
+            <app-user-card
+              *ngFor="let admin of selectedAdmins"
+              [user]="admin"
+              [removable]="true"
+              (removed)="onUserRemoved($event)">
+            </app-user-card>
+          </div>
+
+          <!-- Admin Privilege Notice -->
+          <app-alert variant="warning">
+            <p><strong>ADMIN PRIVILEGE NOTICE</strong></p>
+            <p>Linking this user will grant them full access to all cooperative records, including sensitive financial ledger data for Mubende district transactions.</p>
+          </app-alert>
+        </div>
+      </div>
+
+      <!-- STEP 4: REVIEW (Skip step 3 for now) -->
+      <div class="step-panel" *ngIf="currentStep === 3">
+        <div class="review-panel">
+          <h2 class="section-title">Review and confirm activation</h2>
+          <p class="section-subtitle review-subtitle">FINAL STEP</p>
+
+          <!-- Organisation Details -->
+          <div class="review-section">
+            <div class="review-section-header">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
+                <path d="M3 9h18M9 3v18" stroke="currentColor" stroke-width="2"/>
+              </svg>
+              <h3>ORGANISATION DETAILS</h3>
+            </div>
+            <div class="review-item">
+              <span class="review-label">Legal Entity Name</span>
+              <span class="review-value">{{ organizationData.name }}</span>
+            </div>
+            <div class="review-item">
+              <span class="review-label">Primary District</span>
+              <span class="review-value">{{ organizationData.headquarters }}</span>
+            </div>
+            <div class="review-item">
+              <span class="review-label">Primary Commodity</span>
+              <span class="review-value">Coffee Production</span>
+            </div>
+          </div>
+
+          <!-- Administrator -->
+          <div class="review-section">
+            <div class="review-section-header">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
+                <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" stroke="currentColor" stroke-width="2"/>
+              </svg>
+              <h3>ADMINISTRATOR</h3>
+            </div>
+            <div class="review-item" *ngFor="let admin of selectedAdmins">
+              <span class="review-label">{{ admin.name }}</span>
+              <span class="review-value">{{ admin.email }}</span>
+              <span class="review-badge">
+                <app-badge variant="info" size="sm">SYSTEM OWNER</app-badge>
+              </span>
+            </div>
+          </div>
+
+          <!-- Initial Role Map -->
+          <div class="review-section">
+            <div class="review-section-header">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" stroke="currentColor" stroke-width="2"/>
+              </svg>
+              <h3>INITIAL ROLE MAP</h3>
+            </div>
+            <div class="review-item">
+              <span class="review-label">Primary Role Mapped</span>
+              <span class="review-value">Cooperative Administrator</span>
+            </div>
+            <div class="review-item">
+              <span class="review-label">Granted Permissions</span>
+              <div class="permissions-list">
+                <span class="permission-tag">Financial Reporting</span>
+                <span class="permission-tag">Inventory Management</span>
+                <span class="permission-tag">Member Onboarding</span>
+                <span class="permission-tag">Audit Logs</span>
+                <span class="more-tag">+ 12 more</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Post-Activation Notice -->
+          <div class="post-activation-notice">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+              <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <div>
+              <h4>Post-Activation Setup</h4>
+              <p>Upon activation, an onboarding email will be sent to the administrator. The first login will require a password reset and two-factor authentication setup for security compliance.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <button 
+        class="btn-back" 
+        *ngIf="currentStep > 0"
+        (click)="previousStep()">
+        ← Back
+      </button>
+
+      <div class="actions-right">
+        <app-button
+          variant="ghost"
+          size="md"
+          [loading]="isSaving"
+          loadingText="Saving..."
+          (clicked)="saveProgress()">
+          Save Progress
+        </app-button>
+
+        <app-button
+          variant="primary"
+          size="md"
+          *ngIf="currentStep < 3"
+          (clicked)="nextStep()">
+          {{ currentStep === 1 ? 'Next Step' : 'Continue' }} →
+        </app-button>
+
+        <app-button
+          variant="primary"
+          size="md"
+          *ngIf="currentStep === 3"
+          (clicked)="openConfirmModal()">
+          Activate cooperative ⚡
+        </app-button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Confirmation Modal -->
+<app-modal
+  [isOpen]="showConfirmModal"
+  title="Confirm activation"
+  subtitle="You are about to launch the Mubende Agricultural Cooperative digital environment. This action will provision resources and send login credentials."
+  [showIcon]="true"
+  iconVariant="success"
+  size="md"
+  (closed)="closeConfirmModal()">
+
+  <div body>
+    <div class="modal-info-grid">
+      <div class="modal-info-row">
+        <span class="modal-info-label">Environment:</span>
+        <span class="modal-info-value">Production Terminal</span>
+      </div>
+      <div class="modal-info-row">
+        <span class="modal-info-label">Allocated Storage:</span>
+        <span class="modal-info-value">50 GB Cloud Baseline</span>
+      </div>
+      <div class="modal-info-row">
+        <span class="modal-info-label">Service SLA:</span>
+        <span class="modal-info-value">99.9% Uptime</span>
+      </div>
+    </div>
+
+    <app-alert variant="warning">
+      <p><strong>⚠️ This action cannot be undone once the provisioning begins.</strong></p>
+    </app-alert>
+  </div>
+
+  <div footer>
+    <app-button
+      variant="ghost"
+      size="md"
+      (clicked)="closeConfirmModal()">
+      Cancel
+    </app-button>
+
+    <app-button
+      variant="primary"
+      size="md"
+      [loading]="isLoading"
+      loadingText="Activating..."
+      (clicked)="activateCooperative()">
+      Confirm and activate
+    </app-button>
+  </div>
+</app-modal>

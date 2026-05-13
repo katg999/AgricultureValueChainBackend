@@ -1,0 +1,24 @@
+<!-- 
+  Stepper Component Template
+  
+  Multi-step progress indicator
+-->
+
+<div class="stepper">
+  <div class="stepper-steps">
+    <div 
+      *ngFor="let step of steps; let i = index"
+      class="step"
+      [class]="getStepClass(i)">
+      
+      <!-- Step number and label -->
+      <div class="step-content">
+        <div class="step-number">{{ step.number }}.</div>
+        <div class="step-label">{{ step.label }}</div>
+      </div>
+
+      <!-- Progress bar (not shown after last step) -->
+      <div class="step-bar" *ngIf="i < steps.length + 1"></div>
+    </div>
+  </div>
+</div>

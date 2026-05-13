@@ -1,0 +1,103 @@
+<!-- 
+  User Card Component Template
+  
+  Displays user info with avatar, name, email, actions
+-->
+
+<div [class]="cardClasses" (click)="onClick()">
+  <div class="user-card-content">
+    <!-- User Avatar -->
+    <div class="user-avatar">
+      <!-- Image avatar if available -->
+      <img 
+        *ngIf="user.avatar" 
+        [src]="user.avatar" 
+        [alt]="user.name"
+        class="user-avatar-img">
+      
+      <!-- Initials avatar if no image -->
+      <div *ngIf="!user.avatar" class="user-avatar-initials">
+        {{ initials }}
+      </div>
+    </div>
+
+    <!-- User Info -->
+    <div class="user-info">
+      <!-- Name with verified badge -->
+      <div class="user-name-row">
+        <h3 class="user-name">{{ user.name }}</h3>
+        
+        <!-- Verified checkmark -->
+        <svg 
+          *ngIf="user.verified" 
+          class="user-verified"
+          width="16" 
+          height="16" 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="10" fill="#4CAF50"/>
+          <path d="M9 12l2 2 4-4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <!-- Contact Info -->
+      <div class="user-contact">
+        <div class="user-email">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" stroke-width="2" fill="none"/>
+            <path d="M22 6l-10 7L2 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>{{ user.email }}</span>
+        </div>
+
+        <div class="user-phone" *ngIf="user.phone">
+          <span>{{ user.phone }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions Section -->
+  <div class="user-actions">
+    <!-- Role Badge - using 'info' variant from existing badge -->
+    <app-badge 
+      *ngIf="user.role" 
+      variant="info" 
+      size="sm">
+      {{ user.role }}
+    </app-badge>
+
+    <!-- Select Button -->
+    <button 
+      *ngIf="selectable && !user.selected"
+      type="button"
+      class="user-action-btn user-select-btn"
+      (click)="onSelect(); $event.stopPropagation()"
+      [disabled]="disabled">
+      Select
+    </button>
+
+    <!-- Selected Badge - using 'verified' variant from existing badge -->
+    <app-badge 
+      *ngIf="user.selected"
+      variant="verified"
+      size="sm">
+      Selected
+    </app-badge>
+
+    <!-- Remove Button -->
+    <button 
+      *ngIf="removable"
+      type="button"
+      class="user-action-btn user-remove-btn"
+      (click)="onRemove(); $event.stopPropagation()"
+      [disabled]="disabled">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+        <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      Remove
+    </button>
+  </div>
+</div>

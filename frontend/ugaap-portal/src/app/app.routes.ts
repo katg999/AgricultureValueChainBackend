@@ -3,7 +3,7 @@ import { Routes } from '@angular/router';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'inventory/current-stock',
+    redirectTo: 'auth/login',
     pathMatch: 'full'
   },
   {
@@ -17,7 +17,15 @@ export const routes: Routes = [
     loadChildren: () =>
       import('./features/inventory/inventory.routes')
         .then(m => m.INVENTORY_ROUTES as Routes)
-  }
+  },
+  {
+    path: 'cooperatives',
+    loadChildren: () =>
+      import('./features/cooperatives/cooperatives.routes')
+        .then(m => m.COOPERATIVES_ROUTES as Routes)
+  },
+
+
   
-  
+
 ];
