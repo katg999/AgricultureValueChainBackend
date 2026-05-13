@@ -279,7 +279,7 @@ export class CurrentStockComponent implements OnInit {
   }
 
   addStock(): void {
-    this.router.navigate(['../add-stock'], { relativeTo: this.route });
+    this.router.navigate(['../add-stock-item'], { relativeTo: this.route });
   }
 
   importStock(): void {
