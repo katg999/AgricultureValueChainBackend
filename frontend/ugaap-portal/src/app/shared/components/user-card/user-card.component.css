@@ -1,0 +1,257 @@
+/**
+ * User Card Component Styles
+ * 
+ * Uses UGAAP design tokens
+ */
+
+/* ================================
+   USER CARD CONTAINER
+   ================================ */
+
+.user-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--surface-lowest);
+  border: 1px solid #E8E6ED;
+  border-radius: 12px;
+  transition: all 0.15s;
+  cursor: pointer;
+}
+
+.user-card:hover {
+  background: #FAFAFA;
+  border-color: #D1CFD7;
+}
+
+.user-card-selected {
+  background: #F0FAF0;
+  border-color: #A5D6A7;
+}
+
+.user-card-selected:hover {
+  background: #E8F5E9;
+}
+
+.user-card-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ================================
+   CARD CONTENT (Left side)
+   ================================ */
+
+.user-card-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
+/* ================================
+   USER AVATAR
+   ================================ */
+
+.user-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--muted-purple);
+}
+
+.user-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.user-avatar-initials {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-human);
+  font-size: 16px;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, var(--muted-purple), var(--secondary));
+}
+
+/* ================================
+   USER INFO
+   ================================ */
+
+.user-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.user-name {
+  font-family: var(--font-human);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--secondary);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-verified {
+  flex-shrink: 0;
+}
+
+.user-contact {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.user-email,
+.user-phone {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-human);
+  font-size: 13px;
+  color: #6B6B7B;
+}
+
+.user-email svg {
+  flex-shrink: 0;
+  color: #9E9E9E;
+}
+
+.user-email span,
+.user-phone span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ================================
+   USER ACTIONS (Right side)
+   ================================ */
+
+.user-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.user-action-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-family: var(--font-human);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.user-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Select Button */
+.user-select-btn {
+  background: transparent;
+  color: var(--primary);
+  border: 1.5px solid var(--primary);
+}
+
+.user-select-btn:hover:not(:disabled) {
+  background: var(--primary);
+  color: white;
+}
+
+/* Remove Button */
+.user-remove-btn {
+  background: transparent;
+  color: #E53935;
+  border: 1.5px solid #E53935;
+}
+
+.user-remove-btn:hover:not(:disabled) {
+  background: #E53935;
+  color: white;
+}
+
+.user-remove-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ================================
+   RESPONSIVE DESIGN
+   ================================ */
+
+@media (max-width: 768px) {
+  .user-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .user-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .user-action-btn {
+    flex: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .user-card {
+    padding: 14px 16px;
+  }
+
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .user-avatar-initials {
+    font-size: 14px;
+  }
+
+  .user-name {
+    font-size: 14px;
+  }
+
+  .user-email,
+  .user-phone {
+    font-size: 12px;
+  }
+
+  .user-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .user-action-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

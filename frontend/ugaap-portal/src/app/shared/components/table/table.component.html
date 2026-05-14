@@ -1,0 +1,71 @@
+<!-- 
+  Table Component Template
+  
+  Reusable data table with sorting and custom templates
+-->
+
+<div class="table-container">
+  <!-- Loading State -->
+  <div class="table-loading" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Loading...</p>
+  </div>
+
+  <!-- Table -->
+  <table class="table" *ngIf="!loading">
+    <!-- Table Header -->
+    <thead class="table-header">
+      <tr>
+        <th 
+          *ngFor="let column of columns"
+          [style.width]="column.width"
+          [class.sortable]="column.sortable"
+          (click)="onSort(column)">
+          
+          <div class="table-header-cell">
+            <span>{{ column.label }}</span>
+            
+            <!-- Sort Icon -->
+            <span class="sort-icon" *ngIf="column.sortable && sortColumn === column.key">
+              <ng-container *ngIf="sortDirection === 'asc'">↑</ng-container>
+              <ng-container *ngIf="sortDirection === 'desc'">↓</ng-container>
+            </span>
+          </div>
+        </th>
+      </tr>
+    </thead>
+
+    <!-- Table Body -->
+    <tbody class="table-body">
+      <!-- Data Rows -->
+      <tr 
+        *ngFor="let row of data"
+        [class]="getRowClasses()"
+        (click)="onRowClick(row)">
+        
+        <td *ngFor="let column of columns" class="table-cell">
+          <!-- Custom Template -->
+          <ng-container *ngIf="column.template">
+            <ng-container 
+              *ngTemplateOutlet="column.template; context: { $implicit: row, value: getCellValue(row, column) }">
+            </ng-container>
+          </ng-container>
+
+          <!-- Default Text -->
+          <ng-container *ngIf="!column.template">
+            {{ getCellValue(row, column) }}
+          </ng-container>
+        </td>
+      </tr>
+
+      <!-- Empty State -->
+      <tr *ngIf="data.length === 0" class="table-empty">
+        <td [attr.colspan]="columns.length">
+          <div class="table-empty-content">
+            <p>{{ emptyMessage }}</p>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

@@ -1,0 +1,18 @@
+import { Routes } from '@angular/router';
+
+export const COOPERATIVES_ROUTES: Routes = [
+ 
+  {
+    path: '',
+    loadComponent: () =>
+      import('./cooperatives-list/cooperatives-list.component')
+        .then(m => m.CooperativesListComponent)
+  }
+  ,{
+    path: 'onboarding',
+    loadComponent: () =>
+      import('./coop-onboarding/cooperative-onboarding.component')
+        .then(m => m.CooperativeOnboardingComponent)
+  },
+  
+];
