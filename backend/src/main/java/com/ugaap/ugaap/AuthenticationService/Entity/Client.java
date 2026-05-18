@@ -1,6 +1,5 @@
 package com.ugaap.ugaap.AuthenticationService.Entity;
 
-import com.ugaap.ugaap.Membership.entity.Cooperative;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -25,8 +24,8 @@ public class Client {
     @Column(name = "email", unique = true, nullable = false)
     private String email;
 
-   @Column(name = "password_hash", nullable = false)
-   private String passwordHash;
+    @Column(name = "password_hash", nullable = false)
+    private String passwordHash;
 
     @Column(name = "company_name", nullable = false)
     private String companyName;
@@ -41,18 +40,6 @@ public class Client {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private ClientStatus status;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cooperative_id")
-    private Cooperative cooperative; // Fixes 'cannot resolve cooperative'
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "onboarded_by_id")
-    private Client onboardedBy; // Fixes 'cannot resolve onboardedBy'
-
-    
-    @Column(name = "is_approved")
-    private boolean approvedByAdmin;
 
     @Column(name = "failed_login_attempts", nullable = false)
     private int failedLoginAttempts = 0;
@@ -81,23 +68,10 @@ public class Client {
         return status == ClientStatus.ACTIVE;
     }
 
-    public void setStatus(String active) {
-    }
-
-    public void setApprovedByAdmin(boolean b) {
-    }
-
-    public Cooperative getCooperative() {
-        return cooperative;
-    }
-
-    public void setCooperative(Object cooperative) {
-        this.cooperative = (Cooperative) cooperative;
-    }
 
 
     public enum ClientRole {
-        CLIENT,       
+        CLIENT,
         ADMIN,
         AUDITOR
     }
