@@ -1,0 +1,133 @@
+<!-- 
+  Create/Edit Role Page
+  
+  Form for managing roles and permissions
+-->
+
+<div class="page">
+  <div class="page-container">
+    
+    <!-- Page Header -->
+    <div class="page-header">
+      <app-logo size="sm" [showSubtitle]="false"></app-logo>
+      <h1 class="page-title">{{ isEditMode ? 'Edit Role' : 'Create New Role' }}</h1>
+      <p class="page-subtitle">{{ isEditMode ? 'Update role details and permissions' : 'Define a new role with custom permissions' }}</p>
+    </div>
+
+    <form [formGroup]="roleForm" (ngSubmit)="saveRole()">
+
+      <!-- ROLE DETAILS -->
+      <app-info-card title="ROLE DETAILS" >
+        
+        <!-- Role Name -->
+        <div class="form-row">
+          <app-input
+            label="Role name"
+            type="text"
+            placeholder="e.g., Logistics Manager"
+            formControlName="name"
+            [required]="true"
+            [error]="getFieldError('name')">
+          </app-input>
+        </div>
+
+        <!-- Description -->
+        <div class="form-row">
+          <div class="form-field">
+            <label class="form-label">Description <span class="required">*</span></label>
+            <textarea
+              class="form-textarea"
+              placeholder="Brief description of what this role can do..."
+              formControlName="description"
+              rows="3"></textarea>
+            <span class="field-error" *ngIf="getFieldError('description')">
+              {{ getFieldError('description') }}
+            </span>
+          </div>
+        </div>
+
+      </app-info-card>
+
+      <!-- PERMISSIONS -->
+      <app-info-card title="PERMISSIONS" >
+        
+        <!-- Permissions Summary -->
+        <div class="permissions-summary">
+          
+          <div class="summary-content">
+            <h3>{{ selectedPermissionsCount }} permissions selected</h3>
+            <p>Grant specific access rights to users with this role</p>
+          </div>
+        </div>
+
+        <!-- Permission Modules -->
+        <div class="permissions-modules">
+          
+          <div 
+            *ngFor="let module of permissionModules"
+            class="permission-module">
+            
+            <!-- Module Header -->
+            <div class="module-header">
+              <div class="module-title-row">
+                <span class="module-icon">{{ module.icon }}</span>
+                <h4 class="module-name">{{ module.name }}</h4>
+                
+                <!-- Select All Checkbox -->
+                <label class="checkbox-container checkbox-select-all">
+                  <input
+                    type="checkbox"
+                    [checked]="isModuleFullySelected(module)"
+                    [indeterminate]="isModulePartiallySelected(module)"
+                    (change)="toggleModulePermissions(module, $any($event.target).checked)">
+                  <span class="checkmark"></span>
+                  <span class="checkbox-label">Select all</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Module Permissions -->
+            <div class="module-permissions">
+              
+              <label 
+                *ngFor="let permission of module.permissions"
+                class="checkbox-container">
+                <input
+                  type="checkbox"
+                  [(ngModel)]="permission.checked"
+                  [ngModelOptions]="{standalone: true}">
+                <span class="checkmark"></span>
+                <span class="checkbox-label">{{ permission.label }}</span>
+              </label>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </app-info-card>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <button 
+          type="button"
+          class="btn-cancel"
+          (click)="cancel()">
+          Cancel
+        </button>
+
+        <app-button
+          type="submit"
+          variant="primary"
+          size="lg"
+          [loading]="isLoading"
+          loadingText="Saving...">
+          {{ isEditMode ? 'Update role' : 'Create role' }}
+        </app-button>
+      </div>
+
+    </form>
+
+  </div>
+</div>

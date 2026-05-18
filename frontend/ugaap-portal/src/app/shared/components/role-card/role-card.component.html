@@ -1,0 +1,79 @@
+<!-- 
+  Role Card Component
+  
+  Displays role information with stats and actions
+-->
+
+<div 
+  class="role-card"
+  [class.role-system]="role.isSystem"
+  (click)="onCardClick()">
+  
+  <!-- Role Header -->
+  <div class="role-header">
+    <div class="role-title-row">
+      <h3 class="role-name">{{ role.name }}</h3>
+      <app-badge 
+        *ngIf="role.isSystem"
+        variant="info" 
+        size="sm">
+        SYSTEM
+      </app-badge>
+    </div>
+    <p class="role-description">{{ role.description }}</p>
+  </div>
+
+  <!-- Role Stats -->
+  <div class="role-stats">
+    
+    <!-- Permissions Count -->
+    <div class="stat-item">
+      <svg class="stat-icon" width="16" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" 
+              stroke="currentColor" 
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              fill="none"/>
+      </svg>
+      <span class="stat-label">{{ role.permissionsCount }} permissions</span>
+    </div>
+
+    <!-- Users Count -->
+    <div class="stat-item">
+      <svg class="stat-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
+        <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span class="stat-label">{{ role.usersCount }} users</span>
+    </div>
+
+  </div>
+
+  <!-- Role Actions -->
+  <div class="role-actions">
+    
+    <!-- Edit Button (only for non-system roles) -->
+    <button 
+      class="action-link"
+      *ngIf="!role.isSystem"
+      (click)="onEditClick($event)">
+      Edit
+    </button>
+
+    <!-- Delete Button (only for non-system roles) -->
+    <button 
+      class="action-link action-danger"
+      *ngIf="!role.isSystem"
+      (click)="onDeleteClick($event)">
+      Delete
+    </button>
+
+    <!-- Created Date -->
+    <span class="created-date">
+      Created {{ role.createdAt }}
+    </span>
+
+  </div>
+
+</div>

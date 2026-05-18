@@ -4,9 +4,9 @@
  * Uses UGAAP design tokens
  */
 
-/* ================================
+/* 
    USER CARD CONTAINER
-   ================================ */
+    */
 
 .user-card {
   display: flex;
@@ -39,9 +39,9 @@
   cursor: not-allowed;
 }
 
-/* ================================
+/* 
    CARD CONTENT (Left side)
-   ================================ */
+    */
 
 .user-card-content {
   display: flex;
@@ -50,9 +50,9 @@
   flex: 1;
 }
 
-/* ================================
+/* 
    USER AVATAR
-   ================================ */
+    */
 
 .user-avatar {
   width: 48px;
@@ -83,9 +83,9 @@
   background: linear-gradient(135deg, var(--muted-purple), var(--secondary));
 }
 
-/* ================================
+/* 
    USER INFO
-   ================================ */
+    */
 
 .user-info {
   flex: 1;
@@ -142,9 +142,9 @@
   text-overflow: ellipsis;
 }
 
-/* ================================
+/* 
    USER ACTIONS (Right side)
-   ================================ */
+    */
 
 .user-actions {
   display: flex;
@@ -201,9 +201,9 @@
   height: 14px;
 }
 
-/* ================================
+/* 
    RESPONSIVE DESIGN
-   ================================ */
+    */
 
 @media (max-width: 768px) {
   .user-card {
