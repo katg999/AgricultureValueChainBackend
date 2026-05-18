@@ -1,0 +1,146 @@
+<div class="page-shell">
+
+  <!-- App identity header shared with the auth experience. -->
+  <header class="app-header">
+    <div class="app-logo">
+      <app-logo size="sm" [showSubtitle]="false"></app-logo>
+    </div>
+    <p class="app-subtitle">ADMIN TERMINAL</p>
+  </header>
+
+  <main class="setup-card" role="main">
+
+    <!-- Welcome copy and setup progress summary. -->
+    <div class="card-top">
+      <div class="card-intro">
+        <h2 class="card-title">Welcome to UGAAP</h2>
+        <p class="card-body">
+          Welcome, <span class="cooperative-name">{{ cooperativeName }}.</span>
+          Let's get your cooperative digital ledger ready for operation.
+        </p>
+      </div>
+      <div class="progress-block" aria-label="Setup progress">
+        <span class="progress-label">SETUP PROGRESS</span>
+        <div class="progress-bar-wrap" aria-label="setup Progress" role="progressbar" 
+        [attr.aria-valuenow]="setupProgress" aria-valuemin="0" aria-valuemax="100">
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" [style.width.%]="setupProgress"></div>
+          </div><!--progress-bar-track-->
+          <span class="progress-pct">{{ setupProgress }}%</span>
+        </div><!--progress-bar-wrap-->
+      </div><!--progress-block-->
+    </div><!--card-top-->
+
+    <!-- Ordered setup checklist; locked steps open only after earlier setup is complete. -->
+    <ul class="steps-list" aria-label="Setup steps">
+      <li
+        *ngFor="let step of steps"
+        class="step-row"
+        [class.step--completed]="step.status === 'completed'"
+        [class.step--active]="step.status === 'active'"
+        [class.step--pending]="step.status === 'pending'"
+        [class.step--locked]="step.status === 'locked'"
+      >
+        <div class="step-icon-wrap" [attr.aria-hidden]="true">
+          <ng-container [ngSwitch]="step.icon">
+
+            <svg *ngSwitchCase="'shield'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="M9 12l2 2 4-4"/>
+            </svg>
+
+            <svg *ngSwitchCase="'branches'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="6" height="6" rx="1"/>
+              <rect x="15" y="3" width="6" height="6" rx="1"/>
+              <rect x="9" y="15" width="6" height="6" rx="1"/>
+              <path d="M6 9v3h12V9M12 12v3"/>
+            </svg>
+
+            <svg *ngSwitchCase="'roles'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="9" cy="7" r="3"/>
+              <path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              <path d="M21 21v-2a4 4 0 0 0-3-3.87"/>
+            </svg>
+
+            <svg *ngSwitchCase="'commodities'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+            </svg>
+
+            <svg *ngSwitchCase="'seasons'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+
+            <svg *ngSwitchCase="'grading'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+
+          </ng-container>
+        </div><!--step-icon-wrap-->
+
+        <div class="step-text">
+          <p class="step-title">{{ step.title }}</p>
+          <p class="step-desc">{{ step.description }}</p>
+        </div>
+
+        <div class="step-action">
+          <ng-container [ngSwitch]="step.status">
+            <span *ngSwitchCase="'completed'" class="badge badge--completed" aria-label="Step completed">{{ step.actionLabel }}</span>
+            <app-button
+              *ngSwitchCase="'active'"
+              class="setup-action"
+              type="button"
+              variant="primary"
+              size="md"
+              (clicked)="onStepAction(step)"
+            >
+              {{ step.actionLabel }}
+            </app-button>
+            <app-button
+              *ngSwitchCase="'pending'"
+              class="setup-action"
+              type="button"
+              variant="ghost"
+              size="md"
+              [disabled]="!step.route"
+              (clicked)="onStepAction(step)"
+            >
+              {{ step.actionLabel }}
+            </app-button>
+          
+            <svg *ngSwitchCase="'locked'" class="lock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-label="Locked">
+              <rect x="5" y="11" width="14" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </ng-container>
+        </div>
+      </li>
+    </ul>
+
+    <!-- Operational note explaining why setup order matters. -->
+    <aside class="info-notice" role="note">
+      <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <p>
+        Tasks must be completed in the order shown to ensure data integrity across your cooperative
+        network. You can access these settings later in the Settings panel once your terminal is fully
+        initialized.
+      </p>
+    </aside>
+
+  </main>
+
+  <!-- Secondary exit for users who need to return before finishing onboarding. -->
+  <footer class="page-footer">
+    <button class="skip-link" type="button" (click)="onSkipSetup()">Skip setup for now &rsaquo;</button>
+    <p class="footer-copy">PRECISION AGRICULTURAL MANAGEMENT &copy; 2024</p>
+  </footer>
+
+</div>
