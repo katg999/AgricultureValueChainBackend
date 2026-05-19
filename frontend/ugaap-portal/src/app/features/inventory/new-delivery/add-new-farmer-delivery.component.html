@@ -1,0 +1,127 @@
+<main class="inventory-page">
+  <div class="page-body">
+    
+    <div class="page-header">
+      <app-page-header
+        title="Add New Farmer Delivery"
+        subtitle="Record a new delivery from a farmer to the warehouse. Ensure quantity and quality parameters are accurate for inventory and payment processing."
+        [breadcrumb]="['Inventory', 'Farmer Deliveries', 'Add New Delivery']">
+        
+        <div class="header-actions">
+          <app-button
+            size="md"
+            variant="primary"
+            type="button"
+            (clicked)="onNewEntry()">
+            <span>New Entry</span>
+          </app-button>
+        </div>
+      </app-page-header>
+    </div>
+
+    <div class="form-container">
+      <form [formGroup]="deliveryForm" (ngSubmit)="onSubmit()" class="input-card"> 
+        <h3>Delivery Details</h3>
+
+        <div class="status-toggle">
+          <span>Verified Status</span>
+          <label class="switch">
+            <input type="checkbox" title="Verification Status" formControlName="isVerified">
+            <span class="slider round"></span>
+          </label>
+        </div>
+
+        <div class="form-grid">
+          <app-input 
+            label="Batch Number"
+            type="text"
+            placeholder="e.g. BATCH-2026-001"
+            formControlName="batchNumber"
+            [required]="true"
+            [error]="getFieldError('batchNumber') ?? ''">
+          </app-input>
+
+          <app-input 
+            label="Farmer Identity"
+            type="text"
+            placeholder="e.g. John Doe"
+            formControlName="farmerIdentity"
+            [required]="true"
+            [error]="getFieldError('farmerIdentity') ?? ''">
+          </app-input>
+
+          <app-input 
+            label="Type Category"
+            type="text"
+            placeholder="e.g. Maize, Coffee"
+            formControlName="typeCategory"
+            [required]="true"
+            [error]="getFieldError('typeCategory') ?? ''">
+          </app-input>
+
+          <app-input 
+            label="Quantity Volume"
+            type="number"
+            placeholder="0.00"
+            formControlName="quantityVolume"
+            [required]="true"
+            [error]="getFieldError('quantityVolume') ?? ''">
+          </app-input>
+
+          <app-input 
+            label="Grading Standard"
+            type="text"
+            placeholder="e.g. Grade A, FAQ"
+            formControlName="gradingStandard"
+            [required]="true"
+            [error]="getFieldError('gradingStandard') ?? ''">
+          </app-input>
+
+          <app-input 
+            label="Pricing (UGX)"
+            type="number"
+            placeholder="e.g. 1500"
+            formControlName="pricingUgx"
+            [required]="true"
+            [error]="getFieldError('pricingUgx') ?? ''">
+          </app-input>
+
+          <app-input 
+            label="Date Logged"
+            type="date"
+            formControlName="dateLogged"
+            [required]="true"
+            [error]="getFieldError('dateLogged') ?? ''">
+          </app-input>
+        </div>
+
+        <div class="field-row textarea-group">
+          <label class="textarea-label">Delivery Notes / Quality Remarks</label>
+          <textarea 
+            id="description"
+            formControlName="deliveryNotes"
+            placeholder="Enter moisture content, processing notes, or any specific handling requirements...">
+          </textarea>
+        </div>
+
+        <div class="form-actions">
+          <app-button
+            size="md"
+            variant="ghost"
+            type="button"
+            (clicked)="onCancel()">
+            <span>Cancel</span>
+          </app-button>
+
+          <app-button
+            variant="primary"
+            size="md"
+            type="submit"
+            [loading]="isSubmitting">
+            <span>Save Delivery</span>
+          </app-button>
+        </div>
+      </form>
+    </div>    
+  </div>    
+</main>
