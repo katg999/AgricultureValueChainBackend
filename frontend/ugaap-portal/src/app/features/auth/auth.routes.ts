@@ -8,6 +8,12 @@ export const AUTH_ROUTES: Routes = [
         .then(m => m.LoginComponent)
   },
   {
+    path: 'first-time-login',
+    loadComponent: () =>
+      import('./first-time-login/first-time-login.component')
+        .then(m => m.FirstTimeLoginComponent)
+  },
+  {
     path: 'otp',
     loadComponent: () =>
       import('./otp-verify/otp-verify.component')
