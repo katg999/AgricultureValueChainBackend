@@ -24,8 +24,8 @@ public class Client {
     @Column(name = "email", unique = true, nullable = false)
     private String email;
 
-   @Column(name = "password_hash", nullable = false)
-   private String passwordHash;
+    @Column(name = "password_hash", nullable = false)
+    private String passwordHash;
 
     @Column(name = "company_name", nullable = false)
     private String companyName;
@@ -71,7 +71,7 @@ public class Client {
 
 
     public enum ClientRole {
-        CLIENT,       
+        CLIENT,
         ADMIN,
         AUDITOR
     }
