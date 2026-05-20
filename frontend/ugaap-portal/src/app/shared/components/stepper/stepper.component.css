@@ -5,9 +5,9 @@
  * Dynamically shows bars for all steps (even if 3, 4, or 5 steps)
  */
 
-/* ================================
+/* 
    STEPPER CONTAINER
-   ================================ */
+    */
 
 .stepper {
   width: 100%;
@@ -20,9 +20,9 @@
   justify-content: space-between;
 }
 
-/* ================================
+/* 
    INDIVIDUAL STEP
-   ================================ */
+    */
 
 .step {
   flex: 1;
@@ -61,10 +61,10 @@
   color: #9E9E9E;
 }
 
-/* ================================
+/* 
    PROGRESS BAR
    ALL steps show bars (including last one)
-   ================================ */
+    */
 
 .step-bar {
   width: 100%;
@@ -75,9 +75,9 @@
   /* Show bar on ALL steps */
 }
 
-/* ================================
+/* 
    STEP STATES
-   ================================ */
+    */
 
 /* Completed step */
 .step-completed .step-number,
@@ -109,9 +109,9 @@
   background: #E0E0E0;
 }
 
-/* ================================
+/* 
    RESPONSIVE DESIGN
-   ================================ */
+    */
 
 @media (max-width: 768px) {
   .step {

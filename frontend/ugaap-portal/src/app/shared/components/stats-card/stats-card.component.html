@@ -1,0 +1,60 @@
+<!-- 
+  Stats Card Component
+  
+  Displays metric with title, value, and optional trend
+-->
+
+<div class="stats-card" [ngClass]="'stats-card-' + variant">
+  
+  <!-- Icon (optional) -->
+  <div class="stats-icon" *ngIf="icon">
+    <span class="icon">{{ icon }}</span>
+  </div>
+
+  <!-- Card Content -->
+  <div class="stats-content">
+    
+    <!-- Title -->
+    <h3 class="stats-title">{{ title }}</h3>
+    
+    <!-- Value and Trend -->
+    <div class="stats-row">
+      <span class="stats-value">{{ formattedValue }}</span>
+      
+      <!-- Trend Indicator -->
+      <span 
+        *ngIf="trend" 
+        class="stats-trend"
+        [ngClass]="{
+          'trend-positive': isPositiveTrend,
+          'trend-negative': isNegativeTrend
+        }">
+        
+        <!-- Up Arrow for positive -->
+        <svg 
+          *ngIf="isPositiveTrend" 
+          width="12" 
+          height="12" 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 4l-8 8h16l-8-8z" fill="currentColor"/>
+        </svg>
+        
+        <!-- Down Arrow for negative -->
+        <svg 
+          *ngIf="isNegativeTrend" 
+          width="12" 
+          height="12" 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 20l8-8H4l8 8z" fill="currentColor"/>
+        </svg>
+        
+        {{ trend }}
+      </span>
+    </div>
+  </div>
+
+</div>

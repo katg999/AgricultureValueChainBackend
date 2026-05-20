@@ -1,0 +1,43 @@
+<!-- 
+  Toggle Switch Component
+  
+  iOS-style toggle for boolean values
+-->
+
+<div class="toggle-container" [ngClass]="{ 'toggle-disabled': disabled }">
+  
+  <!-- Switch and Label wrapper -->
+  <div class="toggle-wrapper">
+    
+    <!-- Toggle Switch -->
+    <button
+      type="button"
+      role="switch"
+      class="toggle-switch"
+      [ngClass]="{ 'toggle-checked': checked }"
+      [attr.aria-checked]="checked"
+      [attr.aria-label]="label || 'Toggle switch'"
+      [disabled]="disabled"
+      (click)="toggle()">
+      
+      <!-- Slider Knob -->
+      <span class="toggle-slider"></span>
+    </button>
+
+    <!-- Label and Description -->
+    <div class="toggle-content" *ngIf="label || description">
+      <label 
+        class="toggle-label" 
+        *ngIf="label"
+        (click)="toggle()">
+        {{ label }}
+      </label>
+      
+      <p class="toggle-description" *ngIf="description">
+        {{ description }}
+      </p>
+    </div>
+
+  </div>
+
+</div>

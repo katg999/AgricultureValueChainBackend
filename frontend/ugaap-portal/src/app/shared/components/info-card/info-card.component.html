@@ -1,0 +1,27 @@
+<!-- 
+  Info Card Component
+  
+  Section container with icon and title
+-->
+
+<div class="info-card">
+  
+  <!-- Card Header -->
+  <div class="info-card-header" [ngClass]="{ 'with-divider': showDivider }">
+    
+    <!-- Icon (optional) -->
+    <div class="info-icon" *ngIf="icon">
+      <span>{{ icon }}</span>
+    </div>
+
+    <!-- Title -->
+    <h3 class="info-title">{{ title }}</h3>
+    
+  </div>
+
+  <!-- Card Content (projected) -->
+  <div class="info-card-content">
+    <ng-content></ng-content>
+  </div>
+
+</div>
