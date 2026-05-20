@@ -15,5 +15,5 @@
     "src/**/*.d.ts",
     "src/**/*.spec.ts",
     "src/app/features/auth/set-new-password/set-new-password.component.spec.ts"
-  ]
+, "src/app/features/auth/first-time-login/first-time-login.spec.component.ts"  ]
 }

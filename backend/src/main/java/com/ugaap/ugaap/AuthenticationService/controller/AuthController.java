@@ -26,17 +26,6 @@ public class AuthController {
 
 
 
-    // POST /auth/register
-    @PostMapping("/register")
-    public ResponseEntity<ApiResponse<RegisterResponse>> register(
-            @Valid @RequestBody RegisterRequest request,
-            HttpServletRequest httpRequest) {
-
-        RegisterResponse response = authService.register(request, httpRequest);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.ok("Registration successful", response));
-    }
-
     // POST /auth/login
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(
@@ -70,21 +59,6 @@ public class AuthController {
                 ApiResponse.ok("Token refreshed", response));
     }
 
-    // GET /auth/me
-    @GetMapping("/me")
-    public ResponseEntity<ApiResponse<ClientProfileResponse>> me(
-            @AuthenticationPrincipal UserDetails userDetails) {
-
-        if (userDetails == null) {
-            throw new RuntimeException("User not authenticated");
-        }
-
-        ClientProfileResponse profile =
-                authService.getProfile(userDetails.getUsername());
-
-        return ResponseEntity.ok(
-                ApiResponse.ok("Profile fetched", profile));
-    }
 
     // GET /password-reset/request
 

@@ -5,6 +5,8 @@ package com.ugaap.ugaap.AuthenticationService.dto;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 @Builder
 public class LoginResponse {
@@ -13,6 +15,8 @@ public class LoginResponse {
     private long   accessTokenExpiresIn;
     private String tokenType;
     private String clientId;
+    private String userId;
+    private String username;
     private String email;
-    private String role;
+    private List<String> roles;
 }

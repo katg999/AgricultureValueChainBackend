@@ -10,6 +10,12 @@ export const AUTH_ROUTES: Routes = [
   },
   // OTP Verification
   {
+    path: 'first-time-login',
+    loadComponent: () =>
+      import('./first-time-login/first-time-login.component')
+        .then(m => m.FirstTimeLoginComponent)
+  },
+  {
     path: 'otp',
     loadComponent: () =>
       import('./otp-verify/otp-verify.component')
@@ -56,4 +62,10 @@ export const AUTH_ROUTES: Routes = [
   //   redirectTo: 'login',
   //   pathMatch: 'full'
   // }
+];
+  {
+    path: '',
+    redirectTo: 'login',
+    pathMatch: 'full'
+  }
 ];
