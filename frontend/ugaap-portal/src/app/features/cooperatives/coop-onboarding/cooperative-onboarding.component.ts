@@ -116,7 +116,7 @@ export class CooperativeOnboardingComponent implements OnInit {
       this.showConfirmModal = false;
       
       // Navigate to Maker & Checker account creation
-      // Change this line in your activateCooperative() method:
+     
       this.router.navigate(['/cooperatives/maker-checker-creation'], {
         state: {
           cooperativeName: this.profileForm.value.name,
