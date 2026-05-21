@@ -2,12 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 // Shared components
 import { LogoComponent } from '../../../shared/components/logo/logo.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InfoCardComponent } from '../../../shared/components/info-card/info-card.component';
+
 
 /**
  * Permission interface
@@ -23,27 +25,10 @@ export interface Permission {
  */
 export interface PermissionModule {
   name: string;
-  icon: string;  // ← FIXED: Added icon property
+  icon: string;
   permissions: Permission[];
 }
 
-/**
- * Create/Edit Role Component
- * 
- * Form for creating new roles or editing existing ones.
- * Allows setting role name, description, and granular permissions.
- * 
- * Features:
- * - Role name and description
- * - Permission modules (Users, Cooperatives, Inventory, Reports)
- * - Checkbox permissions per module
- * - Select all/none per module
- * - Form validation
- * - Save/Cancel actions
- * 
- * Flow:
- * Roles List → Create/Edit Role → Save → Roles List
- */
 @Component({
   selector: 'app-role-form',
   standalone: true,
@@ -62,33 +47,24 @@ export interface PermissionModule {
 })
 export class RoleFormComponent implements OnInit {
 
-  /**
-   * Role ID (for edit mode)
-   */
   roleId: string | null = null;
-
-  /**
-   * Edit mode flag
-   */
   isEditMode = false;
 
-  /**
-   * Role form
-   */
   roleForm!: FormGroup;
 
-  /**
-   * Permission modules
-   */
+  isLoading = false;
+
+  errorMessage: string = '';
+
   permissionModules: PermissionModule[] = [
     {
       name: 'Users Management',
       icon: '👥',
       permissions: [
-        { id: 'users.view', label: 'View users', checked: false },
-        { id: 'users.create', label: 'Create users', checked: false },
-        { id: 'users.edit', label: 'Edit users', checked: false },
-        { id: 'users.delete', label: 'Delete users', checked: false }
+        { id: 'membership.view', label: 'View users', checked: false },
+        { id: 'membership.create', label: 'Create users', checked: false },
+        { id: 'membership.edit', label: 'Edit users', checked: false },
+        { id: 'membership.delete', label: 'Delete users', checked: false }
       ]
     },
     {
@@ -102,25 +78,23 @@ export class RoleFormComponent implements OnInit {
       ]
     },
     {
-      name: 'Inventory Management',
-      icon: '📦',
-      permissions: [
-        { id: 'inventory.view', label: 'View inventory', checked: false },
-        { id: 'inventory.add', label: 'Add stock', checked: false },
-        { id: 'inventory.edit', label: 'Edit stock', checked: false },
-        { id: 'inventory.delete', label: 'Delete stock', checked: false },
-        { id: 'inventory.transfer', label: 'Transfer stock', checked: false }
-      ]
-    },
-    {
-      name: 'Financial Reports',
-      icon: '📊',
-      permissions: [
-        { id: 'reports.view', label: 'View reports', checked: false },
-        { id: 'reports.export', label: 'Export reports', checked: false },
-        { id: 'reports.generate', label: 'Generate reports', checked: false }
-      ]
-    },
+  name: 'Financial Reports',
+  icon: '📊',
+  permissions: [
+    { id: 'reports.view',   label: 'View reports',     checked: false },
+    { id: 'reports.create', label: 'Generate reports',  checked: false }, // mapped to CREATE
+  ]
+},
+{
+  name: 'Inventory Management',
+  icon: '📦',
+  permissions: [
+    { id: 'inventory.view',   label: 'View inventory',   checked: false },
+    { id: 'inventory.create', label: 'Add stock',         checked: false },
+    { id: 'inventory.edit',   label: 'Edit/Transfer stock', checked: false },
+    { id: 'inventory.delete', label: 'Delete stock',      checked: false }
+  ]
+},
     {
       name: 'System Settings',
       icon: '⚙️',
@@ -132,80 +106,70 @@ export class RoleFormComponent implements OnInit {
     }
   ];
 
-  /**
-   * Loading state
-   */
-  isLoading = false;
-
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private http: HttpClient
   ) {}
 
-  ngOnInit(): void {
+// Add this property
+cooperativeInfo: any = null;
+
+ngOnInit(): void {
     this.roleId = this.route.snapshot.paramMap.get('id');
     this.isEditMode = !!this.roleId;
-    
+
     this.initForm();
 
-    if (this.isEditMode) {
-      this.loadRoleData();
-    }
-  }
+    // Read state passed from cooperative onboarding
+    const navigation = this.router.getCurrentNavigation();
+    const state = navigation?.extras?.state || history.state;
 
-  /**
-   * Initialize form
-   */
+    if (state?.tenantId) {
+        this.cooperativeInfo = state;
+        // Pre-fill tenantId
+        this.roleForm.patchValue({
+            tenantId: state.tenantId
+        });
+    }
+
+    if (this.isEditMode) {
+        this.loadRoleData();
+    }
+}
+
   initForm(): void {
     this.roleForm = this.fb.group({
-      name: ['', [Validators.required]],
-      description: ['', [Validators.required]]
+      name: ['', Validators.required],
+      description: ['', Validators.required],
+      tenantId: ['', Validators.required]
     });
   }
 
-  /**
-   * Load role data for editing
-   */
+
+
+  
   loadRoleData(): void {
-    // TODO: Load from API
-    // Mock data for demo
     this.roleForm.patchValue({
       name: 'Logistics Manager',
       description: 'Manage inventory, shipments, and logistics'
     });
-
-    // Check some permissions
-    this.permissionModules[2].permissions[0].checked = true; // View inventory
-    this.permissionModules[2].permissions[1].checked = true; // Add stock
-    this.permissionModules[2].permissions[2].checked = true; // Edit stock
   }
 
-  /**
-   * Toggle all permissions in a module
-   */
   toggleModulePermissions(module: PermissionModule, checked: boolean): void {
     module.permissions.forEach(p => p.checked = checked);
   }
 
-  /**
-   * Check if all permissions in module are selected
-   */
   isModuleFullySelected(module: PermissionModule): boolean {
     return module.permissions.every(p => p.checked);
   }
 
-  /**
-   * Check if some permissions in module are selected
-   */
   isModulePartiallySelected(module: PermissionModule): boolean {
     const selected = module.permissions.filter(p => p.checked).length;
     return selected > 0 && selected < module.permissions.length;
   }
 
-  /**
-   * Get total selected permissions count
-   */
   get selectedPermissionsCount(): number {
     return this.permissionModules.reduce(
       (count, module) => count + module.permissions.filter(p => p.checked).length,
@@ -213,9 +177,6 @@ export class RoleFormComponent implements OnInit {
     );
   }
 
-  /**
-   * Get form field error
-   */
   getFieldError(fieldName: string): string {
     const control = this.roleForm.get(fieldName);
     if (control?.touched && control?.errors) {
@@ -224,48 +185,180 @@ export class RoleFormComponent implements OnInit {
     return '';
   }
 
-  /**
-   * Cancel and go back
-   */
   cancel(): void {
     this.router.navigate(['/roles']);
   }
 
-  /**
-   * Save role
-   */
+  getFormattedPermissions(): any[] {
+  console.log('=== getFormattedPermissions() called ===');
+
+  const moduleMappings: any = {
+    membership: 'MEMBERSHIP',
+    coops: 'BRANCHES',
+    inventory: 'INVENTORY',
+    reports: 'REPORTING',
+    settings: 'ACCESS_MANAGEMENT'
+  };
+
+  const actionMappings: any = {
+  view:     'VIEW',
+  create:   'CREATE',
+  edit:     'EDIT',
+  delete:   'DELETE',
+  add:      'CREATE',   // inventory "Add stock" → CREATE
+  export:   'VIEW',     // closest valid action for exporting
+  generate: 'CREATE',   // generating a report → CREATE
+  transfer: 'EDIT',     // transferring stock → EDIT
+  roles:    'EDIT'      // managing roles → EDIT
+};
+
+  console.log('moduleMappings:', moduleMappings);
+  console.log('actionMappings:', actionMappings);
+
+  const formatted: any[] = [];
+
+  this.permissionModules.forEach(module => {
+    console.log(`\n--- Processing module: "${module.name}" ---`);
+
+    module.permissions.forEach(permission => {
+      console.log(`  Permission: id="${permission.id}", label="${permission.label}", checked=${permission.checked}`);
+
+      if (permission.checked) {
+        const parts = permission.id.split('.');
+        console.log(`    Split result:`, parts, `(length: ${parts.length})`);
+
+        const moduleName = parts[0];
+        const actionName = parts[1];
+        console.log(`    moduleName="${moduleName}", actionName="${actionName}"`);
+
+        const mappedModule = moduleMappings[moduleName];
+        const mappedAction = actionMappings[actionName];
+        console.log(`    mappedModule="${mappedModule}", mappedAction="${mappedAction}"`);
+
+        if (!mappedModule) {
+          console.error(`    ❌ NO MAPPING FOUND for moduleName="${moduleName}" in moduleMappings! This will cause a backend NPE.`);
+        }
+
+        if (!mappedAction) {
+          console.error(`    ❌ NO MAPPING FOUND for actionName="${actionName}" in actionMappings! This will cause a backend NPE.`);
+        }
+
+        if (!mappedModule || !mappedAction) {
+          console.warn(`    ⚠️ Skipping permission "${permission.id}" due to missing mapping.`);
+          return;
+        }
+
+        const entry = {
+          module: mappedModule,
+          action: mappedAction,
+          description: permission.label
+        };
+
+        console.log(`    ✅ Mapped successfully:`, entry);
+        formatted.push(entry);
+      }
+    });
+  });
+
+  console.log('\n=== Final formatted permissions payload ===');
+  console.log(JSON.stringify(formatted, null, 2));
+  console.log(`Total: ${formatted.length} permission(s) to be sent`);
+
+  return formatted;
+}
+
   saveRole(): void {
-    if (this.roleForm.invalid) {
-      this.roleForm.markAllAsTouched();
-      return;
-    }
 
-    if (this.selectedPermissionsCount === 0) {
-      alert('Please select at least one permission');
-      return;
-    }
-
-    this.isLoading = true;
-
-    const roleData = {
-      ...this.roleForm.value,
-      permissions: this.getSelectedPermissions()
-    };
-
-    console.log('Saving role:', roleData);
-
-    // Simulate API call
-    setTimeout(() => {
-      this.isLoading = false;
-      this.router.navigate(['/roles']);
-    }, 2000);
+  if (this.roleForm.invalid) {
+    this.roleForm.markAllAsTouched();
+    return;
   }
 
-  /**
-   * Get selected permissions IDs
-   */
+  if (this.selectedPermissionsCount === 0) {
+    alert('Please select at least one permission');
+    return;
+  }
+
+  this.isLoading = true;
+  this.errorMessage = '';
+
+  // GET TOKEN
+  const token = localStorage.getItem('token');
+
+  // AUTH HEADERS
+  const headers = new HttpHeaders({
+    Authorization: `Bearer ${token}`
+  });
+
+  const rolePayload = {
+    name: this.roleForm.value.name,
+    description: this.roleForm.value.description,
+    tenantId: this.roleForm.value.tenantId
+  };
+
+  // STEP 1: CREATE ROLE
+  this.http.post(
+    'http://localhost:8081/api/v1/access/roles',
+    rolePayload,
+    { headers }
+  ).subscribe({
+
+    next: (roleResponse: any) => {
+
+      const roleId = roleResponse.roleId;
+
+      const permissionsPayload = {
+        permissions: this.getFormattedPermissions()
+      };
+
+      // STEP 2: ASSIGN PERMISSIONS
+      this.http.post(
+        `http://localhost:8081/api/v1/access/roles/${roleId}/permissions`,
+        permissionsPayload,
+        { headers }
+      ).subscribe({
+
+        next: (permResponse: any) => {
+
+          console.log('Role + permissions created:', permResponse);
+
+          this.isLoading = false;
+
+          this.router.navigate(['/cooperatives']);
+        },
+
+        error: (err) => {
+
+          console.error('Permission assignment failed:', err);
+
+          this.isLoading = false;
+
+          this.errorMessage =
+            err?.error?.message ||
+            err?.message ||
+            'Role created but failed to assign permissions';
+        }
+      });
+    },
+
+    error: (err) => {
+
+      console.error('Role creation failed:', err);
+
+      this.isLoading = false;
+
+      this.errorMessage =
+        err?.error?.message ||
+        err?.message ||
+        'Failed to create role';
+    }
+  });
+}
+
   getSelectedPermissions(): string[] {
+
     const selected: string[] = [];
+
     this.permissionModules.forEach(module => {
       module.permissions.forEach(permission => {
         if (permission.checked) {
@@ -273,6 +366,7 @@ export class RoleFormComponent implements OnInit {
         }
       });
     });
+
     return selected;
   }
 }

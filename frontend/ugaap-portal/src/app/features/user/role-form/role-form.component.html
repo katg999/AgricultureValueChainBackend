@@ -4,8 +4,11 @@
   Form for managing roles and permissions
 -->
 
+
 <div class="page">
   <div class="page-container">
+
+    
     
     <!-- Page Header -->
     <div class="page-header">
@@ -44,6 +47,19 @@
               {{ getFieldError('description') }}
             </span>
           </div>
+        </div>
+
+
+           <!-- Tenant ID (UNDER DESCRIPTION) -->
+        <div class="form-row">
+          <app-input
+            label="Tenant ID"
+            type="text"
+            placeholder="e.g. ugaap-farmers"
+            formControlName="tenantId"
+            [required]="true"
+            [error]="getFieldError('tenantId')">
+          </app-input>
         </div>
 
       </app-info-card>
