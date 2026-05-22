@@ -200,7 +200,7 @@ export class IssueStockComponent {
   }
 
   cancel(): void {
-    this.router.navigate(['/current-stock']);
+    this.router.navigate(['/inventory/current-stock']);
   }
 
   trackById(_: number, row: RecentIssuance): string {

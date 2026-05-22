@@ -24,6 +24,12 @@ export const routes: Routes = [
       import('./features/cooperatives/cooperatives.routes')
         .then(m => m.COOPERATIVES_ROUTES as Routes)
   },
+  {
+    path: 'farmers',
+    loadChildren: () =>
+      import('./features/farmers/farmers.routes')
+        .then(m => m.FARMERS_ROUTES as Routes)
+  },
 
 
   
