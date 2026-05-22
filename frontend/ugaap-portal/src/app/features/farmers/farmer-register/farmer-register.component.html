@@ -1,0 +1,270 @@
+<div class="page-shell">
+  <div class="form-header">
+    <h1>Farmer Registration Form</h1>
+    <p class="subtitle">Create a new user</p>
+  </div>
+
+  <div class="form-card">
+    <div class="grid-1">
+      <h2 class="section-label">PERSONAL DETAILS</h2>
+      <app-input
+        label="Full name"
+        placeholder="e.g. Sarah Namubiru"
+        type="text"
+        [(ngModel)]="form.fullName"
+        name="fullName">
+      </app-input>
+
+      <app-input
+        label="National ID number"
+        placeholder="12345678901234"
+        type="text"
+        [(ngModel)]="form.nationalIdNumber"
+        name="nationalIdNumber">
+      </app-input>
+    </div>
+
+    <div class="grid-1">
+      <app-input
+        label="Phone number"
+        placeholder="+256 700 000000"
+        type="tel"
+        [(ngModel)]="form.phoneNumber"
+        name="phoneNumber">
+      </app-input>
+      <p class="field-hint">Must be a valid MTN or Airtel Uganda number for OTP delivery</p>
+    </div>
+
+    <div class="grid-2">
+      <div class="field-group">
+        <label class="field-label">Gender</label>
+        <select title="select gender" [(ngModel)]="form.gender" name="gender" class="form-select">
+          <option *ngFor="let g of genderOptions" [value]="g">{{ g }}</option>
+        </select>
+      </div>
+
+      <app-input
+        label="Email address"
+        placeholder="sarah.n@emtech.co.ug"
+        type="email"
+        [(ngModel)]="form.emailAddress"
+        name="emailAddress">
+      </app-input>
+
+      <app-input
+        label="Date of birth"
+        placeholder="DD/MM/YYYY"
+        type="date"
+        [(ngModel)]="form.dateOfBirth"
+        name="dateOfBirth">
+      </app-input>
+    </div>
+
+    <div class="grid-1">
+      <div class="field-group">
+        <label class="field-label">Farmer identification photo</label>
+        <div
+          class="photo-upload-zone"
+          [class.has-photo]="form.photoPreviewUrl"
+          (click)="triggerFileInput()"
+          (dragover)="$event.preventDefault()"
+          (drop)="onPhotoDrop($event)"
+          role="button"
+          tabindex="0"
+          aria-label="Upload farmer photo">
+          <div class="photo-preview-circle">
+            <img
+              *ngIf="form.photoPreviewUrl"
+              [src]="form.photoPreviewUrl"
+              alt="Farmer preview" />
+            <i *ngIf="!form.photoPreviewUrl" class="ti ti-user"></i>
+          </div>
+
+          <div class="photo-upload-text">
+            <p>{{ form.photoPreviewUrl ? 'Photo uploaded' : 'Upload ID photo' }}</p>
+            <span>JPG or PNG &middot; Max 2 MB</span>
+            <span
+              class="photo-upload-btn"
+              (click)="$event.stopPropagation(); triggerFileInput()">
+              <i class="ti ti-upload"></i>
+              {{ form.photoPreviewUrl ? 'Replace photo' : 'Choose file' }}
+            </span>
+          </div>
+
+          <input
+            #photoInput
+            type="file"
+            accept="image/jpeg,image/png"
+            hidden
+            (change)="onPhotoSelected($event)" />
+        </div>
+
+        <p class="field-hint">Clear front-facing photo required for KYC</p>
+        <p class="field-error" *ngIf="photoError">{{ photoError }}</p>
+      </div>
+    </div>
+  </div>
+
+  <section class="form-section form-card">
+    <h2 class="section-label">FARM SPECIFICATIONS</h2>
+
+    <div class="farm-specs-layout">
+      <div class="farm-specs-fields">
+        <div class="field-group">
+          <label class="field-label">Farm location</label>
+          <select title="select farm location" [(ngModel)]="form.farmLocation" name="farmLocation" class="form-select">
+            <option *ngFor="let loc of locationOptions" [value]="loc">{{ loc }}</option>
+          </select>
+
+          <app-input
+            label="Village/Town"
+            placeholder="e.g. Kiwanga"
+            type="text"
+            [(ngModel)]="form.village"
+            name="village"
+            >
+          </app-input>
+
+          <p class="field-hint">Select the location where your farm is situated</p>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">GPS Coordinates</label>
+          <select title="select GPS coordinates" [(ngModel)]="form.gpsCoordinates" name="gpsCoordinates" class="form-select">
+            <option value="">0.3476 N, 32.5825 E</option>
+          </select>
+          <p class="field-hint">Survey plots are created inside each cooperative portal</p>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Irrigation Source</label>
+          <select title="select irrigation source" [(ngModel)]="form.irrigationSource" name="irrigationSource" class="form-select">
+            <option *ngFor="let opt of irrigationOptions" [value]="opt">{{ opt }}</option>
+          </select>
+          <p class="field-hint">This is shown during farmer approval review.</p>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Total Land Area (Hectares)</label>
+          <input
+            class="form-input"
+            type="number"
+            [(ngModel)]="form.totalLandArea"
+            name="totalLandArea"
+            placeholder="5.5"
+            min="0"
+            step="0.1" />
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Land Ownership Type</label>
+          <select title="select land ownership type" [(ngModel)]="form.landOwnershipType" name="landOwnershipType" class="form-select">
+            <option *ngFor="let opt of landOwnershipOptions" [value]="opt">{{ opt }}</option>
+          </select>
+          <p class="field-hint">Select the type of land ownership i.e. Lease, Own, etc.</p>
+        </div>
+      </div>
+
+      <div class="farm-image-wrapper">
+        <img [src]="farmImageUrl" alt="Farm aerial view" class="farm-image" />
+        <div class="farm-image-overlay">
+          <span class="capture-badge">&#x1F4CD; Awaiting Capture</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="bottom-cards-grid">
+    <div class="bottom-card">
+      <h3 class="bottom-card-title">Production Details</h3>
+
+      <div class="field-group">
+        <label class="field-label">Primary Crops</label>
+        <div class="checkbox-row">
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="form.production.coffee" name="coffee" />
+            Coffee
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="form.production.maize" name="maize" />
+            Maize
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="form.production.cocoa" name="cocoa" />
+            Cocoa
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="form.production.vanilla" name="vanilla" />
+            Vanilla
+          </label>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Livestock Inventory</label>
+        <div class="livestock-grid">
+          <div class="livestock-item">
+            <label class="livestock-label" for="cattle">Cattle</label>
+            <input
+              id="cattle"
+              class="form-input livestock-input"
+              type="number"
+              [(ngModel)]="form.production.cattle"
+              name="cattle"
+              min="0" />
+          </div>
+
+          <div class="livestock-item">
+            <label class="livestock-label" for="goats">Goats</label>
+            <input
+              id="goats"
+              class="form-input livestock-input"
+              type="number"
+              [(ngModel)]="form.production.goats"
+              name="goats"
+              min="0" />
+          </div>
+
+          <div class="livestock-item">
+            <label class="livestock-label" for="poultry">Poultry</label>
+            <input
+              id="poultry"
+              class="form-input livestock-input"
+              type="number"
+              [(ngModel)]="form.production.poultry"
+              name="poultry"
+              min="0" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-card">
+      <h3 class="bottom-card-title">Group &amp; Credit</h3>
+
+      <div class="field-group">
+        <label class="field-label">Cooperative Group</label>
+        <select title="form-select" [(ngModel)]="form.cooperativeGroup" name="cooperativeGroup" class="form-select">
+          <option *ngFor="let g of cooperativeGroups" [value]="g">{{ g }}</option>
+        </select>
+      </div>
+
+      <div class="grid-2">
+        <div class="field-group">
+          <label class="field-label">Assigned Branch</label>
+          <select title="form-select" [(ngModel)]="form.assignedBranch" name="assignedBranch" class="form-select">
+            <option *ngFor="let b of branches" [value]="b">{{ b }}</option>
+          </select>
+        </div>
+
+      </div>
+
+      
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <app-button variant="ghost" size="md" (clicked)="onCancel()">Cancel</app-button>
+    <app-button variant="primary" size="md" (clicked)="onSave()">Save user</app-button>
+  </div>
+</div>
