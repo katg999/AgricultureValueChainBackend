@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -27,7 +28,7 @@ public class JwtUtil {
 
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(
-                appProperties.getSecret().getBytes(StandardCharsets.UTF_8)
+                appProperties.getJwt().getSecret().getBytes(StandardCharsets.UTF_8)
         );
     }
 
@@ -38,17 +39,29 @@ public class JwtUtil {
      * Claims carry clientId, email, and role — enough
      * for downstream services to authorise without a DB call.
      */
-    public String generateAccessToken(UUID clientId, String email, String role) {
+    public String generateAccessToken(
+            UUID clientId,
+            String email,
+            String username,
+            String tenantId,
+            String branchId,
+            List<String> roles,
+            List<String> permissions   // add this
+    ) {
         long now = System.currentTimeMillis();
 
         return Jwts.builder()
                 .subject(clientId.toString())
                 .issuedAt(new Date(now))
-                .expiration(new Date(now + appProperties.getAccessTokenExpiryMs()))
+                .expiration(new Date(now + appProperties.getJwt().getAccessTokenExpiryMs()))
                 .claims(Map.of(
                         "email", email,
-                        "role",  role,
-                        "type",  "ACCESS"
+                        "username", username,
+                        "tenant_id", tenantId,
+                        "branch_id", branchId,
+                        "roles", roles,
+                        "permissions", permissions,  // add this
+                        "type", "ACCESS"
                 ))
                 .signWith(getSigningKey())
                 .compact();
@@ -65,7 +78,7 @@ public class JwtUtil {
                 .subject(clientId.toString())
                 .id(UUID.randomUUID().toString())   // unique jti per token
                 .issuedAt(new Date(now))
-                .expiration(new Date(now + appProperties.getRefreshTokenExpiryMs()))
+                .expiration(new Date(now + appProperties.getJwt().getRefreshTokenExpiryMs()))
                 .claims(Map.of("type", "REFRESH"))
                 .signWith(getSigningKey())
                 .compact();
@@ -149,4 +162,6 @@ public class JwtUtil {
                 .parseSignedClaims(token)
                 .getPayload();
     }
+
+
 }

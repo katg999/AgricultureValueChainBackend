@@ -1,0 +1,298 @@
+.page-shell {
+  min-height: 100vh;
+  background: var(--surface-low);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 36px 16px 40px;
+  font-family: var(--font-human);
+}
+
+.app-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 28px;
+  text-align: center;
+}
+
+.app-logo ::ng-deep .logo-container {
+  margin-bottom: 0;
+}
+
+.app-name {
+  color: var(--secondary);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.app-subtitle,
+.progress-label,
+.footer-copy {
+  color: #b4b2a9;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.setup-card {
+  width: 100%;
+  max-width: 560px;
+  background: var(--surface-lowest);
+  border-radius: 16px;
+  box-shadow: 0 2px 16px rgba(32, 11, 38, 0.06);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.card-intro,
+.step-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-title {
+  color: var(--secondary);
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.card-body,
+.step-desc {
+  color: #5a5a6a;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.cooperative-name,
+.progress-pct {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.progress-block {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  min-width: 132px;
+}
+
+.progress-label {
+  font-size: 9px;
+}
+
+.progress-bar-wrap {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.progress-bar-track {
+  flex: 1;
+  height: 6px;
+  background: var(--surface-highest);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: inherit;
+}
+
+.progress-pct {
+  min-width: 30px;
+  font-family: var(--font-technical);
+  font-size: 11px;
+  text-align: right;
+}
+
+.steps-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--surface-highest);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.step-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 15px 18px;
+  background: var(--surface-lowest);
+  border-bottom: 1px solid var(--surface-highest);
+}
+
+.step-row:last-child {
+  border-bottom: 0;
+}
+
+.step-icon-wrap {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border-radius: 10px;
+  background: var(--surface-highest);
+  color: #8c8790;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.step-icon-wrap svg,
+.lock-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.step--completed .step-icon-wrap,
+.step--active .step-icon-wrap,
+.badge--completed {
+  background: rgba(242, 93, 39, 0.1);
+  color: var(--primary);
+}
+
+.step-title {
+  color: var(--secondary);
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+
+.step--completed .step-title {
+  color: #8c8790;
+  text-decoration: line-through;
+}
+
+.step-desc {
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.step-action {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: flex-end;
+  min-width: 78px;
+}
+
+.badge {
+  border-radius: 6px;
+  font-family: var(--font-human);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 5px 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.setup-action {
+  display: block;
+}
+
+.lock-icon {
+  color: #b4b2a9;
+}
+
+.info-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: rgba(242, 93, 39, 0.06);
+  border: 1px solid rgba(242, 93, 39, 0.16);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+.info-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  color: var(--primary);
+  margin-top: 2px;
+}
+
+.info-notice p {
+  color: var(--muted-purple);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.page-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+  text-align: center;
+}
+
+.skip-link {
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #5a5a6a;
+  cursor: pointer;
+  font-family: var(--font-human);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 5px 8px;
+}
+
+@media (max-width: 560px) {
+  .page-shell {
+    padding: 28px 14px 32px;
+  }
+
+  .setup-card {
+    padding: 28px 22px 24px;
+  }
+
+  .card-top {
+    flex-direction: column;
+  }
+
+  .progress-block {
+    width: 100%;
+    align-items: flex-start;
+  }
+
+  .progress-bar-wrap {
+    max-width: 280px;
+  }
+
+  .step-row {
+    align-items: flex-start;
+    padding: 14px;
+  }
+
+  .step-desc {
+    white-space: normal;
+  }
+
+  .step-action {
+    justify-content: flex-start;
+    min-width: auto;
+  }
+}

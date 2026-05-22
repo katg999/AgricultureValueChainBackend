@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
+import { RouterModule, Router, ActivatedRoute  } from '@angular/router';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 // Shared components
 import { LogoComponent } from '../../../shared/components/logo/logo.component';
@@ -9,32 +10,9 @@ import { StepperComponent, Step } from '../../../shared/components/stepper/stepp
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { ModalComponent } from '../../../shared/components/modal/modal.component';
-import { UserCardComponent, User } from '../../../shared/components/user-card/user-card.component';
 import { AlertComponent } from '../../../shared/components/alert/alert.component';
-import { BadgeComponent } from '../../../shared/components/badge/badge';
 
-/**
- * Cooperative Onboarding Component
- * 
- * Multi-step form for registering new cooperatives.
- * Collects organization details, assigns admins, and activates the cooperative.
- * 
- * Steps:
- * 1. Profile - Organization details (name, registration, location)
- * 2. Admin - Link two primary administrators
- * 3. Inventory - Initial setup (skipped for now)
- * 4. Review - Confirm and activate
- * 
- * Features:
- * - Multi-step stepper
- * - Form validation
- * - User search and selection
- * - Confirmation modal
- * - Progress persistence
- * 
- * Flow:
- * Profile → Admin → Review → Confirm → Success
- */
+
 @Component({
   selector: 'app-cooperative-onboarding',
   standalone: true,
@@ -42,257 +20,170 @@ import { BadgeComponent } from '../../../shared/components/badge/badge';
     CommonModule,
     RouterModule,
     ReactiveFormsModule,
-    FormsModule,
     LogoComponent,
     StepperComponent,
     InputComponent,
     ButtonComponent,
     ModalComponent,
-    UserCardComponent,
-    AlertComponent,
-    BadgeComponent
+    AlertComponent
   ],
   templateUrl: './cooperative-onboarding.component.html',
   styleUrls: ['./cooperative-onboarding.component.css']
 })
 export class CooperativeOnboardingComponent implements OnInit {
 
-  /**
-   * Stepper configuration
-   */
+  // ── Stepper ───────────────────────────────────────────────
   steps: Step[] = [
     { label: 'PROFILE', number: '01' },
-    { label: 'ADMIN', number: '02' },
-    { label: 'REVIEW', number: '03' }
+    { label: 'REVIEW', number: '02' }
   ];
 
-  /**
-   * Current step index
-   */
   currentStep = 0;
 
-  /**
-   * Profile form (Step 1)
-   */
+  // ── Forms ─────────────────────────────────────────────────
   profileForm!: FormGroup;
 
-  /**
-   * Admin selection data (Step 2)
-   */
-  searchQuery = '';
-  availableUsers: User[] = [
-    {
-      id: '1',
-      name: 'Nakato Mariam',
-      email: 'mariam.n@mubende-coop.ug',
-      phone: '+256 782 445 992',
-      verified: true,
-      selected: false
-    },
-    {
-      id: '2',
-      name: 'Babirye Kissa',
-      email: 'kissa.b@mubende-coop.ug',
-      phone: '+256 755 112 304',
-      role: 'ACCOUNTANT',
-      verified: false,
-      selected: false
-    }
-  ];
-
-  selectedAdmins: User[] = [];
-
-  /**
-   * Confirmation modal state
-   */
+  // ── Modal ─────────────────────────────────────────────────
   showConfirmModal = false;
 
-  /**
-   * Loading states
-   */
+  // ── Loading states ────────────────────────────────────────
   isLoading = false;
   isSaving = false;
 
-  /**
-   * Organization data (accumulated across steps)
-   */
-  organizationData = {
-    name: '',
-    registrationNumber: '',
-    poBox: '',
-    websiteUrl: '',
-    headquarters: '',
-    country: ''
-  };
+  // ── API response ──────────────────────────────────────────
+  cooperativeResponse: any = null;
+  errorMessage: string = '';
 
   constructor(
     private fb: FormBuilder,
-    private router: Router
+    private router: Router,
+    private http: HttpClient
   ) {}
 
   ngOnInit(): void {
     this.initProfileForm();
   }
 
-  /**
-   * Initialize profile form
-   */
+  // ── Init form ─────────────────────────────────────────────
+
   initProfileForm(): void {
     this.profileForm = this.fb.group({
-      organizationName: ['', [Validators.required]],
-      registrationNumber: ['', [Validators.required]],
+      name: ['', Validators.required],
+      registrationNumber: ['', Validators.required],
+      address: ['', Validators.required],
+      contactPersonName: ['', Validators.required],
+      contactPersonPhone: ['', Validators.required],
+      contactPersonEmail: ['', [Validators.required, Validators.email]],
+      defaultBranchName: ['', Validators.required],
+      defaultBranchLocation: [''],
       poBox: [''],
       websiteUrl: [''],
-      headquarters: ['', [Validators.required]],
-      country: ['', [Validators.required]]
+      country: ['', Validators.required]
     });
   }
 
-  /**
-   * Navigate to next step
-   */
+  // ── Navigation ────────────────────────────────────────────
+
   nextStep(): void {
-    // Validate current step before proceeding
     if (this.currentStep === 0) {
       if (this.profileForm.invalid) {
         this.profileForm.markAllAsTouched();
         return;
       }
-      // Save profile data
-      this.saveProfileData();
     }
-
-    if (this.currentStep === 1) {
-      if (this.selectedAdmins.length === 0) {
-        alert('Please select at least one administrator');
-        return;
-      }
-    }
-
-    // Skip inventory step (step 2) for now
-    if (this.currentStep === 1) {
-      this.currentStep = 3; // Jump to review
-      return;
-    }
-
     this.currentStep++;
   }
 
-  /**
-   * Navigate to previous step
-   */
   previousStep(): void {
-    // Skip inventory step when going back
-    if (this.currentStep === 3) {
-      this.currentStep = 1; // Jump back to admin
-      return;
-    }
-
     this.currentStep--;
   }
 
-  /**
-   * Save profile form data
-   */
-  saveProfileData(): void {
-    const formValue = this.profileForm.value;
-    this.organizationData = {
-      name: formValue.organizationName,
-      registrationNumber: formValue.registrationNumber,
-      poBox: formValue.poBox,
-      websiteUrl: formValue.websiteUrl,
-      headquarters: formValue.headquarters,
-      country: formValue.country
-    };
-  }
+  // ── Modal ─────────────────────────────────────────────────
 
-  /**
-   * Search users for admin selection
-   */
-  onSearchUsers(): void {
-    // TODO: Implement actual search
-    console.log('Search users:', this.searchQuery);
-  }
-
-  /**
-   * Handle user selection
-   */
-  onUserSelected(user: User): void {
-    if (this.selectedAdmins.length >= 2) {
-      alert('Maximum 2 administrators allowed');
-      return;
-    }
-
-    user.selected = true;
-    this.selectedAdmins.push(user);
-  }
-
-  /**
-   * Handle user removal
-   */
-  onUserRemoved(user: User): void {
-    user.selected = false;
-    this.selectedAdmins = this.selectedAdmins.filter(u => u.id !== user.id);
-  }
-
-  /**
-   * Get filtered users (not selected)
-   */
-  get filteredUsers(): User[] {
-    return this.availableUsers.filter(u => !u.selected);
-  }
-
-  /**
-   * Open activation confirmation modal
-   */
   openConfirmModal(): void {
     this.showConfirmModal = true;
   }
 
-  /**
-   * Close confirmation modal
-   */
   closeConfirmModal(): void {
     this.showConfirmModal = false;
   }
 
-  /**
-   * Activate cooperative
-   */
+  // ── Submit ────────────────────────────────────────────────
+
   activateCooperative(): void {
     this.isLoading = true;
+    this.errorMessage = '';
 
-    // Simulate API call
-    setTimeout(() => {
-      this.isLoading = false;
-      this.showConfirmModal = false;
-      
-      // Navigate to success page
-      this.router.navigate(['/cooperatives/activation-success']);
-    }, 2000);
-  }
+    const token = localStorage.getItem('token');
 
-  /**
-   * Save progress and exit
-   */
+    const headers = new HttpHeaders({
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+    });
+
+    const payload = {
+        name: this.profileForm.value.name,
+        registrationNumber: this.profileForm.value.registrationNumber,
+        address: this.profileForm.value.address,
+        contactPersonName: this.profileForm.value.contactPersonName,
+        contactPersonPhone: this.profileForm.value.contactPersonPhone,
+        contactPersonEmail: this.profileForm.value.contactPersonEmail,
+        defaultBranchName: this.profileForm.value.defaultBranchName,
+        defaultBranchLocation: this.profileForm.value.defaultBranchLocation,
+        poBox: this.profileForm.value.poBox,
+        websiteUrl: this.profileForm.value.websiteUrl,
+        country: this.profileForm.value.country
+    };
+
+    this.http.post('http://localhost:8081/api/v1/cooperatives', payload, { headers })
+        .subscribe({
+            next: (response: any) => {
+                this.isLoading = false;
+                this.showConfirmModal = false;
+
+                // Navigate to role creation, passing tenantId so it's pre-filled
+                this.router.navigate(['/users/role-form'], {
+                    state: {
+                        tenantId: response.tenantId,
+                        cooperativeId: response.cooperativeId,
+                        defaultBranchId: response.defaultBranchId,
+                        defaultBranchCode: response.defaultBranchCode,
+                        message: `Cooperative "${payload.name}" activated successfully. 
+                                  Tenant ID: ${response.tenantId}. 
+                                  Now create the Maker and Checker roles.`
+                    }
+                });
+            },
+            error: (err) => {
+                this.isLoading = false;
+                this.errorMessage = err.error?.message
+                    || 'Failed to activate cooperative. Please try again.';
+            }
+        });
+}
+
+  // ── Save progress ─────────────────────────────────────────
+
   saveProgress(): void {
     this.isSaving = true;
-
     setTimeout(() => {
       this.isSaving = false;
-      console.log('Progress saved');
-      this.router.navigate(['/cooperatives']);
+      this.router.navigate(['/users/role-form']);
     }, 1000);
   }
 
-  /**
-   * Get form field error
-   */
+  // ── Helpers ───────────────────────────────────────────────
+
   getFieldError(fieldName: string): string {
     const control = this.profileForm.get(fieldName);
     if (control?.touched && control?.errors) {
       if (control.errors['required']) return 'This field is required';
+      if (control.errors['email']) return 'Invalid email format';
     }
     return '';
+  }
+
+  get formValue() {
+    return this.profileForm.value;
   }
 }

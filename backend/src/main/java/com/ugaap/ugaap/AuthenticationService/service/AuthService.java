@@ -1,17 +1,16 @@
 package com.ugaap.ugaap.AuthenticationService.service;
 
-
-
-import com.ugaap.ugaap.AuthenticationService.dto.*;
 import com.ugaap.ugaap.AuthenticationService.Entity.AuditLog;
-import com.ugaap.ugaap.AuthenticationService.Entity.Client;
+import com.ugaap.ugaap.AuthenticationService.Entity.Credentials;
 import com.ugaap.ugaap.AuthenticationService.Entity.Session;
+import com.ugaap.ugaap.AuthenticationService.Repository.AuditLogRepository;
+import com.ugaap.ugaap.AuthenticationService.Repository.CredentialsRepository;
+import com.ugaap.ugaap.AuthenticationService.Repository.SessionRepository;
+import com.ugaap.ugaap.AuthenticationService.dto.*;
+import com.ugaap.ugaap.shared.client.MembershipServiceClient;
+import com.ugaap.ugaap.shared.config.AppProperties;
 import com.ugaap.ugaap.shared.Exception.AccountLockedException;
 import com.ugaap.ugaap.shared.Exception.AuthException;
-import com.ugaap.ugaap.AuthenticationService.Repository.AuditLogRepository;
-import com.ugaap.ugaap.AuthenticationService.Repository.ClientRepository;
-import com.ugaap.ugaap.AuthenticationService.Repository.SessionRepository;
-import com.ugaap.ugaap.shared.config.AppProperties;
 import com.ugaap.ugaap.shared.util.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -30,153 +30,189 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class AuthService {
 
-    private static final int    MAX_FAILED_ATTEMPTS   = 5;
-    private static final long   LOCK_DURATION_MINUTES = 30;
-    private static final String REDIS_SESSION_PREFIX  = "session:";
+    private static final int    MAX_FAILED_ATTEMPTS    = 5;
+    private static final long   LOCK_DURATION_MINUTES  = 30;
+    private static final String REDIS_SESSION_PREFIX   = "session:";
     private static final String REDIS_BLACKLIST_PREFIX = "blacklist:";
-    private static final long   CLOCK_DRIFT_BUFFER_MS  = 60000; // 1 minute buffer
+    private static final long   CLOCK_DRIFT_BUFFER_MS  = 60_000;
 
-    private final ClientRepository clientRepository;
-    private final SessionRepository sessionRepository;
-    private final AuditLogRepository auditLogRepository;
-    private final JwtUtil              jwtUtil;
-    private final AppProperties        appProperties;
-    private final PasswordEncoder      passwordEncoder;
-    private final StringRedisTemplate  redisTemplate;
+    private final CredentialsRepository  credentialsRepository;
+    private final SessionRepository      sessionRepository;
+    private final AuditLogRepository     auditLogRepository;
+    private final JwtUtil                jwtUtil;
+    private final AppProperties          appProperties;
+    private final PasswordEncoder        passwordEncoder;
+    private final StringRedisTemplate    redisTemplate;
+    private final MembershipServiceClient membershipServiceClient;
 
-
+    // ── Login ─────────────────────────────────────────────────
 
     @Transactional
-    public LoginResponse login(LoginRequest request, HttpServletRequest httpRequest) {
+    public LoginResponse login(LoginRequest request,
+                               HttpServletRequest httpRequest) {
         String ip        = extractIp(httpRequest);
         String userAgent = httpRequest.getHeader("User-Agent");
 
-        Client client = clientRepository.findByEmail(request.getEmail())
+        Credentials credentials = credentialsRepository
+                .findByUsernameOrEmail(
+                        request.getUsernameOrEmail(),
+                        request.getUsernameOrEmail())
                 .orElseThrow(() -> {
-                    // Optimized Audit: We log non-existent users, but consider
-                    // moving this to an async 'SecurityLog' if traffic is extreme.
-                    saveAuditLog(null, request.getEmail(),
+                    saveAuditLog(null, request.getUsernameOrEmail(),
                             AuditLog.EventType.LOGIN_FAILED, ip, userAgent,
                             false, "Account not found");
-                    return new AuthException("Invalid email or password");
+                    return new AuthException("Invalid username/email or password");
                 });
 
-        // check lock
-        if (client.isLocked()) {
+        if (credentials.isLocked()) {
             throw new AccountLockedException(
-                    "Account locked until " + client.getLockedUntil());
+                    "Account locked until " + credentials.getLockedUntil());
         }
 
-        // check active status
-        if (client.isLocked()) {
-            throw new AccountLockedException("Account locked until " + client.getLockedUntil());
+        if (!passwordEncoder.matches(
+                request.getPassword(), credentials.getPasswordHash())) {
+            handleFailedAttempt(credentials, ip, userAgent);
+            throw new AuthException("Invalid username/email or password");
         }
 
-         //verify password
-        if (!passwordEncoder.matches(request.getPassword(), client.getPasswordHash())) {
-            handleFailedAttempt(client, ip, userAgent);
-            throw new AuthException("Invalid email or password");
-        }
+        // Reset failed attempts
+        credentials.setFailedLoginAttempts(0);
+        credentials.setLockedUntil(null);
+        credentials.setLastLoginAt(LocalDateTime.now());
+        credentialsRepository.save(credentials);
 
+        // Fetch claims from MembershipService
+        MembershipServiceClient.TokenClaimsResponse claims =
+                membershipServiceClient.getTokenClaims(
+                        credentials.getUserId().toString());
 
+        String accessToken = jwtUtil.generateAccessToken(
+                credentials.getUserId(),
+                credentials.getEmail(),
+                credentials.getUsername(),
+                claims.tenantId() != null ? claims.tenantId() : "",
+                claims.branchId() != null ? claims.branchId() : "",
+                claims.roles(),
+                claims.permissions()
+        );
 
-        // reset failed attempts on success
-        client.setFailedLoginAttempts(0);
-        client.setLockedUntil(null);
-        client.setLastLoginAt(LocalDateTime.now());
-        clientRepository.save(client);
+        String refreshToken = jwtUtil.generateRefreshToken(
+                credentials.getUserId());
 
-        // generate tokens
-        String accessToken  = jwtUtil.generateAccessToken(
-                client.getId(), client.getEmail(), client.getRole().name());
-        String refreshToken = jwtUtil.generateRefreshToken(client.getId());
-
-        // persist session in DB
+        // Persist session
         Session session = Session.builder()
-                .client(client)
+                .userId(credentials.getUserId())
                 .refreshToken(refreshToken)
                 .ipAddress(ip)
                 .userAgent(userAgent)
                 .status(Session.SessionStatus.ACTIVE)
-                .expiresAt(LocalDateTime.now()
-                        .plusSeconds(appProperties.getRefreshTokenExpiryMs() / 1000))
+                .expiresAt(LocalDateTime.now().plusSeconds(
+                        appProperties.getJwt().getRefreshTokenExpiryMs() / 1000))
                 .build();
         sessionRepository.save(session);
 
-        // Update Redis with the NEW refresh token (the only one that works now)
         redisTemplate.opsForValue().set(
-                REDIS_SESSION_PREFIX + client.getId().toString(),
+                REDIS_SESSION_PREFIX + credentials.getUserId(),
                 refreshToken,
-                appProperties.getRefreshTokenExpiryMs(),
+                appProperties.getJwt().getRefreshTokenExpiryMs(),
                 TimeUnit.MILLISECONDS
         );
 
-        // audit
-        saveAuditLog(client.getId(), client.getEmail(),
+        saveAuditLog(credentials.getUserId(), credentials.getEmail(),
                 AuditLog.EventType.LOGIN, ip, userAgent, true, null);
 
-        log.info("Client logged in: {}", client.getEmail());
+        log.info("User logged in: {}", credentials.getUsername());
 
         return LoginResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
-                .accessTokenExpiresIn(appProperties.getAccessTokenExpiryMs())
+                .accessTokenExpiresIn(
+                        appProperties.getJwt().getAccessTokenExpiryMs())
                 .tokenType("Bearer")
-                .clientId(client.getId().toString())
-                .email(client.getEmail())
-                .role(client.getRole().name())
+                .userId(credentials.getUserId().toString())
+                .username(credentials.getUsername())
+                .email(credentials.getEmail())
+                .roles(claims.roles())
                 .build();
+    }
+
+    // ── Provision (called by InternalCredentialsController) ───
+
+    @Transactional
+    public CredentialsResult provisionCredentials(UUID userId,
+                                                  String username,
+                                                  String email,
+                                                  String plainPassword) {
+        if (credentialsRepository.existsByEmail(email)) {
+            throw new AuthException("Email already registered: " + email);
+        }
+        if (credentialsRepository.existsByUsername(username)) {
+            throw new AuthException("Username already taken: " + username);
+        }
+
+        Credentials credentials = Credentials.builder()
+                .userId(userId)
+                .username(username)
+                .email(email)
+                .passwordHash(passwordEncoder.encode(plainPassword))
+                .status(Credentials.CredentialStatus.ACTIVE)
+                .mustChangePassword(true)
+                .failedLoginAttempts(0)
+                .build();
+
+        credentialsRepository.save(credentials);
+
+        saveAuditLog(userId, email, AuditLog.EventType.REGISTRATION,
+                "system", "internal-provisioning", true, null);
+
+        log.info("Credentials provisioned for userId={}, username={}",
+                userId, username);
+
+        return new CredentialsResult(userId, username, email);
+    }
+
+    // ── Deactivate ────────────────────────────────────────────
+
+    @Transactional
+    public void deactivateCredentials(UUID userId) {
+        Credentials credentials = credentialsRepository.findById(userId)
+                .orElseThrow(() -> new AuthException(
+                        "Credentials not found for userId: " + userId));
+
+        credentials.setStatus(Credentials.CredentialStatus.INACTIVE);
+        credentialsRepository.save(credentials);
+
+        // Revoke active sessions
+        redisTemplate.delete(REDIS_SESSION_PREFIX + userId);
+        log.info("Credentials deactivated for userId={}", userId);
     }
 
     // ── Logout ────────────────────────────────────────────────
 
     @Transactional
     public void logout(String accessToken, HttpServletRequest httpRequest) {
-        String clientId  = jwtUtil.extractClientId(accessToken);
+        String userId    = jwtUtil.extractClientId(accessToken);
         String ip        = extractIp(httpRequest);
         String userAgent = httpRequest.getHeader("User-Agent");
 
-        // blacklist the access token in Redis until it naturally expires
         long ttl = jwtUtil.extractExpiration(accessToken).getTime()
                 - System.currentTimeMillis() + CLOCK_DRIFT_BUFFER_MS;
         if (ttl > 0) {
             redisTemplate.opsForValue().set(
                     REDIS_BLACKLIST_PREFIX + accessToken,
-                    "revoked",
-                    ttl,
-                    TimeUnit.MILLISECONDS
-            );
+                    "revoked", ttl, TimeUnit.MILLISECONDS);
         }
 
-        // revoke refresh token from Redis
-        redisTemplate.delete(REDIS_SESSION_PREFIX + clientId);
+        redisTemplate.delete(REDIS_SESSION_PREFIX + userId);
 
-        // mark session revoked in DB
-        sessionRepository
-                .findByRefreshToken(getRefreshTokenForClient(clientId))
+        sessionRepository.findByRefreshToken(
+                        getRefreshTokenForClient(userId))
                 .ifPresent(s -> s.revoke("USER_LOGOUT"));
 
-        // audit
-        Client client = clientRepository.findById(UUID.fromString(clientId))
-                .orElse(null);
-        saveAuditLog(
-                client != null ? client.getId() : null,
-                client != null ? client.getEmail() : null,
-                AuditLog.EventType.LOGOUT, ip, userAgent, true, null
-        );
+        saveAuditLog(UUID.fromString(userId), null,
+                AuditLog.EventType.LOGOUT, ip, userAgent, true, null);
 
-        log.info("Client logged out: {}", clientId);
-    }
-
-    private void handleTokenReuse(String clientId, String ip, String userAgent) {
-        log.error("CRITICAL: Refresh token reuse detected for Client ID: {}. Revoking all access.", clientId);
-
-        // Invalidate everything in Redis for this user
-        redisTemplate.delete(REDIS_SESSION_PREFIX + clientId);
-
-        // Optionally mark all DB sessions as COMPROMISED
-        UUID uid = UUID.fromString(clientId);
-        saveAuditLog(uid, null, AuditLog.EventType.LOGIN_FAILED, ip, userAgent, false, "Refresh Token Reuse Detected");
+        log.info("User logged out: {}", userId);
     }
 
     // ── Refresh ───────────────────────────────────────────────
@@ -188,137 +224,34 @@ public class AuthService {
         String ip           = extractIp(httpRequest);
         String userAgent    = httpRequest.getHeader("User-Agent");
 
-        // validate token structure
-        if (!jwtUtil.isValid(oldRefreshToken) || !jwtUtil.isRefreshToken(oldRefreshToken)) {
+        if (!jwtUtil.isValid(oldRefreshToken)
+                || !jwtUtil.isRefreshToken(oldRefreshToken)) {
             throw new AuthException("Invalid refresh token");
         }
 
-        String clientId = jwtUtil.extractClientId(oldRefreshToken);
-        String redisKey = REDIS_SESSION_PREFIX + clientId;
+        String userId   = jwtUtil.extractClientId(oldRefreshToken);
+        String redisKey = REDIS_SESSION_PREFIX + userId;
 
-        // 1. RTR Check: Compare incoming token with the ONLY valid one in Redis
         String currentValidToken = redisTemplate.opsForValue().get(redisKey);
-
-        if (currentValidToken == null || !currentValidToken.equals(oldRefreshToken)) {
-            // REUSE DETECTED: Someone is using an old/stolen token
-            handleTokenReuse(clientId, ip, userAgent);
-            throw new AuthException("Token theft detected. All sessions revoked.");
+        if (currentValidToken == null
+                || !currentValidToken.equals(oldRefreshToken)) {
+            handleTokenReuse(userId, ip, userAgent);
+            throw new AuthException(
+                    "Token theft detected. All sessions revoked.");
         }
 
-        Client client = clientRepository.findById(UUID.fromString(clientId))
-                .orElseThrow(() -> new AuthException("Client not found"));
+        Credentials credentials = credentialsRepository
+                .findById(UUID.fromString(userId))
+                .orElseThrow(() -> new AuthException("User not found"));
 
-        // 2. Rotate: Delete old token and generate a fresh pair
         redisTemplate.delete(redisKey);
-
-        // Revoke the old session in DB
         sessionRepository.findByRefreshToken(oldRefreshToken)
                 .ifPresent(s -> s.revoke("TOKEN_ROTATED"));
 
-        log.info("Refreshing tokens for client: {}. Rotating Refresh Token.", client.getEmail());
+        MembershipServiceClient.TokenClaimsResponse claims =
+                membershipServiceClient.getTokenClaims(userId);
 
-        return generateFullAuthResponse(client, ip, userAgent);
-    }
-
-    private LoginResponse generateFullAuthResponse(Client client, String ip, String userAgent) {
-        String accessToken  = jwtUtil.generateAccessToken(client.getId(), client.getEmail(), client.getRole().name());
-        String refreshToken = jwtUtil.generateRefreshToken(client.getId());
-
-        // Persist Session in DB
-        Session session = Session.builder()
-                .client(client)
-                .refreshToken(refreshToken)
-                .ipAddress(ip)
-                .userAgent(userAgent)
-                .status(Session.SessionStatus.ACTIVE)
-                .expiresAt(LocalDateTime.now().plusSeconds(appProperties.getRefreshTokenExpiryMs() / 1000))
-                .build();
-        sessionRepository.save(session);
-
-        // Update Redis with the NEW refresh token (the only one that works now)
-        redisTemplate.opsForValue().set(
-                REDIS_SESSION_PREFIX + client.getId().toString(),
-                refreshToken,
-                appProperties.getRefreshTokenExpiryMs(),
-                TimeUnit.MILLISECONDS
-        );
-
-        // audit
-        saveAuditLog(client.getId(), client.getEmail(),
-                AuditLog.EventType.TOKEN_REFRESHED, ip, userAgent, true, null);
-
-        return LoginResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .accessTokenExpiresIn(appProperties.getAccessTokenExpiryMs())
-                .tokenType("Bearer")
-                .clientId(client.getId().toString())
-                .email(client.getEmail())
-                .role(client.getRole().name())
-                .build();
-    }
-
-
-
-
-    @Transactional
-    public RegisterResponse register(RegisterRequest request,
-                                     HttpServletRequest httpRequest) {
-        String ip        = extractIp(httpRequest);
-        String userAgent = httpRequest.getHeader("User-Agent");
-
-        // check if email already taken
-        if (clientRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new AuthException("Email already registered");
-        }
-
-        // hash the password — this is the ONLY place we ever store a password
-        String hashedPassword = passwordEncoder.encode(request.getPassword());
-
-        Client client = Client.builder()
-                .email(request.getEmail())
-                .passwordHash(hashedPassword)          // hashed, never plaintext
-                .companyName(request.getCompanyName()) 
-                .phoneNumber(request.getPhoneNumber())
-                .role(Client.ClientRole.CLIENT)              // default role
-                .status(Client.ClientStatus.ACTIVE)          // adjust if you want email verification later
-                .failedLoginAttempts(0)
-                .build();
-
-        clientRepository.save(client);
-
-        // audit
-        saveAuditLog(client.getId(), client.getEmail(),
-                AuditLog.EventType.REGISTRATION, ip, userAgent, true, null);
-
-        log.info("New client registered: {}", client.getEmail());
-
-        return RegisterResponse.builder()
-                .clientId(client.getId().toString())
-                .email(client.getEmail())
-                .companyName(client.getCompanyName())
-                .role(client.getRole().name())
-                .status(client.getStatus().name())
-                .createdAt(client.getCreatedAt() != null
-                        ? client.getCreatedAt().toString() : null)
-                .build();
-    }
-
-    // ── Profile ───────────────────────────────────────────────
-
-    public ClientProfileResponse getProfile(String clientId) {
-        Client client = clientRepository.findById(UUID.fromString(clientId))
-                .orElseThrow(() -> new AuthException("Client not found"));
-
-        return ClientProfileResponse.builder()
-                .clientId(client.getId().toString())
-                .email(client.getEmail())
-                .companyName(client.getCompanyName())
-                .role(client.getRole().name())
-                .status(client.getStatus().name())
-                .lastLoginAt(client.getLastLoginAt() != null
-                        ? client.getLastLoginAt().toString() : null)
-                .build();
+        return generateFullAuthResponse(credentials, claims, ip, userAgent);
     }
 
     // ── Token blacklist check ─────────────────────────────────
@@ -330,44 +263,98 @@ public class AuthService {
 
     // ── Helpers ───────────────────────────────────────────────
 
-    private void handleFailedAttempt(Client client,
+    private LoginResponse generateFullAuthResponse(
+            Credentials credentials,
+            MembershipServiceClient.TokenClaimsResponse claims,
+            String ip, String userAgent) {
+
+        String accessToken = jwtUtil.generateAccessToken(
+                credentials.getUserId(),
+                credentials.getEmail(),
+                credentials.getUsername(),
+                claims.tenantId() != null ? claims.tenantId() : "",
+                claims.branchId() != null ? claims.branchId() : "",
+                claims.roles(),
+                claims.permissions()
+        );
+
+        String refreshToken = jwtUtil.generateRefreshToken(
+                credentials.getUserId());
+
+        Session session = Session.builder()
+                .userId(credentials.getUserId())
+                .refreshToken(refreshToken)
+                .ipAddress(ip)
+                .userAgent(userAgent)
+                .status(Session.SessionStatus.ACTIVE)
+                .expiresAt(LocalDateTime.now().plusSeconds(
+                        appProperties.getJwt().getRefreshTokenExpiryMs() / 1000))
+                .build();
+        sessionRepository.save(session);
+
+        redisTemplate.opsForValue().set(
+                REDIS_SESSION_PREFIX + credentials.getUserId(),
+                refreshToken,
+                appProperties.getJwt().getRefreshTokenExpiryMs(),
+                TimeUnit.MILLISECONDS
+        );
+
+        saveAuditLog(credentials.getUserId(), credentials.getEmail(),
+                AuditLog.EventType.TOKEN_REFRESHED, ip, userAgent, true, null);
+
+        return LoginResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .accessTokenExpiresIn(
+                        appProperties.getJwt().getAccessTokenExpiryMs())
+                .tokenType("Bearer")
+                .userId(credentials.getUserId().toString())
+                .username(credentials.getUsername())
+                .email(credentials.getEmail())
+                .roles(claims.roles())
+                .build();
+    }
+
+    private void handleFailedAttempt(Credentials credentials,
                                      String ip, String userAgent) {
-        int attempts = client.getFailedLoginAttempts() + 1;
-        client.setFailedLoginAttempts(attempts);
+        int attempts = credentials.getFailedLoginAttempts() + 1;
+        credentials.setFailedLoginAttempts(attempts);
 
         if (attempts >= MAX_FAILED_ATTEMPTS) {
-            client.setLockedUntil(
+            credentials.setLockedUntil(
                     LocalDateTime.now().plusMinutes(LOCK_DURATION_MINUTES));
-            client.setFailedLoginAttempts(0);
-            log.warn("Account locked after {} attempts: {}",
-                    MAX_FAILED_ATTEMPTS, client.getEmail());
-
-            saveAuditLog(client.getId(), client.getEmail(),
+            credentials.setFailedLoginAttempts(0);
+            saveAuditLog(credentials.getUserId(), credentials.getEmail(),
                     AuditLog.EventType.ACCOUNT_LOCKED, ip, userAgent,
                     false, "Max failed attempts reached");
         } else {
-            saveAuditLog(client.getId(), client.getEmail(),
+            saveAuditLog(credentials.getUserId(), credentials.getEmail(),
                     AuditLog.EventType.LOGIN_FAILED, ip, userAgent,
                     false, "Wrong password, attempt " + attempts);
         }
-
-        clientRepository.save(client);
+        credentialsRepository.save(credentials);
     }
 
-    private String getRefreshTokenForClient(String clientId) {
+    private void handleTokenReuse(String userId, String ip, String userAgent) {
+        log.error("Refresh token reuse detected for userId={}", userId);
+        redisTemplate.delete(REDIS_SESSION_PREFIX + userId);
+        saveAuditLog(UUID.fromString(userId), null,
+                AuditLog.EventType.LOGIN_FAILED, ip, userAgent,
+                false, "Refresh token reuse detected");
+    }
+
+    private String getRefreshTokenForClient(String userId) {
         String token = redisTemplate.opsForValue()
-                .get(REDIS_SESSION_PREFIX + clientId);
+                .get(REDIS_SESSION_PREFIX + userId);
         return token != null ? token : "";
     }
 
-    private void saveAuditLog(UUID clientId, String email,
+    private void saveAuditLog(UUID userId, String email,
                               AuditLog.EventType eventType,
                               String ip, String userAgent,
                               boolean success, String failureReason) {
-        // Optimization: Only write to DB if it's a critical security event or a successful action
-        // For pure spam/brute force on non-existent accounts, you might skip the DB write.
         auditLogRepository.save(AuditLog.builder()
-                .clientId(clientId)
+                .clientId(userId)
                 .email(email)
                 .eventType(eventType)
                 .ipAddress(ip)
@@ -383,4 +370,6 @@ public class AuthService {
                 ? forwarded.split(",")[0].trim()
                 : request.getRemoteAddr();
     }
+
+    public record CredentialsResult(UUID userId, String username, String email) {}
 }
