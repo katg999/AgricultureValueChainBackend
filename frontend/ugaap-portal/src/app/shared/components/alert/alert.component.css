@@ -1,0 +1,81 @@
+/**
+ * Alert Component Styles
+ * 
+ * Uses UGAAP universal design tokens
+ * Contextual colors for different alert types
+ */
+
+/* 
+   BASE ALERT STYLES
+    */
+
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-family: var(--font-human);
+  font-size: 13px;
+  line-height: 1.5;
+  border: 1px solid;
+}
+
+.alert-icon {
+  font-size: 16px;
+  font-weight: 700;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.alert-content {
+  flex: 1;
+}
+
+/* 
+   VARIANT STYLES
+    */
+
+/* Error - Red (Validation errors, failures) */
+.alert-error {
+  background: #FCEBEB;
+  border-color: #F09595;
+  color: #8C342B;
+}
+
+.alert-error .alert-icon {
+  color: #8C342B;
+}
+
+/* Warning - Yellow (Caution messages) */
+.alert-warning {
+  background: #FFF8E6;
+  border-color: #EFD080;
+  color: #B07800;
+}
+
+.alert-warning .alert-icon {
+  color: #B07800;
+}
+
+/* Info - Blue (Informational messages) */
+.alert-info {
+  background: #E6F1FB;
+  border-color: #A3D2F0;
+  color: #185FA5;
+}
+
+.alert-info .alert-icon {
+  color: #185FA5;
+}
+
+/* Success - Green (Confirmations) */
+.alert-success {
+  background: #EAF3DE;
+  border-color: #B8D89A;
+  color: #3B6D11;
+}
+
+.alert-success .alert-icon {
+  color: #3B6D11;
+}

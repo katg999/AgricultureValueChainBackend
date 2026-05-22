@@ -1,0 +1,41 @@
+<!-- 
+  Button Component Template
+  
+  Displays button with optional icons, loading spinner, and dynamic content
+  The template handles multiple states: normal, loading, disabled
+-->
+
+<button
+  [type]="type"
+  [class]="classes"
+  [disabled]="disabled || loading"
+  (click)="onClick()">
+
+  <!-- Left icon (hidden when loading) -->
+  <span class="btn-icon" *ngIf="iconLeft && !loading">
+    {{ iconLeft }}
+  </span>
+
+  <!-- Loading spinner (replaces content when loading) -->
+  <app-spinner
+    *ngIf="loading"
+    size="sm"
+    color="white">
+  </app-spinner>
+
+  <!-- Button text content -->
+  <!-- Show custom loading text when loading, otherwise show ng-content -->
+  <ng-container *ngIf="!loading">
+    <ng-content></ng-content>
+  </ng-container>
+  
+  <span *ngIf="loading">
+    {{ loadingText }}
+  </span>
+
+  <!-- Right icon (hidden when loading) -->
+  <span class="btn-icon" *ngIf="iconRight && !loading">
+    {{ iconRight }}
+  </span>
+
+</button>

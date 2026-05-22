@@ -1,0 +1,85 @@
+/**
+ * Info Card Component Styles
+ * Uses UGAAP design tokens
+ */
+
+.info-card {
+  background: var(--surface-lowest);
+  border: 1px solid #E8E6ED;
+  border-radius: 12px;
+  padding: 24px;
+  font-family: var(--font-human);
+}
+
+/* 
+   HEADER
+    */
+
+.info-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.info-card-header.with-divider {
+  padding-bottom: 16px;
+  border-bottom: 1px solid #E8E6ED;
+}
+
+.info-icon {
+  width: 32px;
+  height: 32px;
+  background: var(--surface-low);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.info-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+/* 
+   CONTENT
+    */
+
+.info-card-content {
+  /* Content from ng-content */
+}
+
+/* 
+   RESPONSIVE DESIGN
+    */
+
+@media (max-width: 768px) {
+  .info-card {
+    padding: 20px;
+  }
+
+  .info-card-header {
+    margin-bottom: 16px;
+  }
+
+  .info-card-header.with-divider {
+    padding-bottom: 12px;
+  }
+
+  .info-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
+  }
+
+  .info-title {
+    font-size: 13px;
+  }
+}

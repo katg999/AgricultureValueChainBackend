@@ -1,0 +1,60 @@
+<!-- 
+  Activation Success Page
+  
+  Success confirmation after cooperative activation
+-->
+
+<div class="success-page">
+  <div class="success-card">
+    
+    <!-- Success Icon -->
+    <div class="success-icon">
+      <div class="icon-circle">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 6L9 17l-5-5" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Success Message -->
+    <h1 class="success-title">Cooperative activated successfully</h1>
+    <h2 class="cooperative-name">{{ cooperative.name }}</h2>
+
+    <!-- Terminal ID Badge -->
+    <div class="terminal-badge">
+      <span class="terminal-label">TERMINAL ID</span>
+      <span class="terminal-id">{{ cooperative.terminalId }}</span>
+    </div>
+
+    <!-- Completion Checklist -->
+    <div class="completion-checklist">
+      <div 
+        *ngFor="let item of completionItems" 
+        class="checklist-item">
+        <!-- Check Icon -->
+        <div class="check-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 6L9 17l-5-5" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+
+        <!-- Item Content -->
+        <div class="checklist-content">
+          <h3 class="checklist-title">{{ item.title }}</h3>
+          <p class="checklist-subtitle">{{ item.subtitle }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Next Action Button -->
+    <app-button
+      variant="primary"
+      size="lg"
+      [fullWidth]="true"
+      iconRight="→"
+      (clicked)="goToCooperativesList()">
+      Go to cooperatives list
+    </app-button>
+
+  </div>
+</div>

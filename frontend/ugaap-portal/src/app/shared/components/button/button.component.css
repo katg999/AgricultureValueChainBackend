@@ -1,0 +1,165 @@
+/**
+ * Button Component Styles
+ * 
+ * Uses UGAAP universal design tokens from styles.scss
+ * Follows "The No-Line Rule" - minimal borders, elevation through shadows
+ */
+
+.btn {
+  /* Base button styles */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: none;
+  border-radius: 8px;
+  font-family: var(--font-human); /* Uses Inter from design system */
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  text-decoration: none;
+  position: relative;
+}
+
+/* 
+   SIZE VARIANTS
+    */
+
+.btn-sm {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 12px;
+  border-radius: 6px;
+}
+
+.btn-md {
+  height: 40px;
+  padding: 0 16px;
+  font-size: 13px;
+}
+
+.btn-lg {
+  height: 48px;
+  padding: 0 24px;
+  font-size: 14px;
+}
+
+/* 
+   FULL WIDTH MODIFIER
+    */
+
+.btn-full {
+  width: 100%;
+}
+
+/* 
+   COLOR VARIANTS
+   Uses design system CSS variables
+    */
+
+/* Primary - Orange (Main CTAs) */
+.btn-primary {
+  background: var(--primary); /* #F25D27 */
+  color: #ffffff;
+  border: 1px solid var(--primary);
+  box-shadow: 0 1px 3px rgba(242, 93, 39, 0.12);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-container); /* #CF450D */
+  border-color: var(--primary-container);
+  box-shadow: 0 4px 12px rgba(242, 93, 39, 0.2);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active:not(:disabled) {
+  background: #c04418;
+  transform: translateY(0);
+}
+
+/* Secondary - White with border */
+.btn-secondary {
+  background: var(--surface-lowest); /* #FFFFFF */
+  color: var(--secondary); /* #200B26 */
+  border: 1px solid #E8E6ED;
+  box-shadow: 0 1px 3px rgba(32, 11, 38, 0.04);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--surface-low); /* #F4F3F5 */
+  border-color: #D0CDD8;
+  box-shadow: 0 2px 8px rgba(32, 11, 38, 0.08);
+}
+
+/* Ghost - Transparent */
+.btn-ghost {
+  background: transparent;
+  color: var(--primary);
+  border: 1px solid transparent;
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: rgba(242, 93, 39, 0.06);
+  border-color: rgba(242, 93, 39, 0.2);
+}
+
+/* Danger - Red tint (Destructive actions) */
+.btn-danger {
+  background: #FCEBEB;
+  color: #8C342B;
+  border: 1px solid #F09595;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #F9D5D5;
+  border-color: #E07070;
+}
+
+/* Warning - Yellow tint (Caution actions) */
+.btn-warning {
+  background: #FFF8E6;
+  color: #B07800;
+  border: 1px solid #EFD080;
+}
+
+.btn-warning:hover:not(:disabled) {
+  background: #FFF0C0;
+}
+
+/* 
+   STATE MODIFIERS
+    */
+
+/* Disabled state */
+.btn-disabled,
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Loading state */
+.btn-loading {
+  cursor: wait;
+  pointer-events: none;
+}
+
+/* 
+   ICON STYLES
+    */
+
+.btn-icon {
+  font-size: 14px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+
+/*  
+   LOADING TEXT ANIMATION
+    */
+
+.btn-text-hidden {
+  opacity: 0;
+}

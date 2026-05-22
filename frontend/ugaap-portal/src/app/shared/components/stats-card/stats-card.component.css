@@ -1,0 +1,162 @@
+/**
+ * Stats Card Component Styles
+ * Uses UGAAP design tokens
+ */
+
+.stats-card {
+  background: var(--surface-lowest);
+  border: 1px solid #E8E6ED;
+  border-radius: 12px;
+  padding: 20px 24px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  transition: all 0.2s ease;
+  font-family: var(--font-human);
+}
+
+.stats-card:hover {
+  box-shadow: 0 4px 12px rgba(32, 11, 38, 0.08);
+  border-color: #D1CDD8;
+}
+
+/* 
+   CARD VARIANTS
+    */
+
+.stats-card-default {
+  border-left: 4px solid var(--primary);
+}
+
+.stats-card-success {
+  border-left: 4px solid #4CAF50;
+}
+
+.stats-card-warning {
+  border-left: 4px solid #FF9800;
+}
+
+.stats-card-danger {
+  border-left: 4px solid #F44336;
+}
+
+/* 
+   ICON
+    */
+
+.stats-icon {
+  width: 48px;
+  height: 48px;
+  background: var(--surface-low);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stats-icon .icon {
+  font-size: 24px;
+}
+
+/* 
+   CONTENT
+    */
+
+.stats-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stats-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #6B6B7B;
+  margin: 0;
+  text-transform: capitalize;
+}
+
+.stats-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.stats-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--secondary);
+  line-height: 1;
+}
+
+/* 
+   TREND INDICATOR
+    */
+
+.stats-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+  line-height: 1.5;
+}
+
+.trend-positive {
+  color: #2E7D32;
+  background: #E8F5E9;
+}
+
+.trend-negative {
+  color: #C62828;
+  background: #FFEBEE;
+}
+
+.stats-trend svg {
+  flex-shrink: 0;
+}
+
+/* 
+   RESPONSIVE DESIGN
+    */
+
+@media (max-width: 768px) {
+  .stats-card {
+    padding: 16px 20px;
+  }
+
+  .stats-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .stats-icon .icon {
+    font-size: 20px;
+  }
+
+  .stats-value {
+    font-size: 28px;
+  }
+
+  .stats-title {
+    font-size: 12px;
+  }
+
+  .stats-trend {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-card {
+    padding: 14px 16px;
+  }
+
+  .stats-value {
+    font-size: 24px;
+  }
+}

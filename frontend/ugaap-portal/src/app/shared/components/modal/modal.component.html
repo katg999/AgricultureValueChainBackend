@@ -1,0 +1,69 @@
+<!-- 
+  Modal Component Template
+  
+  Reusable modal/dialog with backdrop overlay
+-->
+
+<!-- Backdrop Overlay -->
+<div 
+  class="modal-backdrop" 
+  *ngIf="isOpen"
+  (click)="onBackdropClick()">
+  
+  <!-- Modal Container -->
+  <div 
+    [class]="modalClasses"
+    (click)="$event.stopPropagation()">
+    
+    <!-- Modal Header -->
+    <div class="modal-header" *ngIf="title || showIcon">
+      <!-- Icon (optional) -->
+      <div [class]="iconClasses" *ngIf="showIcon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Success check icon -->
+          <ng-container *ngIf="iconVariant === 'success'">
+            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" fill="currentColor"/>
+          </ng-container>
+          
+          <!-- Warning/Info icon -->
+          <ng-container *ngIf="iconVariant === 'warning' || iconVariant === 'info'">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
+            <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </ng-container>
+          
+          <!-- Danger icon -->
+          <ng-container *ngIf="iconVariant === 'danger'">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
+            <path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </ng-container>
+        </svg>
+      </div>
+
+      <!-- Title and Subtitle -->
+      <div class="modal-header-text">
+        <h2 class="modal-title" *ngIf="title">{{ title }}</h2>
+        <p class="modal-subtitle" *ngIf="subtitle">{{ subtitle }}</p>
+      </div>
+
+      <!-- Close Button -->
+      <button 
+        type="button" 
+        class="modal-close" 
+        (click)="close()"
+        aria-label="Close modal">
+        ×
+      </button>
+    </div>
+
+    <!-- Modal Body (Content Projection) -->
+    <div class="modal-body">
+      <ng-content select="[body]"></ng-content>
+    </div>
+
+    <!-- Modal Footer (Content Projection) -->
+    <div class="modal-footer" *ngIf="true">
+      <ng-content select="[footer]"></ng-content>
+    </div>
+
+  </div>
+</div>
