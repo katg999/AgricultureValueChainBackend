@@ -14,5 +14,11 @@ export const COOPERATIVES_ROUTES: Routes = [
       import('./coop-onboarding/cooperative-onboarding.component')
         .then(m => m.CooperativeOnboardingComponent)
   },
+  {
+    path: "maker-checker-creation",
+    loadComponent: () =>
+      import('./maker-checker-creation/maker-checker-creation.component')
+        .then(m => m.MakerCheckerCreationComponent)
+  }
   
 ];
