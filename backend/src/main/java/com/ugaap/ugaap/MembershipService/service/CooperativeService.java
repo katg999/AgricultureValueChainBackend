@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.text.Normalizer;
+import java.util.List;
 import java.util.regex.Pattern;
 
 @Service
@@ -99,4 +100,25 @@ public class CooperativeService {
                 .replaceAll("-+", "-")
                 .replaceAll("^-|-$", "");
     }
+
+    public List<CooperativeDto.Response> listCooperatives() {
+        return cooperativeRepository.findAll()
+                .stream()
+                .map(c -> {
+                    CooperativeDto.Response response = new CooperativeDto.Response();
+                    response.setCooperativeId(c.getCooperativeId().toString());
+                    response.setTenantId(c.getTenantId());
+                    response.setName(c.getName());
+                    response.setRegistrationNumber(c.getRegistrationNumber());
+                    response.setAddress(c.getAddress());
+                    response.setContactPersonName(c.getContactPersonName());
+                    response.setContactPersonPhone(c.getContactPersonPhone());
+                    response.setContactPersonEmail(c.getContactPersonEmail());
+                    response.setStatus(c.getStatus().name());
+                    response.setCreatedAt(c.getCreatedAt().toString());
+                    return response;
+                })
+                .toList();
+    }
+
 }

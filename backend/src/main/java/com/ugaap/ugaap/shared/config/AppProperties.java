@@ -11,11 +11,16 @@ import org.springframework.stereotype.Component;
 @Component
 @EnableConfigurationProperties
 @ConfigurationProperties(prefix = "app")
+
+
+
 public class AppProperties {
 
     private final Jwt jwt = new Jwt();
     private final Internal internal = new Internal();
     private final Services services = new Services();
+
+    private final Minio minio = new Minio();
 
     @Getter
     @Setter
@@ -37,4 +42,17 @@ public class AppProperties {
         private String authServiceUrl;
         private String membershipServiceUrl;
     }
+
+
+    @Getter
+    @Setter
+    public static class Minio {
+        private String endpoint;
+        private String accessKey;
+        private String secretKey;
+        private String bucket;
+    }
 }
+
+
+
