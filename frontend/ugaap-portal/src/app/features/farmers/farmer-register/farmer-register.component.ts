@@ -14,8 +14,7 @@ import { FarmerRegistrationForm, FarmerService } from '../farmer.service';
   styleUrl: './farmer-register.component.css',
 })
 export class FarmerRegisterComponent {
-  @ViewChild('photoInput') private photoInput?: ElementRef<HTMLInputElement>;
-
+  
   readonly genderOptions = ['Female', 'Male', 'Other', 'Prefer not to say'];
   readonly irrigationOptions = ['Rain-fed', 'Irrigation', 'Both'];
   readonly locationOptions = ['Central Region', 'Eastern Region', 'Northern Region', 'Western Region'];
@@ -61,13 +60,13 @@ export class FarmerRegisterComponent {
   };
 
   constructor(private router: Router, private farmerService: FarmerService) {}
+    removeFarmerPhoto(): void {
+    this.form.photoPreviewUrl = '';
+    this.photoError = '';
+  }
 
   onCancel(): void {
     this.router.navigate(['/farmers/list']);
-  }
-
-  triggerFileInput(): void {
-    this.photoInput?.nativeElement.click();
   }
 
   onPhotoSelected(event: Event): void {

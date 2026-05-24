@@ -62,41 +62,45 @@
 
     <div class="grid-1">
       <div class="field-group">
-        <label class="field-label">Farmer identification photo</label>
-        <div
-          class="photo-upload-zone"
-          [class.has-photo]="form.photoPreviewUrl"
-          (click)="triggerFileInput()"
-          (dragover)="$event.preventDefault()"
-          (drop)="onPhotoDrop($event)"
-          role="button"
-          tabindex="0"
-          aria-label="Upload farmer photo">
-          <div class="photo-preview-circle">
-            <img
-              *ngIf="form.photoPreviewUrl"
-              [src]="form.photoPreviewUrl"
-              alt="Farmer preview" />
-            <i *ngIf="!form.photoPreviewUrl" class="ti ti-user"></i>
+        <div class="photo-upload-section">
+            <label class="photo-label">Profile Photo <span class="optional-tag">OPTIONAL</span></label>
+
+            <!-- Drag and Drop Bindings added to Container -->
+            <div class="photo-upload-container"
+            (dragover)="$event.preventDefault()"
+                (drop)="onPhotoDrop($event)">
+
+              <!-- Photo Preview -->
+              <div class="photo-preview" *ngIf="form.photoPreviewUrl">
+                <img [src]="form.photoPreviewUrl" alt="Farmer photo">
+                <button 
+                  type="button" 
+                  class="photo-remove"
+                  (click)="removeFarmerPhoto()">
+                  ✕
+                </button>
+              </div>
+
+              <!-- Upload Button -->
+              <div class="photo-upload-btn" *ngIf="!form.photoPreviewUrl">
+                <input 
+                  type="file" 
+                  id="farmerPhoto" 
+                  accept="image/*"
+                  (change)="onPhotoSelected($event)"
+                  hidden>
+                <label for="farmerPhoto" class="upload-label">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                  <span>Upload Photo</span>
+                </label>
+                <p class="upload-hint">JPG, PNG up to 5MB</p>
+              </div>
+            </div>
           </div>
 
-          <div class="photo-upload-text">
-            <p>{{ form.photoPreviewUrl ? 'Photo uploaded' : 'Upload ID photo' }}</p>
-            <span>JPG or PNG &middot; Max 2 MB</span>
-            <span
-              class="photo-upload-btn"
-              (click)="$event.stopPropagation(); triggerFileInput()">
-              <i class="ti ti-upload"></i>
-              {{ form.photoPreviewUrl ? 'Replace photo' : 'Choose file' }}
-            </span>
-          </div>
-
-          <input
-            #photoInput
-            type="file"
-            accept="image/jpeg,image/png"
-            hidden
-            (change)="onPhotoSelected($event)" />
+          
         </div>
 
         <p class="field-hint">Clear front-facing photo required for KYC</p>
@@ -129,11 +133,14 @@
         </div>
 
         <div class="field-group">
-          <label class="field-label">GPS Coordinates</label>
-          <select title="select GPS coordinates" [(ngModel)]="form.gpsCoordinates" name="gpsCoordinates" class="form-select">
-            <option value="">0.3476 N, 32.5825 E</option>
-          </select>
+          <app-input
+          label="GPS Coordinates"
+          placeholder="e.g. 0.3476 N, 32.5825 E"
+          type="text"
+          [(ngModel)]="form.gpsCoordinates">
           <p class="field-hint">Survey plots are created inside each cooperative portal</p>
+          </app-input>
+          
         </div>
 
         <div class="field-group">
@@ -267,4 +274,4 @@
     <app-button variant="ghost" size="md" (clicked)="onCancel()">Cancel</app-button>
     <app-button variant="primary" size="md" (clicked)="onSave()">Save user</app-button>
   </div>
-</div>
+

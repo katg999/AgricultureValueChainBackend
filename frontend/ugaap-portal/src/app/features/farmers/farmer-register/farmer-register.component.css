@@ -55,11 +55,11 @@
 }
 
 /* Grid layouts */
-.grid-1,
-.field-group {
+.field-group,
+.grid-1 {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 16px; 
 }
 
 .grid-2 {
@@ -69,13 +69,15 @@
 }
 
 /* Field primitives */
-.field-label {
+.field-label,
+.photo-label {
   color: var(--secondary);
   font-size: 13px;
   font-weight: 600;
 }
 
-.field-hint {
+.field-hint,
+.upload-hint {
   color: #6b6b7b;
   font-size: 12px;
   margin: 0;
@@ -107,95 +109,109 @@
   margin: 0;
 }
 
-/* Photo upload */
-.photo-upload-zone {
+/* PHOTO UPLOAD (Perfect HTML Sync) */
+.photo-upload-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.photo-label {
   display: flex;
   align-items: center;
-  gap: 16px;
-  min-height: 118px;
+  justify-content: space-between;
+}
+
+.optional-tag {
+  color: #6b6b7b;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.photo-upload-container {
+  width: 100%;
+  max-width: 320px; 
+  min-height: 140px;
+  background: var(--surface-low);
   border: 1px dashed #d8d3df;
   border-radius: 10px;
-  background: var(--surface-low);
-  cursor: pointer;
-  padding: 16px;
-  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
-}
-
-.photo-upload-zone:hover,
-.photo-upload-zone:focus {
-  border-color: var(--primary);
-  background: rgba(242, 93, 39, 0.04);
-  box-shadow: 0 0 0 3px rgba(242, 93, 39, 0.1);
-  outline: none;
-}
-
-.photo-upload-zone.has-photo {
-  border-style: solid;
-}
-
-.photo-preview-circle {
-  display: grid;
-  flex: 0 0 72px;
-  width: 72px;
-  height: 72px;
-  place-items: center;
   overflow: hidden;
-  border: 1px solid #e8e6ed;
-  border-radius: 50%;
-  background: var(--surface-lowest);
-  color: #6b6b7b;
-  font-size: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s ease, background 0.2s ease;
 }
 
-.photo-preview-circle img {
+.photo-upload-container:hover {
+  border-color: var(--primary);
+  background: rgba(242, 93, 39, 0.02);
+}
+
+.photo-preview {
+  position: relative;
+  width: 100%;
+  height: 140px;
+}
+
+.photo-preview img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.photo-upload-text {
-  display: flex;
-  flex: 1;
-  min-width: 0;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.photo-upload-text p {
-  color: var(--secondary);
-  font-size: 14px;
-  font-weight: 700;
-  margin: 0;
-}
-
-.photo-upload-text span {
-  color: #6b6b7b;
+.photo-remove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(32, 11, 38, 0.75);
+  color: #ffffff;
   font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.photo-remove:hover {
+  background: #b3261e;
 }
 
 .photo-upload-btn {
-  display: inline-flex;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  align-self: flex-start;
-  gap: 6px;
-  min-height: 32px;
-  border: 1px solid #e8e6ed;
-  border-radius: 8px;
-  background: var(--surface-lowest);
-  color: var(--secondary);
-  cursor: pointer;
-  font-family: var(--font-human);
-  font-size: 12px;
-  font-weight: 700;
-  padding: 0 12px;
+  gap: 8px;
+  padding: 24px;
+  width: 100%;
+  height: 100%;
 }
 
-.photo-upload-btn:hover,
-.photo-upload-btn:focus {
-  border-color: var(--primary);
+.upload-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--secondary);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.upload-label svg {
+  color: #6b6b7b;
+  transition: color 0.2s ease;
+}
+
+.photo-upload-btn:hover .upload-label svg {
   color: var(--primary);
-  outline: none;
 }
 
 /* Farm specifications */
@@ -301,8 +317,7 @@
   gap: 6px;
 }
 
-.livestock-label,
-.credit-label {
+.livestock-label {
   color: #6b6b7b;
   font-size: 12px;
 }
@@ -311,40 +326,16 @@
   text-align: center;
 }
 
-/* Credit and actions */
-.credit-row,
+/* Actions */
 .form-actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-}
-
-.credit-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.credit-value {
-  font-family: var(--font-technical);
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.credit-value.danger {
-  color: #8c342b;
-}
-
-.credit-value.warning {
-  color: var(--primary);
-}
-
-.form-actions {
   padding-top: 4px;
 }
 
-/* Responsive */
+/* Responsive Styles */
 @media (max-width: 720px) {
   .page-shell {
     padding: 24px 16px;
@@ -366,9 +357,9 @@
     height: 180px;
   }
 
-  .photo-upload-zone {
-    align-items: flex-start;
-    flex-direction: column;
+  /* Fixed mobile view for original HTML photo layout */
+  .photo-upload-container {
+    max-width: 100%;
   }
 
   .form-actions {

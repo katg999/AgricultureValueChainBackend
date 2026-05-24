@@ -8,7 +8,7 @@ import { LogoComponent } from '../../../shared/components/logo/logo.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InfoCardComponent } from '../../../shared/components/info-card/info-card.component';
-import { ToggleSwitchComponent } from '../../../shared/components/toogle-switch/toggle-switch.component';
+import { ToggleSwitchComponent } from '../../../shared/components/toggle-switch/toggle-switch.component';
 import { PasswordStrengthComponent } from '../../../shared/components/password-strength/password-strength.component';
 import { AlertComponent } from '../../../shared/components/alert/alert.component';
 

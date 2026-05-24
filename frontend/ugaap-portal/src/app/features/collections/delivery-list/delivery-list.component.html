@@ -1,0 +1,91 @@
+<div class="delivery-container">
+  <app-page-header
+    title="Farmer deliveries"
+    [breadcrumb]="['Home', 'Inventory', 'Farmer deliveries']">
+  </app-page-header>
+
+  <section class="list-controls">
+    <div class="search-wrapper">
+      <input 
+        type="text" 
+        placeholder="Search by Farmer Name or ID..." 
+        [formControl]="searchControl"
+        class="search-input">
+    </div>
+    
+    <div class="filter-actions">
+      <select title="filter-select" [formControl]="categoryFilter" class="filter-select">
+        <option value="all">All Categories</option>
+        <option value="maize">Maize / Corn</option>
+        <option value="beans">Beans</option>
+        <option value="coffee">Coffee Beans</option>
+        <option value="sorghum">Sorghum</option>
+      </select>
+
+      <app-button class="btn-primary" (clicked)="navigateToCreate()">
+        + New Delivery
+      </app-button>
+    </div>
+  </section>
+
+  <main class="delivery-card list-card">
+    <div class="table-responsive">
+      <table class="delivery-table">
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Farmer Details</th>
+            <th>Commodity</th>
+            <th>Est. Value (UGX)</th>
+            <th>Repayment Rule</th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="filteredDeliveries.length === 0">
+            <td colspan="6" class="empty-state">
+              <p>No farmer deliveries found matching the criteria.</p>
+            </td>
+          </tr>
+
+          <tr *ngFor="let delivery of filteredDeliveries">
+            <td>
+              <span class="status-badge" [ngClass]="delivery.isActive !== false ? 'active' : 'inactive'">
+                {{ delivery.isActive !== false ? 'Active' : 'Inactive' }}
+              </span>
+            </td>
+            <td>
+              <div class="farmer-info">
+                <span class="farmer-name">{{ delivery.farmerName }}</span>
+              </div>
+            </td>
+            <td>
+              <div class="commodity-info">
+                <span class="category-tag">{{ delivery.commodityCategory | titlecase }}</span>
+                <small class="uom-text">
+                  {{ delivery.quantity }} {{ delivery.unitOfMeasure || 'KG' }}
+                </small>
+              </div>
+            </td>
+            <td class="font-mono">
+              {{ delivery.estimatedValue | number:'1.2-2' }} UGX
+            </td>
+            <td>
+              <span class="rule-badge" [ngClass]="delivery.repaymentRule">
+                {{ getRepaymentLabel(delivery.repaymentRule) }}
+              </span>
+            </td>
+            <td class="text-right table-actions">
+              <button class="btn-icon" type="button" title="View details" aria-label="View delivery details" (click)="onView(delivery.id)">View</button>
+              <button class="btn-icon" type="button" title="Edit delivery" aria-label="Edit delivery" (click)="onEdit(delivery.id)">Edit</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <footer class="table-footer" *ngIf="filteredDeliveries.length > 0">
+      <span class="footer-summary">Showing {{ filteredDeliveries.length }} entries</span>
+    </footer>
+  </main>
+</div>
