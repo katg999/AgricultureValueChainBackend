@@ -29,17 +29,22 @@ export const routes: Routes = [
       import('./features/cooperatives/cooperatives.routes')
         .then(m => m.COOPERATIVES_ROUTES as Routes)
   },
+  {
+    path: 'inventory',
+    loadChildren: () =>
+      import('./features/inventory/delivery-routes')
+        .then(m => m.DELIVERY_ROUTES)
+  },
+  
 
   // User management
   {
     path: 'users',
     loadChildren: () =>
-      import('./features/user/user.routes')
-        .then(m => m.USER_ROUTES)
-  },
-  
-];
+      {
+        return import('./features/user/user.routes')
+          .then(m => m.USER_ROUTES);
+      }
+  }
 
-
-
-
+];  
