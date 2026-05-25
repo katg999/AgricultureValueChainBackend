@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute  } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 // Shared components
 import { LogoComponent } from '../../../shared/components/logo/logo.component';
@@ -50,14 +49,12 @@ export class CooperativeOnboardingComponent implements OnInit {
   isLoading = false;
   isSaving = false;
 
-  // ── API response ──────────────────────────────────────────
-  cooperativeResponse: any = null;
+  // ── Error message ─────────────────────────────────────────
   errorMessage: string = '';
 
   constructor(
     private fb: FormBuilder,
-    private router: Router,
-    private http: HttpClient
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -71,9 +68,6 @@ export class CooperativeOnboardingComponent implements OnInit {
       name: ['', Validators.required],
       registrationNumber: ['', Validators.required],
       address: ['', Validators.required],
-      contactPersonName: ['', Validators.required],
-      contactPersonPhone: ['', Validators.required],
-      contactPersonEmail: ['', [Validators.required, Validators.email]],
       defaultBranchName: ['', Validators.required],
       defaultBranchLocation: [''],
       poBox: [''],
@@ -108,59 +102,31 @@ export class CooperativeOnboardingComponent implements OnInit {
     this.showConfirmModal = false;
   }
 
-  // ── Submit ────────────────────────────────────────────────
+  // ── Submit (Navigate to Maker & Checker Creation) ────────
 
   activateCooperative(): void {
+    // console.log('ACTIVATE BUTTON CLICKED!');
+    
     this.isLoading = true;
     this.errorMessage = '';
 
-    const token = localStorage.getItem('token');
-
-    const headers = new HttpHeaders({
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-    });
-
-    const payload = {
-        name: this.profileForm.value.name,
-        registrationNumber: this.profileForm.value.registrationNumber,
-        address: this.profileForm.value.address,
-        contactPersonName: this.profileForm.value.contactPersonName,
-        contactPersonPhone: this.profileForm.value.contactPersonPhone,
-        contactPersonEmail: this.profileForm.value.contactPersonEmail,
-        defaultBranchName: this.profileForm.value.defaultBranchName,
-        defaultBranchLocation: this.profileForm.value.defaultBranchLocation,
-        poBox: this.profileForm.value.poBox,
-        websiteUrl: this.profileForm.value.websiteUrl,
-        country: this.profileForm.value.country
-    };
-
-    this.http.post('http://localhost:8081/api/v1/cooperatives', payload, { headers })
-        .subscribe({
-            next: (response: any) => {
-                this.isLoading = false;
-                this.showConfirmModal = false;
-
-                // Navigate to role creation, passing tenantId so it's pre-filled
-                this.router.navigate(['/users/role-form'], {
-                    state: {
-                        tenantId: response.tenantId,
-                        cooperativeId: response.cooperativeId,
-                        defaultBranchId: response.defaultBranchId,
-                        defaultBranchCode: response.defaultBranchCode,
-                        message: `Cooperative "${payload.name}" activated successfully. 
-                                  Tenant ID: ${response.tenantId}. 
-                                  Now create the Maker and Checker roles.`
-                    }
-                });
-            },
-            error: (err) => {
-                this.isLoading = false;
-                this.errorMessage = err.error?.message
-                    || 'Failed to activate cooperative. Please try again.';
-            }
-        });
-}
+    // Simulate API delay
+    setTimeout(() => {
+      this.isLoading = false;
+      this.showConfirmModal = false;
+      
+      // Navigate to Maker & Checker account creation
+     
+      this.router.navigate(['/cooperatives/maker-checker-creation'], {
+        state: {
+          cooperativeName: this.profileForm.value.name,
+          registrationNumber: this.profileForm.value.registrationNumber,
+          message: `Cooperative "${this.profileForm.value.name}" ready. Now create Maker and Checker accounts.`
+        }
+      
+});
+    }, 1000);
+  }
 
   // ── Save progress ─────────────────────────────────────────
 
@@ -168,7 +134,7 @@ export class CooperativeOnboardingComponent implements OnInit {
     this.isSaving = true;
     setTimeout(() => {
       this.isSaving = false;
-      this.router.navigate(['/users/role-form']);
+      alert('Progress saved! (This is just a demo - no actual save)');
     }, 1000);
   }
 
