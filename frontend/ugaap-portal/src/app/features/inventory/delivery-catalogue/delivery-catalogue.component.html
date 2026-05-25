@@ -1,0 +1,128 @@
+<div class="delivery-catalogue-container">
+  <!-- 1. Page Header Component Linkage -->
+  <app-page-header 
+    title="Delivery Catalogue" 
+    subtitle="Manage and verify corporate agricultural batch intakes">
+    <div class="actions-gap">
+      <app-button 
+      variant="secondary" 
+      (clicked)="onExportDeliveries()">
+      Export Records
+    </app-button>
+      <app-button 
+      variant="primary" 
+      (clicked)="onSaveDeliveries()">
+      Save Batch States
+    </app-button>
+    </div>
+  </app-page-header>
+
+  <hr class="section-divider" />
+
+  <!-- 2. Metrics Summary Section Grid -->
+  <div class="metrics-grid">
+    <app-stat-card 
+    label="Total Deliveries Count" 
+    value="{{summary.totalDeliveries}}">
+  </app-stat-card>
+    <app-stat-card label="Total Volume Metrics" value="{{summary.totalVolume}}" unit="KG"></app-stat-card>
+    <app-stat-card label="Pending Verification" value="{{summary.pendingVerify}}" status="warning"></app-stat-card>
+    <app-stat-card label="Verified Batches" value="{{summary.verifiedBatches}}" status="success"></app-stat-card>
+    <app-stat-card label="Rejected Count Tracker" value="{{summary.rejectedCount}}" status="danger"></app-stat-card>
+  </div>
+
+  <!-- 3. Reactive Tab Controls -->
+  <div class="tabs-navigation">
+    <app-button 
+      type="button"
+      variant ='primary'
+      class="tab-btn" 
+      [class.active]="activeTab === 'Crops'"
+      (clicked)="onTabChange('Crops')">
+      Crop Influxes
+    </app-button>
+    <app-button 
+      class="tab-btn" 
+      variant ='primary'
+      [class.active]="activeTab === 'Livestock'"
+      (clicked)="onTabChange('Livestock')">
+      Livestock Records
+    </app-button>
+  </div>
+
+  <!-- 4. Interactive Data Table Block -->
+  <div class="table-card">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Batch Number</th>
+          <th>Farmer Identity</th>
+          <th>Type Category</th>
+          <th>Quantity Volume</th>
+          <th>Grading Standard</th>
+          <th>Pricing (UGX)</th>
+          <th>Date Logged</th>
+          <th>Status Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Loop dynamically maps over the computed filtered array -->
+        <tr *ngFor="let item of filteredDeliveries">
+          <td><strong>{{ item.batchNumber }}</strong></td>
+          <td>{{ item.farmerName }}</td>
+          <td><span class="badge-type">{{ item.cropType }}</span></td>
+          <td>{{ item.quantity | number }} {{ item.unitOfMeasure }}</td>
+          <td>{{ item.grading }}</td>
+          <td>{{ item.price | currency:'':'symbol':'1.0-0' }}</td>
+          <td>{{ item.deliveryDate | date:'mediumDate' }}</td>
+          <td>
+            <label class="toggle-switch">
+              <input 
+                type="checkbox" 
+                [checked]="item.isVerified" 
+                (change)="onToggleVerify(item)" />
+              <span class="status-text" [ngClass]="item.isVerified ? 'text-verified' : 'text-pending'">
+                {{ item.isVerified ? 'Verified Verified' : 'Pending Verification' }}
+              </span>
+            </label>
+          </td>
+        </tr>
+
+        <!-- Falling back clean UI state state if nothing matches category -->
+        <tr *ngIf="filteredDeliveries.length === 0">
+          <td colspan="8" class="empty-fallback-row">
+            No dynamic delivery items records loaded under the "{{ activeTab }}" context.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- 5. Dynamic Pagination Footer Segment -->
+    <div class="table-pagination-footer" *ngIf="totalDeliveries > 0">
+      <div class="pagination-info">
+        Showing 
+        <strong>{{ ((currentPage - 1) * PAGE_SIZE) + 1 }}</strong> 
+        to 
+        <strong>{{ (currentPage * PAGE_SIZE) > totalDeliveries ? totalDeliveries : (currentPage * PAGE_SIZE) }}</strong> 
+        of 
+        <strong>{{ totalDeliveries }}</strong> 
+        deliveries entries
+      </div>
+      
+      <div class="pagination-buttons">
+        <app-button 
+          [disabled]="currentPage === 1" 
+          (clicked)="onPageChange(currentPage - 1)" 
+          class="btn-pager">
+          Prev Page
+        </app-button>
+        <app-button 
+          [disabled]="(currentPage * PAGE_SIZE) >= totalDeliveries" 
+          (clicked)="onPageChange(currentPage + 1)" 
+          class="btn-pager">
+          Next Page
+        </app-button>
+      </div>
+    </div>
+  </div>
+</div>

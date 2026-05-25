@@ -38,14 +38,21 @@ export const routes: Routes = [
 
   // User management
   {
-    path: 'users',
+    path: 'inventory',
     loadChildren: () =>
-      import('./features/user/user.routes')
-        .then(m => m.USER_ROUTES)
+      import('./features/inventory/delivery-routes')
+        .then(m => m.DELIVERY_ROUTES)
   },
   
-];
 
+  // User management
+  {
+    path: 'users',
+    loadChildren: () =>
+      {
+        return import('./features/user/user.routes')
+          .then(m => m.USER_ROUTES);
+      }
+  }
 
-
-
+];  
