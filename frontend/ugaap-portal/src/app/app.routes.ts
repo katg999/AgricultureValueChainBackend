@@ -43,6 +43,15 @@ export const routes: Routes = [
       import('./features/inventory/delivery-routes')
         .then(m => m.DELIVERY_ROUTES)
   },
+
+  //collection management
+  {
+    path: 'collections',
+    loadChildren: () =>
+      import('./features/collections/collections.routes')
+        .then(m => m.COLLECTIONS_ROUTES)
+  }
+  
   
 
   // User management

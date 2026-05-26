@@ -1,5 +1,7 @@
 import { Routes } from '@angular/router';
 
+
+
 export const COOPERATIVES_ROUTES: Routes = [
  
   {
@@ -19,6 +21,20 @@ export const COOPERATIVES_ROUTES: Routes = [
     loadComponent: () =>
       import('./maker-checker-creation/maker-checker-creation.component')
         .then(m => m.MakerCheckerCreationComponent)
+  },
+  {
+    path: "farmer-list",
+    loadComponent: () =>
+      import('./farmers/farmer-list/farmer-list.component')
+        .then(m => m.FarmerListComponent)
+  },
+  
+  {
+    path: "delivery-list",
+    loadComponent: () =>
+      import('./delivery-lists/delivery-list/delivery-coop-list.component')
+        .then(m => m.BranchDeliveryListComponent)
   }
+
   
 ];
