@@ -1,0 +1,367 @@
+/* features/cooperative/dashboard/dashboard.component.css */
+
+.cooperative-dashboard {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ── Greeting ────────────────────────────────────────────────────────────── */
+
+.greeting-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 32px;
+}
+
+.greeting-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #200B26;
+  margin: 0 0 6px 0;
+}
+
+.greeting-subtitle {
+  font-size: 14px;
+  color: #6B7280;
+  margin: 0;
+}
+
+.season-btn {
+  background: #FEF3F2;
+  border: 1px solid #FED7CC;
+  color: #F25D27;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.15s;
+}
+
+.season-btn:hover { background: #FEE4DC; }
+
+.dropdown-icon { font-size: 10px; }
+
+/* ── Stats + Recovery Row ────────────────────────────────────────────────── */
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 20px;
+  margin-bottom: 24px;
+  align-items: stretch; /* all cards in the row grow to the tallest */
+}
+
+/* Recovery Rate Card */
+.recovery-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #E5E7EB;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.recovery-label {
+  font-size: 13px;
+  color: #6B7280;
+  text-align: center;
+}
+
+.recovery-target {
+  font-size: 13px;
+  color: #6B7280;
+}
+
+/* ── Content Grid ────────────────────────────────────────────────────────── */
+
+.content-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+
+.left-column,
+.right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Card ────────────────────────────────────────────────────────────────── */
+
+.card {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #E5E7EB;
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 20px;
+  border-bottom: 1px solid #F3F4F6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #200B26;
+  margin: 0;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: #F25D27;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-link:hover { text-decoration: underline; }
+
+.btn-icon {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #9CA3AF;
+}
+
+/* ── Branch Table ────────────────────────────────────────────────────────── */
+
+.branch-table { padding: 20px; }
+
+.table-header {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 2fr 1fr;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.table-header > div {
+  font-size: 11px;
+  font-weight: 700;
+  color: #9CA3AF;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.table-body { margin-top: 8px; }
+
+.branch-row {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 2fr 1fr;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid #F9FAFB;
+  align-items: center;
+}
+
+.branch-row:last-child { border-bottom: none; }
+
+.col-branch {
+  font-size: 14px;
+  font-weight: 600;
+  color: #200B26;
+}
+
+.col-deliveries,
+.col-outstanding {
+  font-size: 14px;
+  color: #374151;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.status-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 12px;
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.badge-healthy          { background: #DCFCE7; color: #15803D; }
+.badge-action-required  { background: #FEF3C7; color: #B45309; }
+.badge-new              { background: #E0E7FF; color: #4338CA; }
+
+/* ── Payment Breakdown ───────────────────────────────────────────────────── */
+
+.payment-breakdown { padding: 20px; }
+
+.total-volume {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.volume-label {
+  font-size: 11px;
+  color: #9CA3AF;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.volume-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: #F25D27;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.payment-progress {
+  display: flex;
+  height: 12px;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  gap: 2px;
+}
+
+.progress-segment { transition: flex 0.3s ease; }
+
+.payment-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.legend-info {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.legend-status {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.legend-amount {
+  font-size: 13px;
+  font-weight: 700;
+  color: #200B26;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+/* ── Activity List ───────────────────────────────────────────────────────── */
+
+.activity-list { padding: 4px 20px; }
+
+.card-footer {
+  padding: 16px 20px;
+  border-top: 1px solid #F3F4F6;
+  text-align: center;
+}
+
+.btn-load-more {
+  background: none;
+  border: none;
+  color: #9CA3AF;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.btn-load-more:hover { color: #F25D27; }
+
+/* ── Market Alert ────────────────────────────────────────────────────────── */
+
+.market-alert-card {
+  background: linear-gradient(135deg, #200B26 0%, #3D1F47 100%);
+  border-radius: 12px;
+  padding: 24px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.alert-badge {
+  display: inline-block;
+  background: #F25D27;
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  font-family: 'IBM Plex Mono', monospace;
+  letter-spacing: 0.5px;
+}
+
+.alert-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  line-height: 1.3;
+}
+
+.alert-subtitle {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0 0 16px 0;
+}
+
+.alert-image-placeholder {
+  width: 100%;
+  height: 120px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+
+@media (max-width: 1200px) {
+  .stats-grid    { grid-template-columns: repeat(3, 1fr); }
+  .content-grid  { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .stats-grid       { grid-template-columns: repeat(2, 1fr); }
+  .greeting-section { flex-direction: column; gap: 16px; }
+  .branch-table { overflow-x: auto; }
+  .table-header,
+  .branch-row { min-width: 480px; }
+}
+
+@media (max-width: 480px) {
+  .stats-grid { grid-template-columns: 1fr; }
+}

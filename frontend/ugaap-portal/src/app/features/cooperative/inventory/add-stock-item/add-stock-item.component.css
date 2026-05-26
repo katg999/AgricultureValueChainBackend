@@ -1,0 +1,159 @@
+.add-stock-item-page-wrapper {
+  min-height: 100%;
+  padding: 32px 16px;
+  background: var(--surface-low);
+}
+
+.form-container {
+  margin-top: 28px;
+}
+
+.section-title {
+  margin: 0 0 14px;
+  color: var(--secondary);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.stock-card {
+  background: var(--surface-lowest);
+  border-radius: 12px;
+  padding: 24px;
+  display: grid;
+  gap: 24px;
+}
+
+.stock-card h3 {
+  margin: 0;
+  color: var(--secondary);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.column,
+.form-group {
+  display: grid;
+  gap: 14px;
+}
+
+.form-group {
+  gap: 7px;
+}
+
+.form-group label {
+  color: var(--secondary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.form-input,
+.input-with-unit input {
+  width: 100%;
+  border: 1px solid var(--surface-highest);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--secondary);
+  background: var(--surface-lowest);
+  font-size: 14px;
+  outline: 0;
+  box-sizing: border-box;
+}
+
+.form-input:focus,
+.input-with-unit input:focus {
+  border-color: var(--primary-container);
+  box-shadow: 0 0 0 2px rgba(242, 93, 39, 0.18);
+}
+
+.multi-select {
+  min-height: 96px;
+}
+
+.helper-text {
+  color: var(--muted-purple);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.input-with-unit {
+  position: relative;
+}
+
+.input-with-unit input {
+  padding-right: 54px;
+}
+
+.unit-tag {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted-purple);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-cancel,
+.btn-submit {
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-cancel {
+  background: var(--surface-highest);
+  color: var(--secondary);
+}
+
+.btn-submit {
+  background: var(--primary-container);
+  color: var(--surface-lowest);
+}
+
+.btn-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.icon {
+  margin-right: 6px;
+}
+
+@media (max-width: 780px) {
+  .add-stock-item-page-wrapper {
+    padding: 16px;
+  }
+
+  .stock-card {
+    padding: 18px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    justify-content: stretch;
+  }
+
+  .btn-cancel,
+  .btn-submit {
+    flex: 1;
+  }
+}

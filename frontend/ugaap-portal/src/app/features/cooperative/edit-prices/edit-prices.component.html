@@ -1,0 +1,175 @@
+<!-- edit-prices.component.html
+     Two-section price editor: single branch and bulk multi-branch. -->
+
+<div class="page">
+
+  <!-- page heading -->
+  <div class="page-header">
+    <h1 class="page-title">Edit Prices</h1>
+    <p class="page-subtitle">Update prices for one or multiple branches across the Mubende region.</p>
+  </div>
+
+  @if (error()) {
+    <div class="error-bar">{{ error() }}</div>
+  }
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SECTION 1 — single branch
+  ════════════════════════════════════════════════════════════ -->
+  <div class="section-card">
+
+    <!-- section heading with calendar icon -->
+    <div class="section-heading">
+      <span class="sec-icon sec-icon--orange">
+        <svg width="16" height="16" viewBox="0 0 24 24"
+             fill="none" stroke="#F25D27" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8"  y1="2" x2="8"  y2="6"/>
+          <line x1="3"  y1="10" x2="21" y2="10"/>
+        </svg>
+      </span>
+      <h2 class="sec-title">Update Prices for One Branch</h2>
+    </div>
+
+    <!-- branch picker -->
+    <div class="branch-picker">
+      <label class="field-label">Select Branch</label>
+      <div class="select-wrap">
+        <select
+          class="branch-select"
+          [ngModel]="selectedBranch()"
+          (ngModelChange)="onBranchChange($event)">
+          <option value="">Select a branch...</option>
+          @for (b of branches(); track b.id) {
+            <option [value]="b.id">{{ b.name }}</option>
+          }
+        </select>
+        <svg class="select-chevron" width="14" height="14" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- price table — shown once a branch is selected -->
+    @if (gradePrices().length > 0) {
+      <table class="price-table">
+        <thead>
+          <tr>
+            <th>GRADE</th>
+            <th>CODE</th>
+            <th>CURRENT PRICE</th>
+            <th>NEW PRICE (UGX)</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of gradePrices(); track row.id) {
+            <tr>
+              <td class="grade-name">{{ row.name }}</td>
+              <td>
+                <span class="code-pill">{{ row.code }}</span>
+              </td>
+              <td class="current-price">{{ row.currentPrice | number:'1.2-2' }}</td>
+              <td>
+                <!-- editable new-price cell -->
+                <input
+                  type="number"
+                  class="price-input"
+                  [(ngModel)]="row.newPrice"
+                  min="0"
+                  step="50" />
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <!-- quick action bar -->
+      <div class="quick-actions">
+        <span class="qa-label">
+          <!-- lightning bolt -->
+          <svg width="13" height="13" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+          </svg>
+          Quick Actions
+        </span>
+        <div class="qa-btns">
+          <button class="qa-btn qa-btn--outline" (click)="increaseAllByPercent()">
+            INCREASE ALL BY %
+          </button>
+          <button class="qa-btn" (click)="resetToCurrent()">
+            RESET TO CURRENT
+          </button>
+        </div>
+      </div>
+    }
+
+  </div><!-- /section 1 -->
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SECTION 2 — multiple branches
+  ════════════════════════════════════════════════════════════ -->
+  <div class="section-card">
+
+    <div class="section-heading">
+      <span class="sec-icon sec-icon--purple">
+        <!-- multi-node icon -->
+        <svg width="16" height="16" viewBox="0 0 24 24"
+             fill="none" stroke="#533C59" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+        </svg>
+      </span>
+      <h2 class="sec-title">Update Prices for Multiple Branches</h2>
+    </div>
+
+    <!-- target selection table -->
+    <div class="targets-header">
+      <span class="field-label">Select Targets</span>
+      <button class="select-all-btn" (click)="selectAllBranches()">Select All Branches</button>
+    </div>
+
+    <table class="targets-table">
+      <thead>
+        <tr>
+          <th class="col-check">
+            <input type="checkbox"
+                   [checked]="selectedTargets().size === targetBranches().length"
+                   (change)="selectAllBranches()" />
+          </th>
+          <th>BRANCH NAME</th>
+          <th>REGION</th>
+          <th>GRADES</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (b of targetBranches(); track b.id) {
+          <tr [class.row--selected]="isSelected(b.id)" (click)="toggleTarget(b.id)">
+            <td class="col-check">
+              <input type="radio" [checked]="isSelected(b.id)" (click)="$event.stopPropagation()" />
+            </td>
+            <td class="branch-name">{{ b.name }}</td>
+            <td class="text-muted">{{ b.region }}</td>
+            <td class="text-muted">{{ b.gradeCount | number:'2.0-0' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+  </div><!-- /section 2 -->
+
+  <!-- ── page-level save button ─────────────────────────────── -->
+  <div class="page-actions">
+    <app-button
+      variant="primary"
+      [loading]="saving()"
+      loadingText="Saving..."
+      (clicked)="saveChanges()">
+      Save Changes
+    </app-button>
+  </div>
+
+</div><!-- /page -->

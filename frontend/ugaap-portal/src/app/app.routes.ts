@@ -1,67 +1,68 @@
 import { Routes } from '@angular/router';
+// import { authGuard } from './core/guards/auth-guard';
+import { AdminLayoutComponent } from './layouts/admin-layout/admin-layout.component';
+import { AuthLayoutComponent }  from './layouts/auth-layout/auth-layout.component';
 
 export const routes: Routes = [
-  // Default route redirects to auth module
-  {
-    path: '',
 
-    loadChildren: () =>
-      import('./features/auth/auth.routes')
-        .then(m => m.AUTH_ROUTES)
-  },
-  // Lazy load feature modules
+  // ── Auth shell (no guard) ──────────────────────────────────────────────
   {
     path: 'auth',
+    component: AuthLayoutComponent,
     loadChildren: () =>
-      import('./features/auth/auth.routes')
-        .then(m => m.AUTH_ROUTES as Routes)
-  },
-  {
-    path: 'inventory',
-    loadChildren: () =>
-      import('./features/inventory/inventory.routes')
-        .then(m => m.INVENTORY_ROUTES as Routes)
-  },
-  // Cooperatives management
-  {
-    path: 'cooperatives',
-    loadChildren: () =>
-      import('./features/cooperatives/cooperatives.routes')
-        .then(m => m.COOPERATIVES_ROUTES as Routes)
-  },
-  {
-    path: 'farmers',
-    loadChildren: () =>
-      import('./features/farmers/farmers.routes')
-        .then(m => m.FARMERS_ROUTES as Routes)
+      import('./features/auth/auth.routes').then(m => m.AUTH_ROUTES),
   },
 
-  // User management
-  {
-    path: 'inventory',
-    loadChildren: () =>
-      import('./features/inventory/delivery-routes')
-        .then(m => m.DELIVERY_ROUTES)
-  },
+  // Redirect bare root to auth
+  { path: '', redirectTo: 'auth', pathMatch: 'full' },
 
-  //collection management
+  // ── Protected shell (guarded, all behind AdminLayout) ─────────────────
   {
-    path: 'collections',
-    loadChildren: () =>
-      import('./features/collections/collections.routes')
-        .then(m => m.COLLECTIONS_ROUTES)
-  }
-  
-  
+    path: '',
+    component: AdminLayoutComponent,
+    // canActivate: [authGuard],
+    children: [
 
-  // User management
-  {
-    path: 'users',
-    loadChildren: () =>
+      // Platform admin — cooperative management
       {
-        return import('./features/user/user.routes')
-          .then(m => m.USER_ROUTES);
-      }
-  }
+        path: 'platform',
+        loadChildren: () =>
+          import('./features/platform/platform.routes').then(m => m.PLATFORM_ROUTES),
+      },
 
-];  
+      // Cooperative admin — grading & pricing
+      {
+        path: 'cooperative',
+        loadChildren: () =>
+          import('./features/cooperative/cooperative.routes').then(m => m.COOPERATIVE_ROUTES),
+      },
+
+      // Branch staff — daily grading
+      {
+        path: 'branch',
+        loadChildren: () =>
+          import('./features/branch/branch.routes').then(m => m.BRANCH_ROUTES),
+      },
+
+      // Cooperative organisation management (list, onboarding, maker-checker)
+      {
+        path: 'cooperatives',
+        loadChildren: () =>
+          import('./features/cooperative/cooperative.routes').then(m => m.COOPERATIVE_ROUTES),
+      },
+
+      
+
+      // Inventory — shared across cooperative & branch roles
+      {
+        path: 'inventory',
+        loadChildren: () =>
+          import('./features/cooperative/inventory/inventory.routes').then(m => m.INVENTORY_ROUTES),
+      },
+
+    ],
+  },
+
+  // Catch-all
+  { path: '**', redirectTo: 'auth' },
+];

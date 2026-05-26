@@ -1,0 +1,179 @@
+<div class="page-container">
+  <div class="page-header">
+    <app-page-header
+      title="Stock Available"
+      subtitle="Current input stock held by the cooperative across all branches."
+      [breadcrumb]="['Inventory', 'Available Stock', 'Current Stock']">
+    </app-page-header>
+
+    <div class="header-actions">
+      <app-button
+        type="button"
+        variant="primary"
+        size="md"
+        iconLeft="+"
+        (clicked)="addStock()">
+        Add stock
+      </app-button>
+
+      <app-button
+        type="button"
+        variant="secondary"
+        size="md"
+        iconLeft="+"
+        [loading]="isImporting"
+        loadingText="Importing..."
+        (clicked)="importStock()">
+        Import stock
+      </app-button>
+    </div>
+  </div>
+
+  <div class="summary-cards">
+    <app-stat-card
+      [data]="{ label: 'TOTAL TYPES', value: summary.totalTypes, icon: '📦' }">
+    </app-stat-card>
+
+    <app-stat-card
+      [data]="{ label: 'HEALTHY', value: summary.healthy, icon: '✅' }">
+    </app-stat-card>
+
+    <app-stat-card
+      [data]="{ label: 'LOW', value: summary.low, icon: '⚠️', status: 'warning' }">
+    </app-stat-card>
+
+    <app-stat-card
+      [data]="{ label: 'OUT OF STOCK', value: summary.outOfStock, icon: '🚫', status: 'critical' }">
+    </app-stat-card>
+
+    <app-stat-card
+      [data]="{ label: 'TOTAL VALUE', value: (summary.totalValue | currency:'UGX':'symbol':'1.0-0') ?? '', icon: '💰' }">
+    </app-stat-card>
+  </div>
+
+  <div class="alert-stack">
+    <app-alert
+      *ngIf="alertMessage"
+      variant="warning"
+      [message]="alertMessage">
+    </app-alert>
+
+    <app-alert
+      *ngIf="importMessage"
+      variant="success"
+      [message]="importMessage">
+    </app-alert>
+  </div>
+
+  <div class="filters-row">
+    <div class="filter-select">
+      <select title="Filter by Branch" [(ngModel)]="filterBranch" (change)="applyFilters()">
+        <option value="">Branch: All</option>
+        <option *ngFor="let b of branches" [value]="b">{{ b }}</option>
+      </select>
+      <svg class="select-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="6 9 12 15 18 9" />
+      </svg>
+    </div>
+
+    <div class="filter-select">
+      <select title="Filter by Status" [(ngModel)]="filterStatus" (change)="applyFilters()">
+        <option value="">Status: All</option>
+        <option value="healthy">Healthy</option>
+        <option value="low">Low</option>
+        <option value="out">Out of Stock</option>
+      </select>
+      <svg class="select-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="6 9 12 15 18 9" />
+      </svg>
+    </div>
+
+    <div class="filter-select">
+      <select title="Filter by Season" [(ngModel)]="filterSeason" (change)="applyFilters()">
+        <option value="">Season: All</option>
+        <option value="2024A">2024 Season A</option>
+        <option value="2024B">2024 Season B</option>
+        <option value="2023B">2023 Season B</option>
+      </select>
+      <svg class="select-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="6 9 12 15 18 9" />
+      </svg>
+    </div>
+
+    <div class="search-box">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8" />
+        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      </svg>
+      <input
+        type="text"
+        placeholder="Search"
+        [(ngModel)]="searchQuery"
+        (input)="applyFilters()"
+      />
+    </div>
+  </div>
+
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ITEM NAME</th>
+          <th>CATEGORY</th>
+          <th>QUANTITY</th>
+          <th>UNIT</th>
+          <th>MIN. THRESHOLD</th>
+          <th>STATUS</th>
+          <th>BRANCHES</th>
+          <th>ENTRY DATE</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let item of filteredItems" [class.row-out]="item.stockStatus === 'out'">
+          <td class="item-name">{{ item.name }}</td>
+          <td>
+            <span class="category-badge" [ngClass]="item.categoryClass">
+              {{ item.category }}
+            </span>
+          </td>
+          <td
+            class="quantity-cell"
+            [ngClass]="{
+              'qty-orange': item.stockStatus === 'low',
+              'qty-red': item.stockStatus === 'out'
+            }">
+            {{ item.quantity | number }}
+          </td>
+          <td>{{ item.unit }}</td>
+          <td class="threshold-cell">{{ item.minThreshold | number }}</td>
+          <td>
+            <div class="status-bar-wrap">
+              <div class="status-bar">
+                <div
+                  class="status-bar-fill"
+                  [ngClass]="item.stockStatus"
+                  [style.width.%]="getBarPercent(item)">
+                </div>
+              </div>
+              <span *ngIf="item.stockStatus === 'out'" class="out-dot" aria-label="Out of stock"></span>
+            </div>
+          </td>
+          <td class="branches-cell">
+            <span *ngIf="item.branches === 'All'">All</span>
+            <span *ngIf="item.branches !== 'All'">
+              {{ item.branches }}
+              <br />
+              <span class="branch-label">Branch{{ +item.branches > 1 ? 'es' : '' }}</span>
+            </span>
+          </td>
+          <td class="date-cell">{{ item.updatedAt }}</td>
+        </tr>
+
+        <tr *ngIf="filteredItems.length === 0">
+          <td colspan="8" class="empty-row">No stock items match your filters.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

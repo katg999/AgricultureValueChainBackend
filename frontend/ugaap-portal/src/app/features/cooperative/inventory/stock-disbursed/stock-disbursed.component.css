@@ -1,0 +1,281 @@
+.stock-disbursed-page {
+  min-height: 100%;
+  padding: 32px 16px;
+  background: var(--surface-low);
+}
+
+.page-header-row,
+.filter-section,
+.table-footer,
+.pagination,
+.bottom-row,
+.chart-legend,
+.perf-bar-label,
+.liquidity-callout {
+  display: flex;
+}
+
+.page-header-row {
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+  align-items: stretch;
+}
+
+.stats-grid app-stat-card {
+  display: block;
+  min-width: 0;
+}
+
+.filter-section {
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.search-input {
+  flex: 1 1 260px;
+}
+
+.select {
+  min-width: 170px;
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: var(--surface-highest);
+  color: var(--secondary);
+  font-size: 13px;
+  outline: 0;
+}
+
+.select:focus {
+  background: var(--surface-lowest);
+  box-shadow: 0 0 0 2px rgba(242, 93, 39, 0.22);
+}
+
+.table-container,
+.chart-card,
+.issues-card {
+  background: var(--surface-lowest);
+  border-radius: 10px;
+}
+
+.table-container {
+  overflow-x: auto;
+  margin-bottom: 20px;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.data-table thead tr {
+  background: var(--surface-low);
+  border-bottom: 2px solid var(--surface-highest);
+}
+
+.data-table th,
+.data-table td {
+  padding: 13px 14px;
+  color: var(--secondary);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.data-table th {
+  color: var(--muted-purple);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.data-table tbody tr {
+  border-bottom: 1px solid var(--surface-highest);
+}
+
+.id-cell,
+.value-cell {
+  font-family: var(--font-technical);
+}
+
+.name-cell {
+  font-weight: 600;
+}
+
+.text-danger {
+  color: #8c342b !important;
+  font-weight: 600;
+}
+
+.view-link {
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.empty-row {
+  text-align: center !important;
+  color: var(--muted-purple) !important;
+  padding: 36px !important;
+}
+
+.table-footer {
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+  color: var(--muted-purple);
+  font-size: 13px;
+}
+
+.pagination {
+  gap: 6px;
+  align-items: center;
+}
+
+.bottom-row {
+  gap: 18px;
+  align-items: stretch;
+}
+
+.chart-card {
+  flex: 1.6;
+  padding: 20px;
+}
+
+.chart-card h3,
+.issues-card h4 {
+  margin: 0 0 6px;
+  color: var(--secondary);
+}
+
+.chart-card p,
+.liquidity-callout p {
+  margin: 0;
+  color: var(--muted-purple);
+  font-size: 13px;
+}
+
+.chart-legend {
+  gap: 16px;
+  align-items: center;
+  margin: 18px 0;
+  color: var(--muted-purple);
+  font-size: 12px;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.legend-dot-inputs,
+.bar-fill-inputs {
+  background: var(--primary);
+}
+
+.legend-dot-produce,
+.bar-fill-produce {
+  background: #22a65a;
+}
+
+.perf-bar-group {
+  margin-top: 16px;
+}
+
+.perf-bar-label {
+  justify-content: space-between;
+  margin-bottom: 8px;
+  color: var(--secondary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.bar-track {
+  height: 10px;
+  background: var(--surface-highest);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: inherit;
+}
+
+.liquidity-callout {
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+  padding: 14px;
+  border-radius: 8px;
+  background: rgba(34, 166, 90, 0.1);
+}
+
+.liquidity-heading {
+  color: var(--secondary) !important;
+  font-weight: 700;
+}
+
+.issues-card {
+  flex: 1;
+  padding: 20px;
+}
+
+.issues-list {
+  display: grid;
+  gap: 10px;
+  margin: 16px 0;
+}
+
+@media (max-width: 900px) {
+  .stock-disbursed-page {
+    padding: 16px;
+  }
+
+  .bottom-row {
+    flex-direction: column;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .table-footer,
+  .page-header-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .select,
+  .filter-section app-button {
+    width: 100%;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
