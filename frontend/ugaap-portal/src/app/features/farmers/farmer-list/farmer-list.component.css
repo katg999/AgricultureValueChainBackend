@@ -142,11 +142,15 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
+  align-items: stretch;
 }
 
 .summary-card {
   min-height: 112px;
   padding: 16px;
+  /* flex column so app-stat-card can use height:100% through this wrapper */
+  display: flex;
+  flex-direction: column;
 }
 
 .summary-card-title {

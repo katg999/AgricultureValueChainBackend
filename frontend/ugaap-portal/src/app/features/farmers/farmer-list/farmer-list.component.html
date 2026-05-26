@@ -116,20 +116,13 @@
   <div class="summary-cards-grid">
     <div class="summary-card">
       <app-stat-card
-        label="New Registrations"
-        [value]="newRegistrations"
-        trend="+8.5%"
-        trendDirection="up">
+        [data]="{ label: 'New Registrations', value: newRegistrations, icon: '📝', trend: '+8.5%', trendUp: true }">
       </app-stat-card>
     </div>
 
     <div class="summary-card">
       <app-stat-card
-        label="Portfolio At Risk"
-        [value]="'UGX ' + portfolioAtRisk"
-        trend="-5.2%"
-        trendDirection="down"
-        variant="warning">
+        [data]="{ label: 'Portfolio At Risk', value: 'UGX ' + portfolioAtRisk, icon: '⚠️', trend: '-5.2%', trendUp: false, status: 'warning' }">
       </app-stat-card>
     </div>
 
