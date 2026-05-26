@@ -52,22 +52,12 @@ export const AUTH_ROUTES: Routes = [
     loadComponent: () =>
       import('./set-new-password/set-new-password.component').then(m => m.SetNewPasswordComponent),
   },
-
-  // Informational / error states ────────────────────────────────────────────
-
-  {
-    path: 'account-locked',
-    loadComponent: () =>
-      import('./account-locked/account-locked.component').then(m => m.AccountLockedComponent),
-  },
-  {
-    path: 'session-expired',
-    loadComponent: () =>
-      import('./session-expired/session-expired.component').then(m => m.SessionExpiredComponent),
-  },
-  {
-    path: 'first-time-login',
-    loadComponent: () =>
-      import('./first-time-login/first-time-login.component').then(m => m.FirstTimeLoginComponent),
-  },
+  // Default redirect to login
+  // {
+  //   path: '',
+  //   redirectTo: 'login',
+  //   pathMatch: 'full'
+  // }
 ];
+
+
