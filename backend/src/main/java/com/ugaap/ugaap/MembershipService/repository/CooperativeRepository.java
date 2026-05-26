@@ -12,6 +12,7 @@ public interface CooperativeRepository extends JpaRepository<Cooperative, UUID> 
 
     Optional<Cooperative> findByTenantId(String tenantId);
 
+
     Optional<Cooperative> findByRegistrationNumber(String registrationNumber);
 
     boolean existsByRegistrationNumber(String registrationNumber);

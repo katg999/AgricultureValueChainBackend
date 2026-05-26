@@ -10,6 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
 
 
 @RestController
@@ -33,4 +34,13 @@ public class  CooperativeController {
         CooperativeDto.CreateResponse response = cooperativeService.onboardCooperative(request, currentUser);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+
+    @GetMapping
+    @PreAuthorize("hasRole('PLATFORM_ADMIN') or hasRole('COOPERATIVE_ADMIN_MAKER') or hasRole('COOPERATIVE_ADMIN_CHECKER')")
+    public ResponseEntity<List<CooperativeDto.Response>> listCooperatives() {
+        return ResponseEntity.ok(cooperativeService.listCooperatives());
+    }
+
+
 }
