@@ -13,26 +13,21 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./logo.component.css']
 })
 export class LogoComponent {
-  /**
-   * Size variant of the logo
-   * - sm: Compact (32px icon)
-   * - md: Standard (48px icon) - Default for auth pages
-   * - lg: Large (56px icon)
-   */
+  // sm = 32px icon, md = 48px (auth default), lg = 56px
   @Input() size: 'sm' | 'md' | 'lg' = 'md';
 
-  /**
-   * Whether to show the subtitle "Uganda Agrarian Portal"
-   * Default: true
-   */
+  // show/hide the tagline below the wordmark
   @Input() showSubtitle = true;
 
-  /**
-   * Compute CSS classes based on size
-   * 
-   * @returns Space-separated string of CSS class names
-   */
+  // sidebar variant: horizontal row, white text, "AGRI-FIN MANAGEMENT" sub-label
+  // default variant: centered column layout for auth pages
+  @Input() variant: 'default' | 'sidebar' = 'default';
+
   get logoClasses(): string {
-    return `logo-container logo-${this.size}`;
+    return [
+      'logo-container',
+      `logo-${this.size}`,
+      this.variant === 'sidebar' ? 'logo-sidebar' : '',
+    ].filter(Boolean).join(' ');
   }
 }

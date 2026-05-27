@@ -1,0 +1,142 @@
+<!-- configuration.component.html
+     Navigation hub for all cooperative configuration sections. -->
+
+<div class="page">
+
+  <!-- page heading -->
+  <div class="page-header">
+    <h1 class="page-title">Configuration</h1>
+    <p class="page-subtitle">
+      Manage system-wide settings and operational parameters for the Mubende agricultural
+      ecosystem. Define harvest rules, user hierarchies, and regional pricing standards.
+    </p>
+  </div>
+
+  <!-- ── row 1: two equal cards ──────────────────────────────────────── -->
+  <div class="config-grid">
+
+    <!-- Sessions Management -->
+    <app-config-card
+      configId="001"
+      title="Sessions Management"
+      description="Manage harvest and collection cycles. Coordinate logistics, staffing, and procurement windows for the upcoming season."
+      iconBg="orange">
+
+      <!-- icon slot -->
+      <svg cardIcon width="22" height="22" viewBox="0 0 24 24"
+           fill="none" stroke="#F25D27" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+        <line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8"  y1="2" x2="8"  y2="6"/>
+        <line x1="3"  y1="10" x2="21" y2="10"/>
+      </svg>
+
+      <!-- footer slot -->
+      <div cardFooter class="card-footer-row">
+        <app-button variant="primary" size="sm" (clicked)="openSessions()">
+          Open Settings
+        </app-button>
+        <span class="next-hint">
+          <!-- clock icon -->
+          <svg width="13" height="13" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          Next: July 15
+        </span>
+      </div>
+    </app-config-card>
+
+    <!-- Roles & Users -->
+    <app-config-card
+      configId="002"
+      title="Roles &amp; Users"
+      description="Configure access levels and user profiles. Define granular permissions for agents, hub managers, and administrative staff."
+      iconBg="purple">
+
+      <svg cardIcon width="22" height="22" viewBox="0 0 24 24"
+           fill="none" stroke="#533C59" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+
+      <!-- avatar stack in the footer -->
+      <div cardFooter class="avatar-stack">
+        <div class="avatar" style="background:#F25D27">S</div>
+        <div class="avatar" style="background:#533C59">K</div>
+        <div class="avatar" style="background:#CF450D">A</div>
+        <div class="avatar-count">+12</div>
+      </div>
+    </app-config-card>
+
+  </div><!-- /config-grid -->
+
+  <!-- ── row 2: wide card + narrow dark card ─────────────────────────── -->
+  <div class="config-grid config-grid--split">
+
+    <!-- Grading & Pricing -->
+    <app-config-card
+      title="Grading &amp; Pricing"
+      subtitle="Financial Algorithms"
+      description="Set quality standards and commodity prices. Establish the tiered pricing models based on Grade A through Grade C metrics for all inbound crops."
+      iconBg="purple">
+
+      <svg cardIcon width="22" height="22" viewBox="0 0 24 24"
+           fill="none" stroke="#533C59" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="20" x2="18" y2="10"/>
+        <line x1="12" y1="20" x2="12" y2="4"/>
+        <line x1="6"  y1="20" x2="6"  y2="14"/>
+      </svg>
+
+      <!-- mini stat boxes below description -->
+      <div class="mini-stats">
+        <div class="mini-stat">
+          <span class="mini-stat__label">GRADE A BASE</span>
+          <span class="mini-stat__value">UGX&nbsp;12,450.00</span>
+        </div>
+        <div class="mini-stat">
+          <span class="mini-stat__label">MARKET VARIANCE</span>
+          <span class="mini-stat__value">± 1.25%</span>
+        </div>
+      </div>
+
+      <div cardFooter>
+        <button class="card-link-btn" (click)="openGrading()">
+          View configuration →
+        </button>
+      </div>
+    </app-config-card>
+
+    <!-- Notification Preferences (dark card) -->
+    <app-config-card
+      [dark]="true"
+      title="Notification Preferences"
+      description="Manage SMS and email alert preferences for automated harvest triggers and payout confirmations."
+      iconBg="dark">
+
+      <svg cardIcon width="22" height="22" viewBox="0 0 24 24"
+           fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+        <path d="M15.54 8.46a5 5 0 0 1 0 7.07M8.46 8.46a5 5 0 0 0 0 7.07"/>
+      </svg>
+
+      <!-- status rows -->
+      <div class="notif-rows">
+        <div class="notif-row">
+          <span class="notif-label">SMS CHANNELS</span>
+          <span class="notif-status">ACTIVE</span>
+        </div>
+        <div class="notif-row">
+          <span class="notif-label">EMAIL ALERTS</span>
+          <span class="notif-status">ACTIVE</span>
+        </div>
+      </div>
+    </app-config-card>
+
+  </div><!-- /config-grid--split -->
+
+</div><!-- /page -->

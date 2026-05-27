@@ -1,0 +1,294 @@
+/* edit-prices.component.css */
+
+.page {
+  padding: 32px;
+  max-width: 1100px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── heading ──────────────────────────────────────────────── */
+.page-header { display: flex; flex-direction: column; gap: 6px; }
+
+.page-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #1A1A2E;
+}
+
+.page-subtitle {
+  font-size: 13px;
+  color: #6B6880;
+}
+
+.error-bar {
+  background: #FCEBEB;
+  color: #8C342B;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+}
+
+/* ── shared section card ──────────────────────────────────── */
+.section-card {
+  background: var(--surface-lowest);
+  border-radius: 14px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── section heading row (icon + title) ───────────────────── */
+.section-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sec-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sec-icon--orange { background: #FDEEE8; }
+.sec-icon--purple { background: #EDE8EF; }
+
+.sec-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1A1A2E;
+}
+
+/* ── branch selector ──────────────────────────────────────── */
+.field-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6B6880;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.select-wrap {
+  position: relative;
+  max-width: 360px;
+}
+
+.branch-select {
+  width: 100%;
+  appearance: none;
+  background: var(--surface-lowest);
+  border: 1px solid var(--surface-highest);
+  border-radius: 8px;
+  padding: 10px 36px 10px 14px;
+  font-family: var(--font-human);
+  font-size: 13px;
+  color: #1A1A2E;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.branch-select:focus { border-color: var(--primary); }
+
+.select-chevron {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #8A8799;
+  pointer-events: none;
+}
+
+/* ── price table ──────────────────────────────────────────── */
+.price-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.price-table thead th {
+  padding: 10px 16px;
+  background: var(--surface-low);
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: #6B6880;
+  text-align: left;
+  font-weight: 700;
+}
+
+.price-table tbody tr {
+  border-bottom: 1px solid var(--surface-low);
+}
+
+.price-table tbody tr:last-child { border-bottom: none; }
+
+.price-table tbody td {
+  padding: 14px 16px;
+  vertical-align: middle;
+  color: #1A1A2E;
+}
+
+.grade-name {
+  font-weight: 500;
+}
+
+/* grade code pill — lavender monospace badge */
+.code-pill {
+  display: inline-block;
+  font-family: var(--font-technical);
+  font-size: 11px;
+  font-weight: 600;
+  background: #EDE8EF;
+  color: #533C59;
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.current-price {
+  color: #6B6880;
+  font-family: var(--font-technical);
+  font-size: 13px;
+}
+
+/* inline editable price input */
+.price-input {
+  width: 130px;
+  background: var(--surface-low);
+  border: 1px solid var(--surface-highest);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-family: var(--font-technical);
+  font-size: 13px;
+  font-weight: 600;
+  color: #1A1A2E;
+  text-align: right;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.price-input:focus {
+  border-color: var(--primary);
+  background: #fff;
+}
+
+/* ── quick actions bar ────────────────────────────────────── */
+.quick-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--surface-low);
+  border-radius: 10px;
+  padding: 12px 16px;
+  gap: 16px;
+}
+
+.qa-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #533C59;
+}
+
+.qa-btns {
+  display: flex;
+  gap: 10px;
+}
+
+.qa-btn {
+  font-family: var(--font-technical);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 7px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  background: var(--surface-lowest);
+  border: 1px solid var(--surface-highest);
+  color: #1A1A2E;
+  transition: all 0.12s;
+}
+
+.qa-btn:hover { background: var(--surface-highest); }
+
+.qa-btn--outline {
+  background: transparent;
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.qa-btn--outline:hover { background: #FFF5F0; }
+
+/* ── multi-branch targets ─────────────────────────────────── */
+.targets-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.select-all-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0;
+}
+
+.select-all-btn:hover { text-decoration: underline; }
+
+.targets-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.targets-table thead th {
+  padding: 10px 14px;
+  background: var(--surface-low);
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: #6B6880;
+  text-align: left;
+  font-weight: 700;
+}
+
+.col-check { width: 48px; }
+
+.targets-table tbody tr {
+  border-bottom: 1px solid var(--surface-low);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.targets-table tbody tr:last-child { border-bottom: none; }
+.targets-table tbody tr:hover      { background: #FAFAFA; }
+.row--selected                     { background: #FFF5F0 !important; }
+
+.targets-table tbody td {
+  padding: 14px 14px;
+  vertical-align: middle;
+}
+
+.branch-name { font-weight: 500; color: #1A1A2E; }
+.text-muted  { color: #6B6880; }
+
+/* ── save button ──────────────────────────────────────────── */
+.page-actions {
+  display: flex;
+  justify-content: flex-end;
+}

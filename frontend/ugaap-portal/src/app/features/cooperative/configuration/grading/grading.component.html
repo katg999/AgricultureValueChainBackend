@@ -1,0 +1,87 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Grading Rules</h1>
+      <p class="page-sub">Define quality grades and moisture thresholds for produce</p>
+    </div>
+    <button class="btn btn-primary" (click)="openForm()">+ Add Grade</button>
+  </div>
+
+  @if (error()) { <p class="err-msg">{{ error() }}</p> }
+
+  <!-- Add rule form -->
+  @if (showForm()) {
+    <div class="form-card">
+      <h3>New Grading Rule</h3>
+      <form [formGroup]="form" (ngSubmit)="saveRule()" class="grid-form">
+        <div class="field">
+          <label>Grade *</label>
+          <input formControlName="grade" placeholder="e.g. A" maxlength="5" />
+        </div>
+        <div class="field">
+          <label>Description *</label>
+          <input formControlName="description" placeholder="e.g. Premium quality" />
+        </div>
+        <div class="field">
+          <label>Min Moisture (%) *</label>
+          <input formControlName="minMoisture" type="number" />
+        </div>
+        <div class="field">
+          <label>Max Moisture (%) *</label>
+          <input formControlName="maxMoisture" type="number" />
+        </div>
+        <div class="field">
+          <label>Min Weight (kg) *</label>
+          <input formControlName="minWeight" type="number" />
+        </div>
+        <div class="field">
+          <label>Price per kg (UGX) *</label>
+          <input formControlName="pricePerKg" type="number" />
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" (click)="closeForm()">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="saving()">
+            {{ saving() ? 'Saving…' : 'Save Rule' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  @if (loading()) {
+    <p class="state-msg">Loading…</p>
+  } @else if (rules().length === 0) {
+    <p class="state-msg">No grading rules defined yet.</p>
+  } @else {
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Grade</th>
+            <th>Description</th>
+            <th>Moisture Range (%)</th>
+            <th>Min Weight (kg)</th>
+            <th>Price / kg (UGX)</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of rules(); track r.id) {
+            <tr>
+              <td><strong>{{ r.grade }}</strong></td>
+              <td>{{ r.description }}</td>
+              <td>{{ r.minMoisture }} – {{ r.maxMoisture }}</td>
+              <td>{{ r.minWeight }}</td>
+              <td>{{ r.pricePerKg | number }}</td>
+              <td>
+                <span class="badge" [class.badge--active]="r.isActive">
+                  {{ r.isActive ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

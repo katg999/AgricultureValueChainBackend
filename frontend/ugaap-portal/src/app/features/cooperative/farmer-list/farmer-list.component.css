@@ -1,0 +1,258 @@
+.page-shell {
+  min-height: 100vh;
+  background: var(--surface-low);
+  padding: 32px;
+  font-family: var(--font-human);
+}
+
+.top-header,
+.pagination-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.header-content h1 {
+  color: var(--secondary);
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 6px;
+}
+
+.subtitle,
+.pagination-info {
+  color: #6b6b7b;
+  font-size: 13px;
+}
+
+.highlight-count,
+.farmer-id,
+.farmer-name,
+.text-bold {
+  font-weight: 700;
+}
+
+.highlight-count {
+  color: var(--primary);
+}
+
+/* --- FILTERS SECTION STYLING --- */
+.filters-section {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.4fr) repeat(4, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+  /* CHANGED: Align elements to the bottom so dropdowns line up perfectly with the search input */
+  align-items: flex-end; 
+}
+
+/* Fixes any unexpected line-height/margin issues coming from the 'SEARCH' label wrapper */
+.filters-section > div {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Label styling for the "SEARCH" text */
+.filters-section label,
+.filters-section .search-label {
+  color: #6b6b7b;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+/* Combined & explicitly sized search inputs + select tags */
+.filters-section input,
+.select-wrapper select {
+  width: 100%;
+  height: 40px;
+  border: 1px solid #e8e6ed;
+  border-radius: 8px;
+  background: var(--surface-lowest);
+  color: var(--secondary);
+  font-family: var(--font-human);
+  font-size: 13px;
+  padding: 0 12px;
+  box-sizing: border-box; /* Forces padding to stay inside the element box */
+}
+
+.table-wrapper,
+.summary-card {
+  background: var(--surface-lowest);
+  border: 1px solid #e8e6ed;
+  border-radius: 12px;
+  box-shadow: 0 2px 16px rgba(32, 11, 38, 0.04);
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  margin-bottom: 18px;
+}
+
+.farmers-table {
+  width: 100%;
+  min-width: 860px;
+  border-collapse: collapse;
+}
+
+.farmers-table th,
+.farmers-table td {
+  padding: 15px 16px;
+  text-align: left;
+  border-bottom: 1px solid #e8e6ed;
+  color: var(--secondary);
+  font-size: 13px;
+}
+
+.farmers-table th {
+  color: #6b6b7b;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.farmers-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.commodity-tag,
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 10px;
+}
+
+.commodity-tag {
+  background: var(--surface-highest);
+  color: var(--muted-purple);
+}
+
+.status-badge.active {
+  background: #f0f8e8;
+  color: #27500a;
+}
+
+.status-badge.pending {
+  background: #fff8e6;
+  color: #b07800;
+}
+
+.status-badge.suspended,
+.status-badge.rejected,
+.text-danger-custom {
+  color: #8c342b;
+}
+
+.status-badge.suspended,
+.status-badge.rejected {
+  background: #fcebeb;
+}
+
+.pagination-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.summary-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+
+.summary-card {
+  min-height: 112px;
+  padding: 16px;
+  /* flex column so app-stat-card can use height:100% through this wrapper */
+  display: flex;
+  flex-direction: column;
+}
+
+.summary-card-title {
+  display: block;
+  color: #6b6b7b;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  margin-bottom: 12px;
+}
+
+.summary-card-main-val {
+  display: block;
+  color: var(--secondary);
+  font-family: var(--font-technical);
+  font-size: 26px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.progress-bar-container {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--surface-highest);
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--primary);
+}
+
+.text-center {
+  text-align: center !important;
+}
+
+.text-muted-placeholder {
+  color: #b5b5c3;
+  font-weight: 500;
+}
+
+.farmers-table td app-button {
+  display: inline-block;
+  margin: -4px 0;
+}
+
+/* --- RESPONSIVE MEDIA QUERIES --- */
+
+/* Small Desktops / Tablets Landscape */
+@media (max-width: 1024px) {
+  .filters-section {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    align-items: stretch; /* Stretch looks cleaner when boxes break to multi-lines */
+  }
+}
+
+/* Tablets Portrait */
+@media (max-width: 768px) {
+  .filters-section,
+  .summary-cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Mobile Devices */
+@media (max-width: 480px) {
+  .page-shell {
+    padding: 24px 16px;
+  }
+
+  .top-header,
+  .pagination-section {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .filters-section,
+  .summary-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}

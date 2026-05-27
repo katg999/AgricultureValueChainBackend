@@ -1,253 +1,200 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// features/auth/reset-otp/reset-otp.component.ts
+//
+// Step 2 of the forgot-password flow — OTP verification.
+//
+// What happens here:
+//   1. User enters the 4-digit OTP sent to their email/phone
+//   2. The OTP is saved to SessionService (it is submitted with the new
+//      password in the final reset step, not verified independently here)
+//   3. Navigate to /auth/set-new-password
+//
+// Resend OTP:
+//   Calls AuthService.forgotPassword() again with the same email/phone
+//   (stored in SessionService by the previous screen).
+//   The backend issues a fresh OTP and a new resetToken which replaces the old one.
+// ─────────────────────────────────────────────────────────────────────────────
+
 import {
   Component,
-  OnInit,
-  OnDestroy,
-  ViewChild,
-  ElementRef,
-  AfterViewInit
+  OnInit, OnDestroy, AfterViewInit,
+  ViewChild, ElementRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 
-// Shared reusable components
-import { LogoComponent } from '../../../shared/components/logo/logo.component';
-import { ButtonComponent } from '../../../shared/components/button/button.component';
-import { AlertComponent } from '../../../shared/components/alert/alert.component';
+import { AuthService }    from '../../../core/services/auth.service';
+import { SessionService } from '../../../core/services/session.service';
 
-/**
- * Reset OTP Component
- * 
- * Second step in password recovery flow.
- * Verifies 4-digit OTP code sent via email/phone.
- * Similar to login OTP but for password reset.
- * 
- * Flow:
- * 1. User receives OTP code
- * 2. Enter 4-digit code
- * 3. Verify and navigate to set-new-password
- * 
- * Features:
- * - Custom OTP input boxes
- * - Auto-submit when complete
- * - Resend code with cooldown
- * - Session timeout countdown
- * 
- * Components Used:
- * - LogoComponent: UGAAP branding
- * - AlertComponent: Error messages
- * - ButtonComponent: Verify button
- * - Custom OTP boxes (unique to this page)
- */
+// Shared UI components
+import { LogoComponent }   from '../../../shared/components/logo/logo.component';
+import { ButtonComponent } from '../../../shared/components/button/button.component';
+import { AlertComponent }  from '../../../shared/components/alert/alert.component';
+
 @Component({
   selector: 'app-reset-otp',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterModule,
-    LogoComponent,
-    ButtonComponent,
-    AlertComponent
-  ],
+  imports: [CommonModule, RouterModule, LogoComponent, ButtonComponent, AlertComponent],
   templateUrl: './reset-otp.component.html',
-  styleUrl: './reset-otp.component.css'
+  styleUrl:    './reset-otp.component.css',
 })
-export class ResetOtpComponent implements OnInit, OnDestroy, AfterViewInit {
+export class ResetOtpComponent implements OnInit, AfterViewInit, OnDestroy {
 
-  /**
-   * Reference to hidden input element
-   */
-  @ViewChild('hiddenInput') hiddenInput!: ElementRef;
+  @ViewChild('hiddenInput') hiddenInput!: ElementRef<HTMLInputElement>;
 
-  /**
-   * OTP value (4 digits)
-   */
-  otpValue = '';
-
-  /**
-   * Loading state during verification
-   */
-  isLoading = false;
-
-  /**
-   * Error message to display
-   */
-  errorMessage = '';
-
-  /**
-   * Time remaining for OTP validity (seconds)
-   */
-  timeLeft = 300;
-
-  /**
-   * Interval timer for countdown
-   */
-  timer: any;
-
-  /**
-   * Cooldown before resend allowed (seconds)
-   */
+  otpValue       = '';
+  isLoading      = false;
+  errorMessage   = '';
+  timeLeft       = 300;   // 5-minute OTP validity window
   resendCooldown = 0;
 
-  /**
-   * Interval timer for resend cooldown
-   */
-  resendTimer: any;
+  private countdownTimer: ReturnType<typeof setInterval> | null = null;
+  private resendTimer:    ReturnType<typeof setInterval> | null = null;
 
-  constructor(private router: Router) {}
+  constructor(
+    private router:      Router,
+    private authService: AuthService,
+    private session:     SessionService,
+  ) {}
+
+  // ── Lifecycle ───────────────────────────────────────────────────────────────
 
   ngOnInit(): void {
-    this.startTimer();
+    // Guard: user must have arrived from the forgot-password screen
+    if (!this.session.getResetToken()) {
+      this.router.navigate(['/auth/forgot-password']);
+      return;
+    }
+    this.startCountdown();
   }
 
   ngAfterViewInit(): void {
-    // Auto-focus hidden input
-    setTimeout(() => {
-      this.hiddenInput.nativeElement.focus();
-    }, 100);
+    setTimeout(() => this.hiddenInput?.nativeElement.focus(), 100);
   }
 
   ngOnDestroy(): void {
-    // Clean up timers
-    clearInterval(this.timer);
-    clearInterval(this.resendTimer);
+    this._clearTimers();
   }
 
-  /**
-   * Get array of 4 characters for display
-   */
+  // ── OTP box helpers ─────────────────────────────────────────────────────────
+
   get boxes(): string[] {
-    const result = ['', '', '', ''];
-    for (let i = 0; i < this.otpValue.length && i < 4; i++) {
-      result[i] = this.otpValue[i];
-    }
-    return result;
+    return Array.from({ length: 4 }, (_, i) => this.otpValue[i] ?? '');
   }
 
-  /**
-   * Check if all 4 digits entered
-   */
   get isComplete(): boolean {
     return this.otpValue.length === 4;
   }
 
-  /**
-   * Get index of currently active box
-   */
   get activeIndex(): number {
     return Math.min(this.otpValue.length, 3);
   }
 
-  /**
-   * Start countdown timer
-   */
-  startTimer(): void {
-    clearInterval(this.timer);
-    this.timer = setInterval(() => {
-      if (this.timeLeft > 0) {
-        this.timeLeft--;
-      } else {
-        clearInterval(this.timer);
-      }
-    }, 1000);
-  }
-
-  /**
-   * Format time as MM:SS
-   */
   get formattedTime(): string {
-    const minutes = Math.floor(this.timeLeft / 60);
-    const seconds = this.timeLeft % 60;
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    const m = Math.floor(this.timeLeft / 60);
+    const s = this.timeLeft % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
   }
 
-  /**
-   * Focus hidden input when boxes clicked
-   */
+  // ── Input handling ──────────────────────────────────────────────────────────
+
   focusHidden(): void {
     this.hiddenInput.nativeElement.focus();
   }
 
-  /**
-   * Handle input from hidden field
-   */
   onHiddenInput(event: Event): void {
-    const input = event.target as HTMLInputElement;
+    const input   = event.target as HTMLInputElement;
     const cleaned = input.value.replace(/\D/g, '').slice(0, 4);
     this.otpValue = cleaned;
-    input.value = cleaned;
+    input.value   = cleaned;
 
-    // Auto-verify when complete
     if (this.isComplete) {
       setTimeout(() => this.verify(), 200);
     }
   }
 
-  /**
-   * Handle keyboard events
-   */
   onHiddenKeyDown(event: KeyboardEvent): void {
-    if (
-      !/^\d$/.test(event.key) &&
-      event.key !== 'Backspace' &&
-      event.key !== 'Delete' &&
-      event.key !== 'Tab'
-    ) {
-      event.preventDefault();
-    }
+    const allowed = /^\d$/.test(event.key) ||
+      ['Backspace', 'Delete', 'Tab'].includes(event.key);
+    if (!allowed) event.preventDefault();
   }
 
+  onSubmit(): void {
+    this.verify();
+  }
+
+  // ── Core actions ────────────────────────────────────────────────────────────
+
   /**
-   * Verify OTP code
-   * 
-   * TODO: Replace setTimeout with actual API call
+   * Save the OTP to the session, then move to set-new-password.
+   * The actual OTP + resetToken are both sent to the backend on the
+   * final screen — this approach avoids an extra round-trip.
+   *
+   * Named `verify` to match the (clicked)="verify()" binding in the template.
    */
   verify(): void {
     if (!this.isComplete || this.isLoading) return;
 
-    this.isLoading = true;
-    this.errorMessage = '';
-
-    // Temporary simulation
-    setTimeout(() => {
-      this.isLoading = false;
-
-      // Example validation
-      if (this.otpValue === '0000') {
-        this.errorMessage = 'Invalid code. Please try again.';
-        this.otpValue = '';
-        this.hiddenInput.nativeElement.value = '';
-        this.hiddenInput.nativeElement.focus();
-        return;
-      }
-
-      // On success, navigate to set new password
-      this.router.navigate(['/auth/set-new-password']);
-    }, 1200);
+    // Store the OTP — set-new-password will read it
+    this.session.setResetOtpCode(this.otpValue);
+    this.router.navigate(['/auth/set-new-password']);
   }
 
   /**
-   * Resend OTP code
-   * 
-   * TODO: Replace with actual API call
+   * Re-trigger the forgot-password request so the backend sends a new OTP.
+   * Updates the stored resetToken with the fresh value from the response.
    */
   resendOtp(): void {
     if (this.resendCooldown > 0) return;
 
-    this.timeLeft = 300;
-    this.otpValue = '';
+    const emailOrPhone = this.session.getResetEmail();
+    if (!emailOrPhone) return;
+
+    // Reset local state
+    this.timeLeft     = 300;
+    this.otpValue     = '';
     this.errorMessage = '';
     this.hiddenInput.nativeElement.value = '';
-    this.startTimer();
+    this.startCountdown();
     this.hiddenInput.nativeElement.focus();
 
-    // Start cooldown
+    // Request a new OTP + resetToken from the backend
+    this.authService.forgotPassword({ emailOrPhone }).subscribe({
+      next: (res) => {
+        // Replace the old reset token with the fresh one
+        this.session.setResetToken(res.resetToken);
+      },
+      error: (err) => {
+        this.errorMessage = err?.error?.message ?? 'Could not resend code. Please try again.';
+      },
+    });
+
+    // 30-second cooldown to prevent spam
     this.resendCooldown = 30;
     this.resendTimer = setInterval(() => {
       if (this.resendCooldown > 0) {
         this.resendCooldown--;
       } else {
-        clearInterval(this.resendTimer);
+        clearInterval(this.resendTimer!);
       }
     }, 1000);
+  }
+
+  // ── Private helpers ─────────────────────────────────────────────────────────
+
+  private startCountdown(): void {
+    if (this.countdownTimer) clearInterval(this.countdownTimer);
+    this.countdownTimer = setInterval(() => {
+      if (this.timeLeft > 0) {
+        this.timeLeft--;
+      } else {
+        clearInterval(this.countdownTimer!);
+      }
+    }, 1000);
+  }
+
+  private _clearTimers(): void {
+    if (this.countdownTimer) clearInterval(this.countdownTimer);
+    if (this.resendTimer)    clearInterval(this.resendTimer);
   }
 }

@@ -1,0 +1,139 @@
+<div class="page-shell">
+  <div class="top-header">
+    <div class="header-content">
+      <h1>Farmers</h1>
+      <p class="subtitle">
+        Total registered farmers:
+        <span class="highlight-count">{{ totalRegisteredFarmers }}</span>
+      </p>
+    </div>
+
+    <div class="header-actions">
+      <app-button
+        type="button"
+        size="md"
+        variant="primary"
+        iconLeft="+"
+        (clicked)="onAddFarmer()">
+        Register farmer
+      </app-button>
+    </div>
+  </div><!--top-header-->
+
+  <div class="filters-section">
+    <div class="search-wrapper">
+      <app-input
+        label="Search"
+        placeholder="Search by name, ID, branch or commodity"
+        type="text"
+        [(ngModel)]="searchQuery">
+      </app-input>
+    </div><!--search-wrapper-->
+
+    <div class="select-wrapper">
+      <select title="select-branch" [(ngModel)]="selectedBranch">
+        <option *ngFor="let branch of branches" [value]="branch">
+          Branch: {{ branch }}
+        </option>
+      </select>
+    </div><!--select-wrapper-->
+
+    <div class="select-wrapper">
+      <select title="select-status" [(ngModel)]="selectedStatus">
+        <option *ngFor="let status of statuses" [value]="status">
+          Status: {{ status }}
+        </option>
+      </select>
+    </div>
+
+    <div class="select-wrapper">
+      <select title="select-commodity" [(ngModel)]="selectedCommodity">
+        <option *ngFor="let commodity of commodities" [value]="commodity">
+          Commodity: {{ commodity }}
+        </option>
+      </select>
+    </div>
+
+    <div class="select-wrapper">
+      <select title="select-stage" [(ngModel)]="selectedStage">
+        <option *ngFor="let stage of stages" [value]="stage">{{ stage }}</option>
+      </select>
+    </div><!--select-wrapper-->
+  </div><!--filters-section-->
+
+  <div class="table-wrapper">
+    <table class="farmers-table">
+      <thead>
+        <tr>
+          <th>FARMER ID</th>
+          <th>NAME</th>
+          <th>BRANCH</th>
+          <th>PRIMARY COMMODITY</th>
+          <th>CREDIT LIMIT</th>
+          <th>BALANCE</th>
+          <th>STATUS</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let farmer of filteredFarmers">
+          <td class="farmer-id">{{ farmer.id }}</td>
+          <td class="farmer-name">{{ farmer.name }}</td>
+          <td>{{ farmer.branch }}</td>
+          <td>
+            <span class="commodity-tag">{{ farmer.primaryCommodity }}</span>
+          </td>
+          <td class="text-bold">{{ farmer.creditLimit }}</td>
+          <td
+            class="text-bold"
+            [ngClass]="{ 'text-danger-custom': farmer.balance !== '0.00' && farmer.balance !== '--' }">
+            {{ farmer.balance }}
+          </td>
+          <td>
+            <span class="status-badge" [ngClass]="farmer.status.toLowerCase()">
+              {{ farmer.status }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div><!--table-wrapper-->
+
+  <div class="pagination-section">
+    <div class="pagination-info">
+      <span>Showing 1 to {{ visibleCount }} of {{ totalRegisteredFarmers }} entries</span>
+    </div><!--pagination-info-->
+
+    <div class="pagination-controls">
+      <app-button class="pagination-button" variant="secondary" size="sm">Previous</app-button>
+      <app-button class="pagination-button" variant="primary" size="sm">1</app-button>
+      <app-button class="pagination-button" variant="secondary" size="sm">2</app-button>
+      <app-button class="pagination-button" variant="secondary" size="sm">3</app-button>
+      <app-button class="pagination-button" variant="secondary" size="sm">Next</app-button>
+    </div><!--pagination-controls-->
+  </div><!--pagination-section-->
+
+  <div class="summary-cards-grid">
+    <div class="summary-card">
+      <app-stat-card
+        [data]="{ label: 'New Registrations', value: newRegistrations, icon: '📝', trend: '+8.5%', trendUp: true }">
+      </app-stat-card>
+    </div>
+
+    <div class="summary-card">
+      <app-stat-card
+        [data]="{ label: 'Portfolio At Risk', value: 'UGX ' + portfolioAtRisk, icon: '⚠️', trend: '-5.2%', trendUp: false, status: 'warning' }">
+      </app-stat-card>
+    </div>
+
+    <div class="summary-card">
+      <span class="summary-card-title">COLLECTION PROGRESS</span>
+      <div class="summary-card-value-row stack-layout">
+        <span class="summary-card-main-val">{{ collectionProgress }}%</span>
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" [style.width.%]="collectionProgress"></div>
+        </div>
+      </div>
+    </div><!--summary-card-->
+  </div><!--summary-cards-grid-->
+</div><!--page-shell-->

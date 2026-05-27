@@ -1,0 +1,180 @@
+<!-- features/cooperative/dashboard/dashboard.component.html -->
+
+<div class="cooperative-dashboard">
+
+  <!-- ── Greeting Header ──────────────────────────────────────────────────── -->
+  <div class="greeting-section">
+    <div class="greeting-content">
+      <h1 class="greeting-title">Good morning, {{ userName }}</h1>
+      <p class="greeting-subtitle">{{ cooperativeName }} · {{ season }}</p>
+    </div>
+    <div class="season-selector">
+      <button class="season-btn">
+        📅 Season: 2026 Main
+        <span class="dropdown-icon">▼</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Stats + Recovery Row ─────────────────────────────────────────────── -->
+  <div class="stats-grid">
+
+    <app-stat-card
+      *ngFor="let stat of stats; let i = index"
+      [data]="stat"
+      [delay]="i * 80">
+    </app-stat-card>
+
+    <!-- Recovery Rate Card (custom donut chart) -->
+    <div class="recovery-card">
+      <span class="recovery-label">Recovery Rate</span>
+      <div class="recovery-chart">
+        <svg viewBox="0 0 120 120" width="120" height="120">
+          <!-- Track circle -->
+          <circle
+            cx="60" cy="60" r="50"
+            fill="none"
+            stroke="#F3F4F6"
+            stroke-width="10">
+          </circle>
+          <!-- Progress arc -->
+          <circle
+            cx="60" cy="60" r="50"
+            fill="none"
+            stroke="#F59E0B"
+            stroke-width="10"
+            stroke-linecap="round"
+            [attr.stroke-dasharray]="circumference"
+            [attr.stroke-dashoffset]="dashOffset"
+            transform="rotate(-90 60 60)">
+          </circle>
+          <!-- Centre value -->
+          <text
+            x="60" y="68"
+            text-anchor="middle"
+            font-size="26"
+            font-weight="700"
+            fill="#200B26">{{ recoveryRate }}%</text>
+        </svg>
+      </div>
+      <div class="recovery-target">Target: {{ recoveryTarget }}%</div>
+    </div>
+
+  </div>
+
+  <!-- ── Two-Column Content ────────────────────────────────────────────────── -->
+  <div class="content-grid">
+
+    <!-- LEFT: Branch Performance + Payment Status -->
+    <div class="left-column">
+
+      <!-- Branch Performance -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Branch Performance</h2>
+          <button class="btn-link" (click)="viewFullReport()">
+            View Full Report →
+          </button>
+        </div>
+
+        <div class="branch-table">
+          <div class="table-header">
+            <div class="col-branch">BRANCH NAME</div>
+            <div class="col-deliveries">DELIVERIES (MT)</div>
+            <div class="col-outstanding">OUTSTANDING (UGX)</div>
+            <div class="col-status">STATUS</div>
+          </div>
+
+          <div class="table-body">
+            <div *ngFor="let branch of branchPerformance" class="branch-row">
+              <div class="col-branch">{{ branch.branchName }}</div>
+              <div class="col-deliveries">{{ branch.deliveries }}</div>
+              <div class="col-outstanding">{{ branch.outstanding }}</div>
+              <div class="col-status">
+                <span class="status-badge" [class]="'badge-' + branch.status">
+                  {{ branch.status === 'healthy' ? 'HEALTHY' :
+                     branch.status === 'action-required' ? 'ACTION REQ.' : 'NEW' }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Outstanding Payment Status -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Outstanding Payment Status</h2>
+          <div class="total-volume">
+            <span class="volume-label">TOTAL VOLUME</span>
+            <span class="volume-value">{{ totalVolume }}</span>
+          </div>
+        </div>
+
+        <div class="payment-breakdown">
+          <!-- Stacked progress bar -->
+          <div class="payment-progress">
+            <div
+              *ngFor="let item of paymentBreakdown"
+              class="progress-segment"
+              [style.flex]="item.flex"
+              [style.background-color]="item.color">
+            </div>
+          </div>
+
+          <!-- Legend -->
+          <div class="payment-legend">
+            <div *ngFor="let item of paymentBreakdown" class="legend-item">
+              <div class="legend-color" [style.background-color]="item.color"></div>
+              <div class="legend-info">
+                <div class="legend-status">{{ item.status }}</div>
+                <div class="legend-amount">{{ item.amount }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: Activity + Market Alert -->
+    <div class="right-column">
+
+      <!-- Recent Activity -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Recent Activity</h2>
+          <button class="btn-icon">🔄</button>
+        </div>
+
+        <div class="activity-list">
+          <app-activity-item
+            *ngFor="let activity of recentActivities"
+            [data]="activity">
+          </app-activity-item>
+        </div>
+
+        <div class="card-footer">
+          <button class="btn-load-more" (click)="loadMoreActivities()">
+            LOAD 20 MORE ACTIVITIES
+          </button>
+        </div>
+      </div>
+
+      <!-- Market Alert Card -->
+      <div class="market-alert-card">
+        <div class="alert-badge">MARKET ALERT</div>
+        <h3 class="alert-title">
+          Robusta coffee prices projected to rise 4% next week.
+        </h3>
+        <p class="alert-subtitle">Review your inventory levels now.</p>
+        <div class="alert-image-placeholder">
+          <span>☕</span>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

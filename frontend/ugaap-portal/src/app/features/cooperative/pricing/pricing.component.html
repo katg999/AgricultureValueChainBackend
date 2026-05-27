@@ -1,0 +1,82 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Pricing</h1>
+      <p class="page-sub">Set seasonal prices per grade for your cooperative</p>
+    </div>
+    <button class="btn btn-primary" (click)="openForm()">+ Set Price</button>
+  </div>
+
+  @if (error()) { <p class="err-msg">{{ error() }}</p> }
+
+  @if (showForm()) {
+    <div class="form-card">
+      <h3>New Pricing Rule</h3>
+      <form [formGroup]="form" (ngSubmit)="save()" class="grid-form">
+        <div class="field">
+          <label>Season *</label>
+          <input formControlName="season" placeholder="e.g. 2025 First Season" />
+        </div>
+        <div class="field">
+          <label>Grade *</label>
+          <input formControlName="grade" placeholder="e.g. A" />
+        </div>
+        <div class="field">
+          <label>Price per kg (UGX) *</label>
+          <input formControlName="pricePerKg" type="number" />
+        </div>
+        <div class="field">
+          <label>Effective From *</label>
+          <input formControlName="effectiveFrom" type="date" />
+        </div>
+        <div class="field">
+          <label>Effective To *</label>
+          <input formControlName="effectiveTo" type="date" />
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" (click)="closeForm()">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="saving()">
+            {{ saving() ? 'Saving…' : 'Save Price' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  @if (loading()) {
+    <p class="state-msg">Loading…</p>
+  } @else if (pricing().length === 0) {
+    <p class="state-msg">No pricing rules set yet.</p>
+  } @else {
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Season</th>
+            <th>Grade</th>
+            <th>Price / kg (UGX)</th>
+            <th>Effective From</th>
+            <th>Effective To</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of pricing(); track p.id) {
+            <tr>
+              <td>{{ p.season }}</td>
+              <td><strong>{{ p.grade }}</strong></td>
+              <td>{{ p.pricePerKg | number }}</td>
+              <td>{{ p.effectiveFrom | date:'mediumDate' }}</td>
+              <td>{{ p.effectiveTo   | date:'mediumDate' }}</td>
+              <td>
+                <span class="badge" [class.badge--active]="p.isActive">
+                  {{ p.isActive ? 'Active' : 'Expired' }}
+                </span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

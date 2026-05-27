@@ -1,0 +1,120 @@
+<!-- features/branch/dashboard/dashboard.component.html -->
+
+<div class="branch-dashboard">
+
+  <!-- ── Header ─────────────────────────────────────────────────────────── -->
+  <div class="dashboard-header">
+    <div>
+      <h1 class="page-title">Branch overview</h1>
+      <p class="page-subtitle">{{ userName }}</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-secondary" [routerLink]="['/collections']">
+        📋 View all collections
+      </button>
+      <button class="btn-primary" [routerLink]="['/collections/farmer-delivery/create']">
+        + Record Delivery
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Stats Grid ─────────────────────────────────────────────────────── -->
+  <div class="stats-grid">
+    <app-stat-card
+      *ngFor="let stat of stats; let i = index"
+      [data]="stat"
+      [delay]="i * 80">
+    </app-stat-card>
+  </div>
+
+  <!-- ── Content Row ────────────────────────────────────────────────────── -->
+  <div class="content-grid">
+
+    <!-- LEFT: Today's deliveries table -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Today's Deliveries</h2>
+        <a class="btn-link" [routerLink]="['/collections']">View all →</a>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>REF</th>
+              <th>FARMER</th>
+              <th>WEIGHT</th>
+              <th>GRADE</th>
+              <th>AMOUNT</th>
+              <th>TIME</th>
+              <th>STATUS</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let d of deliveries">
+              <td class="mono">{{ d.ref }}</td>
+              <td class="fw-600">{{ d.farmer }}</td>
+              <td>{{ d.weight }}</td>
+              <td>
+                <span class="grade-pill" *ngIf="d.grade !== '—'">{{ d.grade }}</span>
+                <span class="muted" *ngIf="d.grade === '—'">—</span>
+              </td>
+              <td class="mono">{{ d.amount }}</td>
+              <td class="muted">{{ d.time }}</td>
+              <td>
+                <span class="status-pill" [ngClass]="statusClass(d.status)">
+                  {{ statusLabel(d.status) }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RIGHT: Activity feed + Quick actions -->
+    <div class="right-column">
+
+      <!-- Quick Actions -->
+      <div class="card quick-actions-card">
+        <div class="card-header">
+          <h2 class="card-title">Quick Actions</h2>
+        </div>
+        <div class="actions-grid">
+          <button class="action-tile" [routerLink]="['/collections/farmer-delivery/create']">
+            <span class="action-icon">📥</span>
+            <span>Record Delivery</span>
+          </button>
+          <button class="action-tile" [routerLink]="['/farmers']">
+            <span class="action-icon">👤</span>
+            <span>Register Farmer</span>
+          </button>
+          <button class="action-tile" [routerLink]="['/cooperative/configuration']">
+            <span class="action-icon">⭐</span>
+            <span>Grade Rules</span>
+          </button>
+          <button class="action-tile" [routerLink]="['/inventory/current-stock']">
+            <span class="action-icon">📦</span>
+            <span>Check Stock</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Activity Feed -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Today's Activity</h2>
+        </div>
+        <div class="activity-list">
+          <app-activity-item
+            *ngFor="let activity of recentActivities"
+            [data]="activity">
+          </app-activity-item>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

@@ -1,0 +1,143 @@
+/* admin-layout.component.scss
+   Owns only the two-column flex shell, the top bar, and the content area.
+   All sidebar styles live in sidebar.component.scss. */
+
+:host {
+  display: block;
+  height: 100vh;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   SHELL
+══════════════════════════════════════════════════════════════════════════════ */
+
+.layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   TOP BAR
+══════════════════════════════════════════════════════════════════════════════ */
+
+.topbar {
+  height: 58px;
+  background: #fff;
+  border-bottom: 1px solid #EEECF1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px;
+  flex-shrink: 0;
+}
+
+/* On mobile, shift right to clear the fixed hamburger button from the sidebar */
+@media (max-width: 767px) {
+  .topbar { padding-left: 64px; }
+}
+
+/* search bar */
+.topbar-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #F4F3F5;
+  border-radius: 8px;
+  padding: 0 12px;
+  max-width: 420px;
+  flex: 1;
+}
+
+.search-icon { color: #8A8799; flex-shrink: 0; }
+
+.search-input {
+  flex: 1;
+  border: none;
+  background: none;
+  outline: none;
+  font-family: var(--font-human, 'Inter', sans-serif);
+  font-size: 13px;
+  color: #1A1A2E;
+  padding: 9px 0;
+
+  &::placeholder { color: #B4B2C0; }
+}
+
+/* right-side actions */
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.topbar-icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #8A8799;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s ease, color 0.12s ease;
+
+  &:hover {
+    background: #F4F3F5;
+    color: #1A1A2E;
+  }
+}
+
+.topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 12px;
+  border-left: 1px solid #EEECF1;
+  margin-left: 4px;
+}
+
+.topbar-user-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1A1A2E;
+}
+
+/* hide name on very small screens — avatar alone is enough */
+@media (max-width: 480px) {
+  .topbar-user-name { display: none; }
+}
+
+.topbar-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #F25D27;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   CONTENT AREA
+══════════════════════════════════════════════════════════════════════════════ */
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  background: #F7F6F8;
+}
