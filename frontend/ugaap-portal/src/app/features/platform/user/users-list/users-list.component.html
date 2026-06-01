@@ -26,29 +26,33 @@
     <!-- Statistics Cards -->
     <div class="stats-grid">
       <app-stats-card
-        title="Total users"
+        label="Total Users"
         [value]="480"
         trend="+12%"
+        icon="users"
         variant="default">
       </app-stats-card>
 
       <app-stats-card
-        title="Active Users"
+        label="Active Users"
         [value]="304"
         trend="+12%"
+        icon="check"
         variant="success">
       </app-stats-card>
 
       <app-stats-card
-        title="Inactive Farmers"
+        label="Inactive Farmers"
         [value]="103"
         trend="+12%"
+        icon="alert"
         variant="warning">
       </app-stats-card>
 
       <app-stats-card
-        title="Locked accounts"
+        label="Locked Accounts"
         [value]="3"
+        icon="alert"
         variant="danger">
       </app-stats-card>
     </div>

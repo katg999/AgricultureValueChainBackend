@@ -1,0 +1,148 @@
+<app-modal
+  [isOpen]="isOpen"
+  title="Build Custom Report"
+  subtitle="Select data source, columns, and charts to include"
+  size="lg"
+  (closed)="onClose()">
+
+  <div body class="builder-body">
+
+    <!-- Report Name -->
+    <div class="builder-section">
+      <app-input
+        label="Report Name"
+        placeholder="e.g. My Custom Delivery Report"
+        [required]="true"
+        [(ngModel)]="config.name"
+        name="reportName">
+      </app-input>
+    </div>
+
+    <!-- Data Source -->
+    <div class="builder-section">
+      <h4 class="section-label">Select Data Source</h4>
+      <div class="source-options">
+        @for (src of ['deliveries', 'grading', 'payments', 'members']; track src) {
+          <label class="source-option" [class.active]="config.dataSource === src">
+            <input
+              type="radio"
+              name="dataSource"
+              [value]="src"
+              [(ngModel)]="config.dataSource"
+              (ngModelChange)="onDataSourceChange($event)"
+              class="sr-only"
+            />
+            <span class="source-label">{{ src | titlecase }}</span>
+          </label>
+        }
+      </div>
+    </div>
+
+    <!-- Columns -->
+    <div class="builder-section">
+      <div class="section-header-row">
+        <h4 class="section-label">Select Columns to Include</h4>
+        <div class="select-actions">
+          <button type="button" class="link-btn" (click)="selectAllColumns()">Select all</button>
+          <span class="separator">·</span>
+          <button type="button" class="link-btn" (click)="deselectAllColumns()">Deselect all</button>
+        </div>
+      </div>
+      <div class="columns-grid">
+        @for (col of currentColumns; track col.key) {
+          <div class="column-row">
+            <app-toggle-switch
+              [(ngModel)]="col.selected"
+              [label]="col.label"
+              [name]="col.key">
+            </app-toggle-switch>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Include Charts -->
+    <div class="builder-section">
+      <h4 class="section-label">Include Charts</h4>
+      <div class="charts-list">
+        @for (chart of currentCharts; track chart.id) {
+          <label class="chart-checkbox-row">
+            <input
+              type="checkbox"
+              [(ngModel)]="chart.selected"
+              [name]="chart.id"
+              class="checkbox-input"
+            />
+            <span class="chart-checkbox-label">{{ chart.label }}</span>
+          </label>
+        }
+      </div>
+    </div>
+
+    <!-- Group / Sort / Date -->
+    <div class="builder-section">
+      <div class="config-row">
+        <div class="config-field">
+          <label class="field-label">Group By</label>
+          <select [(ngModel)]="config.groupBy" name="groupBy" class="field-select">
+            @for (opt of groupByOptions; track opt) {
+              <option [value]="opt">{{ opt }}</option>
+            }
+          </select>
+        </div>
+        <div class="config-field">
+          <label class="field-label">Sort By</label>
+          <select [(ngModel)]="config.sortBy" name="sortBy" class="field-select">
+            @for (opt of sortByOptions; track opt) {
+              <option [value]="opt">{{ opt }}</option>
+            }
+          </select>
+        </div>
+        <div class="config-field config-field--sm">
+          <label class="field-label">Order</label>
+          <select [(ngModel)]="config.sortOrder" name="sortOrder" class="field-select">
+            <option value="desc">Descending</option>
+            <option value="asc">Ascending</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="date-row">
+        <div class="config-field">
+          <label class="field-label">Start Date</label>
+          <input type="date" [(ngModel)]="config.dateRange.start" name="startDate" class="field-select" />
+        </div>
+        <span class="date-arrow">→</span>
+        <div class="config-field">
+          <label class="field-label">End Date</label>
+          <input type="date" [(ngModel)]="config.dateRange.end" name="endDate" class="field-select" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Preview -->
+    <div class="builder-preview">
+      <div class="preview-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F25D27" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+      </div>
+      <p class="preview-text">{{ previewText }}</p>
+    </div>
+
+  </div>
+
+  <div footer class="builder-footer">
+    <app-button variant="ghost" (clicked)="onClose()">Cancel</app-button>
+    <app-button
+      variant="primary"
+      [loading]="generating"
+      [disabled]="!config.name.trim() || selectedColumnCount === 0"
+      (clicked)="generateReport()">
+      Generate Report
+    </app-button>
+  </div>
+
+</app-modal>

@@ -18,27 +18,27 @@
 
   <div class="stats-grid">
     <app-stat-card
-      [data]="{ label: 'TOTAL ALLOCATIONS', value: (summary.totalAllocations | number) ?? '', icon: '📋' }">
+      [data]="{ label: 'TOTAL ALLOCATIONS', value: (summary.totalAllocations | number) ?? '', icon: 'clipboard' }">
     </app-stat-card>
 
     <app-stat-card
-      [data]="{ label: 'FULLY RECOVERED', value: (summary.fullyRecovered | number) ?? '', icon: '✅' }">
+      [data]="{ label: 'FULLY RECOVERED', value: (summary.fullyRecovered | number) ?? '', icon: 'check' }">
     </app-stat-card>
 
     <app-stat-card
-      [data]="{ label: 'TOTAL VALUE', value: 'UGX ' + ((summary.totalValue | number:'1.0-0') ?? '0'), icon: '💰' }">
+      [data]="{ label: 'TOTAL VALUE', value: 'UGX ' + ((summary.totalValue | number:'1.0-0') ?? '0'), icon: 'wallet' }">
     </app-stat-card>
 
     <app-stat-card
-      [data]="{ label: 'PARTIALLY RECOVERED', value: (summary.partiallyRecovered | number:'1.0-0') ?? '', icon: '⚠️', status: 'warning' }">
+      [data]="{ label: 'PARTIALLY RECOVERED', value: (summary.partiallyRecovered | number:'1.0-0') ?? '', icon: 'alert', status: 'warning' }">
     </app-stat-card>
 
     <app-stat-card
-      [data]="{ label: 'OVERDUE', value: (summary.overdue | number:'1.0-0') ?? '', icon: '🔴', status: 'critical' }">
+      [data]="{ label: 'OVERDUE', value: (summary.overdue | number:'1.0-0') ?? '', icon: 'alert', status: 'critical' }">
     </app-stat-card>
 
     <app-stat-card
-      [data]="{ label: 'RECOVERY RATE', value: summary.recoveryRate + '%', icon: '📈' }">
+      [data]="{ label: 'RECOVERY RATE', value: summary.recoveryRate + '%', icon: 'chart' }">
     </app-stat-card>
   </div>
 

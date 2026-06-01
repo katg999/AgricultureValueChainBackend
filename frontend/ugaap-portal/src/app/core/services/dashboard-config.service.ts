@@ -108,11 +108,13 @@ const COOPERATIVE_ADMIN_CONFIG: DashboardConfig = {
 
     { label: 'Collection',      icon: 'collection', route: '/cooperative/collections'            },
     { label: 'Farmers',         icon: 'farmers',    route: '/cooperative/farmers'                },
+    
     {label:'Branches',         icon:'branch',     route:'/cooperative/branches'               },
     // features/inventory/current-stock exists — wire /inventory in app.routes.ts to activate
     { label: 'Finance',         icon: 'finance',    route: '/cooperative/finance'  },
 
     { label: 'Inventory',       icon: 'inventory',  route: '/cooperative/inventory' },
+    {label: 'Reports',         icon: 'reports',    route: '/cooperative/reports'   },
     { label: 'User Management', icon: 'users',      route: '/cooperative/users'                  },
 
   ],
@@ -131,6 +133,7 @@ const BRANCH_CONFIG: DashboardConfig = {
 
     // features/inventory/current-stock exists — wire /inventory in app.routes.ts to activate
     { label: 'Inventory',     icon: 'inventory',  route: '/branch/inventory/current-stock'  },
+    
   ],
 };
 

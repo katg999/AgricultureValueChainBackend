@@ -1,0 +1,15 @@
+<div class="tab-nav">
+  @for (tab of tabs; track tab.id) {
+    <button
+      class="tab-btn"
+      [class.active]="activeTab === tab.id"
+      (click)="selectTab(tab.id)"
+      type="button"
+    >
+      <span class="tab-label">{{ tab.label }}</span>
+      @if (tab.badge !== undefined && tab.badge > 0) {
+        <span class="tab-badge">{{ tab.badge }}</span>
+      }
+    </button>
+  }
+</div>

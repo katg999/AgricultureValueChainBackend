@@ -128,6 +128,15 @@ export const COOPERATIVE_ROUTES: Routes = [
       import('./inventory/inventory.routes')
         .then(m => m.INVENTORY_ROUTES),
   },
+
+  // ── Reports ─────────────────────────────────────────────────────────────────
+  {
+    path: 'reports',
+    loadChildren: () =>
+      import('./reports/reports.routes')
+        .then(m => m.REPORTS_ROUTES),
+  },
+
   // ── Legacy redirects ────────────────────────────────────────────────────────
   // Old route aliases kept so bookmarks and external links don't 404
   { path: 'grading',  redirectTo: 'grade-config', pathMatch: 'full' },

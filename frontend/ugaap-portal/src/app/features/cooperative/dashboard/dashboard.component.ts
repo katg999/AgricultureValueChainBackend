@@ -54,7 +54,7 @@ export class CooperativeDashboardComponent implements OnInit {
     {
       label:   'Active agents',
       value:   '3,200',
-      icon:    '👥',
+      icon:    'users',
       trend:   '+12% from last season',
       trendUp: true,
       status:  'active',
@@ -62,38 +62,26 @@ export class CooperativeDashboardComponent implements OnInit {
     {
       label:   'Total deliveries',
       value:   '540',
-      icon:    '📦',
+      icon:    'box',
       trend:   '+12% from last season',
       trendUp: true,
     },
     {
       label:   'Input Disbursed',
       value:   '450,000,000',
-      icon:    '💰',
+      icon:    'wallet',
       trend:   'UGX',
       trendUp: true,
     },
     {
       label:     'Outstanding',
       value:     '120,000,000',
-      icon:      '📋',
+      icon:      'clipboard',
       status:    'critical',
       clickable: true,
       route:     '/cooperative/dashboard',
     },
   ];
-
-  // ── Recovery rate ─────────────────────────────────────────────────────────
-
-  recoveryRate   = 78;
-  recoveryTarget = 85;
-
-  /** SVG circle circumference for a radius-50 circle (2π×50 ≈ 314) */
-  readonly circumference = 314;
-
-  get dashOffset(): number {
-    return this.circumference - (this.circumference * this.recoveryRate) / 100;
-  }
 
   // ── Branch performance ────────────────────────────────────────────────────
 

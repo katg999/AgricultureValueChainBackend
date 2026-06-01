@@ -16,50 +16,13 @@
     </div>
   </div>
 
-  <!-- ── Stats + Recovery Row ─────────────────────────────────────────────── -->
+  <!-- ── Stats Row ────────────────────────────────────────────────────────── -->
   <div class="stats-grid">
-
     <app-stat-card
       *ngFor="let stat of stats; let i = index"
       [data]="stat"
       [delay]="i * 80">
     </app-stat-card>
-
-    <!-- Recovery Rate Card (custom donut chart) -->
-    <div class="recovery-card">
-      <span class="recovery-label">Recovery Rate</span>
-      <div class="recovery-chart">
-        <svg viewBox="0 0 120 120" width="120" height="120">
-          <!-- Track circle -->
-          <circle
-            cx="60" cy="60" r="50"
-            fill="none"
-            stroke="#F3F4F6"
-            stroke-width="10">
-          </circle>
-          <!-- Progress arc -->
-          <circle
-            cx="60" cy="60" r="50"
-            fill="none"
-            stroke="#F59E0B"
-            stroke-width="10"
-            stroke-linecap="round"
-            [attr.stroke-dasharray]="circumference"
-            [attr.stroke-dashoffset]="dashOffset"
-            transform="rotate(-90 60 60)">
-          </circle>
-          <!-- Centre value -->
-          <text
-            x="60" y="68"
-            text-anchor="middle"
-            font-size="26"
-            font-weight="700"
-            fill="#200B26">{{ recoveryRate }}%</text>
-        </svg>
-      </div>
-      <div class="recovery-target">Target: {{ recoveryTarget }}%</div>
-    </div>
-
   </div>
 
   <!-- ── Two-Column Content ────────────────────────────────────────────────── -->
