@@ -53,12 +53,12 @@ export const routes: Routes = [
 
       
 
-      // Inventory — shared across cooperative & branch roles
-      {
-        path: 'inventory',
-        loadChildren: () =>
-          import('./features/cooperative/inventory/inventory.routes').then(m => m.INVENTORY_ROUTES),
-      },
+      // // Inventory — shared across cooperative & branch roles
+      // {
+      //   path: 'inventory',
+      //   loadChildren: () =>
+      //     import('./features/cooperative/inventory/inventory.routes').then(m => m.INVENTORY_ROUTES),
+      // },
 
     ],
   },

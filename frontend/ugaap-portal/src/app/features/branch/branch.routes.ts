@@ -6,24 +6,41 @@ export const BRANCH_ROUTES: Routes = [
     redirectTo: 'dashboard',
     pathMatch: 'full',
   },
+
+  // Dashboard
   {
     path: 'dashboard',
     loadComponent: () =>
       import('./dashboard/dashboard.component')
         .then(m => m.BranchDashboardComponent),
   },
+
+  // Branch collections
   {
     path: 'collections',
     loadChildren: () =>
-      import('./collections/collections.routes')
-        .then(m => m.COLLECTIONS_ROUTES),
+      import('./collections/branch.collections.routes')
+        .then(m => m.BRANCH_COLLECTIONS_ROUTES),
   },
+  {
+    path: 'branch-collections',
+    redirectTo: 'collections',
+    pathMatch: 'full',
+  },
+
+  // Branch farmer management
   {
     path: 'farmers',
     loadChildren: () =>
-      import('./farmers/farmers.routes')
-        .then(m => m.FARMERS_ROUTES),
+      import('./branch-farmers/branch.farmers.routes')
+        .then(m => m.BRANCH_FARMERS_ROUTES),
   },
+  {
+    path: 'branch-farmers',
+    redirectTo: 'farmers',
+    pathMatch: 'full',
+  },
+  // Branch inventory management
   {
     path: 'inventory',
     loadChildren: () =>

@@ -1,12 +1,12 @@
 <div class="page-container">
   <div class="page-header">
     <app-page-header
-      title="Stock Available"
-      subtitle="Current input stock held by the cooperative across all branches."
+      [title]="pageTitle"
+      [subtitle]="pageSubtitle"
       [breadcrumb]="['Inventory', 'Available Stock', 'Current Stock']">
     </app-page-header>
 
-    <div class="header-actions">
+    <div class="header-actions" *ngIf="isCooperativeScope">
       <app-button
         type="button"
         variant="primary"
@@ -91,9 +91,9 @@
     <div class="filter-select">
       <select title="Filter by Season" [(ngModel)]="filterSeason" (change)="applyFilters()">
         <option value="">Season: All</option>
-        <option value="2024A">2024 Season A</option>
-        <option value="2024B">2024 Season B</option>
-        <option value="2023B">2023 Season B</option>
+        <option value="2026A">2026 Season A</option>
+        <option value="2026B">2026 Season B</option>
+        <option value="2025B">2025 Season B</option>
       </select>
       <svg class="select-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <polyline points="6 9 12 15 18 9" />
@@ -160,11 +160,11 @@
             </div>
           </td>
           <td class="branches-cell">
-            <span *ngIf="item.branches === 'All'">All</span>
-            <span *ngIf="item.branches !== 'All'">
-              {{ item.branches }}
+            <span *ngIf="item.branchNames.length === branches.length">All</span>
+            <span *ngIf="item.branchNames.length !== branches.length">
+              {{ item.branchNames.length }}
               <br />
-              <span class="branch-label">Branch{{ +item.branches > 1 ? 'es' : '' }}</span>
+              <span class="branch-label">Branch{{ item.branchNames.length > 1 ? 'es' : '' }}</span>
             </span>
           </td>
           <td class="date-cell">{{ item.updatedAt }}</td>

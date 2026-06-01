@@ -44,6 +44,9 @@ export const API_ENDPOINTS = {
     FARMER_APPROVE:   (id: string) => `${BASE}/cooperative/farmers/${id}/approve`,
     FARMER_REJECT:    (id: string) => `${BASE}/cooperative/farmers/${id}/reject`,
 
+    // Cooperatives & Branches (for management interface)
+    ALL:              `${BASE}/cooperatives`,
+
     // Branches
     BRANCHES:         `${BASE}/cooperative/branches`,
     BRANCH_BY_ID:     (id: string) => `${BASE}/cooperative/branches/${id}`,

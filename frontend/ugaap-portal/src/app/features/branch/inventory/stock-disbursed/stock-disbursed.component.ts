@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 
 import { AlertComponent } from '../../../../shared/components/alert/alert.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge';
@@ -9,13 +9,21 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
 import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
+import {
+  BranchDisbursement,
+  FarmerAllocation,
+  InventoryScope,
+  InventoryService,
+  RecoveryStatus,
+} from '../../../shared-inventory-domain/inventory.service';
 
-type RecoveryStatus = 'settled' | 'partial' | 'overdue';  //Status categories for allocation recovery, used for badges and filtering
 type BadgeVariant = 'settled' | 'partial' | 'overdue' | 'info'; //Badge variants corresponding to recovery status, with 'info' for any additional informational badges
 type AlertVariant = 'error' | 'warning' | 'info' | 'success'; //Alert variants for recent issues, used to visually differentiate the severity of messages in the UI
 
 interface Allocation {
   id: string;
+  destinationName: string;
+  destinationId: string;
   farmerName: string;
   branch: string;
   itemType: string;
@@ -72,80 +80,7 @@ export class StockDisbursedComponent implements OnInit { // Main component for m
   currentPage = 1;
   readonly pageSize = 5;
 
-  readonly allocations: Allocation[] = [
-    {
-      id: 'AL-1001',
-      farmerName: 'Amina Nakato',
-      branch: 'Kampala Central',
-      itemType: 'Fertilizer',
-      quantity: '25 Bags',
-      totalValue: 4500000,
-      issueDate: '12/05/24',
-      allocationDate: '10/05/24',
-      outstanding: 0,
-      status: 'settled',
-    },
-    {
-      id: 'AL-1002',
-      farmerName: 'Moses Okello',
-      branch: 'Gulu Branch',
-      itemType: 'Seeds',
-      quantity: '120 Kgs',
-      totalValue: 1800000,
-      issueDate: '14/05/24',
-      allocationDate: '13/05/24',
-      outstanding: 450000,
-      status: 'partial',
-    },
-    {
-      id: 'AL-1003',
-      farmerName: 'Sarah Namutebi',
-      branch: 'Jinja Branch',
-      itemType: 'Equipment',
-      quantity: '2 Units',
-      totalValue: 2600000,
-      issueDate: '15/05/24',
-      allocationDate: '15/05/24',
-      outstanding: 2600000,
-      status: 'overdue',
-    },
-    {
-      id: 'AL-1004',
-      farmerName: 'Peter Mugisha',
-      branch: 'Mbarara Branch',
-      itemType: 'Poultry',
-      quantity: '18 Sacks',
-      totalValue: 1350000,
-      issueDate: '16/05/24',
-      allocationDate: '16/05/24',
-      outstanding: 0,
-      status: 'settled',
-    },
-    {
-      id: 'AL-1005',
-      farmerName: 'Grace Atim',
-      branch: 'Mbale Branch',
-      itemType: 'Tools',
-      quantity: '10 Pieces',
-      totalValue: 950000,
-      issueDate: '17/05/24',
-      allocationDate: '17/05/24',
-      outstanding: 150000,
-      status: 'partial',
-    },
-    {
-      id: 'AL-1006',
-      farmerName: 'Daniel Kato',
-      branch: 'Kampala Central',
-      itemType: 'Fertilizer',
-      quantity: '12 Bags',
-      totalValue: 2100000,
-      issueDate: '18/05/24',
-      allocationDate: '18/05/24',
-      outstanding: 2100000,
-      status: 'overdue',
-    },
-  ];
+  allocations: Allocation[] = [];
 
   filteredAllocations: Allocation[] = [];
 
@@ -170,6 +105,33 @@ export class StockDisbursedComponent implements OnInit { // Main component for m
     },
   ];
 
+  constructor(
+    private readonly router: Router,
+    private readonly inventoryService: InventoryService,
+  ) {}
+
+  get scope(): InventoryScope {
+    return this.router.url.startsWith('/cooperative') ? 'cooperative' : 'branch';
+  }
+
+  get isCooperativeScope(): boolean {
+    return this.scope === 'cooperative';
+  }
+
+  get pageTitle(): string {
+    return this.isCooperativeScope ? 'Stock Issued to Branches' : 'Stock Allocated to Farmers';
+  }
+
+  get pageSubtitle(): string {
+    return this.isCooperativeScope
+      ? 'Track cooperative stock disbursed to each branch.'
+      : 'Track inputs allocated from this branch to farmers.';
+  }
+
+  get destinationLabel(): string {
+    return this.isCooperativeScope ? 'BRANCH' : 'FARMER NAME';
+  }
+
   get summary(): Summary {
     const totalValue = this.allocations.reduce((sum, row) => sum + row.totalValue, 0);
     const fullyRecovered = this.allocations.filter(row => row.status === 'settled').length;
@@ -186,7 +148,7 @@ export class StockDisbursedComponent implements OnInit { // Main component for m
       totalValue,
       partiallyRecovered,
       overdue,
-      recoveryRate: Math.round((recoveredValue / totalValue) * 100),
+      recoveryRate: totalValue > 0 ? Math.round((recoveredValue / totalValue) * 100) : 0,
     };
   }
 
@@ -225,7 +187,18 @@ export class StockDisbursedComponent implements OnInit { // Main component for m
   }
 
   ngOnInit(): void {
-    this.applyFilters();
+    if (this.isCooperativeScope) {
+      this.inventoryService.listBranchDisbursements().subscribe(rows => {
+        this.allocations = rows.map(row => this.fromBranchDisbursement(row));
+        this.applyFilters();
+      });
+      return;
+    }
+
+    this.inventoryService.listFarmerAllocations().subscribe(rows => {
+      this.allocations = rows.map(row => this.fromFarmerAllocation(row));
+      this.applyFilters();
+    });
   }
 
   applyFilters(): void {
@@ -234,7 +207,7 @@ export class StockDisbursedComponent implements OnInit { // Main component for m
     this.filteredAllocations = this.allocations.filter(row => {
       const matchesSearch =
         !query ||
-        row.farmerName.toLowerCase().includes(query) ||
+        row.destinationName.toLowerCase().includes(query) ||
         row.id.toLowerCase().includes(query);
       const matchesItemType = !this.filterItemType || row.itemType === this.filterItemType;
       const matchesBranch = !this.filterBranch || row.branch === this.filterBranch;
@@ -276,5 +249,39 @@ export class StockDisbursedComponent implements OnInit { // Main component for m
 
   trackById(_: number, row: Allocation): string {
     return row.id;
+  }
+
+  private fromBranchDisbursement(row: BranchDisbursement): Allocation {
+    return {
+      id: row.id,
+      destinationName: row.branchName,
+      destinationId: row.branchId,
+      farmerName: row.branchName,
+      branch: row.branchName,
+      itemType: row.itemType,
+      quantity: `${row.quantity} ${row.unit}`,
+      totalValue: row.totalValue,
+      issueDate: row.issueDate,
+      allocationDate: row.issueDate,
+      outstanding: 0,
+      status: 'settled',
+    };
+  }
+
+  private fromFarmerAllocation(row: FarmerAllocation): Allocation {
+    return {
+      id: row.id,
+      destinationName: row.farmerName,
+      destinationId: row.farmerId,
+      farmerName: row.farmerName,
+      branch: row.branchName,
+      itemType: row.itemType,
+      quantity: `${row.quantity} ${row.unit}`,
+      totalValue: row.totalValue,
+      issueDate: row.issueDate,
+      allocationDate: row.issueDate,
+      outstanding: row.outstanding,
+      status: row.status,
+    };
   }
 }

@@ -7,22 +7,24 @@ import { AlertComponent } from '../../../../shared/components/alert/alert.compon
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
-
-interface Farmer {
-  id: string;
-  name: string;
-  phone: string;
-  availableCredit: number;
-}
+import {
+  BranchOption,
+  FarmerOption,
+  InventoryScope,
+  InventoryService,
+  StockItem,
+} from '../../../shared-inventory-domain/inventory.service';
 
 interface InputType {
+  id: string;
   name: string;
   unit: string;
   unitPrice: number;
 }
 
 interface IssueStockForm {
-  inputType: string;
+  stockItemId: string;
+  branchId: string;
   quantity: string;
   season: string;
   acknowledged: boolean;
@@ -38,6 +40,7 @@ interface RecentIssuance {
   quantity: string;
   value: number;
   time: string;
+  destination: string;
 }
 
 @Component({
@@ -57,42 +60,20 @@ interface RecentIssuance {
 })
 export class IssueStockComponent {
   farmerSearch = '';
-  selectedFarmer: Farmer | null = null;
-  searchResults: Farmer[] = [];
+  selectedFarmer: FarmerOption | null = null;
+  searchResults: FarmerOption[] = [];
   calculatedValue = 0;
 
-  readonly farmers: Farmer[] = [
-    {
-      id: 'F-1001',
-      name: 'Amina Nakato',
-      phone: '+256 701 234 567',
-      availableCredit: 1500000,
-    },
-    {
-      id: 'F-1002',
-      name: 'Moses Okello',
-      phone: '+256 772 456 103',
-      availableCredit: 900000,
-    },
-    {
-      id: 'F-1003',
-      name: 'Sarah Namutebi',
-      phone: '+256 755 761 450',
-      availableCredit: 2100000,
-    },
-  ];
+  farmers: FarmerOption[] = [];
+  branches: BranchOption[] = [];
+  stockItems: StockItem[] = [];
+  inputTypes: InputType[] = [];
 
-  readonly inputTypes: InputType[] = [
-    { name: 'NPK Fertilizer', unit: 'Bags', unitPrice: 180000 },
-    { name: 'Maize Seeds', unit: 'Kgs', unitPrice: 15000 },
-    { name: 'Animal Feed', unit: 'Sacks', unitPrice: 120000 },
-    { name: 'Spray Pump', unit: 'Units', unitPrice: 130000 },
-  ];
-
-  readonly seasons = ['2024 Season A', '2024 Season B', '2025 Season A'];
+  readonly seasons = ['Wet Season', 'Dry Season'];
 
   form: IssueStockForm = {
-    inputType: '',
+    stockItemId: '',
+    branchId: '',
     quantity: '',
     season: '',
     acknowledged: false,
@@ -109,28 +90,63 @@ export class IssueStockComponent {
       quantity: '4 Bags',
       value: 720000,
       time: '09:14',
+      destination: 'Amina Nakato',
     },
     {
       id: 'ISS-1002',
-      farmerName: 'Moses Okello',
-      farmerId: 'F-1002',
-      initials: 'MO',
+      farmerName: 'Gulu Branch',
+      farmerId: 'BR-GUL',
+      initials: 'GB',
       avatarColor: '#22a65a',
       item: 'Maize Seeds',
-      quantity: '30 Kgs',
-      value: 450000,
+      quantity: '300 Kgs',
+      value: 4500000,
       time: '10:05',
+      destination: 'Gulu Branch',
     },
   ];
 
-  constructor(private readonly router: Router) {}
+  constructor(
+    private readonly router: Router,
+    private readonly inventoryService: InventoryService,
+  ) {
+    this.branches = this.inventoryService.getBranches();
+    this.farmers = this.inventoryService.getFarmersForCurrentBranch();
+    this.inventoryService.listStock(this.scope).subscribe(items => {
+      this.stockItems = items;
+      this.inputTypes = items.map(item => ({
+        id: item.id,
+        name: item.name,
+        unit: item.unit,
+        unitPrice: item.unitPrice,
+      }));
+    });
+  }
+
+  get scope(): InventoryScope {
+    return this.router.url.startsWith('/cooperative') ? 'cooperative' : 'branch';
+  }
+
+  get isCooperativeScope(): boolean {
+    return this.scope === 'cooperative';
+  }
+
+  get pageTitle(): string {
+    return this.isCooperativeScope ? 'Issue Stock to Branch' : 'Issue Stock to Farmer';
+  }
+
+  get pageSubtitle(): string {
+    return this.isCooperativeScope
+      ? 'Disburse cooperative stock to a branch for farmer allocation.'
+      : 'Record a new input allocation for a farmer.';
+  }
 
   get currentUnit(): string {
     return this.selectedInputType?.unit ?? 'Units';
   }
 
   private get selectedInputType(): InputType | undefined {
-    return this.inputTypes.find(input => input.name === this.form.inputType);
+    return this.inputTypes.find(input => input.id === this.form.stockItemId);
   }
 
   searchFarmers(): void {
@@ -149,7 +165,7 @@ export class IssueStockComponent {
     );
   }
 
-  selectFarmer(farmer: Farmer): void {
+  selectFarmer(farmer: FarmerOption): void {
     this.selectedFarmer = farmer;
     this.farmerSearch = `${farmer.name} (${farmer.id})`;
     this.searchResults = [];
@@ -170,9 +186,11 @@ export class IssueStockComponent {
   }
 
   canSubmit(): boolean {
+    const hasDestination = this.isCooperativeScope ? Boolean(this.form.branchId) : Boolean(this.selectedFarmer);
+
     return Boolean(
-      this.selectedFarmer &&
-        this.form.inputType &&
+      hasDestination &&
+        this.form.stockItemId &&
         this.form.season &&
         Number(this.form.quantity) > 0 &&
         this.form.acknowledged,
@@ -180,27 +198,38 @@ export class IssueStockComponent {
   }
 
   issueInput(): void {
-    if (!this.canSubmit() || !this.selectedFarmer) return;
+    if (!this.canSubmit()) return;
 
     const quantity = Number(this.form.quantity);
-    const issuance: RecentIssuance = {
-      id: `ISS-${Date.now()}`,
-      farmerName: this.selectedFarmer.name,
-      farmerId: this.selectedFarmer.id,
-      initials: this.getInitials(this.selectedFarmer.name),
-      avatarColor: '#533c59',
-      item: this.form.inputType,
-      quantity: `${quantity} ${this.currentUnit}`,
-      value: this.calculatedValue,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
 
-    this.recentIssuances = [issuance, ...this.recentIssuances];
-    this.resetForm();
+    if (this.isCooperativeScope) {
+      this.inventoryService.issueStockToBranch({
+        stockItemId: this.form.stockItemId,
+        branchId: this.form.branchId,
+        quantity,
+        season: this.form.season,
+      }).subscribe(row => {
+        this.prependIssuance(row.branchName, row.branchId, row.itemName, row.quantity, row.unit, row.totalValue);
+        this.resetForm();
+      });
+      return;
+    }
+
+    if (!this.selectedFarmer) return;
+
+    this.inventoryService.issueStockToFarmer({
+      stockItemId: this.form.stockItemId,
+      farmerId: this.selectedFarmer.id,
+      quantity,
+      season: this.form.season,
+    }).subscribe(row => {
+      this.prependIssuance(row.farmerName, row.farmerId, row.itemName, row.quantity, row.unit, row.totalValue);
+      this.resetForm();
+    });
   }
 
   cancel(): void {
-    this.router.navigate(['/inventory/current-stock']);
+    this.router.navigate([this.isCooperativeScope ? '/cooperative/inventory/current-stock' : '/branch/inventory/current-stock']);
   }
 
   trackById(_: number, row: RecentIssuance): string {
@@ -213,10 +242,35 @@ export class IssueStockComponent {
     this.searchResults = [];
     this.calculatedValue = 0;
     this.form = {
-      inputType: '',
+      stockItemId: '',
+      branchId: '',
       quantity: '',
       season: '',
       acknowledged: false,
     };
+  }
+
+  private prependIssuance(
+    destination: string,
+    destinationId: string,
+    item: string,
+    quantity: number,
+    unit: string,
+    value: number,
+  ): void {
+    const issuance: RecentIssuance = {
+      id: `ISS-${Date.now()}`,
+      farmerName: destination,
+      farmerId: destinationId,
+      initials: this.getInitials(destination),
+      avatarColor: '#533c59',
+      item,
+      quantity: `${quantity} ${unit}`,
+      value,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      destination,
+    };
+
+    this.recentIssuances = [issuance, ...this.recentIssuances];
   }
 }

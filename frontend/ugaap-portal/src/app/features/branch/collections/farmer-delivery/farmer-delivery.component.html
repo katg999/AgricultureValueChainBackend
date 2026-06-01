@@ -1,140 +1,227 @@
-<div class="delivery-container">
-  <app-page-header
-    [title]="pageTitle"
-    [breadcrumb]="breadcrumb">
-  </app-page-header>
+<div class="afd-page">
 
-  <main class="delivery-card">
-    <p class="hint">{{ helperText }}</p>
+  <!-- Breadcrumb -->
+  <nav class="afd-breadcrumb" aria-label="Breadcrumb">
+    <span>Home</span>
+    <span class="sep">›</span>
+    <span>Collections</span>
+    <span class="sep">›</span>
+    <span class="link" (click)="goToBranchDeliveries()">Branch Deliveries</span>
+    <span class="sep">›</span>
+    <span>Farmer Deliveries</span>
+    <span class="sep">›</span>
+    <span class="current">Add Delivery</span>
+  </nav>
 
-    <form [formGroup]="deliveryForm" (ngSubmit)="onSubmit()">
-      
-      <div class="form-header">
-        <h3>{{ formSectionTitle }}</h3>
-        <div class="status-toggle">
-          <span class="status-label">Active status</span>
-          <label class="switch">
-            <input title="Active status" type="checkbox" formControlName="isActive">
-            <span class="slider round"></span>
-          </label>
-        </div>
+  <!-- Success Screen -->
+  <div class="afd-success" *ngIf="submitted">
+    <div class="success-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 6L9 17l-5-5"/>
+      </svg>
+    </div>
+    <h2>Delivery saved successfully</h2>
+    <p>{{ successMessage }}</p>
+    <div class="redirect-bar">
+      <div class="redirect-fill" [style.width.%]="redirectProgress"></div>
+    </div>
+    <span class="redirect-label">Redirecting to Branch Deliveries…</span>
+  </div>
+
+  <!-- Form -->
+  <div class="afd-form-wrap" *ngIf="!submitted">
+    <div class="afd-header">
+      <div>
+        <h1 class="afd-title">Add Farmer Delivery</h1>
+        <p class="afd-subtitle">Entries can be saved with or without a delivery batch.</p>
       </div>
+      <button class="btn-primary" (click)="onSubmit()" [disabled]="isSaving">
+        <span class="spinner" *ngIf="isSaving" aria-hidden="true"></span>
+        <svg *ngIf="!isSaving" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+          <polyline points="17 21 17 13 7 13 7 21"/>
+          <polyline points="7 3 7 8 15 8"/>
+        </svg>
+        {{ isSaving ? 'Saving…' : 'Save Delivery' }}
+      </button>
+    </div>
 
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="farmerName">Farmer ID</label>
-          <input 
-            id="farmerName" 
-            type="text" 
-            formControlName="farmerName" 
-            placeholder="e.g. John Doe (UG-4092)">
-          <span class="field-error" *ngIf="isFieldInvalid('farmerName')">
-            Enter at least 3 characters for theID.
-          </span>
+    <form [formGroup]="deliveryForm" (ngSubmit)="onSubmit()" novalidate>
+
+      <!-- ── Farmer Section ── -->
+      <div class="afd-card">
+        <div class="card-section-label">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+          </svg>
+          Farmer details
         </div>
 
-        <div class="form-group">
-          <label for="commodityCategory">Commodity Category</label>
-          <select id="commodityCategory" formControlName="commodityCategory">
-            <option value="" disabled>Select category</option>
-            <option value="maize">Maize / Corn</option>
-            <option value="beans">Beans</option>
-            <option value="coffee">Coffee Beans</option>
-            <option value="sorghum">Sorghum</option>
-          </select>
-          <span class="field-error" *ngIf="isFieldInvalid('commodityCategory')">
-            Select the commodity category.
-          </span>
+        <!-- Mode toggle -->
+        <div class="mode-toggle" role="group" aria-label="Farmer entry mode">
+          <button type="button"
+            [class.active]="farmerMode === 'search'"
+            (click)="setFarmerMode('search')">
+            Search existing
+          </button>
+          <button type="button"
+            [class.active]="farmerMode === 'manual'"
+            (click)="setFarmerMode('manual')">
+            Manual entry
+          </button>
         </div>
 
-        <div class="form-group">
-          <label for="quantity">Quantity Delivered</label>
-          <input 
-            id="quantity" 
-            type="number" 
-            formControlName="quantity" 
-            placeholder="e.g. 150.00">
-          <span class="field-error" *ngIf="isFieldInvalid('quantity')">
-            Enter a quantity greater than 0.
-          </span>
-        </div>
-
-        <div class="form-group">
-          <label for="unitOfMeasure">Unit of Measure</label>
-          <input 
-            id="unitOfMeasure" 
-            type="text" 
-            formControlName="unitOfMeasure" 
-            placeholder="KG">
-          <span class="field-error" *ngIf="isFieldInvalid('unitOfMeasure')">
-            Enter the unit of measure.
-          </span>
-        </div>
-
-        <div class="form-group">
-          <label for="estimatedValue">Estimated Delivery Value UGX</label>
-          <div class="currency-input-wrapper">
-            <span class="currency-prefix">UGX</span>
-            <input 
-              id="estimatedValue" 
-              type="number" 
-              formControlName="estimatedValue" 
-              placeholder="0.00">
+        <!-- Search mode -->
+        <div *ngIf="farmerMode === 'search'">
+          <div class="field-group" [class.has-error]="isFieldInvalid('farmerSearch')">
+            <label for="farmer-search">Farmer name or ID <span class="required">*</span></label>
+            <div class="search-wrap">
+              <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input
+                id="farmer-search"
+                type="text"
+                formControlName="farmerSearch"
+                placeholder="Search by name or ID…"
+                autocomplete="off"
+                (input)="onFarmerSearch($event)"
+                (blur)="onSearchBlur()" />
+              <div class="search-dropdown" *ngIf="showDropdown && filteredFarmers.length">
+                <div
+                  class="dropdown-item"
+                  *ngFor="let f of filteredFarmers"
+                  (mousedown)="selectFarmer(f)">
+                  <div class="farmer-avatar">{{ getInitials(f.name) }}</div>
+                  <div class="farmer-info">
+                    <span class="farmer-name">{{ f.name }}</span>
+                    <span class="farmer-meta">{{ f.phone }}</span>
+                  </div>
+                  <span class="farmer-id-badge">{{ f.id }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="field-error" *ngIf="isFieldInvalid('farmerSearch')">Please select a farmer from the list.</div>
           </div>
-          <span class="field-error" *ngIf="isFieldInvalid('estimatedValue')">
-            Enter an estimated value of 0 or more.
-          </span>
+
+          <!-- Selected farmer chip -->
+          <div class="selected-farmer-chip" *ngIf="selectedFarmer">
+            <div class="farmer-avatar large">{{ getInitials(selectedFarmer.name) }}</div>
+            <div class="farmer-chip-info">
+              <span class="farmer-name">{{ selectedFarmer.name }}</span>
+              <span class="farmer-meta">{{ selectedFarmer.id }} · {{ selectedFarmer.phone }}</span>
+            </div>
+            <button type="button" class="chip-clear" (click)="clearFarmer()" aria-label="Remove selected farmer">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Manual mode -->
+        <div *ngIf="farmerMode === 'manual'" class="manual-fields">
+          <div class="field-row-2">
+            <div class="field-group" [class.has-error]="isFieldInvalid('farmerName')">
+              <label for="farmer-name">Full name <span class="required">*</span></label>
+              <input id="farmer-name" type="text" formControlName="farmerName" placeholder="e.g. Akello Grace" />
+              <div class="field-error" *ngIf="isFieldInvalid('farmerName')">Full name is required.</div>
+            </div>
+            <div class="field-group">
+              <label for="farmer-id">Farmer ID</label>
+              <input id="farmer-id" type="text" formControlName="farmerId" placeholder="e.g. UG-F-00401" />
+              <div class="field-hint">Leave blank to auto-generate.</div>
+            </div>
+          </div>
+          <div class="field-group" [class.has-error]="isFieldInvalid('manualPhone')">
+            <label for="manual-phone">Phone number <span class="required">*</span></label>
+            <input id="manual-phone" type="tel" formControlName="manualPhone" placeholder="e.g. 0712345678" />
+            <div class="field-error" *ngIf="isFieldInvalid('manualPhone')">Phone number is required.</div>
+          </div>
         </div>
       </div>
 
-      <div class="form-group full-width">
-        <label for="repaymentRule">Linked Repayment Rule</label>
-        <select id="repaymentRule" formControlName="repaymentRule">
-          <option value="standard">Standard Post-Harvest Deduction (15%)</option>
-          <option value="accelerated">Priority Recovery Deduction (25%)</option>
-          <option value="deferred">No Linked Recovery Rule (0%)</option>
-        </select>
-        <span class="field-error" *ngIf="isFieldInvalid('repaymentRule')">
-          Select a repayment rule.
-        </span>
+      <!-- ── Delivery Section ── -->
+      <div class="afd-card">
+        <div class="card-section-label">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
+          </svg>
+          Delivery details
+        </div>
+
+        <div class="field-row-2" style="margin-bottom: 16px;">
+          <div class="field-group" [class.has-error]="isFieldInvalid('branch')">
+            <label for="branch">Branch <span class="required">*</span></label>
+            <select id="branch" formControlName="branch">
+              <option value="">Select branch…</option>
+              <option *ngFor="let b of branches" [value]="b">{{ b }}</option>
+            </select>
+            <div class="field-error" *ngIf="isFieldInvalid('branch')">Please select a branch.</div>
+          </div>
+          <div class="field-group">
+            <label for="batch">Delivery batch</label>
+            <input id="batch" type="text" formControlName="batch" placeholder="e.g. BATCH-2026-05" />
+            <div class="field-hint">Optional — save without batch.</div>
+          </div>
+        </div>
+
+        <div class="field-row-2" style="margin-bottom: 16px;">
+          <div class="field-group" [class.has-error]="isFieldInvalid('commodity')">
+            <label for="commodity">Commodity <span class="required">*</span></label>
+            <select id="commodity" formControlName="commodity">
+              <option value="">Select commodity…</option>
+              <option *ngFor="let c of commodities" [value]="c">{{ c }}</option>
+            </select>
+            <div class="field-error" *ngIf="isFieldInvalid('commodity')">Please select a commodity.</div>
+          </div>
+          <div class="field-group" [class.has-error]="isFieldInvalid('phone')" *ngIf="farmerMode === 'search'">
+            <label for="phone">Phone number <span class="required">*</span></label>
+            <input id="phone" type="tel" formControlName="phone" placeholder="e.g. 0712345678" />
+            <div class="field-error" *ngIf="isFieldInvalid('phone')">Phone number is required.</div>
+          </div>
+        </div>
+
+        <div class="field-row-3" style="margin-bottom: 16px;">
+          <div class="field-group" [class.has-error]="isFieldInvalid('volume')">
+            <label for="volume">Volume (KG) <span class="required">*</span></label>
+            <input id="volume" type="number" formControlName="volume" placeholder="0" min="0" (input)="calcEstValue()" />
+            <div class="field-error" *ngIf="isFieldInvalid('volume')">Volume is required.</div>
+          </div>
+          <div class="field-group" [class.has-error]="isFieldInvalid('unitPrice')">
+            <label for="unit-price">Est. price / unit (UGX) <span class="required">*</span></label>
+            <input id="unit-price" type="number" formControlName="unitPrice" placeholder="0" min="0" (input)="calcEstValue()" />
+            <div class="field-error" *ngIf="isFieldInvalid('unitPrice')">Price per unit is required.</div>
+          </div>
+          <div class="field-group">
+            <label>Est. total value (UGX)</label>
+            <div class="computed-field">
+              <span class="computed-label">Auto-calculated</span>
+              <span class="computed-value">{{ estValueDisplay }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="notes">Notes / remarks</label>
+          <textarea id="notes" formControlName="notes" rows="3" placeholder="e.g. Grade A quality, dried beans…"></textarea>
+        </div>
       </div>
 
-      <div class="form-group full-width">
-        <label for="notes">Delivery Notes & Quality Specs</label>
-        <textarea 
-          id="notes" 
-          formControlName="notes" 
-          rows="5" 
-          placeholder="Enter moisture content levels, quality grade tiers, or specific handling..."></textarea>
-      </div>
-
-      <div class="form-actions">
-        <app-button 
-          type="button" 
-          variant="secondary"
-          class="btn-cancel" 
-          (clicked)="onCancel()">
-          {{ isViewMode ? 'Back' : 'Cancel' }}
-        </app-button>
-
-        <app-button 
-          *ngIf="isViewMode"
-          type="button" 
-          variant="primary"
-          class="btn-save"
-          (clicked)="onEdit()">
-          Edit delivery
-        </app-button>
-    
-        <app-button 
-          *ngIf="!isViewMode"
-          type="submit" 
-          variant="primary"
-          class="btn-save">
-          {{ submitLabel }}
-        </app-button>
+      <!-- Actions -->
+      <div class="afd-actions">
+        <button type="button" class="btn-cancel" (click)="goToBranchDeliveries()">Cancel</button>
+        <button type="submit" class="btn-primary" [disabled]="isSaving">
+          <span class="spinner" *ngIf="isSaving" aria-hidden="true"></span>
+          <svg *ngIf="!isSaving" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+            <polyline points="17 21 17 13 7 13 7 21"/>
+            <polyline points="7 3 7 8 15 8"/>
+          </svg>
+          {{ isSaving ? 'Saving…' : 'Save Delivery' }}
+        </button>
       </div>
 
     </form>
-  </main>
+  </div>
 </div>

@@ -40,3 +40,45 @@ html, body {
   height: 100%;
   width: 100%;
 }
+
+button,
+a,
+.btn,
+.icon-btn,
+.search-box,
+.search-input,
+.search-wrap,
+.filter-select,
+.field-select {
+  min-width: 0;
+}
+
+button svg,
+a svg,
+.btn svg,
+.icon-btn svg,
+.search-box svg,
+.search-input svg,
+.search-wrap svg,
+.filter-select svg,
+.select-arrow,
+.select-chevron,
+.search-icon {
+  width: 1rem;
+  height: 1rem;
+  max-width: 1rem;
+  max-height: 1rem;
+  flex: 0 0 1rem;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+button,
+a.btn,
+.btn,
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}

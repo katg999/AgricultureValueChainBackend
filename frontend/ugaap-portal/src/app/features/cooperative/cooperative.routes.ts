@@ -66,9 +66,16 @@ export const COOPERATIVE_ROUTES: Routes = [
   {
     path: 'farmers',
     loadComponent: () =>
-      import('./farmer-list/farmer-list.component')
+      import('./farmers/farmer-list/farmer-list.component')
         .then(m => m.FarmerListComponent),
   },
+  {
+    path: 'farmers/approval/:id',
+    loadComponent: () =>
+      import('./farmers/farmer-approval/farmer-approval.component')
+        .then(m => m.FarmerApprovalComponent),
+  },
+  { path: 'farmers/approval', redirectTo: 'farmers', pathMatch: 'full' },
   {
     path: 'branches',
     loadComponent: () =>
@@ -93,8 +100,8 @@ export const COOPERATIVE_ROUTES: Routes = [
   {
     path:'collections',
     loadChildren: () =>
-      import('./collections/collections.routes')
-        .then(m => m.COLLECTIONS_ROUTES),
+      import('./collections/cooperative-collections.routes')
+        .then(m => m.COOPERATIVES_COLLECTIONS_ROUTES),
   },
   
 
@@ -109,7 +116,7 @@ export const COOPERATIVE_ROUTES: Routes = [
   {
     path: "farmer-list",
     loadComponent: () =>
-      import('../cooperative/farmer-list/farmer-list.component')
+      import('./farmers/farmer-list/farmer-list.component')
         .then(m => m.FarmerListComponent)
   },
 
