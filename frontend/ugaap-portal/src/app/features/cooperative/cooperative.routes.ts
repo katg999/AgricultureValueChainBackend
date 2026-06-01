@@ -71,9 +71,9 @@ export const COOPERATIVE_ROUTES: Routes = [
   },
   {
     path: 'branches',
-    loadComponent: () =>
-      import('./branches/branches')
-        .then(m => m.Branches),
+    loadChildren:()=>
+      import('./branches/branch.routes')
+        .then(m => m.BRANCH_ROUTES),
   },
   {
     path: 'users',
