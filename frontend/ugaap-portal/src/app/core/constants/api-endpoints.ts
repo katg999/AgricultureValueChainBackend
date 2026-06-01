@@ -47,6 +47,9 @@ export const API_ENDPOINTS = {
     // Cooperatives & Branches (for management interface)
     ALL: `${BASE}/cooperatives`,
 
+    // Cooperatives & Branches (for management interface)
+    ALL:              `${BASE}/cooperatives`,
+
     // Branches
     BRANCHES: `${BASE}/cooperative/branches`,
     BRANCH_BY_ID: (id: string) => `${BASE}/cooperative/branches/${id}`,

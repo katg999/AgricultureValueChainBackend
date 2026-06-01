@@ -19,10 +19,6 @@
       </app-button>
     </div>
   </div>
-  
-  <div class="summary-cards-grid">
-    <div class="summary-card">
-      <app-stat-card
 
         [data]="{ label: 'New Registrations', value: newRegistrations(farmers), icon: 'New', trend: '+8.5%', trendUp: true }">
     </app-stat-card>
@@ -139,4 +135,27 @@
     </div>
   </div>
 
+  <div class="summary-cards-grid">
+    <div class="summary-card">
+      <app-stat-card
+        [data]="{ label: 'New Registrations', value: newRegistrations(farmers), icon: 'New', trend: '+8.5%', trendUp: true }">
+      </app-stat-card>
+    </div>
+
+    <div class="summary-card">
+      <app-stat-card
+        [data]="{ label: 'Portfolio At Risk', value: 'UGX ' + portfolioAtRisk(farmers), icon: 'Risk', trend: '-5.2%', trendUp: false, status: 'warning' }">
+      </app-stat-card>
+    </div>
+
+    <div class="summary-card">
+      <span class="summary-card-title">COLLECTION PROGRESS</span>
+      <div class="summary-card-value-row stack-layout">
+        <span class="summary-card-main-val">{{ collectionProgress }}%</span>
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" [style.width.%]="collectionProgress"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
