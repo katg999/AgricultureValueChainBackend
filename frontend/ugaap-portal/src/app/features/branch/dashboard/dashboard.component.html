@@ -9,10 +9,10 @@
       <p class="page-subtitle">{{ userName }}</p>
     </div>
     <div class="header-actions">
-      <button class="btn-secondary" [routerLink]="['/collections']">
+      <button class="btn-secondary" [routerLink]="['/branch/collections']">
         📋 View all collections
       </button>
-      <button class="btn-primary" [routerLink]="['/collections/farmer-delivery/create']">
+      <button class="btn-primary" [routerLink]="['/branch/collections/farmer-deliveries/create']">
         + Record Delivery
       </button>
     </div>
@@ -34,7 +34,7 @@
     <div class="card">
       <div class="card-header">
         <h2 class="card-title">Today's Deliveries</h2>
-        <a class="btn-link" [routerLink]="['/collections']">View all →</a>
+        <a class="btn-link" [routerLink]="['/branch/collections']">View all →</a>
       </div>
 
       <div class="table-wrap">
@@ -81,11 +81,11 @@
           <h2 class="card-title">Quick Actions</h2>
         </div>
         <div class="actions-grid">
-          <button class="action-tile" [routerLink]="['/collections/farmer-delivery/create']">
+          <button class="action-tile" [routerLink]="['/branch/collections/farmer-deliveries/create']">
             <span class="action-icon">📥</span>
             <span>Record Delivery</span>
           </button>
-          <button class="action-tile" [routerLink]="['/farmers']">
+          <button class="action-tile" [routerLink]="['/branch/farmers/register']">
             <span class="action-icon">👤</span>
             <span>Register Farmer</span>
           </button>
@@ -93,7 +93,7 @@
             <span class="action-icon">⭐</span>
             <span>Grade Rules</span>
           </button>
-          <button class="action-tile" [routerLink]="['/inventory/current-stock']">
+          <button class="action-tile" [routerLink]="['/branch/inventory/current-stock']">
             <span class="action-icon">📦</span>
             <span>Check Stock</span>
           </button>

@@ -63,12 +63,13 @@
         <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
       </svg>
 
-      <!-- avatar stack in the footer -->
-      <div cardFooter class="avatar-stack">
-        <div class="avatar" style="background:#F25D27">S</div>
-        <div class="avatar" style="background:#533C59">K</div>
-        <div class="avatar" style="background:#CF450D">A</div>
-        <div class="avatar-count">+12</div>
+      <div cardFooter class="card-footer-row">
+        <app-button variant="secondary" size="sm" (clicked)="openRolesUsers()">
+          Manage Users
+        </app-button>
+        <app-button variant="primary" size="sm" (clicked)="openRoles()">
+          Manage Roles
+        </app-button>
       </div>
     </app-config-card>
 

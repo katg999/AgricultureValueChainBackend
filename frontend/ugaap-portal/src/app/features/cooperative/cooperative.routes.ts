@@ -66,14 +66,21 @@ export const COOPERATIVE_ROUTES: Routes = [
   {
     path: 'farmers',
     loadComponent: () =>
-      import('./farmer-list/farmer-list.component')
+      import('./farmers/farmer-list/farmer-list.component')
         .then(m => m.FarmerListComponent),
   },
   {
-    path: 'branches',
+    path: 'farmers/approval/:id',
     loadComponent: () =>
-      import('./branches/branches')
-        .then(m => m.Branches),
+      import('./farmers/farmer-approval/farmer-approval.component')
+        .then(m => m.FarmerApprovalComponent),
+  },
+  { path: 'farmers/approval', redirectTo: 'farmers', pathMatch: 'full' },
+  {
+    path: 'branches',
+    loadChildren:()=>
+      import('./branches/branch.routes')
+        .then(m => m.BRANCH_ROUTES),
   },
   {
     path: 'users',
@@ -93,8 +100,8 @@ export const COOPERATIVE_ROUTES: Routes = [
   {
     path:'collections',
     loadChildren: () =>
-      import('./collections/collections.routes')
-        .then(m => m.COLLECTIONS_ROUTES),
+      import('./collections/cooperative-collections.routes')
+        .then(m => m.COOPERATIVES_COLLECTIONS_ROUTES),
   },
   
 
@@ -106,13 +113,6 @@ export const COOPERATIVE_ROUTES: Routes = [
         .then(m => m.MakerCheckerCreationComponent),
   },
   
-  {
-    path: "farmer-list",
-    loadComponent: () =>
-      import('../cooperative/farmer-list/farmer-list.component')
-        .then(m => m.FarmerListComponent)
-  },
-
   // ── Activation success ──────────────────────────────────────────────────────
   // Shown after a cooperative is successfully activated
   {
@@ -128,6 +128,23 @@ export const COOPERATIVE_ROUTES: Routes = [
       import('./inventory/inventory.routes')
         .then(m => m.INVENTORY_ROUTES),
   },
+
+  // ── Roles & Permissions ──────────────────────────────────────────────────────
+  {
+    path: 'roles',
+    loadChildren: () =>
+      import('./roles/roles.routes')
+        .then(m => m.ROLES_ROUTES),
+  },
+
+  // ── Reports ─────────────────────────────────────────────────────────────────
+  {
+    path: 'reports',
+    loadChildren: () =>
+      import('./reports/reports.routes')
+        .then(m => m.REPORTS_ROUTES),
+  },
+
   // ── Legacy redirects ────────────────────────────────────────────────────────
   // Old route aliases kept so bookmarks and external links don't 404
   { path: 'grading',  redirectTo: 'grade-config', pathMatch: 'full' },

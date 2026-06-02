@@ -1,0 +1,300 @@
+<!-- Badge templates — defined outside @if so ViewChild refs are always available -->
+<ng-template #deliveryStatusTpl let-row>
+  <app-badge [variant]="getDeliveryStatusVariant(row.status)">{{ row.status }}</app-badge>
+</ng-template>
+<ng-template #paymentStatusTpl let-row>
+  <app-badge [variant]="getPaymentStatusVariant(row.status)">{{ row.status }}</app-badge>
+</ng-template>
+<ng-template #memberStatusTpl let-row>
+  <app-badge [variant]="getMemberStatusVariant(row.status)">{{ row.status }}</app-badge>
+</ng-template>
+
+<!--  MAIN PAGE  -->
+<div class="reports-page" id="reports-print-area">
+
+  <!-- ── Page header ─────────────────────────────────────────────────── -->
+  <div class="page-header">
+    <div class="header-top">
+      <div>
+        <h1 class="page-title">Reports</h1>
+        <p class="page-subtitle">View and export cooperative performance data</p>
+      </div>
+    </div>
+
+    <div class="filters-bar">
+      <div class="filter-group">
+        <label class="filter-label">Date Range</label>
+        <select [(ngModel)]="filters.dateRange" name="dateRange" class="filter-select">
+          <option value="last7days">Last 7 Days</option>
+          <option value="last30days">Last 30 Days</option>
+          <option value="last90days">Last 90 Days</option>
+          <option value="thisYear">This Year</option>
+          <option value="lastYear">Last Year</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Branch</label>
+        <select [(ngModel)]="filters.branch" name="branch" class="filter-select">
+          <option value="all">All Branches</option>
+          <option value="hoima">Hoima</option>
+          <option value="masindi">Masindi</option>
+          <option value="gulu">Gulu</option>
+          <option value="lira">Lira</option>
+          <option value="mbale">Mbale</option>
+          <option value="soroti">Soroti</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Season</label>
+        <select [(ngModel)]="filters.season" name="season" class="filter-select">
+          <option value="2025-2026">2025/2026</option>
+          <option value="2024-2025">2024/2025</option>
+          <option value="2023-2024">2023/2024</option>
+        </select>
+      </div>
+      <app-button variant="primary" size="sm" (clicked)="applyFilters()">Apply Filters</app-button>
+    </div>
+  </div>
+
+  <!-- ── Tab navigation ──────────────────────────────────────────────── -->
+  <div class="tabs-section">
+    <app-tab-nav [tabs]="reportTabs" [activeTab]="activeTab" (tabChanged)="onTabChange($event)"></app-tab-nav>
+  </div>
+
+  <!-- ═════════════════════════ DELIVERIES TAB ═════════════════════════ -->
+  @if (activeTab === 'deliveries') {
+    <div class="tab-content">
+
+      <div class="stats-grid">
+        <app-stats-card label="Total Deliveries" value="540 MT"  trend="+12%" icon="box"    variant="default"></app-stats-card>
+        <app-stats-card label="Daily Average"    value="18 MT"   trend="+5%"  icon="chart"  variant="success"></app-stats-card>
+        <app-stats-card label="Peak Delivery"    value="45 MT"                icon="chart"  variant="default"></app-stats-card>
+        <app-stats-card label="Active Farmers"   value="142"     trend="+8%"  icon="farmer" variant="success"></app-stats-card>
+      </div>
+
+      <div class="charts-grid">
+        <app-chart-card title="Delivery Trends" subtitle="Cumulative volume over time" [height]="280">
+          <div chartActions class="period-toggle">
+            <button type="button" [class.active]="deliveryPeriod === 'daily'"   (click)="updateDeliveryPeriod('daily')">Daily</button>
+            <button type="button" [class.active]="deliveryPeriod === 'weekly'"  (click)="updateDeliveryPeriod('weekly')">Weekly</button>
+            <button type="button" [class.active]="deliveryPeriod === 'monthly'" (click)="updateDeliveryPeriod('monthly')">Monthly</button>
+          </div>
+          <canvas id="delivery-trend-chart"></canvas>
+        </app-chart-card>
+
+        <app-chart-card title="Deliveries by Branch" subtitle="This season" [height]="280">
+          <canvas id="delivery-branch-chart"></canvas>
+        </app-chart-card>
+
+        <app-chart-card title="Delivery Status" subtitle="Current breakdown" [height]="280">
+          <canvas id="delivery-status-chart"></canvas>
+        </app-chart-card>
+
+        <app-chart-card title="Top 5 Farmers" subtitle="By delivery quantity (MT)" [height]="280">
+          <canvas id="delivery-farmers-chart"></canvas>
+        </app-chart-card>
+      </div>
+
+      <div class="table-section">
+        <div class="table-section-header">
+          <h3 class="section-title">Detailed Deliveries</h3>
+          <div class="table-actions">
+            <app-button variant="ghost" size="sm" (clicked)="showReportBuilder = true">Build Custom Report</app-button>
+            <app-export-dropdown [loading]="exportLoading" (export)="onExport($event, 'deliveries')"></app-export-dropdown>
+          </div>
+        </div>
+        <app-table [columns]="deliveryColumns" [data]="paginatedData" [hoverable]="true"
+          emptyMessage="No delivery records found"></app-table>
+        @if (totalPages > 1) {
+          <div class="pagination">
+            <button class="page-btn" [disabled]="currentPage === 1" (click)="currentPage = currentPage - 1">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            @for (p of pageNumbers; track p) {
+              <button class="page-btn" [class.active]="p === currentPage" (click)="currentPage = p">{{ p }}</button>
+            }
+            <button class="page-btn" [disabled]="currentPage === totalPages" (click)="currentPage = currentPage + 1">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ═════════════════════════ GRADING TAB ════════════════════════════ -->
+  @if (activeTab === 'grading') {
+    <div class="tab-content">
+
+      <div class="stats-grid">
+        <app-stats-card label="Grade A Volume" value="338 MT"  trend="+3%"  icon="scale"  variant="success"></app-stats-card>
+        <app-stats-card label="Grade B Volume" value="188 MT"  trend="-1%"  icon="scale"  variant="default"></app-stats-card>
+        <app-stats-card label="Total Rejected" value="44 MT"   trend="-5%"  icon="alert"  variant="danger"></app-stats-card>
+        <app-stats-card label="Avg Quality"    value="81%"     trend="+2%"  icon="check"  variant="success"></app-stats-card>
+      </div>
+
+      <div class="charts-grid">
+        <app-chart-card title="Grade Distribution" subtitle="A / B / C / Rejected" [height]="280">
+          <canvas id="grading-dist-chart"></canvas>
+        </app-chart-card>
+
+        <app-chart-card title="Grading by Branch" subtitle="Stacked by grade" [height]="280">
+          <canvas id="grading-branch-chart"></canvas>
+        </app-chart-card>
+
+        <app-chart-card title="Quality Score Trends" subtitle="Avg monthly quality" [height]="280">
+          <canvas id="grading-quality-chart"></canvas>
+        </app-chart-card>
+
+        <app-chart-card title="Rejection Rate by Branch" subtitle="% rejected per branch" [height]="280">
+          <canvas id="grading-rejection-chart"></canvas>
+        </app-chart-card>
+      </div>
+
+      <div class="table-section">
+        <div class="table-section-header">
+          <h3 class="section-title">Grading by Branch</h3>
+          <div class="table-actions">
+            <app-button variant="ghost" size="sm" (clicked)="showReportBuilder = true">Build Custom Report</app-button>
+            <app-export-dropdown [loading]="exportLoading" (export)="onExport($event, 'grading')"></app-export-dropdown>
+          </div>
+        </div>
+        <app-table [columns]="gradingColumns" [data]="paginatedData" [hoverable]="true"
+          emptyMessage="No grading records found"></app-table>
+        @if (totalPages > 1) {
+          <div class="pagination">
+            <button class="page-btn" [disabled]="currentPage === 1" (click)="currentPage = currentPage - 1">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            @for (p of pageNumbers; track p) {
+              <button class="page-btn" [class.active]="p === currentPage" (click)="currentPage = p">{{ p }}</button>
+            }
+            <button class="page-btn" [disabled]="currentPage === totalPages" (click)="currentPage = currentPage + 1">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ═════════════════════════ PAYMENTS TAB ═══════════════════════════ -->
+  @if (activeTab === 'payments') {
+    <div class="tab-content">
+
+      <div class="stats-grid">
+        <app-stats-card label="Total Disbursed"  value="168.5M UGX" trend="+14%" icon="wallet"  variant="success"></app-stats-card>
+        <app-stats-card label="Recovery Rate"    value="78%"         trend="+5%"  icon="chart"   variant="success"></app-stats-card>
+        <app-stats-card label="Outstanding"      value="36.8M UGX"  trend="-3%"  icon="alert"   variant="warning"></app-stats-card>
+        <app-stats-card label="Overdue Farmers"  value="12"          trend="+2"   icon="alert"   variant="danger"></app-stats-card>
+      </div>
+
+      <div class="charts-grid">
+        <app-chart-card title="Payment Status by Branch" subtitle="Settled / Partial / Pending" [height]="280">
+          <canvas id="payment-status-chart"></canvas>
+        </app-chart-card>
+
+        <app-chart-card title="Payment Trends" subtitle="Monthly disbursements (M UGX)" [height]="280">
+          <canvas id="payment-trend-chart"></canvas>
+        </app-chart-card>
+
+        <app-chart-card title="Recovery Rate" subtitle="Target: 85%" [height]="280">
+          <canvas id="payment-recovery-chart"></canvas>
+        </app-chart-card>
+
+        <app-chart-card title="Outstanding by Branch" subtitle="Amounts owed (M UGX)" [height]="280">
+          <canvas id="payment-outstanding-chart"></canvas>
+        </app-chart-card>
+      </div>
+
+      <div class="table-section">
+        <div class="table-section-header">
+          <h3 class="section-title">Payment Details</h3>
+          <div class="table-actions">
+            <app-button variant="ghost" size="sm" (clicked)="showReportBuilder = true">Build Custom Report</app-button>
+            <app-export-dropdown [loading]="exportLoading" (export)="onExport($event, 'payments')"></app-export-dropdown>
+          </div>
+        </div>
+        <app-table [columns]="paymentColumns" [data]="paginatedData" [hoverable]="true"
+          emptyMessage="No payment records found"></app-table>
+        @if (totalPages > 1) {
+          <div class="pagination">
+            <button class="page-btn" [disabled]="currentPage === 1" (click)="currentPage = currentPage - 1">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            @for (p of pageNumbers; track p) {
+              <button class="page-btn" [class.active]="p === currentPage" (click)="currentPage = p">{{ p }}</button>
+            }
+            <button class="page-btn" [disabled]="currentPage === totalPages" (click)="currentPage = currentPage + 1">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ═════════════════════════ MEMBERS TAB ════════════════════════════ -->
+  @if (activeTab === 'members') {
+    <div class="tab-content">
+
+      <div class="stats-grid">
+        <app-stats-card label="Total Members"   value="542"  trend="+8%"  icon="users"  variant="default"></app-stats-card>
+        <app-stats-card label="Active Members"  value="425"  trend="+3%"  icon="check"  variant="success"></app-stats-card>
+        <app-stats-card label="New This Season" value="64"   trend="+12%" icon="users"  variant="success"></app-stats-card>
+        <app-stats-card label="Inactive"        value="117"  trend="-2%"  icon="alert"  variant="warning"></app-stats-card>
+      </div>
+
+      <div class="charts-grid">
+        <app-chart-card title="Registration Trends" subtitle="New members per month" [height]="280">
+          <canvas id="member-trend-chart"></canvas>
+        </app-chart-card>
+
+        <app-chart-card title="Members by Branch" subtitle="Distribution across branches" [height]="280">
+          <canvas id="member-branch-chart"></canvas>
+        </app-chart-card>
+
+        <app-chart-card title="Active vs Inactive" subtitle="Membership status" [height]="280">
+          <canvas id="member-active-chart"></canvas>
+        </app-chart-card>
+
+        <app-chart-card title="Top Delivering Farmers" subtitle="By number of deliveries" [height]="280">
+          <canvas id="member-farmers-chart"></canvas>
+        </app-chart-card>
+      </div>
+
+      <div class="table-section">
+        <div class="table-section-header">
+          <h3 class="section-title">Member Directory</h3>
+          <div class="table-actions">
+            <app-button variant="ghost" size="sm" (clicked)="showReportBuilder = true">Build Custom Report</app-button>
+            <app-export-dropdown [loading]="exportLoading" (export)="onExport($event, 'members')"></app-export-dropdown>
+          </div>
+        </div>
+        <app-table [columns]="memberColumns" [data]="paginatedData" [hoverable]="true"
+          emptyMessage="No member records found"></app-table>
+        @if (totalPages > 1) {
+          <div class="pagination">
+            <button class="page-btn" [disabled]="currentPage === 1" (click)="currentPage = currentPage - 1">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            @for (p of pageNumbers; track p) {
+              <button class="page-btn" [class.active]="p === currentPage" (click)="currentPage = p">{{ p }}</button>
+            }
+            <button class="page-btn" [disabled]="currentPage === totalPages" (click)="currentPage = currentPage + 1">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+</div>
+
+<!-- ── Custom report builder modal ──────────────────────────────────────── -->
+<app-custom-report-builder
+  [isOpen]="showReportBuilder"
+  (closed)="showReportBuilder = false"
+  (generated)="onReportGenerated($event)">
+</app-custom-report-builder>

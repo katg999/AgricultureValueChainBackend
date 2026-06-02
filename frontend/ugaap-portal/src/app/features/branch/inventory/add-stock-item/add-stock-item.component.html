@@ -14,23 +14,24 @@
         <div class="column">
           <div class="form-group">
             <label for="itemName">Item name</label>
-            <select id="itemName" title="Item Name" formControlName="itemName" class="form-input">
-              <option value="" disabled>Select from catalogue</option>
-              <option value="maize">Maize Seeds</option>
-              <option value="npk-fertilizer">NPK Fertilizer</option>
-              <option value="urea-fertilizer">Urea Fertilizer</option>
-            </select>
-            <small class="helper-text">Select an existing item from the master catalogue.</small>
+            <app-input
+              id="itemName"
+              type="text"
+              formControlName="itemName"
+              placeholder="E.g. NPK Fertilizer">
+            </app-input>
+            <small class="helper-text">Backend can later replace this with a master catalogue lookup.</small>
           </div>
 
           <div class="form-group">
-            <label for="branch">Branch</label>
-            <select id="branch" title="Branch" formControlName="branch" multiple class="form-input multi-select">
-              <option value="kampala">Kampala</option>
-              <option value="mbarara">Mbarara</option>
-              <option value="jinja">Jinja</option>
+            <label for="category">Category</label>
+            <select id="category" title="Category" formControlName="category" class="form-input">
+              <option value="FERTILIZER">Fertilizer</option>
+              <option value="SEEDS">Seeds</option>
+              <option value="EQUIPMENT">Equipment</option>
+              <option value="PACKAGING">Packaging</option>
+              <option value="TOOLS">Tools</option>
             </select>
-            <small class="helper-text">Hold Ctrl/Cmd to select multiple branches.</small>
           </div>
 
           <div class="form-group">
@@ -42,12 +43,33 @@
                 formControlName="quantity"
                 placeholder="0.00">
               </app-input>
-              <span class="unit-tag">KG</span>
+              <span class="unit-tag">{{ stockForm.controls.unit.value }}</span>
             </div>
           </div>
         </div>
 
         <div class="column">
+          <div class="form-group">
+            <label for="unit">Unit</label>
+            <select id="unit" title="Unit" formControlName="unit" class="form-input">
+              <option value="Bags">Bags</option>
+              <option value="Kgs">Kgs</option>
+              <option value="Units">Units</option>
+              <option value="Sacks">Sacks</option>
+              <option value="Pieces">Pieces</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="unitPrice">Unit price</label>
+            <app-input
+              id="unitPrice"
+              type="number"
+              formControlName="unitPrice"
+              placeholder="0">
+            </app-input>
+          </div>
+
           <div class="form-group">
             <label for="receivedDate">Received date</label>
             <app-input 
@@ -67,7 +89,7 @@
                 formControlName="minThreshold"
                 placeholder="0.00">
               </app-input>
-              <span class="unit-tag">KG</span>
+              <span class="unit-tag">{{ stockForm.controls.unit.value }}</span>
             </div>
             <small class="helper-text">Alert will be triggered when stock falls below this value.</small>
           </div>

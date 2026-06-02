@@ -7,23 +7,12 @@ import { AlertComponent } from '../../../../shared/components/alert/alert.compon
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
 import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
-
-export type StockStatus = 'healthy' | 'low' | 'out';
-
-export interface StockItem {
-  id: number;
-  name: string;
-  category: string;
-  categoryClass: string;
-  quantity: number;
-  unit: string;
-  minThreshold: number;
-  stockStatus: StockStatus;
-  branches: string;
-  branchNames: string[];
-  season: string;
-  updatedAt: string;
-}
+import {
+  InventoryScope,
+  InventoryService,
+  StockItem,
+  StockStatus,
+} from '../../../shared-inventory-domain/inventory.service';
 
 export interface StockSummary {
   totalTypes: number;
@@ -34,14 +23,6 @@ export interface StockSummary {
 }
 
 const THRESHOLD_MULTIPLIER = 4;
-const TOTAL_STOCK_VALUE = 48200000;
-const ALL_BRANCHES = [
-  'Kampala Central',
-  'Jinja Branch',
-  'Mbarara Branch',
-  'Gulu Branch',
-  'Mbale Branch',
-];
 
 @Component({
   selector: 'app-current-stock',
@@ -61,6 +42,7 @@ export class CurrentStockComponent implements OnInit {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
+    private readonly inventoryService: InventoryService,
   ) {}
 
   filterBranch = '';
@@ -73,177 +55,45 @@ export class CurrentStockComponent implements OnInit {
   isImporting = false;
 
   summary: StockSummary = {
-    totalTypes: 11,
-    healthy: 7,
-    low: 3,
-    outOfStock: 1,
-    totalValue: TOTAL_STOCK_VALUE,
+    totalTypes: 0,
+    healthy: 0,
+    low: 0,
+    outOfStock: 0,
+    totalValue: 0,
   };
 
-  branches: string[] = ALL_BRANCHES;
+  branches: string[] = [];
 
-  allItems: StockItem[] = [
-    {
-      id: 1,
-      name: 'NPK Fertilizer',
-      category: 'FERTILIZER',
-      categoryClass: 'fertilizer',
-      quantity: 1250,
-      unit: 'Bags',
-      minThreshold: 200,
-      stockStatus: 'healthy',
-      branches: '4',
-      branchNames: ['Kampala Central', 'Jinja Branch', 'Mbarara Branch', 'Mbale Branch'],
-      season: '2024A',
-      updatedAt: '12/05/24',
-    },
-    {
-      id: 2,
-      name: 'Animal Feed (Layer)',
-      category: 'POULTRY',
-      categoryClass: 'poultry',
-      quantity: 85,
-      unit: 'Sacks',
-      minThreshold: 100,
-      stockStatus: 'low',
-      branches: '2',
-      branchNames: ['Kampala Central', 'Jinja Branch'],
-      season: '2024B',
-      updatedAt: '14/05/24',
-    },
-    {
-      id: 3,
-      name: 'Jute Sacks (100kg)',
-      category: 'PACKAGING',
-      categoryClass: 'packaging',
-      quantity: 0,
-      unit: 'Units',
-      minThreshold: 500,
-      stockStatus: 'out',
-      branches: 'All',
-      branchNames: ALL_BRANCHES,
-      season: '2024A',
-      updatedAt: '08/05/24',
-    },
-    {
-      id: 4,
-      name: 'Hand Hoes (Galvanized)',
-      category: 'TOOLS',
-      categoryClass: 'tools',
-      quantity: 420,
-      unit: 'Pieces',
-      minThreshold: 50,
-      stockStatus: 'healthy',
-      branches: '3',
-      branchNames: ['Kampala Central', 'Mbarara Branch', 'Gulu Branch'],
-      season: '2023B',
-      updatedAt: '10/05/24',
-    },
-    {
-      id: 5,
-      name: 'Urea Fertilizer',
-      category: 'FERTILIZER',
-      categoryClass: 'fertilizer',
-      quantity: 112,
-      unit: 'Bags',
-      minThreshold: 100,
-      stockStatus: 'low',
-      branches: '1',
-      branchNames: ['Kampala Central'],
-      season: '2024B',
-      updatedAt: '15/05/24',
-    },
-    {
-      id: 6,
-      name: 'Maize Seeds (Longe 5)',
-      category: 'SEEDS',
-      categoryClass: 'seeds',
-      quantity: 2400,
-      unit: 'Kgs',
-      minThreshold: 500,
-      stockStatus: 'healthy',
-      branches: '5',
-      branchNames: ALL_BRANCHES,
-      season: '2024A',
-      updatedAt: '11/05/24',
-    },
-    {
-      id: 7,
-      name: 'Spray Pumps (20L)',
-      category: 'EQUIPMENT',
-      categoryClass: 'equipment',
-      quantity: 12,
-      unit: 'Units',
-      minThreshold: 15,
-      stockStatus: 'low',
-      branches: '2',
-      branchNames: ['Mbarara Branch', 'Gulu Branch'],
-      season: '2023B',
-      updatedAt: '09/05/24',
-    },
-    {
-      id: 8,
-      name: 'DAP Fertilizer',
-      category: 'FERTILIZER',
-      categoryClass: 'fertilizer',
-      quantity: 680,
-      unit: 'Bags',
-      minThreshold: 100,
-      stockStatus: 'healthy',
-      branches: '4',
-      branchNames: ['Kampala Central', 'Jinja Branch', 'Mbarara Branch', 'Mbale Branch'],
-      season: '2024A',
-      updatedAt: '07/05/24',
-    },
-    {
-      id: 9,
-      name: 'Bean Seeds (K132)',
-      category: 'SEEDS',
-      categoryClass: 'seeds',
-      quantity: 950,
-      unit: 'Kgs',
-      minThreshold: 200,
-      stockStatus: 'healthy',
-      branches: '3',
-      branchNames: ['Jinja Branch', 'Gulu Branch', 'Mbale Branch'],
-      season: '2024B',
-      updatedAt: '06/05/24',
-    },
-    {
-      id: 10,
-      name: 'Cattle Dip (2L)',
-      category: 'MEDICINE',
-      categoryClass: 'medicine',
-      quantity: 340,
-      unit: 'Bottles',
-      minThreshold: 80,
-      stockStatus: 'healthy',
-      branches: '2',
-      branchNames: ['Kampala Central', 'Mbarara Branch'],
-      season: '2023B',
-      updatedAt: '05/05/24',
-    },
-    {
-      id: 11,
-      name: 'Poultry Supplement',
-      category: 'SUPPLEMENT',
-      categoryClass: 'supplement',
-      quantity: 220,
-      unit: 'Bags',
-      minThreshold: 60,
-      stockStatus: 'healthy',
-      branches: 'All',
-      branchNames: ALL_BRANCHES,
-      season: '2024A',
-      updatedAt: '04/05/24',
-    },
-  ];
+  allItems: StockItem[] = [];
 
   filteredItems: StockItem[] = [];
 
+  get scope(): InventoryScope {
+    return this.router.url.startsWith('/cooperative') ? 'cooperative' : 'branch';
+  }
+
+  get isCooperativeScope(): boolean {
+    return this.scope === 'cooperative';
+  }
+
+  get pageTitle(): string {
+    return this.isCooperativeScope ? 'Cooperative Stock Available' : 'Branch Stock Available';
+  }
+
+  get pageSubtitle(): string {
+    return this.isCooperativeScope
+      ? 'Current input stock held by the cooperative and available for branch issue.'
+      : 'Current input stock allocated to this branch for farmer disbursement.';
+  }
+
   ngOnInit(): void {
-    this.recomputeSummary();
-    this.applyFilters();
+    this.branches = this.inventoryService.getBranches().map(branch => branch.name);
+
+    this.inventoryService.listStock(this.scope).subscribe(items => {
+      this.allItems = items;
+      this.recomputeSummary();
+      this.applyFilters();
+    });
   }
 
   applyFilters(): void {
@@ -343,13 +193,14 @@ export class CurrentStockComponent implements OnInit {
   private recomputeSummary(): void {
     const low = this.allItems.filter(item => item.stockStatus === 'low').length;
     const outOfStock = this.allItems.filter(item => item.stockStatus === 'out').length;
+    const totalValue = this.allItems.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
 
     this.summary = {
       totalTypes: this.allItems.length,
       healthy: this.allItems.filter(item => item.stockStatus === 'healthy').length,
       low,
       outOfStock,
-      totalValue: TOTAL_STOCK_VALUE,
+      totalValue,
     };
 
     this.alertMessage = this.buildAlertMessage();

@@ -57,7 +57,7 @@ export class PlatformDashboardComponent implements OnInit {
     {
       label:     'Cooperatives Flagged',
       value:     '3',
-      icon:      '🏢',
+      icon:      'building',
       trend:     '2 overdue KYC reviews',
       trendUp:   false,
       status:    'critical',
@@ -67,7 +67,7 @@ export class PlatformDashboardComponent implements OnInit {
     {
       label:     'Pending Approvals',
       value:     '12',
-      icon:      '⏳',
+      icon:      'clock',
       trend:     '+4 since yesterday',
       trendUp:   false,
       status:    'warning',
@@ -77,7 +77,7 @@ export class PlatformDashboardComponent implements OnInit {
     {
       label:     'System Sync Failures',
       value:     '2',
-      icon:      '🔴',
+      icon:      'alert',
       trend:     'Last failure: 1 h ago',
       trendUp:   false,
       status:    'critical',

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
@@ -12,6 +12,7 @@ import { LogoComponent }    from '../../../../shared/components/logo/logo.compon
 import { InputComponent }   from '../../../../shared/components/input/input.component';
 import { ButtonComponent }  from '../../../../shared/components/button/button.component';
 import { InfoCardComponent } from '../../../../shared/components/info-card/info-card.component';
+import { ToastService }      from '../../../../core/services/toast.service';
 
 
 /**
@@ -62,7 +63,7 @@ export class RoleFormComponent implements OnInit {
   permissionModules: PermissionModule[] = [
     {
       name: 'Users Management',
-      icon: '👥',
+      icon: 'users',
       permissions: [
         { id: 'membership.view', label: 'View users', checked: false },
         { id: 'membership.create', label: 'Create users', checked: false },
@@ -72,7 +73,7 @@ export class RoleFormComponent implements OnInit {
     },
     {
       name: 'Cooperatives',
-      icon: '🏢',
+      icon: 'building',
       permissions: [
         { id: 'coops.view', label: 'View cooperatives', checked: false },
         { id: 'coops.create', label: 'Create cooperatives', checked: false },
@@ -82,7 +83,7 @@ export class RoleFormComponent implements OnInit {
     },
     {
   name: 'Financial Reports',
-  icon: '📊',
+  icon: 'chart',
   permissions: [
     { id: 'reports.view',   label: 'View reports',     checked: false },
     { id: 'reports.create', label: 'Generate reports',  checked: false }, // mapped to CREATE
@@ -90,7 +91,7 @@ export class RoleFormComponent implements OnInit {
 },
 {
   name: 'Inventory Management',
-  icon: '📦',
+  icon: 'box',
   permissions: [
     { id: 'inventory.view',   label: 'View inventory',   checked: false },
     { id: 'inventory.create', label: 'Add stock',         checked: false },
@@ -100,7 +101,7 @@ export class RoleFormComponent implements OnInit {
 },
     {
       name: 'System Settings',
-      icon: '⚙️',
+      icon: 'settings',
       permissions: [
         { id: 'settings.view', label: 'View settings', checked: false },
         { id: 'settings.edit', label: 'Edit settings', checked: false },
@@ -116,8 +117,8 @@ export class RoleFormComponent implements OnInit {
     private http: HttpClient
   ) {}
 
-// Add this property
 cooperativeInfo: any = null;
+private toast = inject(ToastService);
 
 ngOnInit(): void {
     this.roleId = this.route.snapshot.paramMap.get('id');
@@ -278,7 +279,7 @@ ngOnInit(): void {
   }
 
   if (this.selectedPermissionsCount === 0) {
-    alert('Please select at least one permission');
+    this.toast.warning('No permissions selected', 'Please select at least one permission before saving.');
     return;
   }
 

@@ -371,3 +371,76 @@
   color: #8A8799;
   padding: 16px;
 }
+
+/* ── back button ──────────────────────────────────────────── */
+.btn-back {
+  background: none;
+  border: 1px solid #E8E6ED;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #533C59;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+.btn-back:hover { border-color: var(--primary); color: var(--primary); }
+
+/* ── section hint line ────────────────────────────────────── */
+.section-hint {
+  font-size: 12px;
+  color: #8A8799;
+  margin: 4px 0 0;
+}
+
+/* ── "prices set" pill on grade row ──────────────────────── */
+.prices-set-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.prices-set-pill--some {
+  background: #D1FAE5;
+  color: #065F46;
+}
+.prices-set-pill--none {
+  background: #FEE2E2;
+  color: #991B1B;
+}
+
+/* ── empty grades state ───────────────────────────────────── */
+.empty-grades {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px;
+  color: #8A8799;
+}
+.empty-grades svg { opacity: 0.35; }
+.empty-grades p   { margin: 0; font-size: 14px; }
+
+/* ── branch price table inside accordion ─────────────────── */
+.branch-cell-name { font-weight: 600; color: #1A1A2E; }
+
+.not-set {
+  font-size: 12px;
+  color: #B4B2C0;
+  font-style: italic;
+}
+
+.set-price-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0;
+  white-space: nowrap;
+}
+.set-price-btn:hover { text-decoration: underline; }

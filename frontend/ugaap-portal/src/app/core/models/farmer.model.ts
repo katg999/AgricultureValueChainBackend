@@ -54,6 +54,9 @@ export interface FarmerRegistrationForm {
   production:        ProductionDetails;
   cooperativeGroup:  string;
   assignedBranch:    string;
+  status?:           FarmerStatus;
+  branchId?:         string;
+  cooperativeId?:    string;
 }
 
 // ── Onboarding pipeline ───────────────────────────────────────────────────────
@@ -117,6 +120,7 @@ export interface FarmerProfile {
 export interface FarmerListItem {
   id:               string;
   name:             string;
+  branchId?:         string;
   branch:           string;
   primaryCommodity: string;
   creditLimit:      string;

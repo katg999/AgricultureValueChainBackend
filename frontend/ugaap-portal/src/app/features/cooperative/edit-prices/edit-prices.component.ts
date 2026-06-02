@@ -1,12 +1,3 @@
-// features/cooperative/edit-prices/edit-prices.component.ts
-//
-// Edit produce prices — two workflows on the same page:
-//   1. Single branch  — pick a branch, edit the price for each grade inline
-//   2. Multi-branch   — pick several branches, apply bulk price changes
-//
-// Optional query param ?branch=<id> pre-selects a branch when navigating
-// from the grade-config accordion "Edit Prices" shortcut.
-
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -15,6 +6,7 @@ import { HttpClient } from '@angular/common/http';
 
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { API_ENDPOINTS }   from '../../../core/constants/api-endpoints';
+import { ToastService }    from '../../../core/services/toast.service';
 
 export interface Branch {
   id:         string;
@@ -25,10 +17,10 @@ export interface Branch {
 
 export interface GradePrice {
   id:           string;
-  name:         string;   // "Premium"
-  code:         string;   // display code like "C-AA-01"
+  name:         string;
+  code:         string;
   currentPrice: number;
-  newPrice:     number;   // user edits this field
+  newPrice:     number;
 }
 
 @Component({
@@ -40,39 +32,32 @@ export interface GradePrice {
 })
 export class EditPricesComponent implements OnInit {
 
-  private http   = inject(HttpClient);
-  private route  = inject(ActivatedRoute);
-  private router = inject(Router);
+  private http  = inject(HttpClient);
+  private route = inject(ActivatedRoute);
+  private toast = inject(ToastService);
+  router        = inject(Router);
 
-  // single-branch section
-  branches        = signal<Branch[]>([]);
-  selectedBranch  = signal('');
-  gradePrices     = signal<GradePrice[]>([]);
+  branches       = signal<Branch[]>([]);
+  selectedBranch = signal('');
+  gradePrices    = signal<GradePrice[]>([]);
+  saving         = signal(false);
+  error          = signal<string | null>(null);
 
-  // multi-branch section
-  targetBranches  = signal<Branch[]>([]);
-  selectedTargets = signal<Set<string>>(new Set());
-
-  saving = signal(false);
-  error  = signal<string | null>(null);
-
-  // placeholder data — replaced once the backend endpoints are active
   private readonly mockBranches: Branch[] = [
-    { id: 'b1', name: 'Fort Portal Hub',            region: 'Western',  gradeCount: 12 },
-    { id: 'b2', name: 'Kasese District Warehouse',  region: 'Western',  gradeCount: 8  },
-    { id: 'b3', name: 'Gulu Processing Center',     region: 'Northern', gradeCount: 15 },
+    { id: 'b1', name: 'Kasese Main Branch',   region: 'Western Region', gradeCount: 2 },
+    { id: 'b2', name: 'Kasese North Branch',  region: 'Western Region', gradeCount: 1 },
+    { id: 'b3', name: 'Mbarara Central',      region: 'Western Region', gradeCount: 1 },
   ];
 
   private readonly mockPrices: GradePrice[] = [
-    { id: '1', name: 'Premium',  code: 'C-AA-01',  currentPrice: 12450, newPrice: 12450 },
-    { id: '2', name: 'Standard', code: 'R-S18-04', currentPrice: 8200,  newPrice: 8200  },
-    { id: '3', name: 'Low Grade',code: 'V-GA-10',  currentPrice: 450000, newPrice: 450000 },
+    { id: '1', name: 'Premium',   code: 'A', currentPrice: 8500,  newPrice: 8500  },
+    { id: '2', name: 'Standard',  code: 'B', currentPrice: 6200,  newPrice: 6200  },
+    { id: '3', name: 'Low Grade', code: 'C', currentPrice: 4500,  newPrice: 4500  },
+    { id: '4', name: 'Rejected',  code: 'R', currentPrice: 0,     newPrice: 0     },
   ];
 
   ngOnInit(): void {
     this.loadBranches();
-
-    // pre-select branch if navigated from the accordion
     const branchParam = this.route.snapshot.queryParamMap.get('branch');
     if (branchParam) {
       this.selectedBranch.set(branchParam);
@@ -82,52 +67,35 @@ export class EditPricesComponent implements OnInit {
 
   loadBranches(): void {
     this.http.get<Branch[]>(API_ENDPOINTS.COOPERATIVE.BRANCHES).subscribe({
-      next:  data => { this.branches.set(data); this.targetBranches.set(data); },
-      error: ()   => { this.branches.set(this.mockBranches); this.targetBranches.set(this.mockBranches); },
+      next:  data => this.branches.set(data),
+      error: ()   => this.branches.set(this.mockBranches),
     });
   }
 
   onBranchChange(branchId: string): void {
     this.selectedBranch.set(branchId);
+    this.gradePrices.set([]);
     if (branchId) this.loadPricesForBranch(branchId);
-    else           this.gradePrices.set([]);
   }
 
   loadPricesForBranch(branchId: string): void {
     this.http.get<GradePrice[]>(`${API_ENDPOINTS.COOPERATIVE.BRANCHES}/${branchId}/prices`).subscribe({
       next:  data => this.gradePrices.set(data),
-      error: ()   => this.gradePrices.set(this.mockPrices),
+      error: ()   => this.gradePrices.set(this.mockPrices.map(p => ({ ...p }))),
     });
   }
 
-  // increase all new prices by a percentage entered via prompt
   increaseAllByPercent(): void {
-    const pct = parseFloat(prompt('Enter percentage increase (e.g. 5 for 5%)') ?? '');
+    const raw = prompt('Enter percentage increase (e.g. 5 for +5%)');
+    const pct = parseFloat(raw ?? '');
     if (isNaN(pct)) return;
     this.gradePrices.update(ps =>
-      ps.map(p => ({ ...p, newPrice: +(p.newPrice * (1 + pct / 100)).toFixed(2) }))
+      ps.map(p => ({ ...p, newPrice: +(p.newPrice * (1 + pct / 100)).toFixed(0) })),
     );
   }
 
-  // restore all new prices to current prices
   resetToCurrent(): void {
     this.gradePrices.update(ps => ps.map(p => ({ ...p, newPrice: p.currentPrice })));
-  }
-
-  toggleTarget(id: string): void {
-    this.selectedTargets.update(set => {
-      const next = new Set(set);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  }
-
-  selectAllBranches(): void {
-    this.selectedTargets.set(new Set(this.targetBranches().map(b => b.id)));
-  }
-
-  isSelected(id: string): boolean {
-    return this.selectedTargets().has(id);
   }
 
   saveChanges(): void {
@@ -139,9 +107,18 @@ export class EditPricesComponent implements OnInit {
       prices:   this.gradePrices().map(p => ({ id: p.id, newPrice: p.newPrice })),
     };
 
-    this.http.put(`${API_ENDPOINTS.COOPERATIVE.PRICING}`, payload).subscribe({
-      next:  () => { this.saving.set(false); this.router.navigate(['/cooperative/grade-config']); },
-      error: err => { this.error.set(err?.error?.message ?? 'Save failed.'); this.saving.set(false); },
+    this.http.put(API_ENDPOINTS.COOPERATIVE.PRICING, payload).subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.toast.success('Prices updated', 'Branch prices have been saved successfully.');
+        this.router.navigate(['/cooperative/grade-config']);
+      },
+      error: err => {
+        const msg = err?.error?.message ?? 'Could not save prices. Please try again.';
+        this.error.set(msg);
+        this.toast.error('Save failed', msg);
+        this.saving.set(false);
+      },
     });
   }
 }

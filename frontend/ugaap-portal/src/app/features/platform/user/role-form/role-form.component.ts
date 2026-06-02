@@ -62,7 +62,7 @@ export class RoleFormComponent implements OnInit {
   permissionModules: PermissionModule[] = [
     {
       name: 'Users Management',
-      icon: '👥',
+      icon: 'users',
       permissions: [
         { id: 'membership.view', label: 'View users', checked: false },
         { id: 'membership.create', label: 'Create users', checked: false },
@@ -72,7 +72,7 @@ export class RoleFormComponent implements OnInit {
     },
     {
       name: 'Cooperatives',
-      icon: '🏢',
+      icon: 'building',
       permissions: [
         { id: 'coops.view', label: 'View cooperatives', checked: false },
         { id: 'coops.create', label: 'Create cooperatives', checked: false },
@@ -82,7 +82,7 @@ export class RoleFormComponent implements OnInit {
     },
     {
   name: 'Financial Reports',
-  icon: '📊',
+  icon: 'chart',
   permissions: [
     { id: 'reports.view',   label: 'View reports',     checked: false },
     { id: 'reports.create', label: 'Generate reports',  checked: false }, // mapped to CREATE
@@ -90,7 +90,7 @@ export class RoleFormComponent implements OnInit {
 },
 {
   name: 'Inventory Management',
-  icon: '📦',
+  icon: 'box',
   permissions: [
     { id: 'inventory.view',   label: 'View inventory',   checked: false },
     { id: 'inventory.create', label: 'Add stock',         checked: false },
@@ -100,7 +100,7 @@ export class RoleFormComponent implements OnInit {
 },
     {
       name: 'System Settings',
-      icon: '⚙️',
+      icon: 'settings',
       permissions: [
         { id: 'settings.view', label: 'View settings', checked: false },
         { id: 'settings.edit', label: 'Edit settings', checked: false },
