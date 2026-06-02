@@ -1,276 +1,89 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
-// Shared components
 import { StatsCardComponent } from '../../../../shared/components/stats-card/stats-card.component';
-import { TableComponent, TableColumn } from '../../../../shared/components/table/table.component';
-import { BadgeComponent } from '../../../../shared/components/badge/badge';
-import { ButtonComponent } from '../../../../shared/components/button/button.component';
+import { BadgeComponent }     from '../../../../shared/components/badge/badge';
+import { ButtonComponent }    from '../../../../shared/components/button/button.component';
+import { ToastService }       from '../../../../core/services/toast.service';
 
-/**
- * User interface
- */
 export interface User {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  role: string;
+  id:           string;
+  name:         string;
+  email:        string;
+  phone:        string;
+  role:         string;
   organization: string;
-  lastLogin: string;
-  avatar?: string;
+  lastLogin:    string;
 }
 
-/**
- * Allowed badge variants used by getRoleBadgeVariant
- */
-type BadgeVariant = 'info' | 'active' | 'pending' | 'inactive' | 'suspended' | 
-                    'overdue' | 'settled' | 'partial' | 'verified' | 
+type BadgeVariant = 'info' | 'active' | 'pending' | 'inactive' | 'suspended' |
+                    'overdue' | 'settled' | 'partial' | 'verified' |
                     'failed' | 'draft' | 'open' | 'closed' | 'healthy' | 'low';
 
-/**
- * Users List Component
- * 
- * Displays all  cooperative  users in a table.
- * Features search, filtering, pagination, and quick actions.
- * 
- * Features:
- * - Statistics cards (Total, Active, Inactive, Locked)
- * - Search by name, ID, or manager
- * - Filter by role and cooperation
- * - Sortable table columns
- * - Pagination
- * - Row actions (view, edit, delete)
- * - Add new user button
- * 
- * Flow:
- * List → Add User / View User Details
- */
 @Component({
   selector: 'app-users-list',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterModule,
-    FormsModule,
-    StatsCardComponent,
-    // TableComponent,
-    BadgeComponent,
-    ButtonComponent
-  ],
+  imports: [CommonModule, RouterModule, FormsModule, StatsCardComponent, BadgeComponent, ButtonComponent],
   templateUrl: './users-list.component.html',
-  styleUrls: ['./users-list.component.css']
+  styleUrls: ['./users-list.component.css'],
 })
 export class UsersListComponent implements OnInit {
 
-  /**
-   * Search query
-   */
-  searchQuery = '';
+  private router = inject(Router);
+  private toast  = inject(ToastService);
 
-  /**
-   * Selected role filter
-   */
-  selectedRole = 'All Roles';
-
-  /**
-   * Selected cooperation filter
-   */
+  searchQuery         = '';
+  selectedRole        = 'All Roles';
   selectedCooperation = 'All Cooperations';
+  currentPage         = 1;
+  itemsPerPage        = 4;
+  totalItems          = 12;
 
-  /**
-   * Role options
-   */
-  roleOptions = [
-    'All Roles',
-    'MANAGER',
-    'COOPERATIVE ADMIN',
-    'LOGISTICS MANAGER',
-    'ACCOUNTANT'
-  ];
+  readonly roleOptions        = ['All Roles', 'MANAGER', 'COOPERATIVE ADMIN', 'LOGISTICS MANAGER', 'ACCOUNTANT'];
+  readonly cooperationOptions = ['All Cooperations', 'UGAAP Central', 'Kasese Coffee Coop', 'Mubende Warehouse Central'];
 
-  /**
-   * Cooperation options
-   */
-  cooperationOptions = [
-    'All Cooperations',
-    'UGAAP Central',
-    'Kasese Coffee Coop',
-    'Mubende Warehouse Central'
-  ];
-
-  /**
-   * Table columns configuration
-   */
-  tableColumns: TableColumn[] = [
-    { key: 'name', label: 'NAME', sortable: true },
-    { key: 'email', label: 'EMAIL', sortable: true },
-    { key: 'phone', label: 'PHONE NUMBER', sortable: false },
-    { key: 'role', label: 'ROLE', sortable: true },
-    { key: 'organization', label: 'ORGANISATION', sortable: true },
-    { key: 'lastLogin', label: 'LAST LOGIN', sortable: true },
-    { key: 'actions', label: 'ACTIONS', sortable: false }
-  ];
-
-  /**
-   * Users data
-   */
   users: User[] = [
-    {
-      id: '1',
-      name: 'Sarah Namubiru',
-      email: 's.namubiru@ugaap-ug',
-      phone: '+25670144567­8',
-      role: 'COOPERATIVE ADMIN',
-      organization: 'UGAAP Central',
-      lastLogin: '2 mins ago'
-    },
-    {
-      id: '2',
-      name: 'Sarah Namubiru',
-      email: 's.namubiru@ugaap-ug',
-      phone: '+25670144567­8',
-      role: 'COOPERATIVE ADMIN',
-      organization: 'Kasese Coffee Coop',
-      lastLogin: '2 mins ago'
-    },
-    {
-      id: '3',
-      name: 'Sarah Namubiru',
-      email: 's.namubiru@ugaap-ug',
-      phone: '+25670144567­8',
-      role: 'LOGISTICS MANAGER',
-      organization: 'UGAAP Central',
-      lastLogin: '2 mins ago'
-    },
-    {
-      id: '4',
-      name: 'Sarah Namubiru',
-      email: 's.namubiru@ugaap-ug',
-      phone: '+25670144567­8',
-      role: 'COOPERATIVE ADMIN',
-      organization: 'Kasese Coffee Coop',
-      lastLogin: '2 mins ago'
-    }
+    { id: '1', name: 'Sarah Namubiru',   email: 's.namubiru@ugaap.co.ug',  phone: '+256 701 445 678', role: 'COOPERATIVE ADMIN', organization: 'UGAAP Central',            lastLogin: '2 mins ago' },
+    { id: '2', name: 'James Okello',     email: 'j.okello@ugaap.co.ug',    phone: '+256 754 123 456', role: 'LOGISTICS MANAGER', organization: 'Kasese Coffee Coop',        lastLogin: '1 hour ago' },
+    { id: '3', name: 'Mary Atim',        email: 'm.atim@ugaap.co.ug',      phone: '+256 772 987 654', role: 'ACCOUNTANT',        organization: 'Mubende Warehouse Central', lastLogin: 'Yesterday'  },
+    { id: '4', name: 'Robert Ssemakula', email: 'r.ssemakula@ugaap.co.ug', phone: '+256 700 654 321', role: 'COOPERATIVE ADMIN', organization: 'Kasese Coffee Coop',        lastLogin: '3 days ago' },
   ];
 
-  /**
-   * Loading state
-   */
-  isLoading = false;
+  ngOnInit(): void {}
 
-  /**
-   * Current page
-   */
-  currentPage = 1;
-
-  /**
-   * Total items
-   */
-  totalItems = 12;
-
-  /**
-   * Items per page
-   */
-  itemsPerPage = 4;
-
-  constructor(private router: Router) {}
-
-  ngOnInit(): void {
-    // Initialize component
-  }
-
-  /**
-   * Navigate to add user page
-   */
   addNewUser(): void {
     this.router.navigate(['/cooperative/users/add-user']);
   }
 
-  /**
-   * Handle table row click
-   */
   onRowClicked(user: User): void {
     this.router.navigate(['/cooperative/users/user', user.id]);
   }
 
-  /**
-   * Handle sort change
-   */
-  onSortChanged(event: { column: string; direction: 'asc' | 'desc' }): void {
-    console.log('Sort changed:', event);
-    // TODO: Implement sorting
-  }
-
-  /**
-   * Handle search
-   */
-  onSearch(): void {
-    console.log('Search:', this.searchQuery);
-    // TODO: Implement search
-  }
-
-  /**
-   * Handle role filter change
-   */
-  onRoleFilterChange(): void {
-    console.log('Role filter:', this.selectedRole);
-    // TODO: Implement filtering
-  }
-
-  /**
-   * Handle cooperation filter change
-   */
-  onCooperationFilterChange(): void {
-    console.log('Cooperation filter:', this.selectedCooperation);
-    // TODO: Implement filtering
-  }
-
-  /**
-   * View user details
-   */
-  viewUser(user: User, event: Event): void {
-    event.stopPropagation();
+  viewUser(user: User, e: Event): void {
+    e.stopPropagation();
     this.router.navigate(['/cooperative/users/user', user.id]);
   }
 
-  /**
-   * More actions menu
-   */
-  moreActions(user: User, event: Event): void {
-    event.stopPropagation();
-    console.log('More actions for:', user);
-    // TODO: Implement actions menu
+  moreActions(user: User, e: Event): void {
+    e.stopPropagation();
+    this.toast.info('Coming soon', `Actions menu for ${user.name} will be available shortly.`);
   }
 
-/**
- * Get role badge variant
- */
-getRoleBadgeVariant(role: string): BadgeVariant {
-  switch (role?.toLowerCase()) {
-    case 'admin':
-      return 'active';
-    case 'moderator':
-      return 'info';
-    case 'user':
-      return 'healthy';
-    // Add more mappings...
-    default:
-      return 'info';   // fallback that exists in the union
-  }
-}
+  onSearch(): void {}
+  onRoleFilterChange(): void {}
+  onCooperationFilterChange(): void {}
 
-  /**
-   * Get user initials for avatar
-   */
+  getRoleBadgeVariant(role: string): BadgeVariant {
+    const r = role?.toLowerCase();
+    if (r?.includes('admin'))     return 'active';
+    if (r?.includes('logistics')) return 'info';
+    if (r?.includes('account'))   return 'pending';
+    return 'info';
+  }
+
   getUserInitials(name: string): string {
-    return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .substring(0, 2);
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
   }
 }

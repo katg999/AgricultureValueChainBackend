@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
@@ -12,6 +12,7 @@ import { LogoComponent }    from '../../../../shared/components/logo/logo.compon
 import { InputComponent }   from '../../../../shared/components/input/input.component';
 import { ButtonComponent }  from '../../../../shared/components/button/button.component';
 import { InfoCardComponent } from '../../../../shared/components/info-card/info-card.component';
+import { ToastService }      from '../../../../core/services/toast.service';
 
 
 /**
@@ -116,8 +117,8 @@ export class RoleFormComponent implements OnInit {
     private http: HttpClient
   ) {}
 
-// Add this property
 cooperativeInfo: any = null;
+private toast = inject(ToastService);
 
 ngOnInit(): void {
     this.roleId = this.route.snapshot.paramMap.get('id');
@@ -278,7 +279,7 @@ ngOnInit(): void {
   }
 
   if (this.selectedPermissionsCount === 0) {
-    alert('Please select at least one permission');
+    this.toast.warning('No permissions selected', 'Please select at least one permission before saving.');
     return;
   }
 

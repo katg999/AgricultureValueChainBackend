@@ -107,17 +107,32 @@ const COOPERATIVE_ADMIN_CONFIG: DashboardConfig = {
     },
 
     { label: 'Collection',      icon: 'collection', route: '/cooperative/collections'            },
-    { label: 'Farmers',         icon: 'farmers',    route: '/cooperative/farmers'                },
-    
-    {label:'Branches',         icon:'branch',     route:'/cooperative/branches'               },
-    // features/inventory/current-stock exists — wire /inventory in app.routes.ts to activate
-    { label: 'Finance',         icon: 'finance',    route: '/cooperative/finance'  },
 
-    { label: 'Inventory',       icon: 'inventory',  route: '/cooperative/inventory' },
-    {label: 'Reports',         icon: 'reports',    route: '/cooperative/reports'   },
-    { label: 'User Management', icon: 'users',      route: '/cooperative/users'                  },
+    
+    {label:'Farmers',         icon:'farmers',     route:'/cooperative/farmers' },
+
+    {label:'Branches',         icon:'branch',     route:'/cooperative/branches'               },
+
+
+    // Inventory is a collapsible parent — clicking it reveals current stock, issue stock and stock disbursed
+    {
+      label: 'Inventory',
+      icon:  'inventory',
+      route: '/cooperative/inventory',
+      children: [
+        { label: 'Current Stock',   icon: '', route: '/cooperative/inventory/current-stock' },
+        { label: 'Issue Stock',     icon: '', route: '/cooperative/inventory/issue-stock' },
+        { label: 'Stock-disbursed', icon: '', route: '/cooperative/inventory/stock-disbursed' },
+      ],
+    },
+
+    { label: 'User Management', icon: 'users',      route: '/cooperative/users'    },
+    { label: 'Roles',           icon: 'roles',      route: '/cooperative/roles'    },
 
   ],
+
+  
+
 };
 
 // Branch staff — handles daily field operations.
@@ -131,9 +146,19 @@ const BRANCH_CONFIG: DashboardConfig = {
      { label: 'Collection',    icon: 'collection', route: '/branch/collections'              },
     { label: 'Farmers',       icon: 'farmers',    route: '/branch/farmers'                  },
 
-    // features/inventory/current-stock exists — wire /inventory in app.routes.ts to activate
-    { label: 'Inventory',     icon: 'inventory',  route: '/branch/inventory/current-stock'  },
-    
+
+    // Inventory is a collapsible parent — clicking it reveals current stock, issue stock and stock disbursed
+   {
+      label: 'Inventory',
+      icon:  'inventory',
+      route: '/branch/inventory',
+      children: [
+        { label: 'Current Stock',   icon: '', route: '/branch/inventory/current-stock' },
+        { label: 'Issue Stock',     icon: '', route: '/branch/inventory/issue-stock' },
+        { label: 'Stock-disbursed', icon: '', route: '/branch/inventory/stock-disbursed' },
+      ],
+    },
+
   ],
 };
 

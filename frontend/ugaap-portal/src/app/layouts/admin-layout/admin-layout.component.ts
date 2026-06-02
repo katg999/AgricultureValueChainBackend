@@ -23,12 +23,13 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SessionService }                          from '../../core/services/session.service';
 import { DashboardConfigService, NavItem, UserLevel } from '../../core/services/dashboard-config.service';
 import { AuthService }                             from '../../core/services/auth.service';
-import { SidebarComponent }                        from '../../shared/components/sidebar/sidebar.component';
+import { SidebarComponent } from '../../shared/components/sidebar/sidebar.component';
+import { ToastComponent }   from '../../shared/components/toast/toast.component';
 
 @Component({
   selector: 'app-admin-layout',
   standalone: true,
-  imports: [RouterOutlet, SidebarComponent],
+  imports: [RouterOutlet, SidebarComponent, ToastComponent],
   templateUrl: './admin-layout.component.html',
   styleUrl:    './admin-layout.component.scss',
 })

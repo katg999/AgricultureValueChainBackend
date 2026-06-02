@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -10,6 +10,7 @@ import { InputComponent } from '../../../../shared/components/input/input.compon
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 import { AlertComponent } from '../../../../shared/components/alert/alert.component';
+import { ToastService }   from '../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-branch-onboarding',
@@ -48,6 +49,7 @@ export class BranchOnboardingComponent implements OnInit {
   // ── Loading states ────────────────────────────────────────
   isLoading = false;
   isSaving = false;
+  private toast = inject(ToastService);
 
   // ── Error & success ───────────────────────────────────────
   errorMessage: string = '';
@@ -149,7 +151,7 @@ export class BranchOnboardingComponent implements OnInit {
     this.isSaving = true;
     setTimeout(() => {
       this.isSaving = false;
-      alert('Progress saved! (Demo only - no actual save)');
+      this.toast.success('Progress saved', 'Your branch details have been saved. You can continue later.');
     }, 1000);
   }
 

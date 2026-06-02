@@ -55,6 +55,76 @@
   margin-bottom: 32px;
 }
 
+/* Filter Bar */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #E8E6ED;
+  flex-wrap: wrap;
+}
+
+.filter-search {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+}
+
+.filter-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: #9CA3AF;
+  pointer-events: none;
+}
+
+.filter-input {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px 0 36px;
+  border: 1px solid #E8E6ED;
+  border-radius: 8px;
+  background: var(--surface-low);
+  font-size: 13px;
+  color: var(--secondary);
+  font-family: var(--font-human);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.filter-input:focus {
+  border-color: var(--primary);
+  background: #fff;
+}
+
+.filter-select-wrap {
+  min-width: 160px;
+}
+
+.filter-select {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid #E8E6ED;
+  border-radius: 8px;
+  background: var(--surface-low);
+  font-size: 13px;
+  color: var(--secondary);
+  font-family: var(--font-human);
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.filter-select:focus {
+  border-color: var(--primary);
+  background: #fff;
+}
+
 /* Table Container */
 .table-container {
   background: var(--surface-lowest);

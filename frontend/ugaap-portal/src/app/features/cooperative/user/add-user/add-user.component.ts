@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
@@ -11,6 +11,7 @@ import { InfoCardComponent } from '../../../../shared/components/info-card/info-
 import { ToggleSwitchComponent } from '../../../../shared/components/toggle-switch/toggle-switch.component';
 import { PasswordStrengthComponent } from '../../../../shared/components/password-strength/password-strength.component';
 import { AlertComponent } from '../../../../shared/components/alert/alert.component';
+import { ToastService }   from '../../../../core/services/toast.service';
 
 /**
  * Add New User Component
@@ -82,10 +83,14 @@ export class AddUserComponent implements OnInit {
     'Field Officer'
   ];
 
-  /**
-   * Loading state
-   */
   isLoading = false;
+
+  /** Shown after a successful save — contains the credentials to display */
+  showCredentials = false;
+  createdCredentials: { name: string; email: string; password: string } | null = null;
+  showCreatedPassword = false;
+
+  private toast = inject(ToastService);
 
   constructor(
     private fb: FormBuilder,
@@ -101,20 +106,20 @@ export class AddUserComponent implements OnInit {
    */
   initForm(): void {
     this.userForm = this.fb.group({
-      // Personal Details
-      fullName: ['', [Validators.required]],
-      email: ['', [Validators.required, Validators.email]],
-      phone: ['', [Validators.required, Validators.pattern(/^\+256\s?\d{3}\s?\d{3}\s?\d{3}$/)]],
-      dateOfBirth: [''], // Optional, but if provided must be valid date
-      nationalId: [''],
-      gender: ['Female'],
+      // Personal Details — only name and email are required; phone is optional
+      fullName:    ['', [Validators.required]],
+      email:       ['', [Validators.required, Validators.email]],
+      phone:       ['', [Validators.pattern(/^\+256\s?\d{3}\s?\d{3}\s?\d{3}$/)]],
+      dateOfBirth: [''],
+      nationalId:  [''],
+      gender:      ['Female'],
 
       // Account Access
-      role: ['Admin', [Validators.required]],
-      tempPassword: ['', [Validators.required, Validators.minLength(8)]],
-      confirmPassword: ['', [Validators.required]]
+      role:            ['Admin', [Validators.required]],
+      tempPassword:    ['', [Validators.required, Validators.minLength(8)]],
+      confirmPassword: ['', [Validators.required]],
     }, {
-      validators: this.passwordMatchValidator
+      validators: this.passwordMatchValidator,
     });
   }
 
@@ -137,19 +142,16 @@ export class AddUserComponent implements OnInit {
   getFieldError(fieldName: string): string {
     const control = this.userForm.get(fieldName);
     if (control?.touched && control?.errors) {
-      if (control.errors['required']) return 'This field is required';
-      if (control.errors['email']) return 'Invalid email address';
-      if (control.errors['minLength']) return 'Password must be at least 8 characters';
-      if (control.errors['pattern']) {
-        if (fieldName === 'phone') return 'Invalid phone format. Use: +256 700 000000';
+      if (control.errors['required'])   return 'This field is required';
+      if (control.errors['email'])      return 'Invalid email address';
+      if (control.errors['minlength'])  return 'Password must be at least 8 characters';
+      if (control.errors['pattern'] && fieldName === 'phone') {
+        return 'Use format: +256 700 000 000';
       }
     }
-    
-    // Check password mismatch
     if (fieldName === 'confirmPassword' && this.userForm.errors?.['passwordMismatch']) {
       return 'Passwords do not match';
     }
-    
     return '';
   }
 
@@ -160,11 +162,20 @@ export class AddUserComponent implements OnInit {
     return this.userForm.get('tempPassword')?.value || '';
   }
 
-  /**
-   * Cancel and go back
-   */
   cancel(): void {
-    this.router.navigate(['/platform/users']);
+    this.router.navigate(['/cooperative/users']);
+  }
+
+  dismissCredentials(): void {
+    this.router.navigate(['/cooperative/users']);
+  }
+
+  copyField(value: string, label: string): void {
+    navigator.clipboard.writeText(value).then(() => {
+      this.toast.success(`${label} copied`, 'Now in your clipboard.');
+    }).catch(() => {
+      this.toast.error('Copy failed', 'Please copy manually.');
+    });
   }
 
   /**
@@ -173,13 +184,17 @@ export class AddUserComponent implements OnInit {
   saveUser(): void {
     if (this.userForm.invalid) {
       this.userForm.markAllAsTouched();
+      this.toast.warning(
+        'Form has errors',
+        'Please fill in Name, Email and Password (min 8 characters) before saving.',
+      );
       return;
     }
 
     // Validate date format if provided
     const dob = this.userForm.get('dateOfBirth')?.value;
     if (dob && !this.isValidDate(dob)) {
-      alert('Invalid date format. Please use YYYY-MM-DD');
+      this.toast.error('Invalid date', 'Date of birth must be in YYYY-MM-DD format.');
       return;
     }
 
@@ -195,11 +210,18 @@ export class AddUserComponent implements OnInit {
 
     console.log('Saving user:', userData);
 
-    // Simulate API call
+    // Simulate API call — replace with real HTTP call when endpoint is ready
     setTimeout(() => {
       this.isLoading = false;
-      this.router.navigate(['/cooperative/users']);
-    }, 2000);
+      // Show the credentials popup instead of navigating away immediately
+      this.createdCredentials = {
+        name:     this.userForm.value.fullName,
+        email:    this.userForm.value.email,
+        password: this.userForm.value.tempPassword,
+      };
+      this.showCreatedPassword = false;
+      this.showCredentials = true;
+    }, 1500);
   }
 
   /**

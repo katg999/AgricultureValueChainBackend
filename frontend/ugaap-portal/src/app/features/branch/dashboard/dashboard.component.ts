@@ -51,7 +51,7 @@ export class BranchDashboardComponent implements OnInit {
       icon:      'clock',
       status:    'warning',
       clickable: true,
-      route:     '/collections',
+      route:     '/branch/collections',
     },
     {
       label:   'Stock on Hand',

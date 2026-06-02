@@ -33,30 +33,5 @@ export const USER_ROUTES: Routes = [
         .then(m => m.UserDetailsComponent),
   },
 
-  // Roles list
-  // URL: /platform/users/roles-list
-  {
-    path: 'roles-list',
-    loadComponent: () =>
-      import('./roles-list/roles-list.component')
-        .then(m => m.RolesListComponent),
-  },
-
-  // Create role
-  // URL: /platform/users/role-form
-  {
-    path: 'role-form',
-    loadComponent: () =>
-      import('./role-form/role-form.component')
-        .then(m => m.RoleFormComponent),
-  },
-
-  // Edit role
-  // URL: /platform/users/role-form/:id
-  {
-    path: 'role-form/:id',
-    loadComponent: () =>
-      import('./role-form/role-form.component')
-        .then(m => m.RoleFormComponent),
-  },
+  // Roles are managed under /cooperative/roles — see cooperative/roles/roles.routes.ts
 ];

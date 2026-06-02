@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
 import { InputComponent } from "../../../../shared/components/input/input.component";
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
+import { InventoryService } from '../../../shared-inventory-domain/inventory.service';
 
 @Component({
   selector: 'app-add-stock-item',
@@ -19,10 +20,13 @@ export class AddStockItemComponent {
   constructor(
     private readonly formBuilder: FormBuilder,
     private readonly router: Router,
+    private readonly inventoryService: InventoryService,
   ) {
     this.stockForm = this.formBuilder.nonNullable.group({
       itemName: ['', Validators.required],
-      branch: [[] as string[], Validators.required],
+      category: ['FERTILIZER', Validators.required],
+      unit: ['Bags', Validators.required],
+      unitPrice: [0, [Validators.required, Validators.min(1)]],
       quantity: [0, [Validators.required, Validators.min(1)]],
       receivedDate: ['', Validators.required],
       minThreshold: [0, [Validators.required, Validators.min(1)]],
@@ -37,10 +41,13 @@ export class AddStockItemComponent {
       return;
     }
 
-    this.router.navigate(['/inventory/current-stock']);
+    const value = this.stockForm.getRawValue();
+    this.inventoryService.addStockItem(value).subscribe(() => {
+      this.router.navigate(['/cooperative/inventory/current-stock']);
+    });
   }
 
   onCancel(): void {
-    this.router.navigate(['/inventory/current-stock']);
+    this.router.navigate(['/cooperative/inventory/current-stock']);
   }
 }

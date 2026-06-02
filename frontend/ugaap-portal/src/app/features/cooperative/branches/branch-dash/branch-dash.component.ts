@@ -1,5 +1,6 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterModule} from '@angular/router';
 import { Router } from '@angular/router';
 
@@ -7,6 +8,7 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 import { AlertComponent } from '../../../../shared/components/alert/alert.component';
 import { SpinnerComponent } from '../../../../shared/components/spinner/spinner.component';
 import { StatsCardComponent } from '../../../../shared/components/stats-card/stats-card.component';
+import { ToastService }      from '../../../../core/services/toast.service';
 
 // Branch model (must include id for pagination and menu)
 interface Branch {
@@ -31,6 +33,7 @@ interface ActivityItem {
   styleUrls: ['./branch-dash.component.css'],    // points to the new CSS file
   imports: [
     CommonModule,
+    FormsModule,
     RouterModule,
     ButtonComponent,
     AlertComponent,
@@ -43,19 +46,42 @@ export class BranchDashboardComponent implements OnInit {
   branches: Branch[] = [];
   activities: ActivityItem[] = [];
 
+  // ---------- Filter state ----------
+  searchQuery = '';
+  selectedStatus: '' | 'ACTIVE' | 'PENDING' = '';
+
   // ---------- Pagination state ----------
   currentPage = 1;
   itemsPerPage = 5;
-  activeMenuId: number | null = null;   // stores branch id for open kebab menu
+  activeMenuId: number | null = null;
 
-  // Static value for "Assigned Users" 
+  // Static value for "Assigned Users"
   assignedAgents = 142;
+
+  private toast = inject(ToastService);
 
   constructor(private router: Router) {}
 
   ngOnInit(): void {
     this.loadBranchData();
     this.loadRecentActivities();
+  }
+
+  // ---------- Filter logic ----------
+  get filteredBranches(): Branch[] {
+    const q = this.searchQuery.trim().toLowerCase();
+    return this.branches.filter(b => {
+      const matchSearch = !q ||
+        b.name.toLowerCase().includes(q) ||
+        b.location.toLowerCase().includes(q);
+      const matchStatus = !this.selectedStatus || b.status === this.selectedStatus;
+      return matchSearch && matchStatus;
+    });
+  }
+
+  applyFilter(): void {
+    this.currentPage = 1;
+    this.closeMenu();
   }
 
   // ---------- Computed Properties for Stats Cards ----------
@@ -72,18 +98,17 @@ export class BranchDashboardComponent implements OnInit {
   }
 
   get totalBranches(): number {
-    return this.branches.length;
+    return this.filteredBranches.length;
   }
 
   // ---------- Pagination Helpers ----------
   get paginatedBranches(): Branch[] {
     const start = (this.currentPage - 1) * this.itemsPerPage;
-    return this.branches.slice(start, start + this.itemsPerPage);
+    return this.filteredBranches.slice(start, start + this.itemsPerPage);
   }
 
   get pagesArray(): number[] {
-    const totalPages = Math.ceil(this.totalBranches / this.itemsPerPage);
-    return Array.from({ length: totalPages }, (_, i) => i + 1);
+    return Array.from({ length: Math.ceil(this.totalBranches / this.itemsPerPage) }, (_, i) => i + 1);
   }
 
   prevPage(): void {
@@ -138,21 +163,18 @@ export class BranchDashboardComponent implements OnInit {
 
   onViewBranch(branch: Branch, event?: Event): void {
     if (event) event.stopPropagation();
-    console.log('View branch', branch);
-    alert(`View branch: ${branch.name}\nLocation: ${branch.location}\nFarmers: ${branch.farmers}\nCentres: ${branch.centres}`);
+    this.toast.info(branch.name, `${branch.location} · ${branch.farmers.toLocaleString()} farmers · ${branch.centres} centres`);
     this.closeMenu();
   }
 
   onEditBranch(branch: Branch, event?: Event): void {
     if (event) event.stopPropagation();
-    console.log('Edit branch', branch);
-    alert(`Edit branch: ${branch.name} - open edit form`);
+    this.toast.info('Coming soon', `Edit form for "${branch.name}" will be available shortly.`);
     this.closeMenu();
   }
 
   openMapView(): void {
-    console.log('Open map view');
-    alert('Interactive map — visualize collection centres distribution');
+    this.toast.info('Coming soon', 'Interactive map view is being built and will be available soon.');
   }
 
   // ---------- Data Loaders (preserved and enhanced with ids) ----------

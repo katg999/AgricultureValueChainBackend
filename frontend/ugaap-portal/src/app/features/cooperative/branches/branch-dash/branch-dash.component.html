@@ -20,26 +20,32 @@
     <!-- Statistics Cards Grid -->
     <div class="stats-grid">
       <app-stats-card
-        title="Total Active Branches"
+        label="Total Active Branches"
         [value]="totalActiveBranches"
+        icon="building"
         variant="success"
       ></app-stats-card>
       <app-stats-card
-        title="Total Collection Centres"
+        label="Total Collection Centres"
         [value]="totalCentres"
-        variant="success"
+        icon="box"
+        variant="default"
       ></app-stats-card>
       <app-stats-card
-        title="Total Farmer Base"
+        label="Total Farmer Base"
         [value]="totalFarmers"
+        icon="users"
         trend="+8%"
+        trendType="positive"
         variant="success"
       ></app-stats-card>
       <app-stats-card
-        title="Assigned Users (Field Agents)"
+        label="Assigned Field Agents"
         [value]="assignedAgents"
+        icon="farmer"
         trend="+12 this month"
-        variant="success"
+        trendType="positive"
+        variant="default"
       ></app-stats-card>
     </div>
 
@@ -47,6 +53,30 @@
     <div class="table-container">
       <div class="card-header-row">
         <h2 class="card-title">Branch Network Overview</h2>
+      </div>
+
+      <!-- Filters -->
+      <div class="filter-bar">
+        <div class="filter-search">
+          <svg class="filter-search-icon" viewBox="0 0 20 20" fill="none">
+            <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.6"/>
+            <path d="M13.5 13.5L17 17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+          <input
+            type="text"
+            class="filter-input"
+            placeholder="Search branch or location..."
+            [(ngModel)]="searchQuery"
+            (input)="applyFilter()"
+          />
+        </div>
+        <div class="filter-select-wrap">
+          <select title="Status filter" class="filter-select" [(ngModel)]="selectedStatus" (change)="applyFilter()">
+            <option value="">All Statuses</option>
+            <option value="ACTIVE">Active</option>
+            <option value="PENDING">Pending</option>
+          </select>
+        </div>
       </div>
       <table class="branches-table">
         <thead>

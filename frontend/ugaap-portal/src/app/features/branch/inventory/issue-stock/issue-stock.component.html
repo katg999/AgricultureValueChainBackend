@@ -1,12 +1,12 @@
 <div class="issue-new-stock-page">
   <app-page-header
-    title="Issue Stock"
-    subtitle="Record a new input allocation for a farmer."
+    [title]="pageTitle"
+    [subtitle]="pageSubtitle"
     [breadcrumb]="['Inventory','Available Stock', 'Issue Stock']">
   </app-page-header>
 
   <div class="form-card">
-    <div class="header">
+    <div class="header" *ngIf="!isCooperativeScope">
       <h2>Farmer Selection</h2>
 
       <app-input
@@ -40,19 +40,33 @@
       </div>
     </div>
 
+    <div class="header" *ngIf="isCooperativeScope">
+      <h2>Branch Selection</h2>
+
+      <select
+        title="Branch"
+        class="field-select"
+        [(ngModel)]="form.branchId">
+        <option value="">Select receiving branch</option>
+        <option *ngFor="let branch of branches" [value]="branch.id">
+          {{ branch.name }}
+        </option>
+      </select>
+    </div>
+
     <div class="input-section">
       <h2 class="section-title">Input Details</h2>
 
       <div class="input-details-grid">
         <div class="field">
-          <label class="field-label" for="inputType">INPUT TYPE</label>
+          <label class="field-label" for="inputType">ITEM NAME</label>
           <select
             id="inputType"
             class="field-select"
-            [(ngModel)]="form.inputType"
+            [(ngModel)]="form.stockItemId"
             (ngModelChange)="recalculateValue()">
-            <option value="">Select input type</option>
-            <option *ngFor="let type of inputTypes" [value]="type.name">
+            <option value="">Select item</option>
+            <option *ngFor="let type of inputTypes" [value]="type.id">
               {{ type.name }}
             </option>
           </select>
@@ -109,7 +123,7 @@
           [(ngModel)]="form.acknowledged"
           class="checkbox-label-input">
         <span class="checkbox-label-text">
-          Farmer has acknowledged receipt of inputs
+          {{ isCooperativeScope ? 'Branch issue has been confirmed' : 'Farmer has acknowledged receipt of inputs' }}
         </span>
       </label>
 
@@ -127,7 +141,7 @@
           size="md"
           type="button"
           (clicked)="issueInput()">
-          Issue input
+          {{ isCooperativeScope ? 'Issue to branch' : 'Issue input' }}
         </app-button>
       </div>
     </div>
@@ -136,13 +150,13 @@
   <div class="recent-card">
     <div class="recent-card-header">
       <h3 class="recent-card-title">Recent issuances today</h3>
-      <a class="recent-card-link" routerLink="/inventory/stock-disbursed">View All History</a>
+      <a class="recent-card-link" [routerLink]="isCooperativeScope ? '/cooperative/inventory/stock-disbursed' : '/branch/inventory/stock-disbursed'">View All History</a>
     </div>
 
     <table class="recent-table">
       <thead>
         <tr>
-          <th>FARMER</th>
+          <th>{{ isCooperativeScope ? 'BRANCH' : 'FARMER' }}</th>
           <th>ITEM</th>
           <th>QUANTITY</th>
           <th>VALUE</th>

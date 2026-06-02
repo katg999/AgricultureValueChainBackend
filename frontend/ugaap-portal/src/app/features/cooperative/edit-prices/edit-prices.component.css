@@ -9,7 +9,13 @@
 }
 
 /* ── heading ──────────────────────────────────────────────── */
-.page-header { display: flex; flex-direction: column; gap: 6px; }
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
 
 .page-title {
   font-size: 26px;
@@ -287,8 +293,63 @@
 .branch-name { font-weight: 500; color: #1A1A2E; }
 .text-muted  { color: #6B6880; }
 
-/* ── save button ──────────────────────────────────────────── */
+/* ── back button ──────────────────────────────────────────── */
+.btn-back {
+  background: none;
+  border: 1px solid #E8E6ED;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #533C59;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: border-color 0.15s, color 0.15s;
+}
+.btn-back:hover { border-color: var(--primary); color: var(--primary); }
+
+/* ── changed row highlight ───────────────────────────────── */
+.row--changed { background: #FFFBF0; }
+
+/* ── change indicator badge ──────────────────────────────── */
+.change-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-technical);
+}
+.change-badge--up   { background: #D1FAE5; color: #065F46; }
+.change-badge--down { background: #FEE2E2; color: #991B1B; }
+
+.no-change { color: #B4B2C0; font-size: 13px; }
+
+/* ── state message ───────────────────────────────────────── */
+.state-msg {
+  padding: 24px;
+  text-align: center;
+  color: #8A8799;
+  font-size: 13px;
+}
+
+/* ── save/cancel row ──────────────────────────────────────── */
 .page-actions {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
 }
+
+.btn-cancel {
+  background: none;
+  border: none;
+  color: #6B6880;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 10px 0;
+  transition: color 0.15s;
+}
+.btn-cancel:hover { color: var(--primary); }

@@ -1,0 +1,327 @@
+<!-- Async pipe is the display source of truth, keeping this screen synced with BranchDeliveryService. -->
+<div class="delivery-page" (click)="closeActionMenu()" *ngIf="filteredDeliveries$ | async as filteredDeliveries">
+
+  <!-- =========================================================
+       PAGE HEADER
+       ========================================================= -->
+  <div class="page-header">
+
+  <div class="header-content-wrapper">
+    <div>
+      <h1>Branch Deliveries</h1>
+      <p>
+        Review and approve commodity deliveries submitted by branches.
+      </p>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn primary-action-btn" (click)="openAddDeliveryModal()">
+        <span class="icon-plus">+</span> Add Farmer Deliveries
+      </button>
+    </div>
+  </div>
+
+</div>
+
+  <!-- =========================================================
+       KPI CARDS
+       These values come from the getter methods in TS
+       ========================================================= -->
+  <div class="kpi-grid">
+
+    <div class="kpi-card">
+      <span class="kpi-label">Total Volume</span>
+      <h2>{{ totalVolume(filteredDeliveries) | number }}</h2>
+      <small>KGs Collected</small>
+    </div>
+
+    <div class="kpi-card">
+      <span class="kpi-label">Total Value</span>
+      <h2>UGX {{ formatUGX(totalValue(filteredDeliveries)) }}</h2>
+      <small>Estimated Worth</small>
+    </div>
+
+    <div class="kpi-card">
+      <span class="kpi-label">Farmers</span>
+      <h2>{{ totalFarmers(filteredDeliveries) }}</h2>
+      <small>Participating Farmers</small>
+    </div>
+
+    <div class="kpi-card">
+      <span class="kpi-label">Approved</span>
+      <h2>{{ approvedCount(filteredDeliveries) }}</h2>
+      <small>Approved Deliveries</small>
+    </div>
+
+  </div>
+
+  <!-- =========================================================
+       FILTER SECTION
+       applyFilter() is triggered whenever values change
+       ========================================================= -->
+  <div class="filter-card">
+
+    <!-- Search -->
+    <div class="filter-group">
+      <label>Search</label>
+
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (input)="applyFilter()"
+        placeholder="Search branch, commodity or ID..."
+      />
+    </div>
+
+    <!-- Commodity Filter -->
+    <div class="filter-group">
+      <label>Commodity</label>
+
+      <select title="commodity"
+        [(ngModel)]="selectedCategory"
+        (change)="applyFilter()"
+      >
+        <option value="">All Commodities</option>
+
+        <option
+          *ngFor="let commodity of commodityOptions; trackBy: trackByOption"
+          [value]="commodity"
+        >
+          {{ commodity }}
+        </option>
+
+      </select>
+    </div>
+
+    <!-- Status Filter -->
+    <div class="filter-group">
+      <label>Status</label>
+
+      <select title="status"
+        [(ngModel)]="selectedStatus"
+        (change)="applyFilter()"
+      >
+        <option value="">All Statuses</option>
+
+        <option
+          *ngFor="let status of statusOptions; trackBy: trackByOption"
+          [value]="status"
+        >
+          {{ status }}
+        </option>
+
+      </select>
+    </div>
+
+  </div>
+
+  <!-- =========================================================
+       DELIVERY TABLE
+       ========================================================= -->
+  <div class="table-card">
+
+    <div class="table-wrapper">
+
+      <table>
+
+        <!-- TABLE HEAD -->
+        <thead>
+          <tr>
+            <th>Delivery ID</th>
+            <th>Branch</th>
+            <th>Commodity</th>
+            <th>Farmers</th>
+            <th>Volume</th>
+            <th>Estimated Value</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <!-- TABLE BODY -->
+        <tbody>
+
+          <tr *ngFor="let delivery of filteredDeliveries; trackBy: trackByDeliveryId">
+
+            <!-- ID -->
+            <td class="mono">
+              {{ delivery.id }}
+            </td>
+
+            <!-- Branch -->
+            <td>
+              {{ delivery.branchName }}
+            </td>
+
+            <!-- Commodity -->
+            <td>
+              {{ delivery.commodity }}
+            </td>
+
+            <!-- Farmers -->
+            <td>
+              {{ delivery.farmerCount }}
+            </td>
+
+            <!-- Volume -->
+            <td>
+              {{ delivery.volume | number }} KG
+            </td>
+
+            <!-- Value -->
+            <td>
+              UGX {{ formatUGX(delivery.estimatedValue) }}
+            </td>
+
+            <!-- Status -->
+            <td>
+              <span
+                class="status-badge"
+                [ngClass]="statusClass(delivery.status)"
+              >
+                {{ delivery.status }}
+              </span>
+            </td>
+
+            <!-- Actions -->
+            <td>
+
+              <div class="action-menu" (click)="$event.stopPropagation()">
+                <button
+                  type="button"
+                  class="kebab-btn"
+                  title="Delivery actions"
+                  aria-label="Delivery actions"
+                  [attr.aria-expanded]="openActionMenuId === delivery.id"
+                  (click)="toggleActionMenu(delivery.id, $event)"
+                >
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </button>
+
+                <div class="menu-panel" *ngIf="openActionMenuId === delivery.id">
+                  <button type="button" (click)="goToFarmerDeliveries(delivery.id)">
+                    Manage farmers
+                  </button>
+
+                  <button
+                    type="button"
+                    (click)="approve(delivery)"
+                    [disabled]="delivery.status === 'Approved'">
+                    Approve
+                  </button>
+
+                  <button
+                    type="button"
+                    class="danger"
+                    (click)="reject(delivery)"
+                    [disabled]="delivery.status === 'Rejected'">
+                    Reject
+                  </button>
+                </div>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+          <!-- Empty State -->
+          <tr *ngIf="filteredDeliveries.length === 0">
+
+            <td colspan="8" class="empty-state">
+              No deliveries found.
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+  <div class="modal-backdrop" *ngIf="showAddDeliveryModal" (click)="closeAddDeliveryModal()">
+    <section class="add-delivery-modal" (click)="$event.stopPropagation()" aria-modal="true" role="dialog">
+      <div class="modal-header">
+        <div>
+          <h2>Add Farmer Deliveries</h2>
+          <p>Create a delivery batch first, then manage the farmers attached to it.</p>
+        </div>
+        <button type="button" class="modal-close-btn" aria-label="Close add delivery modal" (click)="closeAddDeliveryModal()">x</button>
+      </div>
+
+      <!-- This form submits through BranchDeliveryService.addDelivery(), which updates deliveries$ for this table. -->
+      <form class="add-delivery-form" #deliveryForm="ngForm" (ngSubmit)="submitAddDelivery()" novalidate>
+        <div class="form-grid">
+          <label class="form-field">
+            <span>Branch</span>
+            <input
+              name="branchName"
+              type="text"
+              required
+              [(ngModel)]="addDeliveryForm.branchName"
+              placeholder="Branch name"
+            />
+          </label>
+
+          <label class="form-field">
+            <span>Commodity</span>
+            <select name="commodity" required [(ngModel)]="addDeliveryForm.commodity">
+              <option *ngFor="let commodity of commodityOptions; trackBy: trackByOption" [value]="commodity">{{ commodity }}</option>
+            </select>
+          </label>
+
+          <label class="form-field">
+            <span>Farmers</span>
+            <input
+              name="farmerCount"
+              type="number"
+              min="0"
+              required
+              [(ngModel)]="addDeliveryForm.farmerCount"
+            />
+          </label>
+
+          <label class="form-field">
+            <span>Volume (KG)</span>
+            <input
+              name="volume"
+              type="number"
+              min="0"
+              required
+              [(ngModel)]="addDeliveryForm.volume"
+            />
+          </label>
+
+          <label class="form-field">
+            <span>Estimated Value (UGX)</span>
+            <input
+              name="estimatedValue"
+              type="number"
+              min="0"
+              required
+              [(ngModel)]="addDeliveryForm.estimatedValue"
+            />
+          </label>
+
+          <label class="form-field">
+            <span>Status</span>
+            <select name="status" required [(ngModel)]="addDeliveryForm.status">
+              <option *ngFor="let status of statusOptions; trackBy: trackByOption" [value]="status">{{ status }}</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn secondary-action-btn" (click)="closeAddDeliveryModal()">Cancel</button>
+          <button type="submit" class="btn primary-action-btn" [disabled]="deliveryForm.invalid">Save Delivery</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+</div>
