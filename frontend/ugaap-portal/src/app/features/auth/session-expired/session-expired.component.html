@@ -1,0 +1,33 @@
+<!-- 
+  Session Expired Page
+  
+  Informational page for session timeout
+ 
+-->
+
+<div class="auth-page">
+  <div class="auth-card">
+
+    <!-- UGAAP Logo (Reusable Component) -->
+    <app-logo size="md" [showSubtitle]="false"></app-logo>
+
+    <!-- Page Title and Subtitle -->
+    <h1 class="card-title">Your session has expired</h1>
+    <p class="card-subtitle">
+      For your security, we've logged you out after
+      <strong>{{ inactivityTime }}</strong> minutes of inactivity to protect your account data.
+    </p>
+
+    <!-- Sign In Again Button (Styled as primary CTA) -->
+    <a routerLink="/auth/login" class="btn-primary">
+      Sign in Again
+    </a>
+
+    <!-- Data Loss Warning -->
+    <p class="notice">
+      Any unsaved progress in Operations or Inventory forms may have been lost. 
+      Please verify your last shipment entries upon re-entry.
+    </p>
+
+  </div>
+</div>

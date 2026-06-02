@@ -1,0 +1,212 @@
+/**
+ * Logo Component Styles
+ * 
+ * Matches exact design from login screen
+ * Uses UGAAP universal design tokens
+ */
+
+/* 
+   LOGO CONTAINER (Centered)
+    */
+
+.logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+/* 
+   LOGO ROW (Icon + Text horizontal)
+    */
+
+.logo-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+/* 
+   LOGO MARK (Orange rounded square)
+    */
+
+.logo-mark {
+  background: var(--primary); /* #F25D27 - Orange */
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(242, 93, 39, 0.2);
+}
+
+/* 
+   UGAAP TEXT
+    */
+
+.logo-text {
+  font-family: var(--font-human); /* Inter */
+  font-weight: 700;
+  color: var(--secondary); /* Deep Plum #200B26 */
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+/* 
+   SUBTITLE (Uganda Agrarian Portal)
+    */
+
+.logo-subtitle {
+  font-family: var(--font-human);
+  font-size: 14px;
+  font-weight: 400;
+  color: #6B6B7B;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* 
+   SIZE VARIANTS
+    */
+
+/* Small - For compact headers */
+.logo-sm .logo-mark {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+}
+
+.logo-sm .logo-mark svg {
+  width: 16px;
+  height: 16px;
+}
+
+.logo-sm .logo-text {
+  font-size: 18px;
+}
+
+.logo-sm .logo-subtitle {
+  font-size: 11px;
+}
+
+/* Medium - Default for auth pages (matches your design) */
+.logo-md .logo-mark {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+}
+
+.logo-md .logo-mark svg {
+  width: 24px;
+  height: 24px;
+}
+
+.logo-md .logo-text {
+  font-size: 28px;
+}
+
+.logo-md .logo-subtitle {
+  font-size: 14px;
+}
+
+/* Large - For splash/landing */
+.logo-lg .logo-mark {
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+}
+
+.logo-lg .logo-mark svg {
+  width: 28px;
+  height: 28px;
+}
+
+.logo-lg .logo-text {
+  font-size: 32px;
+}
+
+.logo-lg .logo-subtitle {
+  font-size: 16px;
+}
+
+/*
+   SIDEBAR VARIANT
+   Horizontal row: icon left, wordmark + sub-label stacked right.
+   Text flips to white because the sidebar background is dark plum.
+*/
+
+.logo-sidebar {
+  flex-direction: row;    /* override the column default */
+  align-items: center;
+  justify-content: flex-start;
+  text-align: left;
+  margin-bottom: 0;       /* auth pages add margin; sidebar handles spacing itself */
+  gap: 10px;
+}
+
+.logo-sidebar .logo-row {
+  margin-bottom: 0;
+  gap: 10px;
+}
+
+/* stacks UGAAP + sub-label vertically */
+.logo-wordmark {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.logo-sidebar .logo-text {
+  color: #1A1A2E;         /* deep navy — readable on the white sidebar */
+  font-size: 16px;
+  letter-spacing: 0.05em;
+}
+
+.logo-sub-label {
+  font-size: 8px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  color: #8A8799;          /* muted grey — same token used for inactive nav items */
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* sm icon in sidebar */
+.logo-sidebar .logo-mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.logo-sidebar .logo-mark svg {
+  width: 18px;
+  height: 18px;
+}
+
+/*
+   RESPONSIVE DESIGN
+    */
+
+@media (max-width: 480px) {
+  .logo-md .logo-mark {
+    width: 42px;
+    height: 42px;
+  }
+
+  .logo-md .logo-mark svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .logo-md .logo-text {
+    font-size: 24px;
+  }
+
+  .logo-md .logo-subtitle {
+    font-size: 13px;
+  }
+}

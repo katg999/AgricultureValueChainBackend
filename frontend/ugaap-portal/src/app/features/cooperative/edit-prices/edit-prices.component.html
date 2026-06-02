@@ -1,0 +1,139 @@
+<!-- edit-prices.component.html -->
+<div class="page">
+
+  <!-- ── Page heading ─────────────────────────────────────────── -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Edit Branch Prices</h1>
+      <p class="page-subtitle">
+        Select a branch, then update the price per grade for that branch.
+        Changes apply immediately to new deliveries recorded at that branch.
+      </p>
+    </div>
+    <button class="btn-back" (click)="router.navigate(['/cooperative/grade-config'])">
+      ← Back to Grading
+    </button>
+  </div>
+
+  @if (error()) {
+    <div class="error-bar">{{ error() }}</div>
+  }
+
+  <!-- ── Branch selector ──────────────────────────────────────── -->
+  <div class="section-card">
+    <div class="section-heading">
+      <span class="sec-icon sec-icon--orange">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+          stroke="#F25D27" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="7" width="20" height="14" rx="2"/>
+          <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+        </svg>
+      </span>
+      <h2 class="sec-title">Select Branch</h2>
+    </div>
+
+    <div class="branch-picker">
+      <label class="field-label">Branch</label>
+      <div class="select-wrap">
+        <select
+          class="branch-select"
+          [ngModel]="selectedBranch()"
+          (ngModelChange)="onBranchChange($event)">
+          <option value="">Choose a branch to edit prices…</option>
+          @for (b of branches(); track b.id) {
+            <option [value]="b.id">{{ b.name }} — {{ b.region }}</option>
+          }
+        </select>
+        <svg class="select-chevron" width="14" height="14" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Price table — shown once a branch is selected -->
+    @if (selectedBranch() && gradePrices().length === 0) {
+      <div class="state-msg">Loading prices…</div>
+    }
+
+    @if (gradePrices().length > 0) {
+      <table class="price-table">
+        <thead>
+          <tr>
+            <th>GRADE</th>
+            <th>CODE</th>
+            <th>CURRENT PRICE (UGX/KG)</th>
+            <th>NEW PRICE (UGX/KG)</th>
+            <th>CHANGE</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of gradePrices(); track row.id) {
+            <tr [class.row--changed]="row.newPrice !== row.currentPrice">
+              <td class="grade-name">{{ row.name }}</td>
+              <td><span class="code-pill">{{ row.code }}</span></td>
+              <td class="current-price">{{ row.currentPrice | number:'1.0-0' }}</td>
+              <td>
+                <input
+                  type="number"
+                  class="price-input"
+                  [(ngModel)]="row.newPrice"
+                  min="0"
+                  step="50" />
+              </td>
+              <td>
+                @if (row.newPrice !== row.currentPrice) {
+                  <span class="change-badge"
+                    [class.change-badge--up]="row.newPrice > row.currentPrice"
+                    [class.change-badge--down]="row.newPrice < row.currentPrice">
+                    {{ row.newPrice > row.currentPrice ? '▲' : '▼' }}
+                    {{ ((row.newPrice - row.currentPrice) / row.currentPrice * 100) | number:'1.1-1' }}%
+                  </span>
+                } @else {
+                  <span class="no-change">—</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <!-- Quick actions -->
+      <div class="quick-actions">
+        <span class="qa-label">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+          </svg>
+          Quick Actions
+        </span>
+        <div class="qa-btns">
+          <button class="qa-btn qa-btn--outline" (click)="increaseAllByPercent()">
+            Increase All by %
+          </button>
+          <button class="qa-btn" (click)="resetToCurrent()">
+            Reset to Current
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- ── Page actions ─────────────────────────────────────────── -->
+  @if (gradePrices().length > 0) {
+    <div class="page-actions">
+      <button class="btn-cancel" (click)="router.navigate(['/cooperative/grade-config'])">
+        Cancel
+      </button>
+      <app-button
+        variant="primary"
+        [loading]="saving()"
+        loadingText="Saving…"
+        (clicked)="saveChanges()">
+        Save Prices
+      </app-button>
+    </div>
+  }
+
+</div>

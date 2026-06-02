@@ -1,0 +1,200 @@
+<div class="issue-new-stock-page">
+  <app-page-header
+    [title]="pageTitle"
+    [subtitle]="pageSubtitle"
+    [breadcrumb]="['Inventory','Available Stock', 'Issue Stock']">
+  </app-page-header>
+
+  <div class="form-card">
+    <div class="header" *ngIf="!isCooperativeScope">
+      <h2>Farmer Selection</h2>
+
+      <app-input
+        placeholder="Search for farmer by name, ID, or phone number"
+        [(ngModel)]="farmerSearch"
+        (ngModelChange)="searchFarmers()">
+      </app-input>
+
+      <ul class="search-results" *ngIf="searchResults.length > 0">
+        <li
+          *ngFor="let farmer of searchResults"
+          class="search-results-item"
+          (click)="selectFarmer(farmer)">
+          {{ farmer.name }} - {{ farmer.id }}
+        </li>
+      </ul>
+
+      <div class="farmer-card" *ngIf="selectedFarmer">
+        <div class="farmer-card-avatar">
+          {{ getInitials(selectedFarmer.name) }}
+        </div>
+
+        <div class="farmer-card-info">
+          <p class="farmer-card-name">{{ selectedFarmer.name }}</p>
+          <p class="farmer-card-id">ID: {{ selectedFarmer.id }}</p>
+        </div>
+
+        <span class="farmer-card-credit">
+          UGX {{ selectedFarmer.availableCredit | number }} Available
+        </span>
+      </div>
+    </div>
+
+    <div class="header" *ngIf="isCooperativeScope">
+      <h2>Branch Selection</h2>
+
+      <select
+        title="Branch"
+        class="field-select"
+        [(ngModel)]="form.branchId">
+        <option value="">Select receiving branch</option>
+        <option *ngFor="let branch of branches" [value]="branch.id">
+          {{ branch.name }}
+        </option>
+      </select>
+    </div>
+
+    <div class="input-section">
+      <h2 class="section-title">Input Details</h2>
+
+      <div class="input-details-grid">
+        <div class="field">
+          <label class="field-label" for="inputType">ITEM NAME</label>
+          <select
+            id="inputType"
+            class="field-select"
+            [(ngModel)]="form.stockItemId"
+            (ngModelChange)="recalculateValue()">
+            <option value="">Select item</option>
+            <option *ngFor="let type of inputTypes" [value]="type.id">
+              {{ type.name }}
+            </option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="quantity">QUANTITY</label>
+          <div class="field-qty-wrapper">
+            <app-input
+              class="field-qty"
+              type="number"
+              [(ngModel)]="form.quantity"
+              (ngModelChange)="recalculateValue()"
+              placeholder="0">
+            </app-input>
+
+            <span class="field-unit">{{ currentUnit }}</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="season">SEASON</label>
+          <select
+            id="season"
+            class="field-select"
+            [(ngModel)]="form.season">
+            <option value="">Select season</option>
+            <option *ngFor="let season of seasons" [value]="season">
+              {{ season }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="calc-value" *ngIf="calculatedValue > 0">
+        <p class="calc-value-label">Calculated Total Value</p>
+        <p class="calc-value-amount">UGX {{ calculatedValue | number }}</p>
+      </div>
+    </div>
+
+    <div class="repayment-section">
+      <h2 class="section-title">Repayment Terms</h2>
+
+      <app-alert
+        variant="info"
+        message="Standard Post-Harvest Deduction (15%). The cost of these inputs will be automatically deducted from the farmer's next harvest payout. Current interest rate: 0.0% for first 90 days.">
+      </app-alert>
+    </div>
+
+    <div class="form-footer">
+      <label class="checkbox-label">
+        <input
+          type="checkbox"
+          [(ngModel)]="form.acknowledged"
+          class="checkbox-label-input">
+        <span class="checkbox-label-text">
+          {{ isCooperativeScope ? 'Branch issue has been confirmed' : 'Farmer has acknowledged receipt of inputs' }}
+        </span>
+      </label>
+
+      <div class="form-footer-actions">
+        <app-button
+          variant="ghost"
+          size="md"
+          type="button"
+          (clicked)="cancel()">
+          Cancel
+        </app-button>
+
+        <app-button
+          variant="primary"
+          size="md"
+          type="button"
+          (clicked)="issueInput()">
+          {{ isCooperativeScope ? 'Issue to branch' : 'Issue input' }}
+        </app-button>
+      </div>
+    </div>
+  </div>
+
+  <div class="recent-card">
+    <div class="recent-card-header">
+      <h3 class="recent-card-title">Recent issuances today</h3>
+      <a class="recent-card-link" [routerLink]="isCooperativeScope ? '/cooperative/inventory/stock-disbursed' : '/branch/inventory/stock-disbursed'">View All History</a>
+    </div>
+
+    <table class="recent-table">
+      <thead>
+        <tr>
+          <th>{{ isCooperativeScope ? 'BRANCH' : 'FARMER' }}</th>
+          <th>ITEM</th>
+          <th>QUANTITY</th>
+          <th>VALUE</th>
+          <th>TIME</th>
+          <th></th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let row of recentIssuances; trackBy: trackById">
+          <td>
+            <div class="recent-row-farmer">
+              <div class="recent-avatar" [style.background]="row.avatarColor">
+                {{ row.initials }}
+              </div>
+              <div>
+                <p class="recent-row-name">{{ row.farmerName }}</p>
+                <p class="recent-row-id">ID: {{ row.farmerId }}</p>
+              </div>
+            </div>
+          </td>
+
+          <td>{{ row.item }}</td>
+          <td>{{ row.quantity }}</td>
+          <td class="recent-row-value">UGX {{ row.value | number }}</td>
+          <td class="recent-row-time">{{ row.time }}</td>
+          <td>
+            <app-button
+              class="btn-dots"
+              title="More options"
+              variant="ghost"
+              size="sm"
+              type="button">
+              ...
+            </app-button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

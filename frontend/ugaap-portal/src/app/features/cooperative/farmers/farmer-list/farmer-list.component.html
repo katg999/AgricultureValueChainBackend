@@ -1,0 +1,169 @@
+<div class="page-shell" *ngIf="farmers$ | async as farmers">
+
+  <div class="top-header">
+    <div class="header-content">
+      <h1>Farmers</h1>
+      <p class="subtitle">
+        Total registered farmers: <span class="highlight-count">{{ totalCount }}</span>
+      </p>
+    </div>
+  </div>
+
+  <!-- SUMMARY CARDS -->
+  <div class="summary-cards-grid">
+    <app-stats-card
+      label="New Registrations"
+      [value]="newRegistrations(farmers)"
+      icon="users"
+      variant="warning">
+    </app-stats-card>
+    <app-stats-card
+      label="Portfolio at Risk"
+      [value]="portfolioAtRisk(farmers)"
+      icon="alert"
+      variant="danger">
+    </app-stats-card>
+    <app-stats-card
+      label="Collection Progress"
+      [value]="collectionProgress + '%'"
+      icon="chart"
+      variant="success">
+    </app-stats-card>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="filters-section">
+    <div class="search-wrapper">
+      <app-input
+        label="Search"
+        placeholder="Search by name, ID, branch or commodity"
+        type="text"
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="applyFilter()">
+      </app-input>
+    </div>
+
+    <div class="select-wrapper">
+      <select title="select-branch" [(ngModel)]="selectedBranch" (ngModelChange)="applyFilter()">
+        <option *ngFor="let branch of branches(farmers); trackBy: trackByOption" [value]="branch">
+          Branch: {{ branch }}
+        </option>
+      </select>
+    </div>
+
+    <div class="select-wrapper">
+      <select title="select-status" [(ngModel)]="selectedStatus" (ngModelChange)="applyFilter()">
+        <option *ngFor="let status of statuses; trackBy: trackByOption" [value]="status">
+          Status: {{ status }}
+        </option>
+      </select>
+    </div>
+
+    <div class="select-wrapper">
+      <select title="select-commodity" [(ngModel)]="selectedCommodity" (ngModelChange)="applyFilter()">
+        <option *ngFor="let commodity of commodities(farmers); trackBy: trackByOption" [value]="commodity">
+          Commodity: {{ commodity }}
+        </option>
+      </select>
+    </div>
+
+    <div class="select-wrapper">
+      <select title="select-stage" [(ngModel)]="selectedStage" (ngModelChange)="applyFilter()">
+        <option *ngFor="let stage of stages; trackBy: trackByOption" [value]="stage">{{ stage }}</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-wrapper" *ngIf="paginatedFarmers$ | async as paginatedFarmers">
+    <table class="farmers-table">
+      <thead>
+        <tr>
+          <th>FARMER ID</th>
+          <th>NAME</th>
+          <th>BRANCH</th>
+          <th>PRIMARY COMMODITY</th>
+          <th>CREDIT LIMIT</th>
+          <th>BALANCE</th>
+          <th>STATUS</th>
+          <th class="text-center">ACTIONS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let farmer of paginatedFarmers; trackBy: trackByFarmerId">
+          <td class="farmer-id">{{ farmer.id }}</td>
+          <td class="farmer-name">{{ farmer.name }}</td>
+          <td>{{ farmer.branch }}</td>
+          <td>
+            <span class="commodity-tag">{{ farmer.primaryCommodity }}</span>
+          </td>
+          <td class="text-bold">{{ farmer.creditLimit }}</td>
+          <td
+            class="text-bold"
+            [ngClass]="{ 'text-danger-custom': farmer.balance !== '0.00' && farmer.balance !== '--' }">
+            {{ farmer.balance }}
+          </td>
+          <td>
+            <span class="status-badge" [ngClass]="farmer.status.toLowerCase()">
+              {{ farmer.status }}
+            </span>
+          </td>
+          <td class="text-center">
+            <app-button
+              *ngIf="farmer.status === 'Pending'"
+              type="button"
+              size="sm"
+              variant="secondary"
+              (clicked)="onReviewFarmer(farmer)">
+              Review
+            </app-button>
+            <app-button
+              *ngIf="farmer.status === 'Pending'"
+              type="button"
+              size="sm"
+              variant="primary"
+              iconLeft="✓"
+              (clicked)="onApproveFarmer(farmer)">
+              Approve
+            </app-button>
+            <span *ngIf="farmer.status !== 'Pending'" class="text-muted-placeholder">—</span>
+          </td>
+        </tr>
+        <tr *ngIf="paginatedFarmers.length === 0">
+          <td colspan="8" style="text-align:center; padding:40px; color:#6b6b7b;">
+            No farmers match the current filters.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- PAGINATION -->
+    <div class="pagination-section">
+      <span class="pagination-info">
+        Showing {{ startIndex }} to {{ endIndex }} of {{ totalCount }} entries
+      </span>
+      <div class="pagination-controls">
+        <button
+          class="page-btn"
+          [disabled]="currentPage === 1"
+          (click)="prevPage()">
+          ‹ Previous
+        </button>
+        <button
+          *ngFor="let p of pagesArray; trackBy: trackByIndex"
+          class="page-btn"
+          [class.active]="p === currentPage"
+          (click)="goToPage(p)">
+          {{ p }}
+        </button>
+        <button
+          class="page-btn"
+          [disabled]="endIndex >= totalCount"
+          (click)="nextPage()">
+          Next ›
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>

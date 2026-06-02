@@ -1,0 +1,209 @@
+/**
+ * Stats Card Component Styles
+ *
+ * CRITICAL: Fixed dimensions throughout prevent layout shake during
+ * count-up animations and keep all cards in a row the same height.
+ */
+
+/* ── Host element ────────────────────────────────────────────────────────
+   <app-stats-card> is the CSS Grid item. Setting display:block + height:100%
+   makes the host fill its grid cell so every card in a row is the same height
+   as the tallest sibling (requires align-items:stretch on the parent grid). */
+:host {
+  display: block;
+  height: 100%;
+}
+
+/* ── Card shell ─────────────────────────────────────────────────────────── */
+
+.stats-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #E5E7EB;
+  border-left: 4px solid #E5E7EB;
+  min-height: 160px;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+
+.stats-card * {
+  box-sizing: border-box;
+}
+
+/* ── Variant left borders ──────────────────────────────────────────────── */
+
+.variant-default { border-left-color: #E5E7EB; }
+.variant-success { border-left-color: #10B981; }
+.variant-warning { border-left-color: #F59E0B; }
+.variant-danger  { border-left-color: #EF4444; }
+
+/* ── Clickable hover ────────────────────────────────────────────────────── */
+
+.stats-card.clickable {
+  cursor: pointer;
+}
+
+.stats-card.clickable:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  min-height: 48px;
+}
+
+/* ── Icon container — fixed size, never changes ─────────────────────────── */
+
+.icon-container {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.icon-container svg {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+}
+
+/* ── Status badge ───────────────────────────────────────────────────────── */
+
+.status-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+  font-family: 'IBM Plex Mono', monospace;
+  background: #F3F4F6;
+  color: #6B7280;
+  white-space: nowrap;
+}
+
+.badge-success {
+  background: #DCFCE7;
+  color: #15803D;
+}
+
+.badge-warning {
+  background: #FEF3C7;
+  color: #B45309;
+}
+
+.badge-danger {
+  background: #FEE2E2;
+  color: #B91C1C;
+}
+
+/* Invisible 1px spacer keeps header the same height when there is no badge */
+.badge-placeholder {
+  display: block;
+  width: 1px;
+  height: 22px;
+}
+
+/* ── Card content ───────────────────────────────────────────────────────── */
+
+.card-content {
+  margin-top: auto;
+}
+
+.card-label {
+  font-size: 13px;
+  color: #6B7280;
+  margin-bottom: 4px;
+  font-family: 'Inter', sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+
+/* CRITICAL: tabular-nums + fixed height stop shaking during count-up.
+   font-size is set dynamically via [style.font-size] in the template — NOT here. */
+.card-value {
+  font-weight: 700;
+  color: #200B26;
+  line-height: 1;
+  height: 36px;
+  display: flex;
+  align-items: flex-end;
+  font-family: 'IBM Plex Mono', 'Inter', sans-serif;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: font-size 0.15s ease;
+}
+
+/* CRITICAL: fixed height prevents cards shifting when some have no trend */
+.card-trend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  min-height: 20px;
+  height: 20px;
+  font-size: 13px;
+}
+
+.card-trend.placeholder {
+  visibility: hidden;
+}
+
+.trend-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.trend-up   { color: #10B981; }
+.trend-down { color: #EF4444; }
+
+.trend-text {
+  color: #6B7280;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .stats-card {
+    padding: 16px;
+  }
+
+  /* font-size is dynamic — only shrink the container height */
+  .card-value {
+    height: 30px;
+  }
+
+  .icon-container {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+  }
+}

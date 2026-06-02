@@ -1,0 +1,22 @@
+<!-- 
+  Alert Component Template
+  
+  Displays contextual messages with appropriate styling
+  Supports both message prop and ng-content
+-->
+
+<div [class]="alertClasses" role="alert">
+  <!-- Icon (if enabled) -->
+  <span class="alert-icon" *ngIf="showIcon">
+    {{ icon }}
+  </span>
+
+  <!-- Message content -->
+  <div class="alert-content">
+    <!-- Use message prop if provided -->
+    <span *ngIf="message">{{ message }}</span>
+    
+    <!-- Otherwise use ng-content for rich HTML -->
+    <ng-content *ngIf="!message"></ng-content>
+  </div>
+</div>

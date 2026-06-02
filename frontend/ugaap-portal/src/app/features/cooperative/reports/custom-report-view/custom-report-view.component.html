@@ -1,0 +1,123 @@
+<!-- Status badge template (always in DOM) -->
+<ng-template #statusTpl let-row>
+  <app-badge [variant]="getStatusVariant(row.status)">{{ row.status }}</app-badge>
+</ng-template>
+
+@if (!config) {
+  <div class="loading-wrap">
+    <p class="loading-text">Loading report...</p>
+  </div>
+} @else {
+  <div class="view-page" id="cv-print-area">
+
+    <!-- Header -->
+    <div class="view-header">
+      <div class="back-row">
+        <button class="back-btn" (click)="goBack()" type="button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+          Back to Reports
+        </button>
+      </div>
+
+      <div class="header-main">
+        <div class="header-info">
+          <h1 class="report-title">{{ config.name }}</h1>
+          <p class="report-meta">
+            Generated: {{ generatedDate }}&nbsp;
+            <span class="meta-sep">·</span>&nbsp;
+            Grouped by: {{ config.groupBy }}&nbsp;
+            <span class="meta-sep">·</span>&nbsp;
+            Source: {{ config.dataSource | titlecase }}
+          </p>
+        </div>
+        <div class="header-actions">
+          <app-button variant="ghost" size="sm" (clicked)="showEditor = true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+            Edit Report
+          </app-button>
+          <app-export-dropdown [loading]="exportLoading" (export)="onExport($event)"></app-export-dropdown>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts (only selected ones) -->
+    @if (selectedChartCount > 0) {
+      <div class="charts-grid" [class.charts-grid--1]="selectedChartCount === 1" [class.charts-grid--2]="selectedChartCount === 2">
+
+        @if (isChartSelected('trend')) {
+          <app-chart-card title="Trend" subtitle="Volume over last 6 months" [height]="260">
+            <canvas id="cv-trend-chart"></canvas>
+          </app-chart-card>
+        }
+
+        @if (isChartSelected('distribution')) {
+          <app-chart-card title="Distribution" subtitle="Status breakdown" [height]="260">
+            <canvas id="cv-dist-chart"></canvas>
+          </app-chart-card>
+        }
+
+        @if (isChartSelected('branch')) {
+          <app-chart-card title="By Branch" subtitle="Volume per branch" [height]="260">
+            <canvas id="cv-branch-chart"></canvas>
+          </app-chart-card>
+        }
+
+        @if (isChartSelected('performers')) {
+          <app-chart-card title="Top Performers" subtitle="By quantity" [height]="260">
+            <canvas id="cv-perf-chart"></canvas>
+          </app-chart-card>
+        }
+
+      </div>
+    }
+
+    <!-- Data Table -->
+    <div class="table-section">
+      <div class="table-section-header">
+        <div>
+          <h3 class="section-title">Report Data</h3>
+          <p class="section-meta">{{ tableData.length }} records · {{ tableColumns.length }} columns</p>
+        </div>
+      </div>
+
+      <app-table
+        [columns]="tableColumns"
+        [data]="paginatedData"
+        [hoverable]="true"
+        emptyMessage="No data available for this report configuration">
+      </app-table>
+
+      <!-- Pagination -->
+      @if (totalPages > 1) {
+        <div class="pagination">
+          <button class="page-btn" [disabled]="currentPage === 1" (click)="currentPage = currentPage - 1">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </button>
+          @for (p of pageNumbers; track p) {
+            <button class="page-btn" [class.active]="p === currentPage" (click)="currentPage = p">{{ p }}</button>
+          }
+          <button class="page-btn" [disabled]="currentPage === totalPages" (click)="currentPage = currentPage + 1">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+        </div>
+      }
+    </div>
+
+  </div>
+
+  <!-- Edit modal -->
+  <app-custom-report-builder
+    [isOpen]="showEditor"
+    (closed)="showEditor = false"
+    (generated)="onEdited($event)">
+  </app-custom-report-builder>
+}

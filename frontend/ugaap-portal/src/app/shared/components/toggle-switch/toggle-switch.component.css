@@ -1,0 +1,140 @@
+/**
+ * Toggle Switch Component Styles
+ * Uses UGAAP design tokens
+ */
+
+.toggle-container {
+  font-family: var(--font-human);
+}
+
+.toggle-wrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+/* 
+   TOGGLE SWITCH
+    */
+
+.toggle-switch {
+  position: relative;
+  width: 48px;
+  height: 28px;
+  background: #E0E0E0;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  flex-shrink: 0;
+  padding: 0;
+  outline: none;
+}
+
+.toggle-switch:hover:not(:disabled) {
+  background: #D1D1D1;
+}
+
+.toggle-switch:focus-visible {
+  box-shadow: 0 0 0 3px rgba(242, 93, 39, 0.2);
+}
+
+/* Checked state */
+.toggle-checked {
+  background: var(--primary) !important;
+}
+
+.toggle-checked:hover:not(:disabled) {
+  background: var(--primary-container) !important;
+}
+
+/* Disabled state */
+.toggle-switch:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 
+   SLIDER KNOB
+    */
+
+.toggle-slider {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  background: var(--surface-lowest);
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Move slider when checked */
+.toggle-checked .toggle-slider {
+  transform: translateX(20px);
+}
+
+/* 
+   LABEL AND DESCRIPTION
+    */
+
+.toggle-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.toggle-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--secondary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-description {
+  font-size: 12px;
+  color: #6B6B7B;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Disabled label */
+.toggle-disabled .toggle-label {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toggle-disabled .toggle-description {
+  opacity: 0.5;
+}
+
+/* 
+   RESPONSIVE DESIGN
+    */
+
+@media (max-width: 768px) {
+  .toggle-switch {
+    width: 44px;
+    height: 26px;
+  }
+
+  .toggle-slider {
+    width: 20px;
+    height: 20px;
+  }
+
+  .toggle-checked .toggle-slider {
+    transform: translateX(18px);
+  }
+
+  .toggle-label {
+    font-size: 13px;
+  }
+
+  .toggle-description {
+    font-size: 11px;
+  }
+}
