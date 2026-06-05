@@ -12,10 +12,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-
-
 @Entity
-@Table(name = "branches")
+@Table(name = "branches" , schema="membership")
 // RLS hint: Hibernate filter enforces branch_id scoping for non-admin queries
 @FilterDef(name = "branchFilter", parameters = @ParamDef(name = "branchId", type = UUID.class))
 @Filter(name = "branchFilter", condition = "branch_id = :branchId")
@@ -28,7 +26,7 @@ public class Branch {
     private UUID branchId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cooperative_id", nullable = false)
+    @JoinColumn(name = "cooperative_id", referencedColumnName = "cooperative_id", nullable = false)
     private Cooperative cooperative;
 
     @Column(name = "name", nullable = false)

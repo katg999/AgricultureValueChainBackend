@@ -2,69 +2,72 @@ package com.ugaap.authentication.Entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "audit_logs", indexes = {
-        @Index(name = "idx_audit_client_id", columnList = "client_id"),
-        @Index(name = "idx_audit_event_type", columnList = "event_type"),
-        @Index(name = "idx_audit_created_at", columnList = "created_at")
-})
-@Getter @Setter
+@Table(name = "audit_logs", schema = "public")  // ← fix schema
+@Getter
+@Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class AuditLog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
-    // nullable — failed logins may not have a resolved client
-    @Column(name = "client_id")
-    private UUID clientId;
+    // ── NOT NULL columns ──────────────────────────────────────
+    @Column(name = "action", nullable = false)
+    private String action;
 
-    @Column(name = "email")
-    private String email;
+    @Column(name = "entity_id", nullable = false)
+    private UUID entityId;
+
+    @Column(name = "entity_type", nullable = false)
+    private String entityType;
+
+    @Column(name = "performed_at", nullable = false)
+    private LocalDateTime performedAt;
+
+    @Column(name = "performed_by", nullable = false)
+    private UUID performedBy;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "event_type", nullable = false)
     private EventType eventType;
 
-    @Column(name = "ip_address")
-    private String ipAddress;
-
-    @Column(name = "user_agent")
-    private String userAgent;
-
     @Column(name = "success", nullable = false)
     private boolean success;
+
+    // ── NULLABLE columns ──────────────────────────────────────
+    @Column(name = "client_id")
+    private UUID clientId;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "email")
+    private String email;
 
     @Column(name = "failure_reason")
     private String failureReason;
 
-    @Column(name = "metadata", columnDefinition = "TEXT")
-    private String metadata;      // JSON blob for extra context
+    @Column(name = "ip_address")
+    private String ipAddress;
 
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
+    @Column(name = "metadata")
+    private String metadata;
 
-    // ── enum ──────────────────────────────────────────────────
+    @Column(name = "user_agent")
+    private String userAgent;
+
+    @Column(name = "changes")
+    private String changes;
 
     public enum EventType {
-        LOGIN,
-        LOGOUT,
-        LOGIN_FAILED,
-        TOKEN_REFRESHED,
-        TOKEN_REVOKED,
-        ACCOUNT_LOCKED,
-        PASSWORD_CHANGED,
-        SESSION_EXPIRED,
-        REGISTRATION
+        LOGIN, LOGOUT, LOGIN_FAILED, REGISTRATION,
+        TOKEN_REFRESHED, ACCOUNT_LOCKED, PASSWORD_CHANGED
     }
 }

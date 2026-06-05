@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class AuthService {
+public class    AuthService {
 
     private static final int    MAX_FAILED_ATTEMPTS    = 5;
     private static final long   LOCK_DURATION_MINUTES  = 30;
@@ -354,13 +354,19 @@ public class AuthService {
                               String ip, String userAgent,
                               boolean success, String failureReason) {
         auditLogRepository.save(AuditLog.builder()
+                .action(eventType.name())        // NOT NULL
+                .entityId(userId != null ? userId : UUID.fromString("00000000-0000-0000-0000-000000000000"))
+                .entityType("USER")              // NOT NULL
+                .performedAt(LocalDateTime.now()) // NOT NULL
+                .performedBy(userId != null ? userId : UUID.fromString("00000000-0000-0000-0000-000000000000"))
+                .eventType(eventType)            // NOT NULL
+                .success(success)                // NOT NULL
                 .clientId(userId)
                 .email(email)
-                .eventType(eventType)
                 .ipAddress(ip)
                 .userAgent(userAgent)
-                .success(success)
                 .failureReason(failureReason)
+                .createdAt(LocalDateTime.now())
                 .build());
     }
 
