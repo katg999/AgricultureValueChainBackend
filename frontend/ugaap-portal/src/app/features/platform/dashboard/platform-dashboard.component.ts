@@ -141,4 +141,66 @@ export class PlatformDashboardComponent implements OnInit {
   viewFullAuditLogs(): void {
     console.log('Navigate to audit logs');
   }
+
+  /** Exports all dashboard data (stats, onboarding pipeline, platform health,
+   * recent activity) as a timestamped CSV file.
+   */
+  exportReport(): void {
+    const rows: (string | number)[][] = [];
+
+    // SECTION 1: Platform Stats
+    rows.push(['=== PLATFORM STATS ===']);
+    rows.push(['Label', 'Value', 'Trend']);
+    this.stats.forEach(stat => {
+      rows.push([stat.label, stat.value, stat.trend || '']);
+    });
+    rows.push([]); // empty separator row
+
+    // SECTION 2: Onboarding Pipeline
+    rows.push(['=== ONBOARDING PIPELINE ===']);
+    rows.push(['Cooperative', 'Progress (%)', 'Steps', 'Status', 'Live']);
+    this.onboardingItems.forEach(item => {
+      rows.push([item.name, item.progress, item.steps, item.status, item.live ? 'Yes' : 'No']);
+    });
+    rows.push([]);
+
+    // SECTION 3: Platform Health
+    rows.push(['=== PLATFORM HEALTH ===']);
+    rows.push(['Metric', 'Value', 'Highlight']);
+    this.platformHealth.forEach(health => {
+      rows.push([health.label, health.value, health.highlight ? 'Yes' : 'No']);
+    });
+    rows.push([]);
+
+    // SECTION 4: Recent Activity
+    rows.push(['=== RECENT ACTIVITY ===']);
+    rows.push(['Actor', 'Event', 'Object', 'When']);
+    this.recentActivity.forEach(activity => {
+      rows.push([activity.actor, activity.event, activity.object, activity.when]);
+    });
+
+    // Convert to CSV with proper escaping
+    const csvContent = rows.map(row =>
+      row.map(cell => {
+        const cellStr = String(cell);
+        if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
+          return `"${cellStr.replace(/"/g, '""')}"`;
+        }
+        return cellStr;
+      }).join(',')
+    ).join('\n');
+
+    // Trigger download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+    link.setAttribute('download', `platform_report_${timestamp}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
 }
+

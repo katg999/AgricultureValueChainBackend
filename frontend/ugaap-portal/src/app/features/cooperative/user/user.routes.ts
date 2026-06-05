@@ -33,5 +33,7 @@ export const USER_ROUTES: Routes = [
         .then(m => m.UserDetailsComponent),
   },
 
+  
+
   // Roles are managed under /cooperative/roles — see cooperative/roles/roles.routes.ts
 ];

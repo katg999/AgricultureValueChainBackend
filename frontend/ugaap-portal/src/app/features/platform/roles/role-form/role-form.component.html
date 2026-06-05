@@ -137,8 +137,9 @@
           type="submit"
           variant="primary"
           size="lg"
-          [loading]="isLoading"
-          loadingText="Saving...">
+          
+          
+          (clicked)="saveRole()">
           {{ isEditMode ? 'Update role' : 'Create role' }}
         </app-button>
       </div>

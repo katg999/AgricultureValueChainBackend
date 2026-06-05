@@ -54,8 +54,7 @@ export class CooperativeOnboardingComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private router: Router
-  ) {}
+    private router: Router) {}
 
   ngOnInit(): void {
     this.initProfileForm();
@@ -105,10 +104,32 @@ export class CooperativeOnboardingComponent implements OnInit {
   // ── Submit (Navigate to Maker & Checker Creation) ────────
 
   activateCooperative(): void {
-    // console.log('ACTIVATE BUTTON CLICKED!');
+   //console.log('ACTIVATE BUTTON CLICKED!');
+   
+    if(this.profileForm.invalid) {
+      this.profileForm.markAllAsTouched();
+      return;
+    }
     
     this.isLoading = true;
     this.errorMessage = '';
+
+  
+
+    //Get form values
+    const coopData = {
+      name: this.profileForm.value.name,
+      registrationNumber: this.profileForm.value.registrationNumber,
+      address: this.profileForm.value.address,
+      country: this.profileForm.value.country,
+      poBox: this.profileForm.value.poBox || '',
+      websiteUrl: this.profileForm.value.websiteUrl || '',
+      defaultBranchName: this.profileForm.value.defaultBranchName,
+      defaultBranchLocation: this.profileForm.value.defaultBranchLocation || '',
+
+      createdAt: new Date().toISOString(),
+      
+    };
 
     // Simulate API delay
     setTimeout(() => {
@@ -117,7 +138,7 @@ export class CooperativeOnboardingComponent implements OnInit {
       
       // Navigate to Maker & Checker account creation
      
-      this.router.navigate(['/cooperatives/maker-checker-creation'], {
+      this.router.navigate(['/platform/maker-checker'], {
         state: {
           cooperativeName: this.profileForm.value.name,
           registrationNumber: this.profileForm.value.registrationNumber,

@@ -172,7 +172,9 @@ export class AddUserComponent implements OnInit {
    */
   saveUser(): void {
     if (this.userForm.invalid) {
+      this.router.navigate(['/platform/users']);
       this.userForm.markAllAsTouched();
+
       return;
     }
 
@@ -183,7 +185,7 @@ export class AddUserComponent implements OnInit {
       return;
     }
 
-    this.isLoading = true;
+    // this.isLoading = true;
 
     const userData = {
       ...this.userForm.value,
@@ -194,12 +196,13 @@ export class AddUserComponent implements OnInit {
     };
 
     console.log('Saving user:', userData);
+    this.router.navigate(['/platform/users']);
 
     // Simulate API call
-    setTimeout(() => {
-      this.isLoading = false;
-      this.router.navigate(['/platform/users']);
-    }, 2000);
+    // setTimeout(() => {
+    //   this.isLoading = false;
+    //   this.router.navigate(['/platform/users']);
+    // }, 2000);
   }
 
   /**
