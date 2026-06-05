@@ -5,7 +5,7 @@ import com.ugaap.membership.Entity.Cooperative;
 import com.ugaap.membership.Entity.Branch;
 import com.ugaap.membership.repository.BranchRepository;
 import com.ugaap.membership.repository.CooperativeRepository;
-import com.ugaap.shared.security.RlsContextApplier;  //this has to be corrected also
+import com.ugaap.shared.security.RlsContextApplier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.text.Normalizer;
 import java.util.List;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 @Service
@@ -49,6 +50,7 @@ public class CooperativeService {
         Cooperative cooperative = Cooperative.builder()
                 .tenantId(tenantId)
                 .name(request.getName())
+                .cooperativeId(UUID.randomUUID())
                 .registrationNumber(request.getRegistrationNumber())
                 .address(request.getAddress())
                 .contactPersonName(request.getContactPersonName())
