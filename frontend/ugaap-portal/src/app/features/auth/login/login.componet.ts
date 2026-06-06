@@ -18,22 +18,17 @@
 
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {
-  ReactiveFormsModule,
-  FormBuilder,
-  FormGroup,
-  Validators,
-} from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 
-import { AuthService }           from '../../../core/services/auth.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { DashboardConfigService } from '../../../core/services/dashboard-config.service';
 
 // Shared UI components
-import { ButtonComponent }  from '../../../shared/components/button/button.component';
-import { InputComponent }   from '../../../shared/components/input/input.component';
-import { LogoComponent }    from '../../../shared/components/logo/logo.component';
-import { AlertComponent }   from '../../../shared/components/alert/alert.component';
+import { ButtonComponent } from '../../../shared/components/button/button.component';
+import { InputComponent } from '../../../shared/components/input/input.component';
+import { LogoComponent } from '../../../shared/components/logo/logo.component';
+import { AlertComponent } from '../../../shared/components/alert/alert.component';
 
 @Component({
   selector: 'app-login',
@@ -48,10 +43,9 @@ import { AlertComponent }   from '../../../shared/components/alert/alert.compone
     AlertComponent,
   ],
   templateUrl: './login.component.html',
-  styleUrl:    './login.component.css',
+  styleUrl: './login.component.css',
 })
 export class LoginComponent implements OnInit {
-
   /** Reactive login form */
   loginForm!: FormGroup;
 
@@ -68,10 +62,10 @@ export class LoginComponent implements OnInit {
   private returnUrl = '';
 
   constructor(
-    private fb:              FormBuilder,
-    private router:          Router,
-    private route:           ActivatedRoute,
-    private authService:     AuthService,
+    private fb: FormBuilder,
+    private router: Router,
+    private route: ActivatedRoute,
+    private authService: AuthService,
     private dashboardConfig: DashboardConfigService,
   ) {}
 
@@ -80,11 +74,8 @@ export class LoginComponent implements OnInit {
     this.returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '';
 
     this.loginForm = this.fb.group({
-      email:    ['', [Validators.required, Validators.email]],
+      email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
-
-      // Role selector determines which dashboard the user is taken to after OTP
-      role: ['', Validators.required],
     });
   }
 
@@ -94,7 +85,7 @@ export class LoginComponent implements OnInit {
     const c = this.loginForm.get('email');
     if (c?.touched && c.errors) {
       if (c.errors['required']) return 'Email is required';
-      if (c.errors['email'])    return 'Please enter a valid email address';
+      if (c.errors['email']) return 'Please enter a valid email address';
     }
     return '';
   }
@@ -102,8 +93,8 @@ export class LoginComponent implements OnInit {
   getPasswordError(): string {
     const c = this.loginForm.get('password');
     if (c?.touched && c.errors) {
-      if (c.errors['required'])   return 'Password is required';
-      if (c.errors['minlength'])  return 'Password must be at least 6 characters';
+      if (c.errors['required']) return 'Password is required';
+      if (c.errors['minlength']) return 'Password must be at least 6 characters';
     }
     return '';
   }
@@ -117,32 +108,37 @@ export class LoginComponent implements OnInit {
   // ── Form submission ─────────────────────────────────────────────────────────
 
   onSubmit(): void {
-    // Trigger inline validation on all fields
+    console.log('LOGIN BUTTON CLICKED');
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
       return;
     }
 
-    this.isLoading    = true;
+    this.isLoading = true;
     this.errorMessage = '';
 
-    const { email, password, role } = this.loginForm.value;
+    const { email, password } = this.loginForm.value;
 
-    this.authService.login({ email, password, role }).subscribe({
+    console.log('LOGIN PAYLOAD', {
+      email,
+      password,
+    });
+
+    this.authService.login({ usernameOrEmail: email, password }).subscribe({
       next: (res) => {
         this.isLoading = false;
 
-        if (res.requiresOtp) {
-          // AuthService already stored tempToken via SessionService — go to OTP screen
-          this.router.navigate(['/auth/otp']);
-        } else {
-          // No OTP required — session is already active; go to role dashboard
-          const home = this.returnUrl || this.dashboardConfig.homeRoute();
-          this.router.navigateByUrl(home);
-        }
+        console.log('LOGIN RESPONSE', res);
+
+        const home = this.returnUrl || '/platform/dashboard';
+        this.router.navigateByUrl(home);
       },
+
       error: (err) => {
-        this.isLoading    = false;
+        this.isLoading = false;
+
+        console.error('LOGIN ERROR', err);
+
         this.errorMessage = err?.error?.message ?? 'Invalid credentials. Please try again.';
       },
     });
