@@ -56,6 +56,30 @@
   </div>
 
   <!-- =========================================================
+       SEASON TABS
+       ========================================================= -->
+  <div class="season-tabs">
+    <button type="button"
+      class="season-tab"
+      [class.active]="selectedSeason === ''"
+      (click)="setSeasonFilter('')">
+      All Seasons
+    </button>
+    <button type="button"
+      class="season-tab wet"
+      [class.active]="selectedSeason === 'Wet Season'"
+      (click)="setSeasonFilter('Wet Season')">
+      Wet Season
+    </button>
+    <button type="button"
+      class="season-tab dry"
+      [class.active]="selectedSeason === 'Dry Season'"
+      (click)="setSeasonFilter('Dry Season')">
+      Dry Season
+    </button>
+  </div>
+
+  <!-- =========================================================
        FILTER SECTION
        applyFilter() is triggered whenever values change
        ========================================================= -->
@@ -115,9 +139,7 @@
 
   </div>
 
-  <!-- =========================================================
-       DELIVERY TABLE
-       ========================================================= -->
+  <!-- DELIVERY TABLE -->
   <div class="table-card">
 
     <div class="table-wrapper">
@@ -129,6 +151,7 @@
           <tr>
             <th>Delivery ID</th>
             <th>Branch</th>
+            <th>Season</th>
             <th>Commodity</th>
             <th>Farmers</th>
             <th>Volume</th>
@@ -149,8 +172,15 @@
             </td>
 
             <!-- Branch -->
-            <td>
+            <td class="cell-branch" [title]="delivery.branchName">
               {{ delivery.branchName }}
+            </td>
+
+            <!-- Season -->
+            <td>
+              <span class="season-badge" [ngClass]="seasonClass(delivery.season)">
+                {{ delivery.season }}
+              </span>
             </td>
 
             <!-- Commodity -->
@@ -230,7 +260,7 @@
           <!-- Empty State -->
           <tr *ngIf="filteredDeliveries.length === 0">
 
-            <td colspan="8" class="empty-state">
+            <td colspan="9" class="empty-state">
               No deliveries found.
             </td>
 
@@ -312,6 +342,13 @@
             <span>Status</span>
             <select name="status" required [(ngModel)]="addDeliveryForm.status">
               <option *ngFor="let status of statusOptions; trackBy: trackByOption" [value]="status">{{ status }}</option>
+            </select>
+          </label>
+
+          <label class="form-field">
+            <span>Season</span>
+            <select name="season" required [(ngModel)]="addDeliveryForm.season">
+              <option *ngFor="let season of seasonOptions; trackBy: trackByOption" [value]="season">{{ season }}</option>
             </select>
           </label>
         </div>

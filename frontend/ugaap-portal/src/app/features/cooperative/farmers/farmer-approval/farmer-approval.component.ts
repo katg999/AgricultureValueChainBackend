@@ -191,7 +191,9 @@ export class FarmerApprovalComponent implements OnInit {
   }
 
   onEditProfile(): void {
-    this.router.navigate(['/branch/farmers/register']);
+    if (this.farmer) {
+      this.router.navigate(['/branch/farmers/register', this.farmer.id]);
+    }
   }
 
   onSendSms(): void {

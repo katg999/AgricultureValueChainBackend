@@ -129,6 +129,15 @@ export const COOPERATIVE_ROUTES: Routes = [
         .then(m => m.ActivationSuccessComponent),
   },
 
+  // ── Finance ─────────────────────────────────────────────────────────────────
+  {
+    path: 'finance/batch-processing',
+    loadComponent: () =>
+      import('./finance/cooperative-finance.component')
+        .then(m => m.CooperativeFinanceComponent),
+  },
+  { path: 'finance', redirectTo: 'finance/batch-processing', pathMatch: 'full' },
+
   {
     path: 'inventory',
     loadChildren: () =>

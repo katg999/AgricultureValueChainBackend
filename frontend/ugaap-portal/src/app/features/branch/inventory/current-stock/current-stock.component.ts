@@ -166,12 +166,6 @@ export class CurrentStockComponent implements OnInit {
     this.applyFilters();
   }
 
-  markAsRestocked(item: StockItem): void {
-    item.stockStatus = 'healthy';
-    this.recomputeSummary();
-    this.applyFilters();
-  }
-
   private buildAlertMessage(): string {
     const { low, outOfStock } = this.summary;
 

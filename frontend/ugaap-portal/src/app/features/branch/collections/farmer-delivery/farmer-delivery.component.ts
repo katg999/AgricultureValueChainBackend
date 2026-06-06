@@ -19,6 +19,7 @@ import {
 } from '@angular/forms';
 
 import { ActivatedRoute, Router } from '@angular/router';
+import { SessionService } from '../../../../core/services/session.service';
 
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -27,6 +28,7 @@ import { takeUntil } from 'rxjs/operators';
 
 import { FarmerDeliveryService } from '../farmer.delivery.service';
 import { FarmerDeliveryFormData } from '../farmer.delivery.model';
+import { Season } from '../branch.delivery.model';
 
 // MODELS
 
@@ -35,6 +37,7 @@ export interface Farmer {
   name: string;
   phone: string;
   branch: string;
+  currentSeason: Season;
 }
 
 export type FarmerMode = 'search' | 'manual';
@@ -103,7 +106,6 @@ implements OnInit, OnDestroy {
   // FORM STATE
 
   deliveryForm!: FormGroup;
-  form!: FormGroup;
 
   farmerMode: FarmerMode = 'search';
 
@@ -113,7 +115,6 @@ implements OnInit, OnDestroy {
   allFarmers: Farmer[] = [];
 
   showDropdown = false;
-  showModal = false;
 
   estValueDisplay = '—';
 
@@ -148,6 +149,8 @@ implements OnInit, OnDestroy {
     'Cassava',
   ];
 
+  readonly seasonOptions: Season[] = ['Wet Season', 'Dry Season'];
+
   // MOCK FARMERS
   private readonly farmerRegistry: Farmer[] = [
     {
@@ -155,12 +158,42 @@ implements OnInit, OnDestroy {
       name: 'Akello Grace',
       phone: '0772100001',
       branch: 'Kampala Central',
+      currentSeason: 'Wet Season',
     },
     {
       id: 'UG-F-00102',
       name: 'Okello James',
       phone: '0754200002',
       branch: 'Kampala Central',
+      currentSeason: 'Wet Season',
+    },
+    {
+      id: 'UG-F-00201',
+      name: 'Namukasa Fatuma',
+      phone: '0701300003',
+      branch: 'Jinja East',
+      currentSeason: 'Wet Season',
+    },
+    {
+      id: 'UG-F-00301',
+      name: 'Tukwasibwe Robert',
+      phone: '0782400004',
+      branch: 'Mbarara South',
+      currentSeason: 'Wet Season',
+    },
+    {
+      id: 'UG-F-00401',
+      name: 'Opio Samuel',
+      phone: '0753500005',
+      branch: 'Gulu North',
+      currentSeason: 'Dry Season',
+    },
+    {
+      id: 'UG-F-00501',
+      name: 'Nakato Betty',
+      phone: '0786600006',
+      branch: 'Mbale West',
+      currentSeason: 'Dry Season',
     },
   ];
 
@@ -172,13 +205,13 @@ implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
     private deliveryService: FarmerDeliveryService,
+    private session: SessionService,
   ) {}
 
   // LIFECYCLE
 
   ngOnInit(): void {
     this.buildForm();
-    this.form = this.deliveryForm;
     this.allFarmers = [...this.farmerRegistry];
     this.filteredFarmers = [...this.allFarmers];
     this.applyModeValidators();
@@ -244,6 +277,11 @@ implements OnInit, OnDestroy {
       ],
 
       notes: [''],
+
+      season: [
+        'Wet Season',
+        Validators.required,
+      ],
     });
   }
 
@@ -403,7 +441,7 @@ implements OnInit, OnDestroy {
     const payload = this.buildPayload();
 
     this.deliveryService
-      .add(payload as any)
+      .add(payload)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
 
@@ -425,6 +463,7 @@ implements OnInit, OnDestroy {
 
     return {
       branchDeliveryId: v.batch || this.route.snapshot.paramMap.get('id') || undefined,
+      branchId:         this.session.branchId() ?? undefined,
       farmerId,
       farmerName: this.selectedFarmer?.name || v.farmerName,
       phone: this.selectedFarmer?.phone || v.manualPhone || v.phone,
@@ -433,6 +472,7 @@ implements OnInit, OnDestroy {
       estimatedValue: volume * unitPrice,
       notes: v.notes || '',
       status: 'Pending',
+      season: v.season,
     };
   }
 
@@ -467,48 +507,6 @@ implements OnInit, OnDestroy {
       'Failed to save farmer delivery. Please try again.';
 
     this.cdr.markForCheck();
-  }
-
-  openNew(): void {
-    this.showModal = true;
-    this.form = this.fb.group({
-      branchDeliveryId: [this.route.snapshot.paramMap.get('id') || ''],
-      farmerId: ['', Validators.required],
-      farmerName: ['', Validators.required],
-      phone: ['', [Validators.required, ugandaPhoneValidator()]],
-      commodity: ['', Validators.required],
-      volume: [null, [Validators.required, positiveNumberValidator()]],
-      estimatedValue: [null, [Validators.required, positiveNumberValidator()]],
-      notes: [''],
-      status: ['Pending'],
-    });
-    this.deliveryForm.reset({
-      farmerSearch: '',
-      farmerName: '',
-      farmerId: '',
-      manualPhone: '',
-      phone: '',
-      branch: '',
-      batch: this.route.snapshot.paramMap.get('id') || '',
-      commodity: '',
-      volume: null,
-      unitPrice: null,
-      notes: '',
-    });
-  }
-
-  submit(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
-
-    this.deliveryService
-      .add(this.form.value as FarmerDeliveryFormData)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.showModal = false;
-      });
   }
 
   onSearchBlur(): void {

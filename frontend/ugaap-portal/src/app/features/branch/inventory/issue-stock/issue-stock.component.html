@@ -107,13 +107,39 @@
       </div>
     </div>
 
-    <div class="repayment-section">
+    <div class="repayment-section" *ngIf="!isCooperativeScope">
       <h2 class="section-title">Repayment Terms</h2>
 
-      <app-alert
-        variant="info"
-        message="Standard Post-Harvest Deduction (15%). The cost of these inputs will be automatically deducted from the farmer's next harvest payout. Current interest rate: 0.0% for first 90 days.">
-      </app-alert>
+      <div class="input-details-grid">
+        <div class="field">
+          <label class="field-label" for="repaymentMethod">REPAYMENT METHOD</label>
+          <select
+            id="repaymentMethod"
+            class="field-select"
+            [(ngModel)]="form.repaymentMethod">
+            <option value="">Select method</option>
+            <option *ngFor="let method of repaymentMethods" [value]="method.value">
+              {{ method.label }}
+            </option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="deductionRate">DEDUCTION RATE</label>
+          <div class="field-qty-wrapper">
+            <app-input
+              class="field-qty"
+              type="number"
+              id="deductionRate"
+              [(ngModel)]="form.deductionRate"
+              placeholder="0"
+              min="0"
+              max="100">
+            </app-input>
+            <span class="field-unit">%</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="form-footer">

@@ -1,18 +1,11 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// features/farmers/farmer-register/farmer-register.component.ts
-//
-// Farmer registration form — collects personal, farm, and cooperative data.
-// // On save: POST /api/v1/branch/farmers via FarmerService.create()
-// ─────────────────────────────────────────────────────────────────────────────
-
 import { CommonModule }   from '@angular/common';
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule }    from '@angular/forms';
-import { Router }         from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { InputComponent }  from '../../../../shared/components/input/input.component';
-import { FarmerRegistrationForm, FarmerService } from '../../../shared-farmer-domain/farmer.service';
+import { FarmerProfile, FarmerRegistrationForm, FarmerService } from '../../../shared-farmer-domain/farmer.service';
 import { SessionService } from '../../../../core/services/session.service';
 
 @Component({
@@ -22,24 +15,25 @@ import { SessionService } from '../../../../core/services/session.service';
   templateUrl: './branch.farmer-register.component.html',
   styleUrl: './branch.farmer-register.component.css',
 })
-export class BranchFarmerRegisterComponent {
+export class BranchFarmerRegisterComponent implements OnInit {
 
-  //  Field options
-  readonly genderOptions         = ['Female', 'Male', 'Other', 'Prefer not to say'];
-  readonly irrigationOptions     = ['Rain-fed', 'Irrigation', 'Both'];
-  readonly locationOptions       = ['Central Region', 'Eastern Region', 'Northern Region', 'Western Region'];
-  readonly cooperativeGroups     = ['Cooperative A', 'Cooperative B', 'Cooperative C'];
-  readonly branches              = ['Branch 1', 'Branch 2', 'Branch 3'];
-  readonly landOwnershipOptions  = ['Owned', 'Leased', 'Customary', 'Communal', 'Rented'];
-  readonly farmImageUrl       = 'assets/images/farm-aerial.jpg';
-  readonly maxPhotoSizeBytes  = 2 * 1024 * 1024; // 2 MB
+  // Field options
+  readonly genderOptions        = ['Female', 'Male', 'Other', 'Prefer not to say'];
+  readonly irrigationOptions    = ['Rain-fed', 'Irrigation', 'Both'];
+  readonly locationOptions      = ['Central Region', 'Eastern Region', 'Northern Region', 'Western Region'];
+  readonly landOwnershipOptions = ['Owned', 'Leased', 'Customary', 'Communal', 'Rented'];
+  readonly farmImageUrl         = 'assets/images/farm-aerial.jpg';
+  readonly maxPhotoSizeBytes    = 2 * 1024 * 1024;
 
-  // ── Component state ───────────────────────────────────────────────────────
-  photoError  = '';
-  isSaving    = false;
+  // Component state
+  isEditMode    = false;
+  farmerId: string | null = null;
+  loadingFarmer = false;
+  photoError    = '';
+  isSaving      = false;
   saveError: string | null = null;
 
-  // ── Form model ────────────────────────────────────────────────────────────
+  // Form model
   form: FarmerRegistrationForm = {
     fullName:          '',
     emailAddress:      '',
@@ -58,30 +52,43 @@ export class BranchFarmerRegisterComponent {
       coffee: false, maize: false, cocoa: false, vanilla: false,
       cattle: 0, goats: 0, poultry: 0,
     },
-    cooperativeGroup:  '',
-    assignedBranch:    '',
-   
+    cooperativeGroup: '',
+    assignedBranch:   '',
   };
 
   constructor(
     private router:        Router,
+    private route:         ActivatedRoute,
     private farmerService: FarmerService,
-    private session: SessionService,
+    private session:       SessionService,
   ) {}
 
-  // Lifecycle 
   ngOnInit(): void {
+    const role = this.session.userRole();
+    if (role && role !== 'branch') {
+      this.router.navigate(['/unauthorized']);
+      return;
+    }
 
-  // Only branch staff can register farmers
-  const role = this.session.userRole();
-  if (role && role !== 'branch') {
-    this.router.navigate(['/unauthorized']);
-    return;
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.isEditMode    = true;
+      this.farmerId      = id;
+      this.loadingFarmer = true;
+      this.farmerService.getById(id).subscribe({
+        next: profile => {
+          this.populateForm(profile);
+          this.loadingFarmer = false;
+        },
+        error: () => {
+          this.loadingFarmer = false;
+          this.saveError = 'Could not load farmer profile.';
+        },
+      });
+    }
   }
 
-}
-
-  // Photo handling 
+  // Photo handling
 
   removeFarmerPhoto(): void {
     this.form.photoPreviewUrl = '';
@@ -91,7 +98,7 @@ export class BranchFarmerRegisterComponent {
   onPhotoSelected(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (file) this.handlePhotoFile(file);
-    (event.target as HTMLInputElement).value = ''; // Reset so same file can be re-selected
+    (event.target as HTMLInputElement).value = '';
   }
 
   onPhotoDrop(event: DragEvent): void {
@@ -119,18 +126,13 @@ export class BranchFarmerRegisterComponent {
     reader.readAsDataURL(file);
   }
 
-  // ── Form actions ──────────────────────────────────────────────────────────
+  // Form actions
 
   onCancel(): void {
     this.router.navigate(['/branch/farmers/list']);
   }
 
-
-  
-
   onSave(): void {
-    console.log(this.form);
-    // Basic required-field guard
     if (!this.form.fullName || !this.form.phoneNumber || !this.form.nationalIdNumber) {
       alert('Please fill in all required fields (Name, Phone, National ID).');
       return;
@@ -139,18 +141,30 @@ export class BranchFarmerRegisterComponent {
     this.isSaving  = true;
     this.saveError = null;
 
-    // POST /api/v1/branch/farmers
-    // Branch context + auth headers added automatically by interceptors
-    this.farmerService.create({
+    const payload: FarmerRegistrationForm = {
       ...this.form,
-      status: 'Pending',
-      branchId: this.session.branchId() ?? undefined,
-      cooperativeId: this.session.cooperativeId() ?? undefined,
-      assignedBranch: this.form.assignedBranch || this.session.branchId() || '',
-    }).subscribe({
+      branchId:       this.session.branchId() ?? undefined,
+      cooperativeId:  this.session.cooperativeId() ?? undefined,
+      assignedBranch: this.session.branchId() || '',
+    };
+
+    if (this.isEditMode && this.farmerId) {
+      this.farmerService.update(this.farmerId, payload).subscribe({
+        next: () => {
+          this.isSaving = false;
+          this.router.navigate(['/branch/farmers/list']);
+        },
+        error: err => {
+          this.isSaving  = false;
+          this.saveError = err?.error?.message ?? 'Failed to update farmer. Please try again.';
+        },
+      });
+      return;
+    }
+
+    this.farmerService.create({ ...payload, status: 'Pending' }).subscribe({
       next: () => {
         this.isSaving = false;
-        // Navigate back to the list after successful registration
         this.router.navigate(['/branch/farmers/list']);
       },
       error: err => {
@@ -158,6 +172,35 @@ export class BranchFarmerRegisterComponent {
         this.saveError = err?.error?.message ?? 'Failed to register farmer. Please try again.';
       },
     });
+  }
+
+  private populateForm(profile: FarmerProfile): void {
+    this.form = {
+      fullName:          profile.fullName,
+      emailAddress:      profile.emailAddress,
+      phoneNumber:       profile.phoneNumber,
+      dateOfBirth:       profile.dateOfBirth,
+      nationalIdNumber:  profile.nationalIdNumber,
+      gender:            profile.gender,
+      photoPreviewUrl:   profile.photoUrl,
+      farmLocation:      profile.farmLocation,
+      village:           profile.village,
+      gpsCoordinates:    profile.farm.gpsCoordinates,
+      totalLandArea:     profile.farm.totalLandArea,
+      irrigationSource:  profile.farm.irrigationSource,
+      landOwnershipType: profile.farm.landOwnershipType,
+      production: {
+        coffee:  profile.farm.primaryCrops.includes('Coffee'),
+        maize:   profile.farm.primaryCrops.includes('Maize'),
+        cocoa:   profile.farm.primaryCrops.includes('Cocoa'),
+        vanilla: profile.farm.primaryCrops.includes('Vanilla'),
+        cattle:  profile.farm.livestock.includes('Cattle')  ? 1 : 0,
+        goats:   profile.farm.livestock.includes('Goats')   ? 1 : 0,
+        poultry: profile.farm.livestock.includes('Poultry') ? 1 : 0,
+      },
+      cooperativeGroup: profile.groupCredit.cooperativeGroup,
+      assignedBranch:   profile.registration.assignedBranch,
+    };
   }
 }
 

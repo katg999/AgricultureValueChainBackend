@@ -1,17 +1,16 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { BehaviorSubject, combineLatest, map, Observable, Subject, takeUntil } from 'rxjs';
 
-import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { FarmerListItem, FarmerService } from '../../../shared-farmer-domain/farmer.service';
 
 @Component({
   selector: 'app-farmer-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonComponent, InputComponent],
+  imports: [CommonModule, FormsModule, InputComponent],
   templateUrl: './farmer-list.component.html',
   styleUrl: './farmer-list.component.css',
 })
@@ -21,6 +20,7 @@ export class FarmerListComponent implements OnInit, OnDestroy {
   selectedStatus = 'Pending';
   selectedCommodity = 'All Commodities';
   selectedStage = 'All Stages';
+  openMenuId: string | null = null;
 
   readonly statuses = ['All Statuses', 'Active', 'Pending', 'Rejected', 'Suspended'];
   readonly stages = ['All Stages', 'Registered', 'Verified', 'Financed'];
@@ -88,7 +88,22 @@ export class FarmerListComponent implements OnInit, OnDestroy {
       });
   }
 
+  @HostListener('document:click')
+  onDocumentClick(): void {
+    this.openMenuId = null;
+  }
+
+  toggleMenu(id: string, event: MouseEvent): void {
+    event.stopPropagation();
+    this.openMenuId = this.openMenuId === id ? null : id;
+  }
+
+  closeMenu(): void {
+    this.openMenuId = null;
+  }
+
   onApproveFarmer(farmer: FarmerListItem): void {
+    this.closeMenu();
     if (!confirm(`Are you sure you want to approve ${farmer.name}?`)) return;
 
     this.farmerService.approve(farmer.id)
@@ -99,7 +114,20 @@ export class FarmerListComponent implements OnInit, OnDestroy {
       });
   }
 
+  onRejectFarmer(farmer: FarmerListItem): void {
+    this.closeMenu();
+    if (!confirm(`Are you sure you want to reject ${farmer.name}?`)) return;
+
+    this.farmerService.reject(farmer.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => undefined,
+        error: err => alert(err?.error?.message ?? 'Reject failed.'),
+      });
+  }
+
   onReviewFarmer(farmer: FarmerListItem): void {
+    this.closeMenu();
     this.router.navigate(['/cooperative/farmers/approval', farmer.id]);
   }
 

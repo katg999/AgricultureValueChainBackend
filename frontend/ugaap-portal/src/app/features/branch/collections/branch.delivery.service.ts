@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, map } from 'rxjs';
-import { BranchDelivery, BranchDeliveryFormData, DeliveryStatus } from './branch.delivery.model';
+import { BranchDelivery, BranchDeliveryFormData, DeliveryStatus, Season } from './branch.delivery.model';
 
 @Injectable({ providedIn: 'root' })
 export class BranchDeliveryService {
   private nextDeliveryNumber = 6;
 
   private deliveries: BranchDelivery[] = [
+    // ── Wet Season ──────────────────────────────────────────────────────────
     {
       id: 'BD-001',
       branchId: 'BR-KLA',
@@ -16,6 +17,7 @@ export class BranchDeliveryService {
       volume: 12400,
       estimatedValue: 31000000,
       status: 'Approved',
+      season: 'Wet Season',
       createdAt: new Date('2025-05-10'),
       updatedAt: new Date('2025-05-12'),
     },
@@ -28,6 +30,7 @@ export class BranchDeliveryService {
       volume: 3200,
       estimatedValue: 19200000,
       status: 'Pending',
+      season: 'Wet Season',
       createdAt: new Date('2025-05-15'),
       updatedAt: new Date('2025-05-15'),
     },
@@ -40,9 +43,37 @@ export class BranchDeliveryService {
       volume: 8750,
       estimatedValue: 21875000,
       status: 'Pending',
+      season: 'Wet Season',
       createdAt: new Date('2025-05-18'),
       updatedAt: new Date('2025-05-18'),
     },
+    {
+      id: 'BD-006',
+      branchId: 'BR-FTP',
+      branchName: 'Fort Portal West',
+      farmerCount: 31,
+      commodity: 'Tea',
+      volume: 6800,
+      estimatedValue: 17000000,
+      status: 'Pending',
+      season: 'Wet Season',
+      createdAt: new Date('2025-05-22'),
+      updatedAt: new Date('2025-05-22'),
+    },
+    {
+      id: 'BD-007',
+      branchId: 'BR-ADJ',
+      branchName: 'Adjumani East',
+      farmerCount: 24,
+      commodity: 'Maize',
+      volume: 5100,
+      estimatedValue: 12750000,
+      status: 'Approved',
+      season: 'Wet Season',
+      createdAt: new Date('2025-05-25'),
+      updatedAt: new Date('2025-05-26'),
+    },
+    // ── Dry Season ──────────────────────────────────────────────────────────
     {
       id: 'BD-004',
       branchId: 'BR-GUL',
@@ -52,6 +83,7 @@ export class BranchDeliveryService {
       volume: 4100,
       estimatedValue: 12300000,
       status: 'Rejected',
+      season: 'Dry Season',
       createdAt: new Date('2025-05-08'),
       updatedAt: new Date('2025-05-09'),
     },
@@ -64,8 +96,48 @@ export class BranchDeliveryService {
       volume: 9300,
       estimatedValue: 18600000,
       status: 'Approved',
+      season: 'Dry Season',
       createdAt: new Date('2025-05-20'),
       updatedAt: new Date('2025-05-21'),
+    },
+    {
+      id: 'BD-008',
+      branchId: 'BR-KIB',
+      branchName: 'Kiboga Central',
+      farmerCount: 14,
+      commodity: 'Vanilla',
+      volume: 820,
+      estimatedValue: 24600000,
+      status: 'Approved',
+      season: 'Dry Season',
+      createdAt: new Date('2025-05-12'),
+      updatedAt: new Date('2025-05-13'),
+    },
+    {
+      id: 'BD-009',
+      branchId: 'BR-LIR',
+      branchName: 'Lira Town',
+      farmerCount: 38,
+      commodity: 'Sesame',
+      volume: 6200,
+      estimatedValue: 15500000,
+      status: 'Pending',
+      season: 'Dry Season',
+      createdAt: new Date('2025-05-16'),
+      updatedAt: new Date('2025-05-16'),
+    },
+    {
+      id: 'BD-010',
+      branchId: 'BR-MBA2',
+      branchName: 'Mbale East',
+      farmerCount: 21,
+      commodity: 'Coffee',
+      volume: 2800,
+      estimatedValue: 16800000,
+      status: 'Approved',
+      season: 'Dry Season',
+      createdAt: new Date('2025-05-19'),
+      updatedAt: new Date('2025-05-20'),
     },
   ];
 
@@ -78,7 +150,8 @@ export class BranchDeliveryService {
   getDeliveriesForBranch(branchId: string | null, branchName?: string | null): Observable<BranchDelivery[]> {
     return this.deliveries$.pipe(
       map(deliveries => {
-        if (!branchId && !branchName) return [];
+        // No branch context in session (dev/demo mode) — show all deliveries.
+        if (!branchId && !branchName) return deliveries;
 
         const normalizedName = branchName?.trim().toLowerCase();
         return deliveries.filter(d =>
@@ -123,6 +196,10 @@ export class BranchDeliveryService {
 
   deleteDelivery(id: string): void {
     this.emitDeliveries(this.deliveries.filter(d => d.id !== id));
+  }
+
+  getSeasonOptions(): Season[] {
+    return ['Wet Season', 'Dry Season'];
   }
 
   getStatusOptions(): DeliveryStatus[] {

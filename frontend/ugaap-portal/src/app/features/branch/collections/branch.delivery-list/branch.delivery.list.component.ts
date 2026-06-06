@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BehaviorSubject, combineLatest, map, Observable, shareReplay } from 'rxjs';
 
-import { BranchDelivery, BranchDeliveryFormData, DeliveryStatus } from '../branch.delivery.model';
+import { BranchDelivery, BranchDeliveryFormData, DeliveryStatus, Season } from '../branch.delivery.model';
 import { BranchDeliveryService } from '../branch.delivery.service';
 import { SessionService } from '../../../../core/services/session.service';
 
@@ -25,9 +25,11 @@ export class BranchDeliveriesComponent implements OnInit, OnDestroy {
   searchTerm = '';
   selectedCategory = '';
   selectedStatus = '';
+  selectedSeason = '';
 
   statusOptions: DeliveryStatus[] = [];
   commodityOptions: string[] = [];
+  seasonOptions: Season[] = [];
   openActionMenuId: string | null = null;
   showAddDeliveryModal = false;
   addDeliveryForm!: BranchDeliveryFormData;
@@ -36,6 +38,7 @@ export class BranchDeliveriesComponent implements OnInit, OnDestroy {
     searchTerm: '',
     selectedCategory: '',
     selectedStatus: '',
+    selectedSeason: '',
   });
 
   constructor(
@@ -48,6 +51,7 @@ export class BranchDeliveriesComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.statusOptions = this.svc.getStatusOptions();
     this.commodityOptions = this.svc.getCommodityOptions();
+    this.seasonOptions = this.svc.getSeasonOptions();
     this.addDeliveryForm = this.createAddDeliveryForm();
 
     this.deliveries$ = this.svc
@@ -69,7 +73,13 @@ export class BranchDeliveriesComponent implements OnInit, OnDestroy {
       searchTerm: this.searchTerm,
       selectedCategory: this.selectedCategory,
       selectedStatus: this.selectedStatus,
+      selectedSeason: this.selectedSeason,
     });
+  }
+
+  setSeasonFilter(season: string): void {
+    this.selectedSeason = season;
+    this.applyFilter();
   }
 
   approve(delivery: BranchDelivery): void {
@@ -81,6 +91,7 @@ export class BranchDeliveriesComponent implements OnInit, OnDestroy {
       volume: delivery.volume,
       estimatedValue: delivery.estimatedValue,
       status: 'Approved',
+      season: delivery.season,
     });
     this.openActionMenuId = null;
   }
@@ -94,6 +105,7 @@ export class BranchDeliveriesComponent implements OnInit, OnDestroy {
       volume: delivery.volume,
       estimatedValue: delivery.estimatedValue,
       status: 'Rejected',
+      season: delivery.season,
     });
     this.openActionMenuId = null;
   }
@@ -161,6 +173,10 @@ export class BranchDeliveriesComponent implements OnInit, OnDestroy {
     return map[status];
   }
 
+  seasonClass(season: Season): string {
+    return season === 'Wet Season' ? 'season-wet' : 'season-dry';
+  }
+
    statusIcon(status: DeliveryStatus): string {
     const map: Record<DeliveryStatus, string> = {
       Pending:  'ti-clock',
@@ -190,20 +206,21 @@ export class BranchDeliveriesComponent implements OnInit, OnDestroy {
     return new Set(deliveries.map(d => d.branchId ?? d.branchName)).size;
   }
 
-  private get currentBranchName(): string | null {
+  private get currentBranchName(): string {
     const user = this.session.currentUser() as { branchName?: string } | null;
-    return user?.branchName ?? null;
+    return user?.branchName ?? this.session.branchId() ?? '';
   }
 
   private createAddDeliveryForm(): BranchDeliveryFormData {
     return {
       branchId: this.session.branchId() ?? undefined,
-      branchName: this.currentBranchName ?? '',
+      branchName: this.currentBranchName,
       farmerCount: 0,
       commodity: this.commodityOptions[0] ?? 'Maize',
       volume: 0,
       estimatedValue: 0,
       status: 'Pending',
+      season: 'Wet Season',
     };
   }
 
@@ -221,13 +238,14 @@ export class BranchDeliveriesComponent implements OnInit, OnDestroy {
       volume >= 0 &&
       Number.isFinite(estimatedValue) &&
       estimatedValue >= 0 &&
-      this.addDeliveryForm.status
+      this.addDeliveryForm.status &&
+      this.addDeliveryForm.season
     );
   }
 
   private filterDeliveries(
     deliveries: BranchDelivery[],
-    filter: { searchTerm: string; selectedCategory: string; selectedStatus: string },
+    filter: { searchTerm: string; selectedCategory: string; selectedStatus: string; selectedSeason: string },
   ): BranchDelivery[] {
     const term = filter.searchTerm.toLowerCase();
 
@@ -244,7 +262,10 @@ export class BranchDeliveriesComponent implements OnInit, OnDestroy {
       const matchStatus =
         !filter.selectedStatus || d.status === filter.selectedStatus;
 
-      return matchSearch && matchCategory && matchStatus;
+      const matchSeason =
+        !filter.selectedSeason || d.season === filter.selectedSeason;
+
+      return matchSearch && matchCategory && matchStatus && matchSeason;
     });
   }
 }

@@ -1,10 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 
 import { AlertComponent } from '../../../../shared/components/alert/alert.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge';
+import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
@@ -17,8 +18,9 @@ import {
   RecoveryStatus,
 } from '../../../shared-inventory-domain/inventory.service';
 
-type BadgeVariant = 'settled' | 'partial' | 'overdue' | 'info'; //Badge variants corresponding to recovery status, with 'info' for any additional informational badges
-type AlertVariant = 'error' | 'warning' | 'info' | 'success'; //Alert variants for recent issues, used to visually differentiate the severity of messages in the UI
+type BadgeVariant = 'settled' | 'partial' | 'overdue' | 'issued' | 'received' | 'info';
+type AlertVariant = 'error' | 'warning' | 'info' | 'success';
+type AllocationStatus = RecoveryStatus | 'issued' | 'received';
 
 interface Allocation {
   id: string;
@@ -32,7 +34,7 @@ interface Allocation {
   issueDate: string;
   allocationDate: string;
   outstanding: number;
-  status: RecoveryStatus;
+  status: AllocationStatus;
 }
 
 interface Summary {
@@ -66,6 +68,7 @@ interface RecentIssue {
     BadgeComponent,
     ButtonComponent,
     InputComponent,
+    ModalComponent,
     PageHeaderComponent,
     StatCardComponent,
   ],
@@ -79,6 +82,10 @@ export class StockDisbursedComponent implements OnInit { // Main component for m
   showAdvancedFilters = false;
   currentPage = 1;
   readonly pageSize = 5;
+
+  openKebabId: string | null = null;
+  showDetailModal = false;
+  selectedAllocation: Allocation | null = null;
 
   allocations: Allocation[] = [];
 
@@ -188,7 +195,7 @@ export class StockDisbursedComponent implements OnInit { // Main component for m
 
   ngOnInit(): void {
     if (this.isCooperativeScope) {
-      this.inventoryService.listBranchDisbursements().subscribe(rows => {
+      this.inventoryService.listBranchDisbursementsForRole$().subscribe(rows => {
         this.allocations = rows.map(row => this.fromBranchDisbursement(row));
         this.applyFilters();
       });
@@ -234,6 +241,28 @@ export class StockDisbursedComponent implements OnInit { // Main component for m
     this.goToPage(this.currentPage + 1);
   }
 
+  @HostListener('document:click')
+  onDocumentClick(): void {
+    this.openKebabId = null;
+  }
+
+  toggleKebab(id: string, event: MouseEvent): void {
+    event.stopPropagation();
+    this.openKebabId = this.openKebabId === id ? null : id;
+  }
+
+  onViewDetails(row: Allocation, event: MouseEvent): void {
+    event.stopPropagation();
+    this.selectedAllocation = row;
+    this.showDetailModal = true;
+    this.openKebabId = null;
+  }
+
+  closeDetailModal(): void {
+    this.showDetailModal = false;
+    this.selectedAllocation = null;
+  }
+
   downloadReport(): void {
     window.alert('Stock disbursement report download will be available soon.');
   }
@@ -243,7 +272,7 @@ export class StockDisbursedComponent implements OnInit { // Main component for m
     return Math.min(Math.round((value / maxValue) * 100), 100);
   }
 
-  getStatusVariant(status: RecoveryStatus): BadgeVariant {
+  getStatusVariant(status: AllocationStatus): BadgeVariant {
     return status;
   }
 
@@ -264,7 +293,7 @@ export class StockDisbursedComponent implements OnInit { // Main component for m
       issueDate: row.issueDate,
       allocationDate: row.issueDate,
       outstanding: 0,
-      status: 'settled',
+      status: row.status,
     };
   }
 

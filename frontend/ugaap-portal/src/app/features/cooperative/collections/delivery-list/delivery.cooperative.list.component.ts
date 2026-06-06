@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BehaviorSubject, combineLatest, map, Observable, shareReplay, Subject, takeUntil } from 'rxjs';
-import { BranchDelivery, BranchDeliveryFormData, DeliveryStatus } from '../../../branch/collections/branch.delivery.model';
+import { BranchDelivery, BranchDeliveryFormData, DeliveryStatus, Season } from '../../../branch/collections/branch.delivery.model';
 import { BranchDeliveryService } from '../../../branch/collections/branch.delivery.service';
 
 @Component({
@@ -19,6 +19,7 @@ export class CooperativeDeliveriesComponent implements OnInit, OnDestroy {
   filteredDeliveries$!: Observable<BranchDelivery[]>;
   searchTerm = '';
   selectedCategory = '';
+  selectedSeason = '';
 
   isEditRoute = false;
   editingDelivery: BranchDelivery | null = null;
@@ -27,11 +28,13 @@ export class CooperativeDeliveriesComponent implements OnInit, OnDestroy {
 
   statusOptions: DeliveryStatus[] = [];
   commodityOptions: string[] = [];
+  seasonOptions: Season[] = [];
 
   private readonly destroy$ = new Subject<void>();
   private readonly filterState$ = new BehaviorSubject({
     searchTerm: '',
     selectedCategory: '',
+    selectedSeason: '',
   });
 
   constructor(
@@ -44,6 +47,7 @@ export class CooperativeDeliveriesComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.statusOptions = this.svc.getStatusOptions();
     this.commodityOptions = this.svc.getCommodityOptions();
+    this.seasonOptions = this.svc.getSeasonOptions();
 
     this.branchDeliveries$ = this.svc.getDeliveries().pipe(
       shareReplay({ bufferSize: 1, refCount: true }),
@@ -81,7 +85,13 @@ export class CooperativeDeliveriesComponent implements OnInit, OnDestroy {
     this.filterState$.next({
       searchTerm: this.searchTerm,
       selectedCategory: this.selectedCategory,
+      selectedSeason: this.selectedSeason,
     });
+  }
+
+  setSeasonFilter(season: string): void {
+    this.selectedSeason = season;
+    this.applyFilter();
   }
 
   toggleActionMenu(delivery: BranchDelivery, event: MouseEvent): void {
@@ -153,6 +163,10 @@ export class CooperativeDeliveriesComponent implements OnInit, OnDestroy {
     return map[status];
   }
 
+  seasonClass(season: Season): string {
+    return season === 'Wet Season' ? 'season-wet' : 'season-dry';
+  }
+
   private buildEditForm(delivery: BranchDelivery): void {
     this.form = this.fb.group({
       branchId: [delivery.branchId],
@@ -162,12 +176,13 @@ export class CooperativeDeliveriesComponent implements OnInit, OnDestroy {
       volume: [delivery.volume, [Validators.required, Validators.min(0)]],
       estimatedValue: [delivery.estimatedValue, [Validators.required, Validators.min(0)]],
       status: [delivery.status, Validators.required],
+      season: [delivery.season, Validators.required],
     });
   }
 
   private filterDeliveries(
     deliveries: BranchDelivery[],
-    filter: { searchTerm: string; selectedCategory: string },
+    filter: { searchTerm: string; selectedCategory: string; selectedSeason: string },
   ): BranchDelivery[] {
     const term = filter.searchTerm.trim().toLowerCase();
 
@@ -178,7 +193,8 @@ export class CooperativeDeliveriesComponent implements OnInit, OnDestroy {
         d.id.toLowerCase().includes(term) ||
         d.commodity.toLowerCase().includes(term);
       const matchCategory = !filter.selectedCategory || d.commodity === filter.selectedCategory;
-      return matchSearch && matchCategory;
+      const matchSeason = !filter.selectedSeason || d.season === filter.selectedSeason;
+      return matchSearch && matchCategory && matchSeason;
     });
   }
 }

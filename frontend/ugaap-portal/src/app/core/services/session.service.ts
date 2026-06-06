@@ -12,6 +12,19 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthUser } from '../models/auth.model';
+import { environment } from '../../../environments/environment';
+
+/** Seeded only in development when no real session exists — lets role-based filtering be demonstrated without a backend. */
+const DEV_MOCK_USER: AuthUser = {
+  id: 'DEV-BR-001',
+  fullName: 'Demo Branch User',
+  email: 'branch.mbale@ugaap.dev',
+  phone: '0700000001',
+  role: 'branch',
+  branchId: 'BR-MBL',
+  cooperativeId: 'COOP-001',
+  permissions: [],
+};
 
 /** Keys used in storage — centralised so there are no magic strings elsewhere */
 const KEYS = {
@@ -183,7 +196,10 @@ export class SessionService {
   private _loadUser(): AuthUser | null {
     try {
       const raw = localStorage.getItem(KEYS.USER);
-      return raw ? (JSON.parse(raw) as AuthUser) : null;
+      if (raw) return JSON.parse(raw) as AuthUser;
+      // In development with no stored session, seed a branch user so role-based
+      // filtering (batch visibility, etc.) is demonstrable without a real login.
+      return environment.production ? null : DEV_MOCK_USER;
     } catch {
       return null;   // Corrupted storage — start fresh
     }

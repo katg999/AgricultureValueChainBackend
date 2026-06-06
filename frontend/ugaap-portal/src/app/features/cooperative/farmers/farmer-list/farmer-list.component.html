@@ -73,36 +73,39 @@
           <td>
             <span class="commodity-tag">{{ farmer.primaryCommodity }}</span>
           </td>
-          <td class="text-bold">{{ farmer.creditLimit }}</td>
           <td
             class="text-bold"
-            [ngClass]="{ 'text-danger-custom': farmer.balance !== '0.00' && farmer.balance !== '--' }">
-            {{ farmer.balance }}
+            [ngClass]="{ 'text-danger-custom': farmer.balance !== '0' && farmer.balance !== '0.00' && farmer.balance !== '--' }">
+            {{ (farmer.balance === '0' || farmer.balance === '0.00') ? '--' : farmer.balance }}
           </td>
           <td>
             <span class="status-badge" [ngClass]="farmer.status.toLowerCase()">
               {{ farmer.status }}
             </span>
           </td>
-          <td class="text-center">
-            <app-button
-              *ngIf="farmer.status === 'Pending'"
-              type="button"
-              size="sm"
-              variant="secondary"
-              (clicked)="onReviewFarmer(farmer)">
-              Review
-            </app-button>
-            <app-button
-              *ngIf="farmer.status === 'Pending'"
-              type="button"
-              size="sm"
-              variant="primary"
-              iconLeft="✓"
-              (clicked)="onApproveFarmer(farmer)">
-              Approve
-            </app-button>
-            <span *ngIf="farmer.status !== 'Pending'" class="text-muted-placeholder">-</span>
+          <td class="text-center actions-cell">
+            <div class="kebab-wrapper">
+              <button
+                class="kebab-btn"
+                type="button"
+                aria-label="Open actions menu"
+                (click)="toggleMenu(farmer.id, $event)">
+                &#8942;
+              </button>
+              <div class="kebab-dropdown" *ngIf="openMenuId === farmer.id">
+                <button class="kebab-item" type="button" (click)="onReviewFarmer(farmer)">
+                  Review
+                </button>
+                <ng-container *ngIf="farmer.status === 'Pending'">
+                  <button class="kebab-item approve" type="button" (click)="onApproveFarmer(farmer)">
+                    Approve
+                  </button>
+                  <button class="kebab-item reject" type="button" (click)="onRejectFarmer(farmer)">
+                    Reject
+                  </button>
+                </ng-container>
+              </div>
+            </div>
           </td>
         </tr>
       </tbody>
@@ -113,11 +116,11 @@
         <span>Showing 1 to {{ filteredFarmers.length }} of {{ farmers.length }} entries</span>
       </div>
       <div class="pagination-controls">
-        <app-button class="pagination-button" variant="secondary" size="sm">Previous</app-button>
-        <app-button class="pagination-button" variant="primary" size="sm">1</app-button>
-        <app-button class="pagination-button" variant="secondary" size="sm">2</app-button>
-        <app-button class="pagination-button" variant="secondary" size="sm">3</app-button>
-        <app-button class="pagination-button" variant="secondary" size="sm">Next</app-button>
+        <button class="page-btn" type="button">Previous</button>
+        <button class="page-btn page-btn--active" type="button">1</button>
+        <button class="page-btn" type="button">2</button>
+        <button class="page-btn" type="button">3</button>
+        <button class="page-btn" type="button">Next</button>
       </div>
     </div>
   </div>

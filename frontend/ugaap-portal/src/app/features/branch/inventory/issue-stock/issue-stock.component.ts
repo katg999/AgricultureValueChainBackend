@@ -3,7 +3,6 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 
-import { AlertComponent } from '../../../../shared/components/alert/alert.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
@@ -12,6 +11,7 @@ import {
   FarmerOption,
   InventoryScope,
   InventoryService,
+  RepaymentMethod,
   StockItem,
 } from '../../../shared-inventory-domain/inventory.service';
 
@@ -27,6 +27,8 @@ interface IssueStockForm {
   branchId: string;
   quantity: string;
   season: string;
+  repaymentMethod: RepaymentMethod | '';
+  deductionRate: string;
   acknowledged: boolean;
 }
 
@@ -50,7 +52,6 @@ interface RecentIssuance {
     CommonModule,
     FormsModule,
     RouterModule,
-    AlertComponent,
     ButtonComponent,
     InputComponent,
     PageHeaderComponent,
@@ -71,11 +72,19 @@ export class IssueStockComponent {
 
   readonly seasons = ['Wet Season', 'Dry Season'];
 
+  readonly repaymentMethods: { value: RepaymentMethod; label: string }[] = [
+    { value: 'post-harvest-deduction', label: 'Post-Harvest Deduction' },
+    { value: 'installments',           label: 'Monthly Installments'   },
+    { value: 'lump-sum',               label: 'Lump Sum'               },
+  ];
+
   form: IssueStockForm = {
     stockItemId: '',
     branchId: '',
     quantity: '',
     season: '',
+    repaymentMethod: '',
+    deductionRate: '',
     acknowledged: false,
   };
 
@@ -187,12 +196,17 @@ export class IssueStockComponent {
 
   canSubmit(): boolean {
     const hasDestination = this.isCooperativeScope ? Boolean(this.form.branchId) : Boolean(this.selectedFarmer);
+    const hasRepaymentTerms = this.isCooperativeScope ||
+      (Boolean(this.form.repaymentMethod) &&
+        Number(this.form.deductionRate) > 0 &&
+        Number(this.form.deductionRate) <= 100);
 
     return Boolean(
       hasDestination &&
         this.form.stockItemId &&
         this.form.season &&
         Number(this.form.quantity) > 0 &&
+        hasRepaymentTerms &&
         this.form.acknowledged,
     );
   }
@@ -222,6 +236,8 @@ export class IssueStockComponent {
       farmerId: this.selectedFarmer.id,
       quantity,
       season: this.form.season,
+      repaymentMethod: this.form.repaymentMethod as RepaymentMethod,
+      deductionRate: Number(this.form.deductionRate),
     }).subscribe(row => {
       this.prependIssuance(row.farmerName, row.farmerId, row.itemName, row.quantity, row.unit, row.totalValue);
       this.resetForm();
@@ -246,6 +262,8 @@ export class IssueStockComponent {
       branchId: '',
       quantity: '',
       season: '',
+      repaymentMethod: '',
+      deductionRate: '',
       acknowledged: false,
     };
   }

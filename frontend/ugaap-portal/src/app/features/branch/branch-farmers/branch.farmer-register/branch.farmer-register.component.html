@@ -1,8 +1,10 @@
 <div class="page-shell">
   <div class="form-header">
-    <h1>Farmer Registration Form</h1>
-    <p class="subtitle">Create a new user</p>
+    <h1>{{ isEditMode ? 'Edit Farmer Profile' : 'Farmer Registration Form' }}</h1>
+    <p class="subtitle">{{ isEditMode ? 'Update farmer details' : 'Create a new user' }}</p>
   </div>
+
+  <p *ngIf="loadingFarmer" class="field-hint">Loading farmer profile…</p>
 
   <div class="form-card">
     <div class="grid-1">
@@ -100,86 +102,84 @@
             </div>
           </div>
 
-          
-        </div>
-
         <p class="field-hint">Clear front-facing photo required for KYC</p>
         <p class="field-error" *ngIf="photoError">{{ photoError }}</p>
+
+        </div>
+        
       </div>
+    </div>
+
+  
+  <div class="form-card">
+  <h2 class="section-label">FARM SPECIFICATIONS</h2>
+
+  <div class="grid-1">
+    <div class="field-group">
+      <label class="field-label">Farm location</label>
+      <select title="select farm location" [(ngModel)]="form.farmLocation" name="farmLocation" class="form-select">
+        <option *ngFor="let loc of locationOptions" [value]="loc">{{ loc }}</option>
+      </select>
+      <p class="field-hint">Select the location where your farm is situated</p>
+    </div>
+
+    <app-input
+      label="Village/Town"
+      placeholder="e.g. Kiwanga"
+      type="text"
+      [(ngModel)]="form.village"
+      name="village">
+    </app-input>
+  </div>
+
+  <div class="grid-2">
+    <div class="field-group">
+      <app-input
+        label="GPS Coordinates"
+        placeholder="e.g. 0.3476 N, 32.5825 E"
+        type="text"
+        [(ngModel)]="form.gpsCoordinates">
+      </app-input>
+      <p class="field-hint">Survey plots are created inside each cooperative portal</p>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Irrigation Source</label>
+      <select title="select irrigation source" [(ngModel)]="form.irrigationSource" name="irrigationSource" class="form-select">
+        <option *ngFor="let opt of irrigationOptions" [value]="opt">{{ opt }}</option>
+      </select>
+      <p class="field-hint">This is shown during farmer approval review.</p>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Total Land Area (Hectares)</label>
+      <input
+        class="form-input"
+        type="number"
+        [(ngModel)]="form.totalLandArea"
+        name="totalLandArea"
+        placeholder="5.5"
+        min="0"
+        step="0.1" />
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Land Ownership Type</label>
+      <select title="select land ownership type" [(ngModel)]="form.landOwnershipType" name="landOwnershipType" class="form-select">
+        <option *ngFor="let opt of landOwnershipOptions" [value]="opt">{{ opt }}</option>
+      </select>
+      <p class="field-hint">Select the type of land ownership i.e. Lease, Own, etc.</p>
     </div>
   </div>
 
-  <section class="form-section form-card">
-    <h2 class="section-label">FARM SPECIFICATIONS</h2>
-
-    <div class="farm-specs-layout">
-      <div class="farm-specs-fields">
-        <div class="field-group">
-          <label class="field-label">Farm location</label>
-          <select title="select farm location" [(ngModel)]="form.farmLocation" name="farmLocation" class="form-select">
-            <option *ngFor="let loc of locationOptions" [value]="loc">{{ loc }}</option>
-          </select>
-
-          <app-input
-            label="Village/Town"
-            placeholder="e.g. Kiwanga"
-            type="text"
-            [(ngModel)]="form.village"
-            name="village"
-            >
-          </app-input>
-
-          <p class="field-hint">Select the location where your farm is situated</p>
-        </div>
-
-        <div class="field-group">
-          <app-input
-          label="GPS Coordinates"
-          placeholder="e.g. 0.3476 N, 32.5825 E"
-          type="text"
-          [(ngModel)]="form.gpsCoordinates">
-          <p class="field-hint">Survey plots are created inside each cooperative portal</p>
-          </app-input>
-          
-        </div>
-
-        <div class="field-group">
-          <label class="field-label">Irrigation Source</label>
-          <select title="select irrigation source" [(ngModel)]="form.irrigationSource" name="irrigationSource" class="form-select">
-            <option *ngFor="let opt of irrigationOptions" [value]="opt">{{ opt }}</option>
-          </select>
-          <p class="field-hint">This is shown during farmer approval review.</p>
-        </div>
-
-        <div class="field-group">
-          <label class="field-label">Total Land Area (Hectares)</label>
-          <input
-            class="form-input"
-            type="number"
-            [(ngModel)]="form.totalLandArea"
-            name="totalLandArea"
-            placeholder="5.5"
-            min="0"
-            step="0.1" />
-        </div>
-
-        <div class="field-group">
-          <label class="field-label">Land Ownership Type</label>
-          <select title="select land ownership type" [(ngModel)]="form.landOwnershipType" name="landOwnershipType" class="form-select">
-            <option *ngFor="let opt of landOwnershipOptions" [value]="opt">{{ opt }}</option>
-          </select>
-          <p class="field-hint">Select the type of land ownership i.e. Lease, Own, etc.</p>
-        </div>
-      </div>
-
-      <div class="farm-image-wrapper">
-        <img [src]="farmImageUrl" alt="Farm aerial view" class="farm-image" />
-        <div class="farm-image-overlay">
-          <span class="capture-badge">&#x1F4CD; Awaiting Capture</span>
-        </div>
-      </div>
+  <div class="farm-image-wrapper">
+    <img [src]="farmImageUrl" alt="Farm aerial view" class="farm-image" />
+    <div class="farm-image-overlay">
+      <span class="capture-badge">&#x1F4CD; Awaiting Capture</span>
     </div>
-  </section>
+  </div>
+</div>
+
 
   <div class="bottom-cards-grid">
     <div class="bottom-card">
@@ -246,32 +246,12 @@
       </div>
     </div>
 
-    <div class="bottom-card">
-      <h3 class="bottom-card-title">Group &amp; Credit</h3>
-
-      <div class="field-group">
-        <label class="field-label">Cooperative Group</label>
-        <select title="form-select" [(ngModel)]="form.cooperativeGroup" name="cooperativeGroup" class="form-select">
-          <option *ngFor="let g of cooperativeGroups" [value]="g">{{ g }}</option>
-        </select>
-      </div>
-
-      <div class="grid-2">
-        <div class="field-group">
-          <label class="field-label">Assigned Branch</label>
-          <select title="form-select" [(ngModel)]="form.assignedBranch" name="assignedBranch" class="form-select">
-            <option *ngFor="let b of branches" [value]="b">{{ b }}</option>
-          </select>
-        </div>
-
-      </div>
-
-      
-    </div>
   </div>
 
   <div class="form-actions">
     <app-button variant="ghost" size="md" (clicked)="onCancel()">Cancel</app-button>
-    <app-button variant="primary" size="md" (clicked)="onSave()">Save user</app-button>
+    <app-button variant="primary" size="md" (clicked)="onSave()" [disabled]="isSaving || loadingFarmer">
+      {{ isEditMode ? 'Save changes' : 'Save user' }}
+    </app-button>
   </div>
 

@@ -1,8 +1,9 @@
-import { DeliveryStatus } from './branch.delivery.model';
+import { DeliveryStatus, Season } from './branch.delivery.model';
 
 export interface FarmerDelivery {
   id: string;
   branchDeliveryId?: string;
+  branchId?: string;
   farmerId: string;
   farmerName: string;
   phone: string;
@@ -11,12 +12,14 @@ export interface FarmerDelivery {
   estimatedValue: number;
   notes: string;
   status: DeliveryStatus;
+  season: Season;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface FarmerDeliveryFormData {
   branchDeliveryId?: string;
+  branchId?: string;
   farmerId: string;
   farmerName: string;
   phone: string;
@@ -25,4 +28,5 @@ export interface FarmerDeliveryFormData {
   estimatedValue: number;
   notes: string;
   status: DeliveryStatus;
+  season: Season;
 }

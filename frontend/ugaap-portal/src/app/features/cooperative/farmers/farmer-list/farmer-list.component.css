@@ -211,14 +211,109 @@
   text-align: center !important;
 }
 
-.text-muted-placeholder {
-  color: #b5b5c3;
-  font-weight: 500;
+/* --- KEBAB MENU --- */
+
+.actions-cell {
+  position: relative;
 }
 
-.farmers-table td app-button {
+.kebab-wrapper {
+  position: relative;
   display: inline-block;
-  margin: -4px 0;
+}
+
+.kebab-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--secondary);
+  padding: 4px 10px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.kebab-btn:hover {
+  background: var(--surface-highest);
+}
+
+.kebab-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 200;
+  background: var(--surface-lowest);
+  border: 1px solid #e8e6ed;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(32, 11, 38, 0.12);
+  min-width: 148px;
+  overflow: hidden;
+}
+
+.kebab-item {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  text-align: left;
+  background: none;
+  border: none;
+  border-bottom: 1px solid #f0eef4;
+  cursor: pointer;
+  font-size: 13px;
+  font-family: var(--font-human);
+  color: var(--secondary);
+  transition: background 0.12s;
+}
+
+.kebab-item:last-child {
+  border-bottom: none;
+}
+
+.kebab-item:hover {
+  background: var(--surface-low);
+}
+
+.kebab-item.approve {
+  color: #27500a;
+}
+
+.kebab-item.approve:hover {
+  background: #f0f8e8;
+}
+
+.kebab-item.reject {
+  color: #8c342b;
+}
+
+.kebab-item.reject:hover {
+  background: #fcebeb;
+}
+
+/* --- PAGINATION BUTTONS --- */
+
+.page-btn {
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid #e8e6ed;
+  border-radius: 6px;
+  background: var(--surface-lowest);
+  color: var(--secondary);
+  font-family: var(--font-human);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.page-btn:hover {
+  background: var(--surface-low);
+}
+
+.page-btn--active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+  font-weight: 700;
 }
 
 /* --- RESPONSIVE MEDIA QUERIES --- */

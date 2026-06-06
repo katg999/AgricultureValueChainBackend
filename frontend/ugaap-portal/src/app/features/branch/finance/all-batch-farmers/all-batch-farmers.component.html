@@ -1,0 +1,131 @@
+<section class="abf-page">
+
+  <!-- Page header -->
+  <div class="abf-header">
+    <div>
+      <h1 class="abf-title">Batch Farmers</h1>
+      <p class="abf-subtitle">All farmers across every batch — grouped by batch. Click a batch name to manage its farmers.</p>
+    </div>
+  </div>
+
+  <!-- KPI cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card kpi-card--farmers">
+      <span class="kpi-label">Total Farmers</span>
+      <h2 class="kpi-value">{{ totalCount }}</h2>
+    </div>
+    <div class="kpi-card kpi-card--gross">
+      <span class="kpi-label">Total Gross</span>
+      <h2 class="kpi-value mono">UGX {{ formatUGX(totalGross) }}</h2>
+    </div>
+    <div class="kpi-card kpi-card--deductions">
+      <span class="kpi-label">Total Deductions</span>
+      <h2 class="kpi-value mono">UGX {{ formatUGX(totalDeductions) }}</h2>
+    </div>
+    <div class="kpi-card kpi-card--net">
+      <span class="kpi-label">Net Payable</span>
+      <h2 class="kpi-value mono">UGX {{ formatUGX(totalNet) }}</h2>
+    </div>
+  </div>
+
+  <!-- Season tabs -->
+  <div class="season-tabs">
+    <button type="button" class="season-tab"     [class.active]="selectedSeason === ''"           (click)="setSeasonFilter('')">All Seasons</button>
+    <button type="button" class="season-tab wet" [class.active]="selectedSeason === 'Wet Season'" (click)="setSeasonFilter('Wet Season')">Wet Season</button>
+    <button type="button" class="season-tab dry" [class.active]="selectedSeason === 'Dry Season'" (click)="setSeasonFilter('Dry Season')">Dry Season</button>
+  </div>
+
+  <!-- Table -->
+  <div class="table-section">
+    <div class="table-wrapper">
+      <table class="abf-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Farmer Name</th>
+            <th>Farmer ID</th>
+            <th>Commodity</th>
+            <th class="col-numeric">Gross (UGX)</th>
+            <th class="col-numeric">Deductions (UGX)</th>
+            <th class="col-numeric">Net Payable (UGX)</th>
+            <th>Payment</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <ng-container *ngFor="let group of groups; trackBy: trackByBatchId">
+
+            <!-- Batch group header row — each td aligns with its column -->
+            <tr class="batch-group-row">
+              <!-- # -->
+              <td class="batch-group-cell batch-group-cell--num"></td>
+              <!-- Farmer Name → batch name link -->
+              <td class="batch-group-cell" colspan="2">
+                <button type="button" class="batch-name-link" [title]="group.batch.batchName" (click)="goToBatch(group.batch)">
+                  {{ group.batch.batchName }}
+                </button>
+              </td>
+              <!-- Commodity → season badge -->
+              <td class="batch-group-cell">
+                <span class="season-badge" [ngClass]="seasonClass(group.batch.season)">{{ group.batch.season }}</span>
+              </td>
+              <!-- Gross -->
+              <td class="batch-group-cell col-numeric batch-group-cell--gross mono">
+                {{ formatUGX(group.batch.grossAmount) }}
+              </td>
+              <!-- Deductions -->
+              <td class="batch-group-cell col-numeric batch-group-cell--deduction mono">
+                {{ formatUGX(group.batch.deductions) }}
+              </td>
+              <!-- Net Payable -->
+              <td class="batch-group-cell col-numeric batch-group-cell--net mono">
+                {{ formatUGX(group.batch.netPayable) }}
+              </td>
+              <!-- Payment → farmer count -->
+              <td class="batch-group-cell">
+                <span class="farmer-count">{{ group.farmers.length }} farmer{{ group.farmers.length !== 1 ? 's' : '' }}</span>
+              </td>
+              <!-- Status -->
+              <td class="batch-group-cell">
+                <span class="status-badge" [class]="'status-badge status-badge--' + group.batch.status">{{ group.batch.status }}</span>
+              </td>
+            </tr>
+
+            <!-- Farmer rows for this batch -->
+            <tr *ngFor="let farmer of group.farmers; let i = index; trackBy: trackByFarmerId" class="farmer-row">
+              <td class="col-num mono">{{ i + 1 }}</td>
+              <td class="cell-name" [title]="farmer.farmerName">{{ farmer.farmerName }}</td>
+              <td class="mono cell-id">{{ farmer.farmerId }}</td>
+              <td><span class="commodity-tag">{{ farmer.commodity }}</span></td>
+              <td class="mono col-numeric">{{ formatUGX(farmer.grossAmount) }}</td>
+              <td class="mono col-numeric cell-deduction">{{ formatUGX(farmer.deductions) }}</td>
+              <td class="mono col-numeric cell-net">{{ formatUGX(farmer.netPayable) }}</td>
+              <td>
+                <span *ngIf="farmer.payment" class="pay-badge" [ngClass]="paymentBadgeClass(farmer)">
+                  {{ paymentLabel(farmer) }}
+                </span>
+                <span *ngIf="!farmer.payment" class="cell-id">—</span>
+              </td>
+              <td>
+                <span class="status-badge" [class]="'status-badge status-badge--' + farmer.status">
+                  {{ farmer.status }}
+                </span>
+              </td>
+            </tr>
+
+          </ng-container>
+
+          <!-- Empty state -->
+          <tr *ngIf="groups.length === 0">
+            <td colspan="9" class="empty-state">
+              No batch farmers found{{ selectedSeason ? ' for ' + selectedSeason : '' }}.
+            </td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</section>

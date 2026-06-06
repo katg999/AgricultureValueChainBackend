@@ -115,8 +115,21 @@
               {{ row.status | titlecase }}
             </app-badge>
           </td>
-          <td>
-            <a class="view-link" [routerLink]="['/allocations', row.id]">View details</a>
+          <td class="kebab-cell">
+            <div class="kebab-wrapper">
+              <button
+                class="kebab-btn"
+                type="button"
+                title="More options"
+                (click)="toggleKebab(row.id, $event)">
+                &#8942;
+              </button>
+              <div class="kebab-dropdown" *ngIf="openKebabId === row.id">
+                <button class="kebab-item" type="button" (click)="onViewDetails(row, $event)">
+                  View details
+                </button>
+              </div>
+            </div>
           </td>
           <td>{{ row.allocationDate }}</td>
         </tr>
@@ -231,3 +244,64 @@
     </aside>
   </div>
 </div>
+
+<app-modal
+  [(isOpen)]="showDetailModal"
+  [title]="selectedAllocation ? selectedAllocation.id : ''"
+  subtitle="Allocation details"
+  size="md"
+  (closed)="closeDetailModal()">
+
+  <div body *ngIf="selectedAllocation">
+    <dl class="detail-grid">
+      <div class="detail-row">
+        <dt>{{ destinationLabel }}</dt>
+        <dd>{{ selectedAllocation.destinationName }}</dd>
+      </div>
+      <div class="detail-row">
+        <dt>BRANCH</dt>
+        <dd>{{ selectedAllocation.branch }}</dd>
+      </div>
+      <div class="detail-row">
+        <dt>ITEM TYPE</dt>
+        <dd>{{ selectedAllocation.itemType }}</dd>
+      </div>
+      <div class="detail-row">
+        <dt>QUANTITY</dt>
+        <dd>{{ selectedAllocation.quantity }}</dd>
+      </div>
+      <div class="detail-row">
+        <dt>TOTAL VALUE</dt>
+        <dd class="detail-value">UGX {{ selectedAllocation.totalValue | number }}</dd>
+      </div>
+      <div class="detail-row">
+        <dt>OUTSTANDING</dt>
+        <dd [class.detail-danger]="selectedAllocation.outstanding > 0">
+          UGX {{ selectedAllocation.outstanding | number:'1.0-0' }}
+        </dd>
+      </div>
+      <div class="detail-row">
+        <dt>STATUS</dt>
+        <dd>
+          <app-badge [variant]="getStatusVariant(selectedAllocation.status)" [dot]="true">
+            {{ selectedAllocation.status | titlecase }}
+          </app-badge>
+        </dd>
+      </div>
+      <div class="detail-row">
+        <dt>ISSUE DATE</dt>
+        <dd>{{ selectedAllocation.issueDate }}</dd>
+      </div>
+      <div class="detail-row">
+        <dt>ALLOCATION DATE</dt>
+        <dd>{{ selectedAllocation.allocationDate }}</dd>
+      </div>
+    </dl>
+  </div>
+
+  <div footer>
+    <app-button variant="ghost" size="md" type="button" (clicked)="closeDetailModal()">
+      Close
+    </app-button>
+  </div>
+</app-modal>

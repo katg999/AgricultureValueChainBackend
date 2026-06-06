@@ -113,7 +113,14 @@ const COOPERATIVE_ADMIN_CONFIG: DashboardConfig = {
     {label:'Branches',         icon:'branch',     route:'/cooperative/branches'               },
 
 
-    { label: 'Finance',         icon: 'finance',    route: '/cooperative/finance'  },
+    {
+      label: 'Finance',
+      icon:  'finance',
+      route: '/cooperative/finance/batch-processing',
+      children: [
+        { label: 'Batch Processing', icon: '', route: '/cooperative/finance/batch-processing' },
+      ],
+    },
     // Inventory is a collapsible parent — clicking it reveals current stock, issue stock and stock disbursed
     {
       label: 'Inventory',
@@ -144,6 +151,16 @@ const BRANCH_CONFIG: DashboardConfig = {
     { label: 'Main',          icon: 'home',       route: '/branch/dashboard'        },
      { label: 'Collection',    icon: 'collection', route: '/branch/collections'              },
     { label: 'Farmers',       icon: 'farmers',    route: '/branch/farmers'                  },
+    
+    {
+      label: 'Finance',
+      icon:  'finance',
+      route: '/branch/finance/batch-processing',
+      children: [
+        { label: 'Batch Processing', icon: '', route: '/branch/finance/batch-processing' },
+        { label: 'Batch Farmers',    icon: '', route: '/branch/finance/farmers' },
+      ],
+    },
 
     // Inventory is a collapsible parent — clicking it reveals current stock, issue stock and stock disbursed
    {

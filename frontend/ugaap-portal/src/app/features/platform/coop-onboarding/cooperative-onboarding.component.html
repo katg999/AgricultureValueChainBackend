@@ -225,14 +225,17 @@
   [isOpen]="showConfirmModal"
   title="Confirm Cooperative Activation"
   subtitle="Please review before proceeding"
-  variant="warning"
+  [showIcon]="true"
+  iconVariant="warning"
   (closed)="closeConfirmModal()">
-  
-  <p>You are about to activate <strong>{{ formValue.name }}</strong>.</p>
-  <p>This will create a new tenant and cooperative account in the system.</p>
-  <p><strong>Continue?</strong></p>
 
-  <div class="modal-actions">
+  <div body>
+    <p>You are about to activate <strong>{{ formValue.name }}</strong>.</p>
+    <p>This will create a new tenant and cooperative account in the system.</p>
+    <p><strong>Continue?</strong></p>
+  </div>
+
+  <div footer class="modal-actions">
     <button 
       type="button"
       class="btn-secondary"

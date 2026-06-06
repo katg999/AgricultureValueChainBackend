@@ -27,10 +27,12 @@
 /* Cards and sections */
 .form-card,
 .bottom-card {
+  width: 100%;
   background: var(--surface-lowest);
   border: 1px solid #e8e6ed;
   border-radius: 12px;
   box-shadow: 0 2px 16px rgba(32, 11, 38, 0.04);
+  padding: 28px;
 }
 
 .form-card {
@@ -39,6 +41,8 @@
   gap: 24px;
   margin-bottom: 20px;
   padding: 28px;
+  width: 100%;
+  box-sizing:border-box;
 }
 
 .form-section {
@@ -214,22 +218,9 @@
   color: var(--primary);
 }
 
-/* Farm specifications */
-.farm-specs-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.9fr);
-  gap: 24px;
-  align-items: start;
-}
-
-.farm-specs-fields {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
 .farm-image-wrapper {
   position: relative;
+  width: 100%;
   height: 220px;
   overflow: hidden;
   border-radius: 12px;
@@ -268,6 +259,9 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px;
   margin-bottom: 20px;
+  width: 100%;
+  box-sizing: border-box;
+  align-items: stretch;
 }
 
 .bottom-card {
@@ -275,6 +269,8 @@
   flex-direction: column;
   gap: 18px;
   padding: 22px;
+  width: 100%;
+  height: 100%;
 }
 
 .bottom-card-title {
