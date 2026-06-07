@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.ugaap.membership.Entity.Role;
+import com.ugaap.membership.repository.RoleRepository;
 
 import java.text.Normalizer;
 import java.util.List;
@@ -26,6 +28,7 @@ public class CooperativeService {
     private final CooperativeRepository cooperativeRepository;
     private final BranchRepository branchRepository;
     private final RlsContextApplier rlsContextApplier;
+    private final RoleRepository roleRepository;
 
     @Transactional
     public CooperativeDto.CreateResponse onboardCooperative(
@@ -82,6 +85,11 @@ public class CooperativeService {
         defaultBranch = branchRepository.save(defaultBranch);
         log.info("Default branch created: branchCode={}", branchCode);
 
+
+        // 5. Seed MAKER and CHECKER roles for this tenant
+        seedAdminRoles(tenantId);
+        log.info("Admin roles seeded for tenantId={}", tenantId);
+
         return CooperativeDto.CreateResponse.builder()
                 .tenantId(tenantId)
                 .cooperativeId(cooperative.getCooperativeId().toString())
@@ -121,6 +129,26 @@ public class CooperativeService {
                     return response;
                 })
                 .toList();
+    }
+
+    private void seedAdminRoles(String tenantId) {
+        // COOPERATIVE_ADMIN_MAKER
+        if (!roleRepository.existsByNameAndTenantId("COOPERATIVE_ADMIN_MAKER", tenantId)) {
+            roleRepository.save(Role.builder()
+                    .name("COOPERATIVE_ADMIN_MAKER")
+                    .tenantId(tenantId)
+                    .description("Maker — initiates transactions and manages cooperative operations")
+                    .build());
+        }
+
+        // COOPERATIVE_ADMIN_CHECKER
+        if (!roleRepository.existsByNameAndTenantId("COOPERATIVE_ADMIN_CHECKER", tenantId)) {
+            roleRepository.save(Role.builder()
+                    .name("COOPERATIVE_ADMIN_CHECKER")
+                    .tenantId(tenantId)
+                    .description("Checker — reviews and approves transactions initiated by Maker")
+                    .build());
+        }
     }
 
 }
