@@ -8,22 +8,24 @@ import { LogoComponent } from '../../../shared/components/logo/logo.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InfoCardComponent } from '../../../shared/components/info-card/info-card.component';
-import { PasswordStrengthComponent } from '../../../shared/components/password-strength/password-strength.component';
 import { AlertComponent } from '../../../shared/components/alert/alert.component';
+import { MakerCheckerService } from '../../../core/services/maker-checker.service';
+import { ModalComponent } from '../../../shared/components/modal/modal.component';
+import { ChangeDetectorRef } from '@angular/core';
 
 /**
  * Maker & Checker Account Creation Component
- * 
+ *
  * Creates both Maker and Checker accounts after cooperative activation.
  * Both accounts have full permissions to manage the cooperative.
- * 
+ *
  * Features:
  * - Side-by-side Maker & Checker forms
  * - Photo upload (optional)
  * - Auto-assigned full permissions
- * - Password validation
+ *
  * - Creates both accounts together
- * 
+ *
  * Flow:
  * Cooperative Onboarding → Maker & Checker Creation → Success
  */
@@ -38,14 +40,13 @@ import { AlertComponent } from '../../../shared/components/alert/alert.component
     InputComponent,
     ButtonComponent,
     InfoCardComponent,
-    PasswordStrengthComponent,
-    AlertComponent
+    AlertComponent,
+    ModalComponent,
   ],
   templateUrl: './maker-checker-creation.component.html',
-  styleUrls: ['./maker-checker-creation.component.css']
+  styleUrls: ['./maker-checker-creation.component.css'],
 })
 export class MakerCheckerCreationComponent implements OnInit {
-
   /**
    * Maker form
    */
@@ -61,6 +62,10 @@ export class MakerCheckerCreationComponent implements OnInit {
    */
   cooperativeName = '';
   cooperativeMessage = '';
+
+  //Pick Cooperative values
+  cooperativeId = '';
+  tenantId = '';
 
   /**
    * Photo previews
@@ -83,17 +88,34 @@ export class MakerCheckerCreationComponent implements OnInit {
    * Gender options
    */
   genderOptions = ['Male', 'Female', 'Other', 'Prefer not to say'];
+  showCredentialsModal = false;
+
+  makerCredentials: any = null;
+  checkerCredentials: any = null;
 
   constructor(
     private fb: FormBuilder,
-    private router: Router
+    private router: Router,
+    private makerCheckerService: MakerCheckerService,
+    private cdr: ChangeDetectorRef,
   ) {
-    // Get cooperative info from navigation state
     const navigation = this.router.getCurrentNavigation();
+
     if (navigation?.extras.state) {
-      this.cooperativeName = navigation.extras.state['cooperativeName'] || 'the cooperative';
-      this.cooperativeMessage = navigation.extras.state['message'] || '';
+      const cooperative = navigation.extras.state['cooperative'];
+
+      console.log('COOPERATIVE RECEIVED:', cooperative);
+
+      this.cooperativeId = cooperative?.cooperativeId ?? '';
+
+      this.tenantId = cooperative?.tenantId ?? '';
+
+      this.cooperativeName = cooperative?.name ?? '';
+
+      this.cooperativeMessage = navigation.extras.state['message'] ?? '';
     }
+    console.log('COOPERATIVE ID:', this.cooperativeId);
+    console.log('TENANT ID:', this.tenantId);
   }
 
   ngOnInit(): void {
@@ -112,10 +134,6 @@ export class MakerCheckerCreationComponent implements OnInit {
       dateOfBirth: [''],
       nationalId: [''],
       gender: ['Male'],
-      password: ['', [Validators.required, Validators.minLength(8)]],
-      confirmPassword: ['', [Validators.required]]
-    }, {
-      validators: this.passwordMatchValidator
     });
 
     // Checker form
@@ -126,25 +144,12 @@ export class MakerCheckerCreationComponent implements OnInit {
       dateOfBirth: [''],
       nationalId: [''],
       gender: ['Female'],
-      password: ['', [Validators.required, Validators.minLength(8)]],
-      confirmPassword: ['', [Validators.required]]
-    }, {
-      validators: this.passwordMatchValidator
     });
   }
 
   /**
    * Password match validator
    */
-  passwordMatchValidator(form: FormGroup): { [key: string]: boolean } | null {
-    const password = form.get('password')?.value;
-    const confirm = form.get('confirmPassword')?.value;
-    
-    if (password && confirm && password !== confirm) {
-      return { passwordMismatch: true };
-    }
-    return null;
-  }
 
   /**
    * Handle photo selection for Maker
@@ -153,7 +158,7 @@ export class MakerCheckerCreationComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
       const file = input.files[0];
-      
+
       // Validate file type
       if (!file.type.startsWith('image/')) {
         alert('Please select an image file');
@@ -184,7 +189,7 @@ export class MakerCheckerCreationComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
       const file = input.files[0];
-      
+
       if (!file.type.startsWith('image/')) {
         alert('Please select an image file');
         return;
@@ -213,6 +218,12 @@ export class MakerCheckerCreationComponent implements OnInit {
     this.makerPhotoPreview = null;
   }
 
+  showCredentials(response: any): void {
+    this.makerCredentials = response.maker;
+    this.checkerCredentials = response.checker;
+    this.showCredentialsModal = true;
+    this.cdr.detectChanges(); // 👈 force Angular to detect the change
+  }
   /**
    * Remove Checker photo
    */
@@ -229,29 +240,13 @@ export class MakerCheckerCreationComponent implements OnInit {
     if (control?.touched && control?.errors) {
       if (control.errors['required']) return 'This field is required';
       if (control.errors['email']) return 'Invalid email address';
-      if (control.errors['minLength']) return 'Password must be at least 8 characters';
+
       if (control.errors['pattern']) {
         if (fieldName === 'phone') return 'Invalid phone format. Use: +256 700 000000';
       }
     }
-    
-    // Check password mismatch
-    if (fieldName === 'confirmPassword' && form.errors?.['passwordMismatch']) {
-      return 'Passwords do not match';
-    }
-    
+
     return '';
-  }
-
-  /**
-   * Get current password for strength meter
-   */
-  getMakerPassword(): string {
-    return this.makerForm.get('password')?.value || '';
-  }
-
-  getCheckerPassword(): string {
-    return this.checkerForm.get('password')?.value || '';
   }
 
   /**
@@ -268,45 +263,49 @@ export class MakerCheckerCreationComponent implements OnInit {
    * Create both accounts
    */
   createAccounts(): void {
-    // Validate both forms
     if (this.makerForm.invalid || this.checkerForm.invalid) {
       this.makerForm.markAllAsTouched();
       this.checkerForm.markAllAsTouched();
-      alert('Please fill in all required fields for both Maker and Checker');
       return;
     }
 
     this.isLoading = true;
 
-    const makerData = {
-      ...this.makerForm.value,
-      role: 'Maker',
-      photo: this.makerPhotoFile,
-      hasFullPermissions: true
+    const payload = {
+      makerFullName: this.makerForm.value.fullName,
+      makerEmail: this.makerForm.value.email,
+      makerPhone: this.makerForm.value.phone,
+      checkerFullName: this.checkerForm.value.fullName,
+      checkerEmail: this.checkerForm.value.email,
+      checkerPhone: this.checkerForm.value.phone,
+      tenantId: this.tenantId,
+      cooperativeId: this.cooperativeId,
     };
 
-    const checkerData = {
-      ...this.checkerForm.value,
-      role: 'Checker',
-      photo: this.checkerPhotoFile,
-      hasFullPermissions: true
-    };
+    console.log('SETUP REQUEST:', payload);
 
-    console.log('Creating Maker account:', makerData);
-    console.log('Creating Checker account:', checkerData);
+    this.makerCheckerService.setup(payload, this.makerPhotoFile, this.checkerPhotoFile).subscribe({
+      next: (res) => {
+        console.log('SETUP RESPONSE:', res);
+        this.isLoading = false;
+        this.showCredentials(res);
+      },
+      error: (err) => {
+        console.error('SETUP FAILED:', err);
+        this.isLoading = false;
+      },
+    });
+  }
 
-    // Simulate API call
-    setTimeout(() => {
-      this.isLoading = false;
-      
-      // Navigate to success page or cooperative dashboard
-      this.router.navigate(['/cooperatives/activation-success'], {
-        state: {
-          cooperativeName: this.cooperativeName,
-          makerName: makerData.fullName,
-          checkerName: checkerData.fullName
-        }
-      });
-    }, 2000);
+  goToSuccessPage(): void {
+    this.showCredentialsModal = false;
+
+    this.router.navigate(['/cooperatives/activation-success'], {
+      state: {
+        cooperativeName: this.cooperativeName,
+        maker: this.makerCredentials,
+        checker: this.checkerCredentials,
+      },
+    });
   }
 }

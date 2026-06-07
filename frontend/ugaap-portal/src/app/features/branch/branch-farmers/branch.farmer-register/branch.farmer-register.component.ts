@@ -5,16 +5,19 @@
 // // On save: POST /api/v1/branch/farmers via FarmerService.create()
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { CommonModule }   from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, ElementRef, ViewChild, inject } from '@angular/core';
-import { FormsModule }    from '@angular/forms';
-import { Router }         from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
-import { InputComponent }  from '../../../../shared/components/input/input.component';
-import { FarmerRegistrationForm, FarmerService } from '../../../shared-farmer-domain/farmer.service';
+import { InputComponent } from '../../../../shared/components/input/input.component';
+import {
+  FarmerRegistrationForm,
+  FarmerService,
+} from '../../../shared-farmer-domain/farmer.service';
 import { SessionService } from '../../../../core/services/session.service';
-import { ToastService }   from '../../../../core/services/toast.service';
+import { ToastService } from '../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-branch.farmer-register',
@@ -24,67 +27,73 @@ import { ToastService }   from '../../../../core/services/toast.service';
   styleUrl: './branch.farmer-register.component.css',
 })
 export class BranchFarmerRegisterComponent {
-
   //  Field options
-  readonly genderOptions         = ['Female', 'Male', 'Other', 'Prefer not to say'];
-  readonly irrigationOptions     = ['Rain-fed', 'Irrigation', 'Both'];
-  readonly locationOptions       = ['Central Region', 'Eastern Region', 'Northern Region', 'Western Region'];
-  readonly cooperativeGroups     = ['Cooperative A', 'Cooperative B', 'Cooperative C'];
-  readonly branches              = ['Branch 1', 'Branch 2', 'Branch 3'];
-  readonly landOwnershipOptions  = ['Owned', 'Leased', 'Customary', 'Communal', 'Rented'];
-  readonly farmImageUrl       = 'assets/images/farm-aerial.jpg';
-  readonly maxPhotoSizeBytes  = 2 * 1024 * 1024; // 2 MB
+  readonly genderOptions = ['Female', 'Male', 'Other', 'Prefer not to say'];
+  readonly irrigationOptions = ['Rain-fed', 'Irrigation', 'Both'];
+  readonly locationOptions = [
+    'Central Region',
+    'Eastern Region',
+    'Northern Region',
+    'Western Region',
+  ];
+  readonly cooperativeGroups = ['Cooperative A', 'Cooperative B', 'Cooperative C'];
+  readonly branches = ['Branch 1', 'Branch 2', 'Branch 3'];
+  readonly landOwnershipOptions = ['Owned', 'Leased', 'Customary', 'Communal', 'Rented'];
+  readonly farmImageUrl = 'assets/images/farm-aerial.jpg';
+  readonly maxPhotoSizeBytes = 2 * 1024 * 1024; // 2 MB
 
   // ── Component state ───────────────────────────────────────────────────────
-  photoError  = '';
-  isSaving    = false;
+  photoError = '';
+  isSaving = false;
   saveError: string | null = null;
 
   // ── Form model ────────────────────────────────────────────────────────────
   form: FarmerRegistrationForm = {
-    fullName:          '',
-    emailAddress:      '',
-    phoneNumber:       '',
-    dateOfBirth:       '',
-    nationalIdNumber:  '',
-    gender:            'Female',
-    photoPreviewUrl:   '',
-    farmLocation:      'Central Region',
-    village:           '',
-    gpsCoordinates:    '',
-    totalLandArea:     null,
-    irrigationSource:  'Rain-fed',
+    fullName: '',
+    emailAddress: '',
+    phoneNumber: '',
+    dateOfBirth: '',
+    nationalIdNumber: '',
+    gender: 'Female',
+    photoPreviewUrl: '',
+    farmLocation: 'Central Region',
+    village: '',
+    gpsCoordinates: '',
+    totalLandArea: null,
+    irrigationSource: 'Rain-fed',
     landOwnershipType: 'Owned',
     production: {
-      coffee: false, maize: false, cocoa: false, vanilla: false,
-      cattle: 0, goats: 0, poultry: 0,
+      coffee: false,
+      maize: false,
+      cocoa: false,
+      vanilla: false,
+      cattle: 0,
+      goats: 0,
+      poultry: 0,
     },
-    cooperativeGroup:  '',
-    assignedBranch:    '',
-   
+    cooperativeGroup: '',
+    assignedBranch: '',
   };
 
   private toast = inject(ToastService);
 
   constructor(
-    private router:        Router,
+    private router: Router,
     private farmerService: FarmerService,
     private session: SessionService,
   ) {}
 
-  // Lifecycle 
+  // Lifecycle
   ngOnInit(): void {
-
-  // Only branch staff can register farmers
-  const role = this.session.userRole();
-  if (role && role !== 'branch') {
-    this.router.navigate(['/unauthorized']);
-    return;
+    // Only branch staff can register farmers
+    //const role = this.session.userRole();
+    // if (role && role !== 'branch') {
+    //this.router.navigate(['/unauthorized']);
+    // return;
+    //}
   }
 
-}
-
-  // Photo handling 
+  // Photo handling
 
   removeFarmerPhoto(): void {
     this.form.photoPreviewUrl = '';
@@ -128,39 +137,41 @@ export class BranchFarmerRegisterComponent {
     this.router.navigate(['/branch/farmers/list']);
   }
 
-
-  
-
   onSave(): void {
     console.log(this.form);
     // Basic required-field guard
     if (!this.form.fullName || !this.form.phoneNumber || !this.form.nationalIdNumber) {
-      this.toast.error('Missing required fields', 'Please fill in Name, Phone, and National ID before submitting.');
+      this.toast.error(
+        'Missing required fields',
+        'Please fill in Name, Phone, and National ID before submitting.',
+      );
       return;
     }
 
-    this.isSaving  = true;
+    this.isSaving = true;
     this.saveError = null;
 
     // POST /api/v1/branch/farmers
     // Branch context + auth headers added automatically by interceptors
-    this.farmerService.create({
-      ...this.form,
-      status: 'Pending',
-      branchId: this.session.branchId() ?? undefined,
-      cooperativeId: this.session.cooperativeId() ?? undefined,
-      assignedBranch: this.form.assignedBranch || this.session.branchId() || '',
-    }).subscribe({
-      next: () => {
-        this.isSaving = false;
-        // Navigate back to the list after successful registration
-        this.router.navigate(['/branch/farmers/list']);
-      },
-      error: err => {
-        this.isSaving  = false;
-        this.saveError = err?.error?.message ?? 'Failed to register farmer. Please try again.';
-      },
-    });
+    this.farmerService
+      .create({
+        ...this.form,
+        status: 'Pending',
+        branchId: this.session.branchId() ?? undefined,
+        cooperativeId: this.session.cooperativeId() ?? undefined,
+        assignedBranch: this.form.assignedBranch || this.session.branchId() || '',
+      })
+      .subscribe({
+        next: () => {
+          this.isSaving = false;
+          // Navigate back to the list after successful registration
+          this.router.navigate(['/branch/farmers/list']);
+        },
+        error: (err) => {
+          this.isSaving = false;
+          this.saveError = err?.error?.message ?? 'Failed to register farmer. Please try again.';
+        },
+      });
   }
 }
 

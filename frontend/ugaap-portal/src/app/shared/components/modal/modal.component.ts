@@ -3,10 +3,10 @@ import { CommonModule } from '@angular/common';
 
 /**
  * Modal Component
- * 
+ *
  * Reusable modal/dialog component for confirmations, alerts, and forms.
  * Supports custom header, body, footer with actions.
- * 
+ *
  * Features:
  * - Backdrop overlay
  * - Close on backdrop click (optional)
@@ -15,7 +15,7 @@ import { CommonModule } from '@angular/common';
  * - Flexible body content
  * - Customizable footer actions
  * - Warning/info styling variants
- * 
+ *
  * @example
  * ```html
  * <app-modal
@@ -24,11 +24,11 @@ import { CommonModule } from '@angular/common';
  *   [showIcon]="true"
  *   iconVariant="success"
  *   (closed)="onClose()">
- *   
+ *
  *   <div body>
  *     <p>Are you sure you want to activate this cooperative?</p>
  *   </div>
- *   
+ *
  *   <div footer>
  *     <app-button variant="ghost" (clicked)="onCancel()">Cancel</app-button>
  *     <app-button variant="primary" (clicked)="onConfirm()">Confirm</app-button>
@@ -41,7 +41,7 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './modal.component.html',
-  styleUrls: ['./modal.component.css']
+  styleUrls: ['./modal.component.css'],
 })
 export class ModalComponent implements OnInit, OnDestroy {
   /**
