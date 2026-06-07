@@ -36,6 +36,11 @@ export const AUTH_ROUTES: Routes = [
     loadComponent: () =>
       import('./forgot-password/forgot-password.component').then((m) => m.ForgotPasswordComponent),
   },
+  {
+    path: 'first-time-login',
+    loadComponent: () =>
+      import('./first-time-login/first-time-login.component').then(m => m.FirstTimeLoginComponent),
+  },
 
   // Step 2 — Verify the reset OTP sent to email/phone
   {
@@ -58,6 +63,7 @@ export const AUTH_ROUTES: Routes = [
         (m) => m.FirstTimeLoginComponent,
       ),
   },
+  
   // Default redirect to login
   // {
   //   path: '',
