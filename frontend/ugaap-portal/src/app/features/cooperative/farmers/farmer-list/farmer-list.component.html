@@ -1,14 +1,23 @@
 <div class="page-shell" *ngIf="farmers$ | async as farmers">
+<<<<<<< HEAD
 
+=======
+>>>>>>> 8b23637 (refactored cooperative and branch views)
   <div class="top-header">
     <div class="header-content">
       <h1>Farmers</h1>
       <p class="subtitle">
+<<<<<<< HEAD
         Total registered farmers: <span class="highlight-count">{{ totalCount }}</span>
+=======
+        Total registered farmers:
+        <span class="highlight-count">{{ farmers.length }}</span>
+>>>>>>> 8b23637 (refactored cooperative and branch views)
       </p>
     </div>
   </div>
 
+<<<<<<< HEAD
   <!-- SUMMARY CARDS -->
   <div class="summary-cards-grid">
     <app-stats-card
@@ -32,6 +41,8 @@
   </div>
 
   <!-- FILTERS -->
+=======
+>>>>>>> 8b23637 (refactored cooperative and branch views)
   <div class="filters-section">
     <div class="search-wrapper">
       <app-input
@@ -74,8 +85,12 @@
     </div>
   </div>
 
+<<<<<<< HEAD
   <!-- TABLE -->
   <div class="table-wrapper" *ngIf="paginatedFarmers$ | async as paginatedFarmers">
+=======
+  <div class="table-wrapper" *ngIf="filteredFarmers$ | async as filteredFarmers">
+>>>>>>> 8b23637 (refactored cooperative and branch views)
     <table class="farmers-table">
       <thead>
         <tr>
@@ -83,14 +98,23 @@
           <th>NAME</th>
           <th>BRANCH</th>
           <th>PRIMARY COMMODITY</th>
+<<<<<<< HEAD
           <th>CREDIT LIMIT</th>
+=======
+>>>>>>> 8b23637 (refactored cooperative and branch views)
           <th>BALANCE</th>
           <th>STATUS</th>
           <th class="text-center">ACTIONS</th>
         </tr>
       </thead>
+<<<<<<< HEAD
       <tbody>
         <tr *ngFor="let farmer of paginatedFarmers; trackBy: trackByFarmerId">
+=======
+
+      <tbody>
+        <tr *ngFor="let farmer of filteredFarmers; trackBy: trackByFarmerId">
+>>>>>>> 8b23637 (refactored cooperative and branch views)
           <td class="farmer-id">{{ farmer.id }}</td>
           <td class="farmer-name">{{ farmer.name }}</td>
           <td>{{ farmer.branch }}</td>
@@ -126,17 +150,22 @@
               (clicked)="onApproveFarmer(farmer)">
               Approve
             </app-button>
+<<<<<<< HEAD
             <span *ngIf="farmer.status !== 'Pending'" class="text-muted-placeholder">—</span>
           </td>
         </tr>
         <tr *ngIf="paginatedFarmers.length === 0">
           <td colspan="8" style="text-align:center; padding:40px; color:#6b6b7b;">
             No farmers match the current filters.
+=======
+            <span *ngIf="farmer.status !== 'Pending'" class="text-muted-placeholder">-</span>
+>>>>>>> 8b23637 (refactored cooperative and branch views)
           </td>
         </tr>
       </tbody>
     </table>
 
+<<<<<<< HEAD
     <!-- PAGINATION -->
     <div class="pagination-section">
       <span class="pagination-info">
@@ -162,8 +191,37 @@
           (click)="nextPage()">
           Next ›
         </button>
+=======
+    <div class="pagination-section">
+      <div class="pagination-info">
+        <span>Showing 1 to {{ filteredFarmers.length }} of {{ farmers.length }} entries</span>
+      </div>
+      <div class="pagination-controls">
+        <app-button class="pagination-button" variant="secondary" size="sm">Previous</app-button>
+        <app-button class="pagination-button" variant="primary" size="sm">1</app-button>
+        <app-button class="pagination-button" variant="secondary" size="sm">2</app-button>
+        <app-button class="pagination-button" variant="secondary" size="sm">3</app-button>
+        <app-button class="pagination-button" variant="secondary" size="sm">Next</app-button>
+>>>>>>> 8b23637 (refactored cooperative and branch views)
       </div>
     </div>
   </div>
 
+<<<<<<< HEAD
+=======
+  <div class="summary-cards-grid">
+    <div class="summary-card"></div>
+    <div class="summary-card"></div>
+
+    <div class="summary-card">
+      <span class="summary-card-title">COLLECTION PROGRESS</span>
+      <div class="summary-card-value-row stack-layout">
+        <span class="summary-card-main-val">{{ collectionProgress }}%</span>
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" [style.width.%]="collectionProgress"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+>>>>>>> 8b23637 (refactored cooperative and branch views)
 </div>

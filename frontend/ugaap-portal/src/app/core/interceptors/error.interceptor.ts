@@ -3,12 +3,12 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { SessionService } from '../services/session.service';
-import { ToastService }   from '../services/toast.service';
+import { ToastService } from '../services/toast.service';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const session = inject(SessionService);
-  const router  = inject(Router);
-  const toast   = inject(ToastService);
+  const router = inject(Router);
+  const toast = inject(ToastService);
 
   return next(req).pipe(
     catchError((err: HttpErrorResponse) => {
@@ -16,36 +16,36 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
       switch (err.status) {
         case 0:
-          toast.error(
-            'No internet connection',
-            'Check your network and try again.',
-            8000,
-          );
+          // Suppress during local dev if no backend is running
+          if (!req.url.includes('localhost:8083')) {
+            toast.error('No internet connection', 'Check your network and try again.', 8000);
+          }
           break;
 
         case 400:
-          toast.error(
-            'Invalid request',
-            serverMsg ?? 'Please check your input and try again.',
-          );
+          toast.error('Invalid request', serverMsg ?? 'Please check your input and try again.');
           break;
 
         case 401:
-          session.clearSession();
-          router.navigate(['/auth/login']);
-          toast.warning('Session expired', 'Please sign in again.');
+          // Only redirect if we actually had a session — avoids redirect loops
+          // when backend is unavailable during frontend-only development
+          if (session.getAccessToken()) {
+            session.clearSession();
+            router.navigate(['/auth/login']);
+            toast.warning('Session expired', 'Please sign in again.');
+          }
           break;
 
         case 403:
-          router.navigate(['/auth/login'], { queryParams: { reason: 'forbidden' } });
-          toast.error('Access denied', 'You do not have permission to do that.');
+          // Same guard
+          if (session.getAccessToken()) {
+            router.navigate(['/auth/login'], { queryParams: { reason: 'forbidden' } });
+            toast.error('Access denied', 'You do not have permission to do that.');
+          }
           break;
 
         case 404:
-          toast.error(
-            'Not found',
-            serverMsg ?? 'The requested resource could not be found.',
-          );
+          toast.error('Not found', serverMsg ?? 'The requested resource could not be found.');
           break;
 
         case 409:
@@ -56,10 +56,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           break;
 
         case 422:
-          toast.error(
-            'Validation failed',
-            serverMsg ?? 'One or more fields are invalid.',
-          );
+          toast.error('Validation failed', serverMsg ?? 'One or more fields are invalid.');
           break;
 
         case 423:
@@ -68,10 +65,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           break;
 
         case 429:
-          toast.warning(
-            'Too many requests',
-            'Slow down — please wait a moment and try again.',
-          );
+          toast.warning('Too many requests', 'Slow down — please wait a moment and try again.');
           break;
 
         case 500:

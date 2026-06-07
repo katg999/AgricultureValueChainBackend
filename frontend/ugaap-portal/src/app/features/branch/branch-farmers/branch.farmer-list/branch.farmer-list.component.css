@@ -140,7 +140,10 @@
 
 .summary-cards-grid {
   display: grid;
+<<<<<<< HEAD
   padding-bottom: 16px;
+=======
+>>>>>>> 8b23637 (refactored cooperative and branch views)
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
   align-items: stretch;

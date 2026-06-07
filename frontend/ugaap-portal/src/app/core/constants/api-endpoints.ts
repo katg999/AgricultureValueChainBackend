@@ -9,7 +9,6 @@
 
 const BASE = 'http://localhost:8083'; //API-Gateway call
 
-
 export const API_ENDPOINTS = {
   // ── Authentication ──────────────────────────────────────────────────────────
   AUTH: {
