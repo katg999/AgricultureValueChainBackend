@@ -1,30 +1,12 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// features/auth/login/login.componet.ts   (filename typo kept — matches route)
-//
-// Login screen — first step in the authentication flow.
-//
-// What happens here:
-//   1. User fills in email, password and selects their role
-//   2. POST /auth/login via AuthService
-//   3. AuthService stores the tempToken in SessionService
-//   4. If requiresOtp → navigate to /auth/otp
-//      Otherwise       → navigate straight to the role-appropriate dashboard
-//
-// Dependencies:
-//   AuthService        → makes the HTTP call
-//   SessionService     → reads/writes temp token
-//   DashboardConfigService → resolves the correct home route per role
-// ─────────────────────────────────────────────────────────────────────────────
-
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 
 import { AuthService } from '../../../core/services/auth.service';
+import { SessionService } from '../../../core/services/session.service';
 import { DashboardConfigService } from '../../../core/services/dashboard-config.service';
 
-// Shared UI components
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { LogoComponent } from '../../../shared/components/logo/logo.component';
@@ -46,19 +28,9 @@ import { AlertComponent } from '../../../shared/components/alert/alert.component
   styleUrl: './login.component.css',
 })
 export class LoginComponent implements OnInit {
-  /** Reactive login form */
   loginForm!: FormGroup;
-
-  /** Shows spinner on the submit button while the request is in-flight */
   isLoading = false;
-
-  /** Displayed in the AlertComponent when the API returns an error */
   errorMessage = '';
-
-  /**
-   * URL to redirect to after successful login.
-   * Populated from ?returnUrl= query param set by the authGuard.
-   */
   private returnUrl = '';
 
   constructor(
@@ -66,11 +38,11 @@ export class LoginComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private authService: AuthService,
+    private session: SessionService,
     private dashboardConfig: DashboardConfigService,
   ) {}
 
   ngOnInit(): void {
-    // Capture the return URL so we can redirect back after login
     this.returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '';
 
     this.loginForm = this.fb.group({
@@ -79,7 +51,7 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  // ── Template helpers ────────────────────────────────────────────────────────
+  // ── Template helpers ──────────────────────────────────────────────────────
 
   getEmailError(): string {
     const c = this.loginForm.get('email');
@@ -105,10 +77,9 @@ export class LoginComponent implements OnInit {
     return '';
   }
 
-  // ── Form submission ─────────────────────────────────────────────────────────
+  // ── Form submission ───────────────────────────────────────────────────────
 
   onSubmit(): void {
-    console.log('LOGIN BUTTON CLICKED');
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
       return;
@@ -119,26 +90,48 @@ export class LoginComponent implements OnInit {
 
     const { email, password } = this.loginForm.value;
 
-    console.log('LOGIN PAYLOAD', {
-      email,
-      password,
-    });
-
     this.authService.login({ usernameOrEmail: email, password }).subscribe({
       next: (res) => {
         this.isLoading = false;
 
-        console.log('LOGIN RESPONSE', res);
+        const data = res?.data;
 
-        const home = this.returnUrl || '/platform/dashboard';
-        this.router.navigateByUrl(home);
+        // ── Store the session so the interceptor can attach the token ──
+        this.session.setSession(data.accessToken, data.refreshToken, {
+          id: data.userId,
+          fullName: data.username, // best we have from login response
+          email: data.email,
+          phone: '', // not returned by login endpoint
+          role: data.roles?.[0] ?? '',
+          permissions: [],
+        });
+
+        const roles: string[] = data.roles ?? [];
+        const isPlatformAdmin = roles.includes('PLATFORM_ADMIN');
+        const isMakerOrChecker =
+          roles.includes('COOPERATIVE_ADMIN_MAKER') || roles.includes('COOPERATIVE_ADMIN_CHECKER');
+
+        if (isMakerOrChecker) {
+          const hasCompletedSetup = localStorage.getItem(`setup_complete_${data.userId}`);
+          if (!hasCompletedSetup) {
+            this.router.navigateByUrl('/auth/first-time-login');
+          } else {
+            this.router.navigateByUrl('/branch/farmers/list');
+          }
+          return;
+        }
+
+        if (isPlatformAdmin) {
+          this.router.navigateByUrl('/platform/dashboard');
+          return;
+        }
+        // Any other role (Branch Manager, IT Admin, etc.) → branch farmers list
+        this.router.navigateByUrl('/branch/farmers/list');
       },
 
       error: (err) => {
         this.isLoading = false;
-
         console.error('LOGIN ERROR', err);
-
         this.errorMessage = err?.error?.message ?? 'Invalid credentials. Please try again.';
       },
     });

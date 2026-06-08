@@ -85,13 +85,14 @@ export class BranchFarmerRegisterComponent {
 
   // Lifecycle
   ngOnInit(): void {
-    // TODO: re-enable role check once roles are finalised
-    // const role = this.session.userRole();
+    // Only branch staff can register farmers
+    //const role = this.session.userRole();
     // if (role && role !== 'branch') {
-    //   this.router.navigate(['/unauthorized']);
-    //   return;
-    // }
+    //this.router.navigate(['/unauthorized']);
+    // return;
+    //}
   }
+
   // Photo handling
 
   removeFarmerPhoto(): void {

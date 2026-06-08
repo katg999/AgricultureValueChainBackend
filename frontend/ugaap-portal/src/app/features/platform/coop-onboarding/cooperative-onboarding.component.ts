@@ -142,9 +142,10 @@ export class CooperativeOnboardingComponent implements OnInit {
 
     this.cooperativeService.createCooperative(payload).subscribe({
       next: (res) => {
+        console.log('ONBOARD RESPONSE:', res);
         this.isLoading = false;
 
-        this.router.navigate(['/cooperatives/maker-checker-creation'], {
+        this.router.navigate(['/platform/maker-checker'], {
           state: {
             cooperative: res,
             message: `Cooperative "${payload.name}" created successfully`,

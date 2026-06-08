@@ -21,6 +21,9 @@ export const API_ENDPOINTS = {
     RESEND_OTP: `${BASE}/auth/resend-otp`,
   },
 
+  MAKER_CHECKER: {
+    SETUP: `${BASE}/api/v1/maker-checker/setup`,
+  },
   // ── Platform Admin ──────────────────────────────────────────────────────────
   // Manages all cooperatives on the platform
   PLATFORM: {
@@ -56,6 +59,13 @@ export const API_ENDPOINTS = {
     USER_BY_ID: (id: string) => `${BASE}/cooperative/users/${id}`,
   },
 
+  // ── Branches ────────────────────────────────────────────────────────────────
+  BRANCHES: {
+    CREATE: `${BASE}/api/v1/branches`,
+    LIST: (tenantId: string) => `${BASE}/api/v1/branches?tenantId=${tenantId}`,
+    BY_ID: (id: string) => `${BASE}/api/v1/branches/${id}`,
+  },
+
   // ── Branch Staff ────────────────────────────────────────────────────────────
   // Scoped to a single branch (X-Branch-ID header set by interceptor)
   BRANCH: {
@@ -74,13 +84,15 @@ export const API_ENDPOINTS = {
     INVENTORY: `${BASE}/branch/inventory`,
   },
 
+  USERS: `${BASE}/api/v1/access/users`,
+
   // ── Access Control (Roles & Permissions) ───────────────────────────────────
   // Scoped to the current cooperative; used by the User management feature
   ACCESS: {
-    ROLES: `${BASE}/access/roles`,
-    ROLE_BY_ID: (id: string) => `${BASE}/access/roles/${id}`,
-    ROLE_PERMISSIONS: (id: string) => `${BASE}/access/roles/${id}/permissions`,
-    USERS: `${BASE}/access/users`,
-    USER_BY_ID: (id: string) => `${BASE}/access/users/${id}`,
+    ROLES: `${BASE}/api/v1/access/roles`,
+    ROLE_BY_ID: (id: string) => `${BASE}/api/v1/access/roles/${id}`,
+    ROLE_PERMISSIONS: (id: string) => `${BASE}/api/v1/access/roles/${id}/permissions`,
+    USERS: `${BASE}/api/v1/access/users`,
+    USER_BY_ID: (id: string) => `${BASE}/api/v1/access/users/${id}`,
   },
 } as const;
