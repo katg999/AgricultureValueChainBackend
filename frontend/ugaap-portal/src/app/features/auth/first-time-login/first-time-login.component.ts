@@ -42,7 +42,7 @@ export class FirstTimeLoginComponent {
       status: 'active',
       icon: 'branches',
       actionLabel: 'Continue',
-      route: '/cooperatives/onboarding'
+      route: '/cooperative/branches/onboarding'
     },
     {
       title: 'Assign user roles',
