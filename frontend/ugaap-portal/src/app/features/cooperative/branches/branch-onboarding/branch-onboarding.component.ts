@@ -137,7 +137,7 @@ export class BranchOnboardingComponent implements OnInit {
 
   // ── Register branch ───────────────────────────────────────
   registerBranch(): void {
-    this.isLoading = true;
+    // this.isLoading = true;
     this.errorMessage = '';
     this.submitSuccess = false;
 

@@ -21,7 +21,7 @@ public class BranchController {
     private final UgaapSecurityContext securityContext;
 
     @PostMapping
-    @PreAuthorize("hasRole('PLATFORM_ADMIN') or hasRole('COOPERATIVE_ADMIN_MAKER')")
+    @PreAuthorize("hasRole('PLATFORM_ADMIN') or hasRole('COOPERATIVE_ADMIN_MAKER') or hasRole('COOPERATIVE_ADMIN_CHECKER')")
     public ResponseEntity<BranchDto.Response> createBranch(
             @Valid @RequestBody BranchDto.CreateRequest request) {
         String createdBy = securityContext.currentUsername();

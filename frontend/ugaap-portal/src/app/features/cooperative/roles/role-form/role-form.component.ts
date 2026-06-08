@@ -140,7 +140,7 @@ export class RoleFormComponent implements OnInit {
     }
 
     if (this.isEditMode) {
-      this.loadRoleData();
+      // this.loadRoleData();
     }
   }
 
@@ -214,9 +214,10 @@ export class RoleFormComponent implements OnInit {
       );
       return;
     }
+    this.router.navigate(['/cooperative/roles']);
 
-    this.isLoading = true;
-    this.errorMessage = '';
+    // this.isLoading = true;
+    // this.errorMessage = '';
 
     const { name, description, tenantId, fullName, email, phone } = this.roleForm.value;
 

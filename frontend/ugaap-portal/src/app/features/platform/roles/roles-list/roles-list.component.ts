@@ -25,6 +25,7 @@ import { RoleCardComponent, RoleCardData } from '../../../../shared/components/r
  * Flow:
  * Roles List → Create Role / Edit Role
  */
+
 @Component({
   selector: 'app-roles-list',
   standalone: true,
@@ -117,24 +118,26 @@ export class RolesListComponent implements OnInit {
     // Initialize component
   }
 
+
+
   /**
    * Navigate to create role page
-   * Route: /users/roles/create
+   * Route: /platform/roles/role-form
    */
-  createNewRole(): void {
-    this.router.navigate(['/users/roles/create']);
+  RoleForm(): void {
+    this.router.navigate(['/platform/roles/role-form']);
   }
 
   /**
    * Navigate to edit role page
-   * Route: /users/roles/:id/edit
+   * Route: /platform/roles/:id/edit
    */
   editRole(role: RoleCardData): void {
     if (role.isSystem) {
       alert('System roles cannot be edited');
       return;
     }
-    this.router.navigate(['/users/roles', role.id, 'edit']);
+    this.router.navigate(['/platform/roles/role-form', role.id]);
   }
 
   /**
@@ -153,22 +156,24 @@ export class RolesListComponent implements OnInit {
     }
 
     const confirmed = confirm(`Are you sure you want to delete the "${role.name}" role?`);
-    if (confirmed) {
+    if (confirmed) return;
       console.log('Deleting role:', role.id);
       // TODO: Implement deletion API call
       // After successful deletion, remove from list:
       // this.roles = this.roles.filter(r => r.id !== role.id);
-    }
+  
+      //remove from local array after deletion
+      this.roles = this.roles.filter(r => r.id !== role.id);
   }
 
   /**
    * View role details
-   * Route: /users/roles/:id
+   * Route: /platform/roles/:id
    * Note: This route is not yet implemented
    */
   viewRole(role: RoleCardData): void {
     console.log('View role details:', role);
     // TODO: Implement role details page
-    // this.router.navigate(['/users/roles', role.id]);
+    // this.router.navigate(['/platform/roles', role.id]);
   }
 }

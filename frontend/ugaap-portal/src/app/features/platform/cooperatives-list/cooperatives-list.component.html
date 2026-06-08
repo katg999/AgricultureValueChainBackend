@@ -49,7 +49,7 @@
     </div>
 
     <!-- Status Filter -->
-    <select class="filter-select" [(ngModel)]="selectedStatus" (change)="onStatusChange()">
+    <select title="filter" class="filter-select" [(ngModel)]="selectedStatus" (change)="onStatusChange()">
       <option>All Statuses</option>
       <option>Active</option>
       <option>Pending</option>
@@ -57,7 +57,7 @@
     </select>
 
     <!-- Country Filter -->
-    <select class="filter-select" [(ngModel)]="selectedCountry" (change)="onCountryChange()">
+    <select title="filter" class="filter-select" [(ngModel)]="selectedCountry" (change)="onCountryChange()">
       <option>All Countries</option>
       <option>Uganda</option>
       <option>Kenya</option>
@@ -93,7 +93,7 @@
     <p class="pagination-info">Showing <strong>1 to 4</strong> of <strong>12</strong> organisations</p>
     
     <div class="pagination-controls">
-      <button class="pagination-btn" disabled>
+      <button title="Previous" class="pagination-btn" disabled>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -103,7 +103,7 @@
       <button class="pagination-btn">2</button>
       <button class="pagination-btn">3</button>
 
-      <button class="pagination-btn">
+      <button title="Next" class="pagination-btn">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>

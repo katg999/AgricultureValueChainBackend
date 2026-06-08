@@ -78,8 +78,11 @@ const PLATFORM_ADMIN_CONFIG: DashboardConfig = {
     // { label: 'Organisation Setup', icon: 'building', route: '/platform/cooperatives' },
     // Platform has its own user management at /platform/users (not the global /users)
     { label: 'Users',              icon: 'users',    route: '/platform/users'        },
+    // Cooperatives management — list, onboarding, maker-checker (all under /platform/cooperatives/*)
+    { label: 'Cooperatives',       icon: 'building', route: '/platform/cooperatives' },
+    
     // Role & permission management
-    { label: 'Roles',              icon: 'roles',    route: '/platform/users/roles-list' },
+    { label: 'Roles',              icon: 'roles',    route: '/platform/roles/roles-list' },
     // Platform-wide configuration
     { label: 'System Settings',    icon: 'settings', route: '/platform/settings'     },
   ],

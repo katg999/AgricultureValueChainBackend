@@ -189,7 +189,7 @@ form {
   gap: 10px;
   cursor: pointer;
   position: relative;
-  user-select: none;
+
 }
 
 .checkbox-container input {
