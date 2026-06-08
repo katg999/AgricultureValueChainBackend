@@ -40,12 +40,24 @@ export const PLATFORM_ROUTES: Routes = [
     loadChildren: () =>
       import('./user/user.routes').then(m => m.USER_ROUTES),
   },
+   {
+      path: 'roles',
+      loadChildren: () =>
+        import('./roles/roles.routes').then(m => m.ROLES_ROUTES),
+
+
+    },
+
+   // ── Maker-checker approval flow ─────────────────────────────────────────────
   {
     path: 'maker-checker',
     loadComponent: () =>
       import('./maker-checker-creation/maker-checker-creation.component')
         .then(m => m.MakerCheckerCreationComponent),
-  }
+  },
+  
+
+  
 
   // ── System Settings ───────────────────────────────────────────────────────
   // Platform-wide configuration (placeholder — full page to be built)

@@ -9,7 +9,9 @@
       <p class="page-subtitle">All Cooperatives</p>
     </div>
     <div class="header-actions">
-      <button class="btn-secondary">
+      <button class="btn-secondary"
+        (click)="exportReport()"
+        title="Export all dashboard data as CSV">
         <span>📥</span>
         Export report
       </button>

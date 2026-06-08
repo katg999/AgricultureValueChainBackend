@@ -74,7 +74,8 @@
       </div>
 
       <!-- Role Filter -->
-      <select 
+      <select
+        title="filter"
         class="filter-select"
         [(ngModel)]="selectedRole"
         (change)="onRoleFilterChange()">
@@ -84,7 +85,8 @@
       </select>
 
       <!-- Cooperation Filter (duplicate for design) -->
-      <select 
+      <select
+        title="filter" 
         class="filter-select"
         [(ngModel)]="selectedRole"
         (change)="onRoleFilterChange()">
@@ -95,6 +97,7 @@
 
       <!-- Cooperation Filter -->
       <select 
+        title="filter"
         class="filter-select"
         [(ngModel)]="selectedCooperation"
         (change)="onCooperationFilterChange()">
