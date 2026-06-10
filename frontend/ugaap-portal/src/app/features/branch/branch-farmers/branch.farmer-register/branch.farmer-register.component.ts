@@ -1,13 +1,50 @@
+<<<<<<< Updated upstream
 import { CommonModule }   from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule }    from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+=======
+import { CommonModule }            from '@angular/common';
+import { Component, OnInit }        from '@angular/core';
+import { FormsModule }              from '@angular/forms';
+import { ActivatedRoute, Router }   from '@angular/router';
+>>>>>>> Stashed changes
+import { CommonModule }            from '@angular/common';
+import { Component, OnInit }        from '@angular/core';
+import { FormsModule }              from '@angular/forms';
+import { ActivatedRoute, Router }   from '@angular/router';
 
-import { ButtonComponent } from '../../../../shared/components/button/button.component';
-import { InputComponent }  from '../../../../shared/components/input/input.component';
-import { FarmerProfile, FarmerRegistrationForm, FarmerService } from '../../../shared-farmer-domain/farmer.service';
+import { ButtonComponent }  from '../../../../shared/components/button/button.component';
+import { InputComponent }   from '../../../../shared/components/input/input.component';
+import {
+  FarmerProfile,
+  FarmerRegistrationForm,
+  FarmerService,
+} from '../../../shared-farmer-domain/farmer.service';
+import { ButtonComponent }  from '../../../../shared/components/button/button.component';
+import { InputComponent }   from '../../../../shared/components/input/input.component';
+import {
+  FarmerProfile,
+  FarmerRegistrationForm,
+  FarmerService,
+} from '../../../shared-farmer-domain/farmer.service';
 import { SessionService } from '../../../../core/services/session.service';
 import { ToastService }   from '../../../../core/services/toast.service';
+
+/** Stepper step descriptor */
+interface WizardStep {
+  label: string;
+}
+
+/** Stepper step descriptor */
+interface WizardStep {
+  label: string;
+}
+
+/** Stepper step descriptor */
+interface WizardStep {
+  label: string;
+}
 
 @Component({
   selector: 'app-branch.farmer-register',
@@ -18,23 +55,78 @@ import { ToastService }   from '../../../../core/services/toast.service';
 })
 export class BranchFarmerRegisterComponent implements OnInit {
 
-  // Field options
+  // ─────────────────────────────────────────
+  // WIZARD STEPS
+  // ─────────────────────────────────────────
+  readonly steps: WizardStep[] = [
+    { label: 'Personal details' },
+    { label: 'Farm specifications' },
+    { label: 'Payment method' },
+    { label: 'Production details' },
+  ];
+
+  currentStep = 0;
+
+  // ─────────────────────────────────────────
+  // FIELD OPTIONS
+  // ─────────────────────────────────────────
+  // ─────────────────────────────────────────
+  // WIZARD STEPS
+  // ─────────────────────────────────────────
+  readonly steps: WizardStep[] = [
+    { label: 'Personal details' },
+    { label: 'Farm specifications' },
+    { label: 'Payment method' },
+    { label: 'Production details' },
+  ];
+
+  currentStep = 0;
+
+  // ─────────────────────────────────────────
+  // FIELD OPTIONS
+  // ─────────────────────────────────────────
   readonly genderOptions        = ['Female', 'Male', 'Other', 'Prefer not to say'];
   readonly irrigationOptions    = ['Rain-fed', 'Irrigation', 'Both'];
-  readonly locationOptions      = ['Central Region', 'Eastern Region', 'Northern Region', 'Western Region'];
+  readonly locationOptions      = [
+    'Central Region', 'Eastern Region', 'Northern Region', 'Western Region',
+  ];
+  readonly locationOptions      = [
+    'Central Region', 'Eastern Region', 'Northern Region', 'Western Region',
+  ];
   readonly landOwnershipOptions = ['Owned', 'Leased', 'Customary', 'Communal', 'Rented'];
-  readonly farmImageUrl         = 'assets/images/farm-aerial.jpg';
-  readonly maxPhotoSizeBytes    = 2 * 1024 * 1024;
+  readonly bankOptions          = [
+    'Stanbic Bank', 'Centenary Bank', 'DFCU Bank', 'Bank of Africa',
+    'Equity Bank', 'Absa Bank', 'Post Bank', 'Finance Trust Bank', 'Other',
+  ];
+  readonly farmImageUrl      = 'assets/images/farm-aerial.jpg';
+  readonly maxPhotoSizeBytes = 2 * 1024 * 1024;
+  readonly bankOptions          = [
+    'Stanbic Bank', 'Centenary Bank', 'DFCU Bank', 'Bank of Africa',
+    'Equity Bank', 'Absa Bank', 'Post Bank', 'Finance Trust Bank', 'Other',
+  ];
+  readonly farmImageUrl      = 'assets/images/farm-aerial.jpg';
+  readonly maxPhotoSizeBytes = 2 * 1024 * 1024;
 
-  // Component state
+  // ─────────────────────────────────────────
+  // COMPONENT STATE
+  // ─────────────────────────────────────────
+  // ─────────────────────────────────────────
+  // COMPONENT STATE
+  // ─────────────────────────────────────────
   isEditMode    = false;
   farmerId: string | null = null;
   loadingFarmer = false;
   photoError    = '';
   isSaving      = false;
   saveError: string | null = null;
+  formErrors: Record<string, string> = {};
 
-  // Form model
+  // ─────────────────────────────────────────
+  // FORM MODEL
+  // ─────────────────────────────────────────
+  // ─────────────────────────────────────────
+  // FORM MODEL
+  // ─────────────────────────────────────────
   form: FarmerRegistrationForm = {
     fullName:          '',
     emailAddress:      '',
@@ -55,10 +147,43 @@ export class BranchFarmerRegisterComponent implements OnInit {
     },
     cooperativeGroup: '',
     assignedBranch:   '',
+    paymentMethod: {
+      type:                  'mobile_money',
+      bankName:              '',
+      bankBranch:            '',
+      bankAccountHolderName: '',
+      bankAccountNumber:     '',
+      wendiWalletNumber:     '',
+      mobileMoneyProvider:   'mtn',
+      mobileMoneyPhone:      '',
+    },
+  };
+
+  // ─────────────────────────────────────────
+  // CONSTRUCTOR
+  // ─────────────────────────────────────────
+<<<<<<< Updated upstream
   };
 
   private toast = inject(ToastService);
 
+=======
+>>>>>>> Stashed changes
+    paymentMethod: {
+      type:                  'mobile_money',
+      bankName:              '',
+      bankBranch:            '',
+      bankAccountHolderName: '',
+      bankAccountNumber:     '',
+      wendiWalletNumber:     '',
+      mobileMoneyProvider:   'mtn',
+      mobileMoneyPhone:      '',
+    },
+  };
+
+  // ─────────────────────────────────────────
+  // CONSTRUCTOR
+  // ─────────────────────────────────────────
   constructor(
     private router:        Router,
     private route:         ActivatedRoute,
@@ -66,6 +191,12 @@ export class BranchFarmerRegisterComponent implements OnInit {
     private session:       SessionService,
   ) {}
 
+  // ─────────────────────────────────────────
+  // LIFECYCLE
+  // ─────────────────────────────────────────
+  // ─────────────────────────────────────────
+  // LIFECYCLE
+  // ─────────────────────────────────────────
   ngOnInit(): void {
     const role = this.session.userRole();
     if (role && role !== 'branch') {
@@ -91,8 +222,94 @@ export class BranchFarmerRegisterComponent implements OnInit {
     }
   }
 
-  // Photo handling
+  // ─────────────────────────────────────────
+  // STEP NAVIGATION
+  // ─────────────────────────────────────────
 
+  /**
+   * Advance to the next step if the current step's fields are valid.
+   * We only validate the fields that belong to the current step so the
+   * user isn't blocked by errors on a later page.
+   */
+  nextStep(): void {
+    if (!this.validateCurrentStep()) return;
+    if (this.currentStep < this.steps.length - 1) {
+      this.currentStep++;
+      this.scrollTop();
+    }
+  }
+
+  prevStep(): void {
+    if (this.currentStep > 0) {
+      this.currentStep--;
+      this.formErrors = {};
+      this.scrollTop();
+    }
+  }
+
+  /**
+   * Allow clicking completed steps (i < currentStep) to go back
+   * to review; clicking future steps is disabled until we reach them.
+   */
+  goToStep(index: number): void {
+    if (index < this.currentStep) {
+      this.currentStep = index;
+      this.formErrors  = {};
+      this.scrollTop();
+    }
+  }
+
+  private scrollTop(): void {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ─────────────────────────────────────────
+  // PHOTO HANDLING
+  // ─────────────────────────────────────────
+  // ─────────────────────────────────────────
+  // STEP NAVIGATION
+  // ─────────────────────────────────────────
+
+  /**
+   * Advance to the next step if the current step's fields are valid.
+   * We only validate the fields that belong to the current step so the
+   * user isn't blocked by errors on a later page.
+   */
+  nextStep(): void {
+    if (!this.validateCurrentStep()) return;
+    if (this.currentStep < this.steps.length - 1) {
+      this.currentStep++;
+      this.scrollTop();
+    }
+  }
+
+  prevStep(): void {
+    if (this.currentStep > 0) {
+      this.currentStep--;
+      this.formErrors = {};
+      this.scrollTop();
+    }
+  }
+
+  /**
+   * Allow clicking completed steps (i < currentStep) to go back
+   * to review; clicking future steps is disabled until we reach them.
+   */
+  goToStep(index: number): void {
+    if (index < this.currentStep) {
+      this.currentStep = index;
+      this.formErrors  = {};
+      this.scrollTop();
+    }
+  }
+
+  private scrollTop(): void {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ─────────────────────────────────────────
+  // PHOTO HANDLING
+  // ─────────────────────────────────────────
   removeFarmerPhoto(): void {
     this.form.photoPreviewUrl = '';
     this.photoError = '';
@@ -124,21 +341,129 @@ export class BranchFarmerRegisterComponent implements OnInit {
     }
     const reader = new FileReader();
     reader.onload = () => {
-      this.form.photoPreviewUrl = typeof reader.result === 'string' ? reader.result : '';
+      this.form.photoPreviewUrl =
+        typeof reader.result === 'string' ? reader.result : '';
     };
     reader.readAsDataURL(file);
   }
 
-  // Form actions
+  // ─────────────────────────────────────────
+  // VALIDATION
+  // ─────────────────────────────────────────
 
+  /**
+   * Validate only the fields that belong to the currently visible step.
+   * Returns true if the step is clean.
+   */
+  private validateCurrentStep(): boolean {
+    this.formErrors = {};
+    const f = this.form;
+
+    switch (this.currentStep) {
+
+      case 0: // Personal Details
+        if (!f.fullName.trim())
+          this.formErrors['fullName'] = 'Full name is required.';
+        if (!f.nationalIdNumber.trim())
+          this.formErrors['nationalIdNumber'] = 'National ID number is required.';
+        if (!f.phoneNumber.trim())
+          this.formErrors['phoneNumber'] = 'Phone number is required.';
+        if (!f.emailAddress.trim())
+          this.formErrors['emailAddress'] = 'Email address is required.';
+        if (!f.dateOfBirth)
+          this.formErrors['dateOfBirth'] = 'Date of birth is required.';
+        break;
+
+      case 1: // Farm Specifications
+        if (!f.village.trim())
+          this.formErrors['village'] = 'Village / Town is required.';
+        if (f.totalLandArea === null || f.totalLandArea <= 0)
+          this.formErrors['totalLandArea'] = 'Total land area is required.';
+        break;
+
+      case 2: // Payment Method
+        const pm = f.paymentMethod;
+        if (pm.type === 'bank') {
+          if (!pm.bankName)
+            this.formErrors['bankName'] = 'Please select a bank.';
+          if (!pm.bankBranch.trim())
+            this.formErrors['bankBranch'] = 'Bank branch is required.';
+          if (!pm.bankAccountHolderName.trim())
+            this.formErrors['bankAccountHolderName'] = 'Account holder name is required.';
+          if (!/^\d{12}$/.test(pm.bankAccountNumber))
+            this.formErrors['bankAccountNumber'] = 'Must be exactly 12 digits.';
+        }
+        if (pm.type === 'wendi_wallet') {
+          if (!/^\d{14}$/.test(pm.wendiWalletNumber))
+            this.formErrors['wendiWalletNumber'] = 'Must be exactly 14 digits.';
+        }
+        break;
+
+      // Step 3 (Production Details) has no required fields
+    }
+
+    return Object.keys(this.formErrors).length === 0;
+  }
+
+  /**
+   * Full-form validation used only at final submit.
+   * Re-runs all step rules so nothing is missed if the user skipped back.
+   */
+  private validateForm(): boolean {
+    this.formErrors = {};
+    const f  = this.form;
+    const pm = f.paymentMethod;
+
+    if (!f.fullName.trim())
+      this.formErrors['fullName'] = 'Full name is required.';
+    if (!f.nationalIdNumber.trim())
+      this.formErrors['nationalIdNumber'] = 'National ID number is required.';
+    if (!f.phoneNumber.trim())
+      this.formErrors['phoneNumber'] = 'Phone number is required.';
+    if (!f.emailAddress.trim())
+      this.formErrors['emailAddress'] = 'Email address is required.';
+    if (!f.dateOfBirth)
+      this.formErrors['dateOfBirth'] = 'Date of birth is required.';
+    if (!f.village.trim())
+      this.formErrors['village'] = 'Village / Town is required.';
+    if (f.totalLandArea === null || f.totalLandArea <= 0)
+      this.formErrors['totalLandArea'] = 'Total land area is required.';
+    if (pm.type === 'bank') {
+      if (!pm.bankName)
+        this.formErrors['bankName'] = 'Please select a bank.';
+      if (!pm.bankBranch.trim())
+        this.formErrors['bankBranch'] = 'Bank branch is required.';
+      if (!pm.bankAccountHolderName.trim())
+        this.formErrors['bankAccountHolderName'] = 'Account holder name is required.';
+      if (!/^\d{12}$/.test(pm.bankAccountNumber))
+        this.formErrors['bankAccountNumber'] = 'Must be exactly 12 digits.';
+    }
+    if (pm.type === 'wendi_wallet') {
+      if (!/^\d{14}$/.test(pm.wendiWalletNumber))
+        this.formErrors['wendiWalletNumber'] = 'Must be exactly 14 digits.';
+    }
+
+    return Object.keys(this.formErrors).length === 0;
+  }
+
+  // ─────────────────────────────────────────
+  // FORM ACTIONS
+  // ─────────────────────────────────────────
   onCancel(): void {
     this.router.navigate(['/branch/farmers/list']);
   }
 
   onSave(): void {
+    if (!this.validateForm()) return;
+
+    if (this.form.paymentMethod.type === 'mobile_money') {
+      this.form.paymentMethod.mobileMoneyPhone = this.form.phoneNumber;
+<<<<<<< Updated upstream
     if (!this.form.fullName || !this.form.phoneNumber || !this.form.nationalIdNumber) {
       this.toast.error('Missing required fields', 'Please fill in Name, Phone, and National ID before submitting.');
       return;
+=======
+>>>>>>> Stashed changes
     }
 
     this.isSaving  = true;
@@ -177,6 +502,9 @@ export class BranchFarmerRegisterComponent implements OnInit {
     });
   }
 
+  // ─────────────────────────────────────────
+  // EDIT MODE POPULATION
+  // ─────────────────────────────────────────
   private populateForm(profile: FarmerProfile): void {
     this.form = {
       fullName:          profile.fullName,
@@ -203,6 +531,16 @@ export class BranchFarmerRegisterComponent implements OnInit {
       },
       cooperativeGroup: profile.groupCredit.cooperativeGroup,
       assignedBranch:   profile.registration.assignedBranch,
+      paymentMethod: profile.paymentMethod ?? {
+        type:                  'mobile_money',
+        bankName:              '',
+        bankBranch:            '',
+        bankAccountHolderName: '',
+        bankAccountNumber:     '',
+        wendiWalletNumber:     '',
+        mobileMoneyProvider:   'mtn',
+        mobileMoneyPhone:      profile.phoneNumber,
+      },
     };
   }
 }

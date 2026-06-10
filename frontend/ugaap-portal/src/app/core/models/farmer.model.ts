@@ -24,6 +24,24 @@ export type BadgeVariant =
   | 'verified' | 'failed' | 'draft'
   | 'open' | 'closed' | 'healthy' | 'low' | 'info';
 
+// ── Payment method ────────────────────────────────────────────────────────────
+
+export type PaymentMethodType    = 'bank' | 'wendi_wallet' | 'mobile_money';
+export type MobileMoneyProvider  = 'mtn' | 'airtel';
+
+/** Flat shape used by the registration form — all fields always present so
+ *  template bindings never hit undefined, only the active type's fields matter */
+export interface FarmerPaymentMethod {
+  type:                  PaymentMethodType;
+  bankName:              string;
+  bankBranch:            string;
+  bankAccountHolderName: string;
+  bankAccountNumber:     string;   // 12 digits
+  wendiWalletNumber:     string;   // 14 digits
+  mobileMoneyProvider:   MobileMoneyProvider;
+  mobileMoneyPhone:      string;   // auto-set from form.phoneNumber on save
+}
+
 // ── Registration form ─────────────────────────────────────────────────────────
 
 /** What the farmer-register form collects */
@@ -54,6 +72,7 @@ export interface FarmerRegistrationForm {
   production:        ProductionDetails;
   cooperativeGroup:  string;
   assignedBranch:    string;
+  paymentMethod:     FarmerPaymentMethod;
   status?:           FarmerStatus;
   branchId?:         string;
   cooperativeId?:    string;
@@ -113,6 +132,7 @@ export interface FarmerProfile {
     scoreLabel:       string;
     saccoName:        string;
   };
+  paymentMethod?: FarmerPaymentMethod;
 }
 
 // ── Slim list item (returned by GET /farmers) ─────────────────────────────────

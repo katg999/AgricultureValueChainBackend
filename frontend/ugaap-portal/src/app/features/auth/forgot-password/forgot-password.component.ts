@@ -79,10 +79,10 @@ export class ForgotPasswordComponent implements OnInit {
   // ── Form submission ─────────────────────────────────────────────────────────
 
   onSubmit(): void {
-    if (this.forgotForm.invalid) {
+   if (this.forgotForm.invalid) {
       this.forgotForm.markAllAsTouched();
       return;
-    }
+  }
 
     this.isLoading    = true;
     this.errorMessage = '';
