@@ -1,26 +1,8 @@
-<<<<<<< Updated upstream
-import { CommonModule }   from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
-import { FormsModule }    from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-=======
-import { CommonModule }            from '@angular/common';
-import { Component, OnInit }        from '@angular/core';
-import { FormsModule }              from '@angular/forms';
-import { ActivatedRoute, Router }   from '@angular/router';
->>>>>>> Stashed changes
 import { CommonModule }            from '@angular/common';
 import { Component, OnInit }        from '@angular/core';
 import { FormsModule }              from '@angular/forms';
 import { ActivatedRoute, Router }   from '@angular/router';
 
-import { ButtonComponent }  from '../../../../shared/components/button/button.component';
-import { InputComponent }   from '../../../../shared/components/input/input.component';
-import {
-  FarmerProfile,
-  FarmerRegistrationForm,
-  FarmerService,
-} from '../../../shared-farmer-domain/farmer.service';
 import { ButtonComponent }  from '../../../../shared/components/button/button.component';
 import { InputComponent }   from '../../../../shared/components/input/input.component';
 import {
@@ -29,19 +11,7 @@ import {
   FarmerService,
 } from '../../../shared-farmer-domain/farmer.service';
 import { SessionService } from '../../../../core/services/session.service';
-import { ToastService }   from '../../../../core/services/toast.service';
 
-/** Stepper step descriptor */
-interface WizardStep {
-  label: string;
-}
-
-/** Stepper step descriptor */
-interface WizardStep {
-  label: string;
-}
-
-/** Stepper step descriptor */
 interface WizardStep {
   label: string;
 }
@@ -70,26 +40,8 @@ export class BranchFarmerRegisterComponent implements OnInit {
   // ─────────────────────────────────────────
   // FIELD OPTIONS
   // ─────────────────────────────────────────
-  // ─────────────────────────────────────────
-  // WIZARD STEPS
-  // ─────────────────────────────────────────
-  readonly steps: WizardStep[] = [
-    { label: 'Personal details' },
-    { label: 'Farm specifications' },
-    { label: 'Payment method' },
-    { label: 'Production details' },
-  ];
-
-  currentStep = 0;
-
-  // ─────────────────────────────────────────
-  // FIELD OPTIONS
-  // ─────────────────────────────────────────
   readonly genderOptions        = ['Female', 'Male', 'Other', 'Prefer not to say'];
   readonly irrigationOptions    = ['Rain-fed', 'Irrigation', 'Both'];
-  readonly locationOptions      = [
-    'Central Region', 'Eastern Region', 'Northern Region', 'Western Region',
-  ];
   readonly locationOptions      = [
     'Central Region', 'Eastern Region', 'Northern Region', 'Western Region',
   ];
@@ -100,16 +52,7 @@ export class BranchFarmerRegisterComponent implements OnInit {
   ];
   readonly farmImageUrl      = 'assets/images/farm-aerial.jpg';
   readonly maxPhotoSizeBytes = 2 * 1024 * 1024;
-  readonly bankOptions          = [
-    'Stanbic Bank', 'Centenary Bank', 'DFCU Bank', 'Bank of Africa',
-    'Equity Bank', 'Absa Bank', 'Post Bank', 'Finance Trust Bank', 'Other',
-  ];
-  readonly farmImageUrl      = 'assets/images/farm-aerial.jpg';
-  readonly maxPhotoSizeBytes = 2 * 1024 * 1024;
 
-  // ─────────────────────────────────────────
-  // COMPONENT STATE
-  // ─────────────────────────────────────────
   // ─────────────────────────────────────────
   // COMPONENT STATE
   // ─────────────────────────────────────────
@@ -121,9 +64,6 @@ export class BranchFarmerRegisterComponent implements OnInit {
   saveError: string | null = null;
   formErrors: Record<string, string> = {};
 
-  // ─────────────────────────────────────────
-  // FORM MODEL
-  // ─────────────────────────────────────────
   // ─────────────────────────────────────────
   // FORM MODEL
   // ─────────────────────────────────────────
@@ -162,28 +102,6 @@ export class BranchFarmerRegisterComponent implements OnInit {
   // ─────────────────────────────────────────
   // CONSTRUCTOR
   // ─────────────────────────────────────────
-<<<<<<< Updated upstream
-  };
-
-  private toast = inject(ToastService);
-
-=======
->>>>>>> Stashed changes
-    paymentMethod: {
-      type:                  'mobile_money',
-      bankName:              '',
-      bankBranch:            '',
-      bankAccountHolderName: '',
-      bankAccountNumber:     '',
-      wendiWalletNumber:     '',
-      mobileMoneyProvider:   'mtn',
-      mobileMoneyPhone:      '',
-    },
-  };
-
-  // ─────────────────────────────────────────
-  // CONSTRUCTOR
-  // ─────────────────────────────────────────
   constructor(
     private router:        Router,
     private route:         ActivatedRoute,
@@ -191,9 +109,6 @@ export class BranchFarmerRegisterComponent implements OnInit {
     private session:       SessionService,
   ) {}
 
-  // ─────────────────────────────────────────
-  // LIFECYCLE
-  // ─────────────────────────────────────────
   // ─────────────────────────────────────────
   // LIFECYCLE
   // ─────────────────────────────────────────
@@ -222,50 +137,6 @@ export class BranchFarmerRegisterComponent implements OnInit {
     }
   }
 
-  // ─────────────────────────────────────────
-  // STEP NAVIGATION
-  // ─────────────────────────────────────────
-
-  /**
-   * Advance to the next step if the current step's fields are valid.
-   * We only validate the fields that belong to the current step so the
-   * user isn't blocked by errors on a later page.
-   */
-  nextStep(): void {
-    if (!this.validateCurrentStep()) return;
-    if (this.currentStep < this.steps.length - 1) {
-      this.currentStep++;
-      this.scrollTop();
-    }
-  }
-
-  prevStep(): void {
-    if (this.currentStep > 0) {
-      this.currentStep--;
-      this.formErrors = {};
-      this.scrollTop();
-    }
-  }
-
-  /**
-   * Allow clicking completed steps (i < currentStep) to go back
-   * to review; clicking future steps is disabled until we reach them.
-   */
-  goToStep(index: number): void {
-    if (index < this.currentStep) {
-      this.currentStep = index;
-      this.formErrors  = {};
-      this.scrollTop();
-    }
-  }
-
-  private scrollTop(): void {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  // ─────────────────────────────────────────
-  // PHOTO HANDLING
-  // ─────────────────────────────────────────
   // ─────────────────────────────────────────
   // STEP NAVIGATION
   // ─────────────────────────────────────────
@@ -458,12 +329,6 @@ export class BranchFarmerRegisterComponent implements OnInit {
 
     if (this.form.paymentMethod.type === 'mobile_money') {
       this.form.paymentMethod.mobileMoneyPhone = this.form.phoneNumber;
-<<<<<<< Updated upstream
-    if (!this.form.fullName || !this.form.phoneNumber || !this.form.nationalIdNumber) {
-      this.toast.error('Missing required fields', 'Please fill in Name, Phone, and National ID before submitting.');
-      return;
-=======
->>>>>>> Stashed changes
     }
 
     this.isSaving  = true;

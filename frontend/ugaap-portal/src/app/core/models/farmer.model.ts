@@ -1,4 +1,4 @@
-// ─────────────────────────────────────────────────────────────────────────────
+
 // core/models/farmer.model.ts
 //
 // Central type definitions for the Farmer domain.
@@ -6,7 +6,7 @@
 //   - features/farmers/farmer.service.ts
 //   - features/farmers/farmer-list, farmer-register, farmer-approval
 //   - features/cooperatives (farmer-list sub-view)
-// ─────────────────────────────────────────────────────────────────────────────
+
 
 /** Lifecycle status of a farmer account */
 export type FarmerStatus = 'Active' | 'Pending' | 'Rejected' | 'Suspended';
@@ -24,7 +24,7 @@ export type BadgeVariant =
   | 'verified' | 'failed' | 'draft'
   | 'open' | 'closed' | 'healthy' | 'low' | 'info';
 
-// ── Payment method ────────────────────────────────────────────────────────────
+// Payment method 
 
 export type PaymentMethodType    = 'bank' | 'wendi_wallet' | 'mobile_money';
 export type MobileMoneyProvider  = 'mtn' | 'airtel';
@@ -42,7 +42,7 @@ export interface FarmerPaymentMethod {
   mobileMoneyPhone:      string;   // auto-set from form.phoneNumber on save
 }
 
-// ── Registration form ─────────────────────────────────────────────────────────
+// Registration form 
 
 /** What the farmer-register form collects */
 export interface ProductionDetails {
@@ -78,7 +78,7 @@ export interface FarmerRegistrationForm {
   cooperativeId?:    string;
 }
 
-// ── Onboarding pipeline ───────────────────────────────────────────────────────
+// Onboarding pipeline
 
 export interface OnboardingStep {
   label:  string;

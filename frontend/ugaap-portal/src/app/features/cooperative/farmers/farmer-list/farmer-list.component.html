@@ -107,7 +107,6 @@
               {{ farmer.status }}
             </span>
           </td>
-<<<<<<< HEAD
           <td class="text-center actions-cell">
             <div class="kebab-wrapper">
               <button
@@ -131,32 +130,11 @@
                 </ng-container>
               </div>
             </div>
-=======
-          <td class="text-center">
-            <app-button
-              *ngIf="farmer.status === 'Pending'"
-              type="button"
-              size="sm"
-              variant="secondary"
-              (clicked)="onReviewFarmer(farmer)">
-              Review
-            </app-button>
-            <app-button
-              *ngIf="farmer.status === 'Pending'"
-              type="button"
-              size="sm"
-              variant="primary"
-              iconLeft="✓"
-              (clicked)="onApproveFarmer(farmer)">
-              Approve
-            </app-button>
-            <span *ngIf="farmer.status !== 'Pending'" class="text-muted-placeholder">—</span>
           </td>
         </tr>
         <tr *ngIf="paginatedFarmers.length === 0">
           <td colspan="8" style="text-align:center; padding:40px; color:#6b6b7b;">
             No farmers match the current filters.
->>>>>>> 9dee8b400e3f8ea25a26ca7d0d86f8ac2a364f3e
           </td>
         </tr>
       </tbody>
@@ -168,13 +146,6 @@
         Showing {{ startIndex }} to {{ endIndex }} of {{ totalCount }} entries
       </span>
       <div class="pagination-controls">
-<<<<<<< HEAD
-        <button class="page-btn" type="button">Previous</button>
-        <button class="page-btn page-btn--active" type="button">1</button>
-        <button class="page-btn" type="button">2</button>
-        <button class="page-btn" type="button">3</button>
-        <button class="page-btn" type="button">Next</button>
-=======
         <button
           class="page-btn"
           [disabled]="currentPage === 1"
@@ -194,7 +165,6 @@
           (click)="nextPage()">
           Next ›
         </button>
->>>>>>> 9dee8b400e3f8ea25a26ca7d0d86f8ac2a364f3e
       </div>
     </div>
   </div>

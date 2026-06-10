@@ -1,9 +1,5 @@
 import { CommonModule } from '@angular/common';
-<<<<<<< HEAD
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
-=======
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
->>>>>>> 9dee8b400e3f8ea25a26ca7d0d86f8ac2a364f3e
+import { Component, HostListener, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { BehaviorSubject, combineLatest, map, Observable, Subject, takeUntil, tap } from 'rxjs';
@@ -16,11 +12,7 @@ import { ToastService } from '../../../../core/services/toast.service';
 @Component({
   selector: 'app-farmer-list',
   standalone: true,
-<<<<<<< HEAD
-  imports: [CommonModule, FormsModule, InputComponent],
-=======
-  imports: [CommonModule, FormsModule, ButtonComponent, InputComponent, StatsCardComponent],
->>>>>>> 9dee8b400e3f8ea25a26ca7d0d86f8ac2a364f3e
+  imports: [CommonModule, FormsModule, InputComponent, StatsCardComponent],
   templateUrl: './farmer-list.component.html',
   styleUrl: './farmer-list.component.css',
 })
@@ -159,12 +151,8 @@ export class FarmerListComponent implements OnInit, OnDestroy {
   }
 
   onApproveFarmer(farmer: FarmerListItem): void {
-<<<<<<< HEAD
     this.closeMenu();
-    if (!confirm(`Are you sure you want to approve ${farmer.name}?`)) return;
-=======
     if (!confirm(`Approve ${farmer.name}? They will be granted active farmer status.`)) return;
->>>>>>> 9dee8b400e3f8ea25a26ca7d0d86f8ac2a364f3e
 
     this.farmerService.approve(farmer.id)
       .pipe(takeUntil(this.destroy$))

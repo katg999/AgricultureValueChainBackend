@@ -1,9 +1,5 @@
 import { CommonModule } from '@angular/common';
-<<<<<<< HEAD
-import { Component, HostListener, OnInit } from '@angular/core';
-=======
-import { Component, OnInit, inject } from '@angular/core';
->>>>>>> 9dee8b400e3f8ea25a26ca7d0d86f8ac2a364f3e
+import { Component, HostListener, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 
