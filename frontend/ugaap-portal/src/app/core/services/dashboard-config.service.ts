@@ -78,8 +78,11 @@ const PLATFORM_ADMIN_CONFIG: DashboardConfig = {
     // { label: 'Organisation Setup', icon: 'building', route: '/platform/cooperatives' },
     // Platform has its own user management at /platform/users (not the global /users)
     { label: 'Users',              icon: 'users',    route: '/platform/users'        },
+    // Cooperatives management — list, onboarding, maker-checker (all under /platform/cooperatives/*)
+    { label: 'Cooperatives',       icon: 'building', route: '/platform/cooperatives' },
+    
     // Role & permission management
-    { label: 'Roles',              icon: 'roles',    route: '/platform/users/roles-list' },
+    { label: 'Roles',              icon: 'roles',    route: '/platform/roles/roles-list' },
     // Platform-wide configuration
     { label: 'System Settings',    icon: 'settings', route: '/platform/settings'     },
   ],
@@ -108,11 +111,9 @@ const COOPERATIVE_ADMIN_CONFIG: DashboardConfig = {
 
     { label: 'Collection',      icon: 'collection', route: '/cooperative/collections'            },
 
-    
-    {label:'Farmers',         icon:'farmers',     route:'/cooperative/farmers' },
+    { label: 'Farmers',         icon: 'farmers',    route: '/cooperative/farmers'                },
 
-    {label:'Branches',         icon:'branch',     route:'/cooperative/branches'               },
-
+    { label: 'Branches',        icon: 'branch',     route: '/cooperative/branches'               },
 
     {
       label: 'Finance',
@@ -122,7 +123,7 @@ const COOPERATIVE_ADMIN_CONFIG: DashboardConfig = {
         { label: 'Batch Processing', icon: '', route: '/cooperative/finance/batch-processing' },
       ],
     },
-    // Inventory is a collapsible parent — clicking it reveals current stock, issue stock and stock disbursed
+
     {
       label: 'Inventory',
       icon:  'inventory',
@@ -134,8 +135,8 @@ const COOPERATIVE_ADMIN_CONFIG: DashboardConfig = {
       ],
     },
 
-    { label: 'User Management', icon: 'users',      route: '/cooperative/users'    },
-    { label: 'Roles',           icon: 'roles',      route: '/cooperative/roles'    },
+    { label: 'User Management', icon: 'users',      route: '/cooperative/users'                  },
+    { label: 'Roles',           icon: 'roles',      route: '/cooperative/roles'                  },
 
   ],
 
@@ -153,7 +154,7 @@ const BRANCH_CONFIG: DashboardConfig = {
     { label: 'Main',          icon: 'home',       route: '/branch/dashboard'        },
      { label: 'Collection',    icon: 'collection', route: '/branch/collections'              },
     { label: 'Farmers',       icon: 'farmers',    route: '/branch/farmers'                  },
-    
+
     {
       label: 'Finance',
       icon:  'finance',
@@ -175,7 +176,6 @@ const BRANCH_CONFIG: DashboardConfig = {
         { label: 'Stock-disbursed', icon: '', route: '/branch/inventory/stock-disbursed' },
       ],
     },
-
   ],
 };
 

@@ -198,30 +198,34 @@ export class AddUserComponent implements OnInit {
       return;
     }
 
-    this.isLoading = true;
+    // this.isLoading = true;
+     this.router.navigate(['/cooperative/users']);
+   
 
-    const userData = {
-      ...this.userForm.value,
-      sendWelcomeEmail: this.sendWelcomeEmail,
-      requireOTP: this.requireOTP,
-      // Format date consistently for DB
-      dateOfBirth: dob ? this.formatDateForDB(dob) : null
-    };
+    // const userData = {
+    //   ...this.userForm.value,
+    //   sendWelcomeEmail: this.sendWelcomeEmail,
+    //   requireOTP: this.requireOTP,
+    //   // Format date consistently for DB
+    //   dateOfBirth: dob ? this.formatDateForDB(dob) : null
+    // };
 
-    console.log('Saving user:', userData);
+    // console.log('Saving user:', userData);
 
     // Simulate API call — replace with real HTTP call when endpoint is ready
-    setTimeout(() => {
-      this.isLoading = false;
-      // Show the credentials popup instead of navigating away immediately
-      this.createdCredentials = {
-        name:     this.userForm.value.fullName,
-        email:    this.userForm.value.email,
-        password: this.userForm.value.tempPassword,
-      };
-      this.showCreatedPassword = false;
-      this.showCredentials = true;
-    }, 1500);
+    // setTimeout(() => {
+    //   this.isLoading = false;
+    
+
+    //   // Show the credentials popup instead of navigating away immediately
+    //   this.createdCredentials = {
+    //     name:     this.userForm.value.fullName,
+    //     email:    this.userForm.value.email,
+    //     password: this.userForm.value.tempPassword,
+    //   };
+    //   this.showCreatedPassword = false;
+    //   this.showCredentials = true;
+    // }, 1500);
   }
 
   /**

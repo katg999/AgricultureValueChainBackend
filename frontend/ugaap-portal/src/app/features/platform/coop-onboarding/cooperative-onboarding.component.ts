@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router, ActivatedRoute  } from '@angular/router';
+import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 // Shared components
@@ -10,7 +10,8 @@ import { InputComponent } from '../../../shared/components/input/input.component
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { ModalComponent } from '../../../shared/components/modal/modal.component';
 import { AlertComponent } from '../../../shared/components/alert/alert.component';
-
+import { CooperativeService } from '../../../core/services/cooperative.service';
+import { API_ENDPOINTS } from '../../../core/constants/api-endpoints';
 
 @Component({
   selector: 'app-cooperative-onboarding',
@@ -24,17 +25,16 @@ import { AlertComponent } from '../../../shared/components/alert/alert.component
     InputComponent,
     ButtonComponent,
     ModalComponent,
-    AlertComponent
+    AlertComponent,
   ],
   templateUrl: './cooperative-onboarding.component.html',
-  styleUrls: ['./cooperative-onboarding.component.css']
+  styleUrls: ['./cooperative-onboarding.component.css'],
 })
 export class CooperativeOnboardingComponent implements OnInit {
-
   // ── Stepper ───────────────────────────────────────────────
   steps: Step[] = [
     { label: 'PROFILE', number: '01' },
-    { label: 'REVIEW', number: '02' }
+    { label: 'REVIEW', number: '02' },
   ];
 
   currentStep = 0;
@@ -54,7 +54,8 @@ export class CooperativeOnboardingComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private router: Router
+    private router: Router,
+    private cooperativeService: CooperativeService,
   ) {}
 
   ngOnInit(): void {
@@ -72,7 +73,10 @@ export class CooperativeOnboardingComponent implements OnInit {
       defaultBranchLocation: [''],
       poBox: [''],
       websiteUrl: [''],
-      country: ['', Validators.required]
+      country: ['', Validators.required],
+      contactPersonName: ['', Validators.required],
+      contactPersonPhone: ['', Validators.required],
+      contactPersonEmail: ['', [Validators.required, Validators.email]],
     });
   }
 
@@ -105,27 +109,52 @@ export class CooperativeOnboardingComponent implements OnInit {
   // ── Submit (Navigate to Maker & Checker Creation) ────────
 
   activateCooperative(): void {
-    // console.log('ACTIVATE BUTTON CLICKED!');
-    
+   //console.log('ACTIVATE BUTTON CLICKED!');
+   
+    if (this.profileForm.invalid) {
+      this.profileForm.markAllAsTouched();
+      return;
+    }
+
     this.isLoading = true;
     this.errorMessage = '';
+    this.showConfirmModal = false;
 
-    // Simulate API delay
-    setTimeout(() => {
-      this.isLoading = false;
-      this.showConfirmModal = false;
-      
-      // Navigate to Maker & Checker account creation
-     
-      this.router.navigate(['/cooperatives/maker-checker-creation'], {
-        state: {
-          cooperativeName: this.profileForm.value.name,
-          registrationNumber: this.profileForm.value.registrationNumber,
-          message: `Cooperative "${this.profileForm.value.name}" ready. Now create Maker and Checker accounts.`
-        }
-      
-});
-    }, 1000);
+    const payload = {
+      name: this.profileForm.value.name,
+      registrationNumber: this.profileForm.value.registrationNumber,
+      address: this.profileForm.value.address,
+      contactPersonName: this.profileForm.value.contactPersonName,
+      contactPersonPhone: this.profileForm.value.contactPersonPhone,
+      contactPersonEmail: this.profileForm.value.contactPersonEmail,
+      poBox: this.profileForm.value.poBox,
+      websiteUrl: this.profileForm.value.websiteUrl,
+      country: this.profileForm.value.country,
+      defaultBranchName: this.profileForm.value.defaultBranchName,
+      defaultBranchLocation: this.profileForm.value.defaultBranchLocation,
+    };
+
+    this.cooperativeService.createCooperative(payload).subscribe({
+      next: (res) => {
+        this.isLoading = false;
+
+        this.router.navigate(['/cooperatives/maker-checker-creation'], {
+          state: {
+            cooperative: res,
+            message: `Cooperative "${payload.name}" created successfully`,
+          },
+        });
+      },
+
+      error: (err) => {
+        this.isLoading = false;
+
+        console.error('Create cooperative failed:', err);
+
+        this.errorMessage =
+          err?.error?.message ?? 'You do not have permission to create a cooperative.';
+      },
+    });
   }
 
   // ── Save progress ─────────────────────────────────────────

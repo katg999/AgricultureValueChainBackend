@@ -6,7 +6,6 @@ import { Router } from '@angular/router';
 
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { AlertComponent } from '../../../../shared/components/alert/alert.component';
-import { SpinnerComponent } from '../../../../shared/components/spinner/spinner.component';
 import { StatsCardComponent } from '../../../../shared/components/stats-card/stats-card.component';
 import { ToastService }      from '../../../../core/services/toast.service';
 
@@ -37,7 +36,6 @@ interface ActivityItem {
     RouterModule,
     ButtonComponent,
     AlertComponent,
-    SpinnerComponent,
     StatsCardComponent
   ],
 })

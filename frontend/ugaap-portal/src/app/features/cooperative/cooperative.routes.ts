@@ -78,7 +78,7 @@ export const COOPERATIVE_ROUTES: Routes = [
   { path: 'farmers/approval', redirectTo: 'farmers', pathMatch: 'full' },
   {
     path: 'branches',
-    loadChildren:()=>
+    loadChildren: () =>
       import('./branches/branch.routes')
         .then(m => m.BRANCH_ROUTES),
   },
@@ -106,12 +106,7 @@ export const COOPERATIVE_ROUTES: Routes = [
   
 
   // ── Maker-checker approval flow ─────────────────────────────────────────────
-  {
-    path: 'maker-checker',
-    loadComponent: () =>
-      import('../platform/maker-checker-creation/maker-checker-creation.component')
-        .then(m => m.MakerCheckerCreationComponent),
-  },
+  
   
   // ── Activation success ──────────────────────────────────────────────────────
   // Shown after a cooperative is successfully activated

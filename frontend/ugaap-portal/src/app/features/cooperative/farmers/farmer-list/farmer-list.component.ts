@@ -4,15 +4,15 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { BehaviorSubject, combineLatest, map, Observable, Subject, takeUntil, tap } from 'rxjs';
 
+import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
-import { StatsCardComponent } from '../../../../shared/components/stats-card/stats-card.component';
 import { FarmerListItem, FarmerService } from '../../../shared-farmer-domain/farmer.service';
 import { ToastService } from '../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-farmer-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, InputComponent, StatsCardComponent],
+  imports: [CommonModule, FormsModule, InputComponent, ButtonComponent],
   templateUrl: './farmer-list.component.html',
   styleUrl: './farmer-list.component.css',
 })

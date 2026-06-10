@@ -148,6 +148,12 @@ export class CooperativesListComponent implements OnInit {
    */
   isLoading = false;
 
+  // ADDED for export 
+  /**
+   * Export loading state
+   */
+  isExporting = false;
+
   constructor(private router: Router) {}
 
   ngOnInit(): void {
@@ -222,10 +228,70 @@ export class CooperativesListComponent implements OnInit {
 
   /**
    * Export cooperatives report
+   * Exports the currently filtered list as a CSV file.
+   * Responsive: works on any device and respects all active filters.
    */
   onExportReport(): void {
-    console.log('Export cooperatives report');
-    // TODO: Implement export functionality
+    // Prevent multiple exports
+    if (this.isExporting || this.filteredCooperatives.length === 0) {
+      return;
+    }
+
+    this.isExporting = true;
+
+    // Small delay to allow UI to update (loading indicator)
+    setTimeout(() => {
+      try {
+        // 1. CSV headers (user-friendly)
+        const headers = [
+          'Organisation Name',
+          'Code',
+          'Country',
+          'Branches',
+          'Active Farmers',
+          'Season',
+          'Status',
+          'Onboarding %',
+          'Last Activity'
+        ];
+
+        // 2. Convert filtered cooperatives to CSV rows
+        const rows = this.filteredCooperatives.map(coop => [
+          this.escapeCsvValue(coop.name),
+          this.escapeCsvValue(coop.code),
+          this.escapeCsvValue(coop.country),
+          coop.branches.toString(),
+          coop.activeFarmers.toString(),
+          this.escapeCsvValue(coop.season),
+          this.getStatusText(coop.status),
+          coop.onboardingProgress.toString(),
+          this.escapeCsvValue(coop.lastActivity)
+        ]);
+
+        // 3. Combine headers and rows
+        const csvContent = [
+          headers.join(','),
+          ...rows.map(row => row.join(','))
+        ].join('\n');
+
+        // 4. Add UTF-8 BOM for special characters
+        const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+
+        // 5. Trigger download
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        link.setAttribute('download', `cooperatives_export_${this.getTimestamp()}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error('Export failed:', error);
+      } finally {
+        this.isExporting = false;
+      }
+    }, 50);
   }
 
   /**
@@ -267,4 +333,30 @@ export class CooperativesListComponent implements OnInit {
   formatNumber(num: number): string {
     return num.toLocaleString();
   }
+
+  //ADDED helper methods for export 
+  /**
+   * Escapes a value for CSV:
+   * - Wraps in double quotes if it contains commas, quotes, or newlines.
+   * - Doubles any existing double quotes.
+   */
+  private escapeCsvValue(value: string | number): string {
+    if (value === undefined || value === null) return '';
+    let stringValue = String(value);
+    if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+      stringValue = stringValue.replace(/"/g, '""');
+      return `"${stringValue}"`;
+    }
+    return stringValue;
+  }
+
+  /**
+   * Returns a timestamp string for the filename: YYYYMMDD_HHMMSS
+   */
+  private getTimestamp(): string {
+    const now = new Date();
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+  }
+
 }

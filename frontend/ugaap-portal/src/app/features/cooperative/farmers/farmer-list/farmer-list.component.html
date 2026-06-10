@@ -1,37 +1,14 @@
 <div class="page-shell" *ngIf="farmers$ | async as farmers">
-
   <div class="top-header">
     <div class="header-content">
       <h1>Farmers</h1>
       <p class="subtitle">
-        Total registered farmers: <span class="highlight-count">{{ totalCount }}</span>
+        Total registered farmers:
+        <span class="highlight-count">{{ farmers.length }}</span>
       </p>
     </div>
   </div>
 
-  <!-- SUMMARY CARDS -->
-  <div class="summary-cards-grid">
-    <app-stats-card
-      label="New Registrations"
-      [value]="newRegistrations(farmers)"
-      icon="users"
-      variant="warning">
-    </app-stats-card>
-    <app-stats-card
-      label="Portfolio at Risk"
-      [value]="portfolioAtRisk(farmers)"
-      icon="alert"
-      variant="danger">
-    </app-stats-card>
-    <app-stats-card
-      label="Collection Progress"
-      [value]="collectionProgress + '%'"
-      icon="chart"
-      variant="success">
-    </app-stats-card>
-  </div>
-
-  <!-- FILTERS -->
   <div class="filters-section">
     <div class="search-wrapper">
       <app-input
@@ -74,7 +51,6 @@
     </div>
   </div>
 
-  <!-- TABLE -->
   <div class="table-wrapper" *ngIf="paginatedFarmers$ | async as paginatedFarmers">
     <table class="farmers-table">
       <thead>
@@ -83,12 +59,12 @@
           <th>NAME</th>
           <th>BRANCH</th>
           <th>PRIMARY COMMODITY</th>
-          <th>CREDIT LIMIT</th>
           <th>BALANCE</th>
           <th>STATUS</th>
           <th class="text-center">ACTIONS</th>
         </tr>
       </thead>
+
       <tbody>
         <tr *ngFor="let farmer of paginatedFarmers; trackBy: trackByFarmerId">
           <td class="farmer-id">{{ farmer.id }}</td>
@@ -132,39 +108,27 @@
             </div>
           </td>
         </tr>
-        <tr *ngIf="paginatedFarmers.length === 0">
-          <td colspan="8" style="text-align:center; padding:40px; color:#6b6b7b;">
+        <tr *ngIf="paginatedFarmers.length === 0 && !loading">
+          <td colspan="7" class="no-results">
             No farmers match the current filters.
           </td>
         </tr>
       </tbody>
     </table>
 
-    <!-- PAGINATION -->
     <div class="pagination-section">
-      <span class="pagination-info">
-        Showing {{ startIndex }} to {{ endIndex }} of {{ totalCount }} entries
-      </span>
+      <div class="pagination-info">
+        <span>Showing {{ startIndex }} to {{ endIndex }} of {{ totalCount }} entries</span>
+      </div>
       <div class="pagination-controls">
-        <button
-          class="page-btn"
-          [disabled]="currentPage === 1"
-          (click)="prevPage()">
-          ‹ Previous
-        </button>
-        <button
-          *ngFor="let p of pagesArray; trackBy: trackByIndex"
-          class="page-btn"
-          [class.active]="p === currentPage"
-          (click)="goToPage(p)">
-          {{ p }}
-        </button>
-        <button
-          class="page-btn"
-          [disabled]="endIndex >= totalCount"
-          (click)="nextPage()">
-          Next ›
-        </button>
+        <app-button class="pagination-button" variant="secondary" size="sm" (clicked)="prevPage()" [disabled]="currentPage === 1">Previous</app-button>
+        <app-button
+          *ngFor="let page of pagesArray; trackBy: trackByIndex"
+          class="pagination-button"
+          [variant]="page === currentPage ? 'primary' : 'secondary'"
+          size="sm"
+          (clicked)="goToPage(page)">{{ page }}</app-button>
+        <app-button class="pagination-button" variant="secondary" size="sm" (clicked)="nextPage()" [disabled]="endIndex >= totalCount">Next</app-button>
       </div>
     </div>
   </div>

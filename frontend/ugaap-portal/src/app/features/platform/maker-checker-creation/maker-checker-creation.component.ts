@@ -59,6 +59,7 @@ export class MakerCheckerCreationComponent implements OnInit {
   /**
    * Cooperative info from navigation state
    */
+  cooperativeId = '';
   cooperativeName = '';
   cooperativeMessage = '';
 
@@ -91,13 +92,22 @@ export class MakerCheckerCreationComponent implements OnInit {
     // Get cooperative info from navigation state
     const navigation = this.router.getCurrentNavigation();
     if (navigation?.extras.state) {
+      this.cooperativeId = navigation.extras.state['cooperativeId'] || '';
       this.cooperativeName = navigation.extras.state['cooperativeName'] || 'the cooperative';
       this.cooperativeMessage = navigation.extras.state['message'] || '';
     }
   }
 
+  // In ngOnInit, we initialize both forms with validation rules. 
+  // The Maker and Checker forms have the same fields, but different default
+
   ngOnInit(): void {
     this.initForms();
+    console.log('Cooperative data for approval:', 
+    this.cooperativeId, this.cooperativeName, 
+    this.cooperativeMessage);
+
+  return;
   }
 
   /**
@@ -278,6 +288,7 @@ export class MakerCheckerCreationComponent implements OnInit {
 
     this.isLoading = true;
 
+    // Prepare Maker user
     const makerData = {
       ...this.makerForm.value,
       role: 'Maker',

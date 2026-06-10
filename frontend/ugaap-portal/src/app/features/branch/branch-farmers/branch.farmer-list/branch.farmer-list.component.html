@@ -9,29 +9,38 @@
     </div>
 
     <div class="header-actions">
-      <app-button
-        type="button"
-        size="md"
-        variant="primary"
-        iconLeft="+"
-        (clicked)="onAddFarmer()">
+      <app-button type="button" size="md" variant="primary" iconLeft="+" (clicked)="onAddFarmer()">
         Register farmer
       </app-button>
     </div>
   </div>
-  
+
+  <!-- ✅ summary-cards-grid MOVED HERE (was duplicated and broken above) -->
   <div class="summary-cards-grid">
     <div class="summary-card">
       <app-stat-card
-
-        [data]="{ label: 'New Registrations', value: newRegistrations(farmers), icon: 'New', trend: '+8.5%', trendUp: true }">
-    </app-stat-card>
+        [data]="{
+          label: 'New Registrations',
+          value: newRegistrations(farmers),
+          icon: 'New',
+          trend: '+8.5%',
+          trendUp: true,
+        }"
+      >
+      </app-stat-card>
     </div>
 
     <div class="summary-card">
       <app-stat-card
-
-        [data]="{ label: 'Portfolio At Risk', value: 'UGX ' + portfolioAtRisk(farmers), icon: 'Risk', trend: '-5.2%', trendUp: false, status: 'warning' }">
+        [data]="{
+          label: 'Portfolio At Risk',
+          value: 'UGX ' + portfolioAtRisk(farmers),
+          icon: 'Risk',
+          trend: '-5.2%',
+          trendUp: false,
+          status: 'warning',
+        }"
+      >
       </app-stat-card>
     </div>
 
@@ -45,6 +54,7 @@
       </div>
     </div>
   </div>
+
   <div class="filters-section">
     <div class="search-wrapper">
       <app-input
@@ -52,7 +62,8 @@
         placeholder="Search by name, ID, branch or commodity"
         type="text"
         [(ngModel)]="searchQuery"
-        (ngModelChange)="applyFilter()">
+        (ngModelChange)="applyFilter()"
+      >
       </app-input>
     </div>
 
@@ -73,8 +84,15 @@
     </div>
 
     <div class="select-wrapper">
-      <select title="select-commodity" [(ngModel)]="selectedCommodity" (ngModelChange)="applyFilter()">
-        <option *ngFor="let commodity of commodities(farmers); trackBy: trackByOption" [value]="commodity">
+      <select
+        title="select-commodity"
+        [(ngModel)]="selectedCommodity"
+        (ngModelChange)="applyFilter()"
+      >
+        <option
+          *ngFor="let commodity of commodities(farmers); trackBy: trackByOption"
+          [value]="commodity"
+        >
           Commodity: {{ commodity }}
         </option>
       </select>
@@ -82,7 +100,9 @@
 
     <div class="select-wrapper">
       <select title="select-stage" [(ngModel)]="selectedStage" (ngModelChange)="applyFilter()">
-        <option *ngFor="let stage of stages; trackBy: trackByOption" [value]="stage">{{ stage }}</option>
+        <option *ngFor="let stage of stages; trackBy: trackByOption" [value]="stage">
+          {{ stage }}
+        </option>
       </select>
     </div>
   </div>
@@ -113,7 +133,10 @@
           <td class="text-bold">{{ farmer.creditLimit }}</td>
           <td
             class="text-bold"
-            [ngClass]="{ 'text-danger-custom': farmer.balance !== '0.00' && farmer.balance !== '--' }">
+            [ngClass]="{
+              'text-danger-custom': farmer.balance !== '0.00' && farmer.balance !== '--',
+            }"
+          >
             {{ farmer.balance }}
           </td>
           <td>
@@ -161,5 +184,4 @@
       </div>
     </div>
   </div>
-
 </div>

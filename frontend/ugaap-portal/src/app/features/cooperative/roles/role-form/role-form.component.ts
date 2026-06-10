@@ -116,7 +116,7 @@ export class RoleFormComponent implements OnInit {
     }
 
     if (this.isEditMode) {
-      this.loadRoleData();
+      // this.loadRoleData();
     }
   }
 
@@ -163,54 +163,57 @@ export class RoleFormComponent implements OnInit {
       this.toast.warning('No permissions selected', 'Please select at least one permission before saving.');
       return;
     }
+    this.router.navigate(['/cooperative/roles']);
 
-    this.isLoading = true;
-    this.errorMessage = '';
+    // this.isLoading = true;
+    // this.errorMessage = '';
 
     const rolePayload = {
       name:        this.roleForm.value.name,
       description: this.roleForm.value.description,
       tenantId:    this.roleForm.value.tenantId,
     };
+            
 
-    this.http.post(API_ENDPOINTS.ACCESS.ROLES, rolePayload).subscribe({
-      next: (res: any) => {
-        const roleId = res.roleId;
-        this.http.post(
-          API_ENDPOINTS.ACCESS.ROLE_PERMISSIONS(roleId),
-          { permissions: this.getFormattedPermissions() },
-        ).subscribe({
-          next: () => {
-            this.isLoading = false;
-            this.toast.success('Role saved', `"${this.roleForm.value.name}" has been ${this.isEditMode ? 'updated' : 'created'} successfully.`);
-            this.router.navigate(['/cooperative/roles']);
-          },
-          error: (err) => {
-            this.isLoading = false;
-            const msg = err?.error?.message ?? 'Role was created but permissions could not be assigned.';
-            this.errorMessage = msg;
-            this.toast.error('Permissions failed', msg);
-          },
-        });
-      },
-      error: (err) => {
-        this.isLoading = false;
-        const msg = err?.error?.message ?? 'Failed to save the role. Please try again.';
-        this.errorMessage = msg;
-        this.toast.error('Save failed', msg);
-      },
-    });
+
+    // this.http.post(API_ENDPOINTS.ACCESS.ROLES, rolePayload).subscribe({
+    //   next: (res: any) => {
+    //     const roleId = res.roleId;
+    //     this.http.post(
+    //       API_ENDPOINTS.ACCESS.ROLE_PERMISSIONS(roleId),
+    //       { permissions: this.getFormattedPermissions() },
+    //     ).subscribe({
+    //       next: () => {
+    //         this.isLoading = false;
+    //         this.toast.success('Role saved', `"${this.roleForm.value.name}" has been ${this.isEditMode ? 'updated' : 'created'} successfully.`);
+    //         this.router.navigate(['/cooperative/roles']);
+    //       },
+    //       error: (err) => {
+    //         this.isLoading = false;
+    //         const msg = err?.error?.message ?? 'Role was created but permissions could not be assigned.';
+    //         this.errorMessage = msg;
+    //         this.toast.error('Permissions failed', msg);
+    //       },
+    //     });
+    //   },
+    //   error: (err) => {
+    //     this.isLoading = false;
+    //     const msg = err?.error?.message ?? 'Failed to save the role. Please try again.';
+    //     this.errorMessage = msg;
+    //     this.toast.error('Save failed', msg);
+    //   },
+    // });
   }
 
   // ── Private helpers ───────────────────────────────────────────────────────
 
-  private loadRoleData(): void {
-    // Stub — replace with real API call when endpoint is available
-    this.roleForm.patchValue({
-      name: 'Logistics Manager',
-      description: 'Manage inventory, shipments, and logistics',
-    });
-  }
+  // private loadRoleData(): void {
+  //   // Stub — replace with real API call when endpoint is available
+  //   this.roleForm.patchValue({
+  //     name: 'Logistics Manager',
+  //     description: 'Manage inventory, shipments, and logistics',
+  //   });
+  // }
 
   private getFormattedPermissions(): any[] {
     const modMap: Record<string, string> = {

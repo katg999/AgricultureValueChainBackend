@@ -1,0 +1,62 @@
+<!-- 
+  Roles List Page
+  
+  Manage system and custom roles with permissions
+-->
+
+<div class="page">
+  <div class="page-container">
+    
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="header-content">
+        <h1 class="page-title">Roles & Permissions</h1>
+        <p class="page-subtitle">Manage user roles and assign granular permissions</p>
+      </div>
+      
+      <app-button
+        variant="primary"
+        size="md"
+        iconLeft="+"
+        (clicked)="RoleForm()">
+        Create new role
+      </app-button>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-bar">
+      <div class="search-input">
+        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+          <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <input
+          type="text"
+          placeholder="Search roles..."
+          [(ngModel)]="searchQuery">
+      </div>
+    </div>
+
+    <!-- Roles Grid - USING REUSABLE COMPONENT -->
+    <div class="roles-grid">
+      <app-role-card
+        *ngFor="let role of filteredRoles"
+        [role]="role"
+        (cardClicked)="viewRole($event)"
+        (editClicked)="editRole($event)"
+        (deleteClicked)="deleteRole($event)">
+      </app-role-card>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="filteredRoles.length === 0">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+        <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <h3>No roles found</h3>
+      <p>Try adjusting your search query</p>
+    </div>
+
+  </div>
+</div>

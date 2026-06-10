@@ -130,19 +130,19 @@ export class BranchOnboardingComponent implements OnInit {
   // ── Register branch ───────────────────────────────────────
 
   registerBranch(): void {
-    this.isLoading = true;
+    // this.isLoading = true;
     this.errorMessage = '';
     this.submitSuccess = false;
-
+    this.router.navigate(['/branches/success']);
     // Simulate API call
-    setTimeout(() => {
-      this.isLoading = false;
-      this.showConfirmModal = false;
-      this.submitSuccess = true;
+    // setTimeout(() => {
+    //   this.isLoading = false;
+    //   this.showConfirmModal = false;
+    //   this.submitSuccess = true;
 
-      // Optional: Navigate or show success message in the current view
-      // this.router.navigate(['/branches/success'], { state: { branch: this.branchForm.value } });
-    }, 1500);
+    //   // Optional: Navigate or show success message in the current view
+    //   // this.router.navigate(['/branches/success'], { state: { branch: this.branchForm.value } });
+    // }, 1500);
   }
 
   // ── Save progress ─────────────────────────────────────────

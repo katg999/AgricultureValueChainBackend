@@ -273,4 +273,25 @@ getRoleBadgeVariant(role: string): BadgeVariant {
       .toUpperCase()
       .substring(0, 2);
   }
+
+selectedUser: User | null = null;
+
+toggleActionsMenu(user: User) {
+  this.selectedUser = this.selectedUser === user ? null : user;
+}
+
+editUser(user: User) {
+  this.selectedUser = null;
+  this.router.navigate(['/platform/users/edit', user.id]); // you'll need to add this route
+}
+deleteUser(user: User): void {
+    this.selectedUser = null;
+    const confirmed = confirm(`Are you sure you want to delete "${user.name}"?`);
+    if (confirmed) {
+      // For now, just remove from the local array (simulate deletion)
+      this.users = this.users.filter(u => u.id !== user.id);
+      alert(`${user.name} has been deleted (front-end only).`);
+    }
+  }
+
 }
