@@ -1,5 +1,5 @@
 import { CommonModule }   from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule }    from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -7,6 +7,7 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 import { InputComponent }  from '../../../../shared/components/input/input.component';
 import { FarmerProfile, FarmerRegistrationForm, FarmerService } from '../../../shared-farmer-domain/farmer.service';
 import { SessionService } from '../../../../core/services/session.service';
+import { ToastService }   from '../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-branch.farmer-register',
@@ -55,6 +56,8 @@ export class BranchFarmerRegisterComponent implements OnInit {
     cooperativeGroup: '',
     assignedBranch:   '',
   };
+
+  private toast = inject(ToastService);
 
   constructor(
     private router:        Router,
@@ -134,7 +137,7 @@ export class BranchFarmerRegisterComponent implements OnInit {
 
   onSave(): void {
     if (!this.form.fullName || !this.form.phoneNumber || !this.form.nationalIdNumber) {
-      alert('Please fill in all required fields (Name, Phone, National ID).');
+      this.toast.error('Missing required fields', 'Please fill in Name, Phone, and National ID before submitting.');
       return;
     }
 

@@ -161,6 +161,37 @@
   gap: 8px;
 }
 
+.page-btn {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 14px;
+  background: transparent;
+  border: 1px solid #e8e6ed;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.page-btn:hover:not(:disabled) {
+  background: var(--surface-low);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.page-btn.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.page-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
 .summary-cards-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

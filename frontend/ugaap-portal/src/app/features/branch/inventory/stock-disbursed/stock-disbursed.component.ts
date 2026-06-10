@@ -1,5 +1,9 @@
 import { CommonModule } from '@angular/common';
+<<<<<<< HEAD
 import { Component, HostListener, OnInit } from '@angular/core';
+=======
+import { Component, OnInit, inject } from '@angular/core';
+>>>>>>> 9dee8b400e3f8ea25a26ca7d0d86f8ac2a364f3e
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 
@@ -10,6 +14,7 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
 import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
+import { ToastService }      from '../../../../core/services/toast.service';
 import {
   BranchDisbursement,
   FarmerAllocation,
@@ -111,6 +116,8 @@ export class StockDisbursedComponent implements OnInit { // Main component for m
       message: 'Kampala Central recovered all fertilizer allocations issued last cycle.',
     },
   ];
+
+  private toast = inject(ToastService);
 
   constructor(
     private readonly router: Router,
@@ -264,7 +271,7 @@ export class StockDisbursedComponent implements OnInit { // Main component for m
   }
 
   downloadReport(): void {
-    window.alert('Stock disbursement report download will be available soon.');
+    this.toast.info('Coming soon', 'Stock disbursement report download will be available shortly.');
   }
 
   getBarPercent(value: number, maxValue: number): number {

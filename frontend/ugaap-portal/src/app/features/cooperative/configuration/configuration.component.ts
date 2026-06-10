@@ -21,9 +21,9 @@ export class ConfigurationComponent {
 
   private router = inject(Router);
 
-  // navigation helpers called by (clicked) bindings on buttons
-  openSessions():     void { this.router.navigate(['/cooperative/grade-config']); }
-  openRolesUsers():   void { this.router.navigate(['/cooperative/users']); }
   openGrading():      void { this.router.navigate(['/cooperative/grade-config']); }
-  openNotifications():void { this.router.navigate(['/cooperative/configuration/notifications']); }
+  openRolesUsers():   void { this.router.navigate(['/cooperative/users']); }
+  openRoles():        void { this.router.navigate(['/cooperative/roles']); }
+  openNotifications():void { alert('Notification preferences — coming soon.'); }
+  openSessions():     void { alert('Sessions Management — coming soon.'); }
 }

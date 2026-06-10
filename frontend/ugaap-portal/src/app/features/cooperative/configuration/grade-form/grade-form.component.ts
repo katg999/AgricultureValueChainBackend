@@ -17,6 +17,7 @@ import { HttpClient } from '@angular/common/http';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { AlertComponent }  from '../../../../shared/components/alert/alert.component';
 import { API_ENDPOINTS }   from '../../../../core/constants/api-endpoints';
+import { ToastService }    from '../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-grade-form',
@@ -31,6 +32,7 @@ export class GradeFormComponent implements OnInit {
   private http   = inject(HttpClient);
   private route  = inject(ActivatedRoute);
   private router = inject(Router);
+  private toast  = inject(ToastService);
 
   form = this.fb.group({
     name:        ['', Validators.required],
@@ -76,8 +78,18 @@ export class GradeFormComponent implements OnInit {
       : this.http.post(API_ENDPOINTS.COOPERATIVE.GRADING, this.form.value);
 
     req$.subscribe({
-      next:  () => { this.saving.set(false); this.router.navigate(['/cooperative/grade-config']); },
-      error: err => { this.error.set(err?.error?.message ?? 'Save failed.'); this.saving.set(false); },
+      next: () => {
+        this.saving.set(false);
+        const label = this.isEditMode() ? 'Grade updated' : 'Grade created';
+        this.toast.success(label, `"${this.form.value.name}" has been saved.`);
+        this.router.navigate(['/cooperative/grade-config']);
+      },
+      error: err => {
+        const msg = err?.error?.message ?? 'Could not save the grade. Please try again.';
+        this.error.set(msg);
+        this.toast.error('Save failed', msg);
+        this.saving.set(false);
+      },
     });
   }
 

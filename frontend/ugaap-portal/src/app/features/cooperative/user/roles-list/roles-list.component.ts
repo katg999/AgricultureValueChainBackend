@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 // Shared components
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { RoleCardComponent, RoleCardData } from '../../../../shared/components/role-card/role-card.component';
+import { ToastService } from '../../../../core/services/toast.service';
 
 /**
  * Roles List Component
@@ -111,6 +112,8 @@ export class RolesListComponent implements OnInit {
     );
   }
 
+  private toast = inject(ToastService);
+
   constructor(private router: Router) {}
 
   ngOnInit(): void {
@@ -131,7 +134,7 @@ export class RolesListComponent implements OnInit {
    */
   editRole(role: RoleCardData): void {
     if (role.isSystem) {
-      alert('System roles cannot be edited');
+      this.toast.warning('Cannot edit system role', `"${role.name}" is a built-in role and cannot be modified.`);
       return;
     }
     this.router.navigate(['/users/roles', role.id, 'edit']);
@@ -143,12 +146,12 @@ export class RolesListComponent implements OnInit {
    */
   deleteRole(role: RoleCardData): void {
     if (role.isSystem) {
-      alert('System roles cannot be deleted');
+      this.toast.warning('Cannot delete system role', `"${role.name}" is a built-in role and cannot be removed.`);
       return;
     }
 
     if (role.usersCount > 0) {
-      alert(`Cannot delete role. ${role.usersCount} users are currently assigned this role.`);
+      this.toast.error('Role in use', `${role.usersCount} user${role.usersCount === 1 ? ' is' : 's are'} assigned to "${role.name}". Reassign them first.`);
       return;
     }
 

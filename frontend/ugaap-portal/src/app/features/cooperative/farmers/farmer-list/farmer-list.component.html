@@ -1,14 +1,37 @@
 <div class="page-shell" *ngIf="farmers$ | async as farmers">
+
   <div class="top-header">
     <div class="header-content">
       <h1>Farmers</h1>
       <p class="subtitle">
-        Total registered farmers:
-        <span class="highlight-count">{{ farmers.length }}</span>
+        Total registered farmers: <span class="highlight-count">{{ totalCount }}</span>
       </p>
     </div>
   </div>
 
+  <!-- SUMMARY CARDS -->
+  <div class="summary-cards-grid">
+    <app-stats-card
+      label="New Registrations"
+      [value]="newRegistrations(farmers)"
+      icon="users"
+      variant="warning">
+    </app-stats-card>
+    <app-stats-card
+      label="Portfolio at Risk"
+      [value]="portfolioAtRisk(farmers)"
+      icon="alert"
+      variant="danger">
+    </app-stats-card>
+    <app-stats-card
+      label="Collection Progress"
+      [value]="collectionProgress + '%'"
+      icon="chart"
+      variant="success">
+    </app-stats-card>
+  </div>
+
+  <!-- FILTERS -->
   <div class="filters-section">
     <div class="search-wrapper">
       <app-input
@@ -51,7 +74,8 @@
     </div>
   </div>
 
-  <div class="table-wrapper" *ngIf="filteredFarmers$ | async as filteredFarmers">
+  <!-- TABLE -->
+  <div class="table-wrapper" *ngIf="paginatedFarmers$ | async as paginatedFarmers">
     <table class="farmers-table">
       <thead>
         <tr>
@@ -59,14 +83,14 @@
           <th>NAME</th>
           <th>BRANCH</th>
           <th>PRIMARY COMMODITY</th>
+          <th>CREDIT LIMIT</th>
           <th>BALANCE</th>
           <th>STATUS</th>
           <th class="text-center">ACTIONS</th>
         </tr>
       </thead>
-
       <tbody>
-        <tr *ngFor="let farmer of filteredFarmers; trackBy: trackByFarmerId">
+        <tr *ngFor="let farmer of paginatedFarmers; trackBy: trackByFarmerId">
           <td class="farmer-id">{{ farmer.id }}</td>
           <td class="farmer-name">{{ farmer.name }}</td>
           <td>{{ farmer.branch }}</td>
@@ -83,6 +107,7 @@
               {{ farmer.status }}
             </span>
           </td>
+<<<<<<< HEAD
           <td class="text-center actions-cell">
             <div class="kebab-wrapper">
               <button
@@ -106,37 +131,72 @@
                 </ng-container>
               </div>
             </div>
+=======
+          <td class="text-center">
+            <app-button
+              *ngIf="farmer.status === 'Pending'"
+              type="button"
+              size="sm"
+              variant="secondary"
+              (clicked)="onReviewFarmer(farmer)">
+              Review
+            </app-button>
+            <app-button
+              *ngIf="farmer.status === 'Pending'"
+              type="button"
+              size="sm"
+              variant="primary"
+              iconLeft="✓"
+              (clicked)="onApproveFarmer(farmer)">
+              Approve
+            </app-button>
+            <span *ngIf="farmer.status !== 'Pending'" class="text-muted-placeholder">—</span>
+          </td>
+        </tr>
+        <tr *ngIf="paginatedFarmers.length === 0">
+          <td colspan="8" style="text-align:center; padding:40px; color:#6b6b7b;">
+            No farmers match the current filters.
+>>>>>>> 9dee8b400e3f8ea25a26ca7d0d86f8ac2a364f3e
           </td>
         </tr>
       </tbody>
     </table>
 
+    <!-- PAGINATION -->
     <div class="pagination-section">
-      <div class="pagination-info">
-        <span>Showing 1 to {{ filteredFarmers.length }} of {{ farmers.length }} entries</span>
-      </div>
+      <span class="pagination-info">
+        Showing {{ startIndex }} to {{ endIndex }} of {{ totalCount }} entries
+      </span>
       <div class="pagination-controls">
+<<<<<<< HEAD
         <button class="page-btn" type="button">Previous</button>
         <button class="page-btn page-btn--active" type="button">1</button>
         <button class="page-btn" type="button">2</button>
         <button class="page-btn" type="button">3</button>
         <button class="page-btn" type="button">Next</button>
+=======
+        <button
+          class="page-btn"
+          [disabled]="currentPage === 1"
+          (click)="prevPage()">
+          ‹ Previous
+        </button>
+        <button
+          *ngFor="let p of pagesArray; trackBy: trackByIndex"
+          class="page-btn"
+          [class.active]="p === currentPage"
+          (click)="goToPage(p)">
+          {{ p }}
+        </button>
+        <button
+          class="page-btn"
+          [disabled]="endIndex >= totalCount"
+          (click)="nextPage()">
+          Next ›
+        </button>
+>>>>>>> 9dee8b400e3f8ea25a26ca7d0d86f8ac2a364f3e
       </div>
     </div>
   </div>
 
-  <div class="summary-cards-grid">
-    <div class="summary-card"></div>
-    <div class="summary-card"></div>
-
-    <div class="summary-card">
-      <span class="summary-card-title">COLLECTION PROGRESS</span>
-      <div class="summary-card-value-row stack-layout">
-        <span class="summary-card-main-val">{{ collectionProgress }}%</span>
-        <div class="progress-bar-container">
-          <div class="progress-bar-fill" [style.width.%]="collectionProgress"></div>
-        </div>
-      </div>
-    </div>
-  </div>
 </div>

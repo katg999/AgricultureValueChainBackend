@@ -107,6 +107,7 @@ const COOPERATIVE_ADMIN_CONFIG: DashboardConfig = {
     },
 
     { label: 'Collection',      icon: 'collection', route: '/cooperative/collections'            },
+
     
     {label:'Farmers',         icon:'farmers',     route:'/cooperative/farmers' },
 
@@ -133,7 +134,8 @@ const COOPERATIVE_ADMIN_CONFIG: DashboardConfig = {
       ],
     },
 
-    { label: 'User Management', icon: 'users',      route: '/cooperative/users'                  },
+    { label: 'User Management', icon: 'users',      route: '/cooperative/users'    },
+    { label: 'Roles',           icon: 'roles',      route: '/cooperative/roles'    },
 
   ],
 
@@ -173,6 +175,7 @@ const BRANCH_CONFIG: DashboardConfig = {
         { label: 'Stock-disbursed', icon: '', route: '/branch/inventory/stock-disbursed' },
       ],
     },
+
   ],
 };
 

@@ -1,16 +1,25 @@
 <div class="delivery-page" (click)="closeActionMenu()" *ngIf="branchDeliveries$ | async as branchDeliveries">
 
+<<<<<<< HEAD
+=======
+  <!-- PAGE HEADER -->
+>>>>>>> 9dee8b400e3f8ea25a26ca7d0d86f8ac2a364f3e
   <div class="page-header">
     <div class="header-content-wrapper">
       <div>
         <h1>{{ isEditRoute ? 'Edit Branch Delivery' : 'Cooperative Deliveries' }}</h1>
+<<<<<<< HEAD
         <p *ngIf="!isEditRoute">Review commodity deliveries submitted across all branches.</p>
+=======
+        <p>Review and manage commodity deliveries submitted by branches.</p>
+>>>>>>> 9dee8b400e3f8ea25a26ca7d0d86f8ac2a364f3e
       </div>
     </div>
   </div>
 
   <ng-container *ngIf="!isEditRoute; else editScreen">
 
+<<<<<<< HEAD
     <div class="kpi-grid">
       <div class="kpi-card">
         <span class="kpi-label">Total Branches</span>
@@ -76,6 +85,61 @@
 
     <div class="table-card" *ngIf="filteredDeliveries$ | async as filteredDeliveries">
       <div class="table-label">Branch Delivery Summary</div>
+=======
+    <!-- STAT CARDS -->
+    <div class="summary-grid">
+      <app-stats-card
+        label="Total Branches"
+        [value]="branchDeliveries.length"
+        icon="building">
+      </app-stats-card>
+      <app-stats-card
+        label="Total Farmers"
+        [value]="totalFarmers(branchDeliveries)"
+        icon="users">
+      </app-stats-card>
+      <app-stats-card
+        label="Total Volume (KG)"
+        [value]="totalVolume(branchDeliveries)"
+        icon="box">
+      </app-stats-card>
+      <app-stats-card
+        label="Est. Total Value (UGX)"
+        [value]="totalValue(branchDeliveries)"
+        icon="wallet"
+        variant="success">
+      </app-stats-card>
+      <app-stats-card
+        label="Approved"
+        [value]="approvedCount(branchDeliveries)"
+        icon="check"
+        variant="success">
+      </app-stats-card>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="filter-card">
+      <div class="filter-group">
+        <label>Search</label>
+        <input
+          type="text"
+          placeholder="Search by branch name or ID..."
+          [(ngModel)]="searchTerm"
+          (input)="applyFilter()"
+        />
+      </div>
+      <div class="filter-group">
+        <label>Commodity</label>
+        <select title="commodity" [(ngModel)]="selectedCategory" (change)="applyFilter()">
+          <option value="">All Commodities</option>
+          <option *ngFor="let c of commodityOptions; trackBy: trackByOption" [value]="c">{{ c }}</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-card" *ngIf="filteredDeliveries$ | async as filteredDeliveries">
+>>>>>>> 9dee8b400e3f8ea25a26ca7d0d86f8ac2a364f3e
       <div class="table-wrapper">
         <table>
           <thead>
@@ -102,6 +166,7 @@
                 <div class="branch-name">{{ d.branchName }}</div>
                 <div class="branch-id mono">{{ d.id }}</div>
               </td>
+<<<<<<< HEAD
               <td>
                 <span class="season-badge" [ngClass]="seasonClass(d.season)">{{ d.season }}</span>
               </td>
@@ -109,6 +174,12 @@
               <td>{{ d.commodity }}</td>
               <td>{{ d.volume | number }}</td>
               <td>{{ formatUGX(d.estimatedValue) }}</td>
+=======
+              <td>{{ d.farmerCount }}</td>
+              <td>{{ d.commodity }}</td>
+              <td class="mono">{{ formatUGX(d.volume) }}</td>
+              <td class="mono">{{ formatUGX(d.estimatedValue) }}</td>
+>>>>>>> 9dee8b400e3f8ea25a26ca7d0d86f8ac2a364f3e
               <td>
                 <div class="action-menu" (click)="$event.stopPropagation()">
                   <button
@@ -118,9 +189,7 @@
                     aria-label="Delivery actions"
                     [attr.aria-expanded]="openActionMenuId === d.id"
                     (click)="toggleActionMenu(d, $event)">
-                    <span></span>
-                    <span></span>
-                    <span></span>
+                    <span></span><span></span><span></span>
                   </button>
                   <div class="menu-panel" *ngIf="openActionMenuId === d.id">
                     <button type="button" (click)="openEdit(d)">Edit delivery</button>
@@ -135,11 +204,16 @@
 
   </ng-container>
 
+<<<<<<< HEAD
+=======
+  <!-- EDIT SCREEN -->
+>>>>>>> 9dee8b400e3f8ea25a26ca7d0d86f8ac2a364f3e
   <ng-template #editScreen>
     <section class="edit-screen" *ngIf="editingDelivery && form; else missingDelivery">
       <div class="edit-header">
         <div>
           <h2>Edit Branch Delivery</h2>
+<<<<<<< HEAD
           <p>{{ editingDelivery.id }} - {{ editingDelivery.branchName }}</p>
         </div>
         <button type="button" class="btn-secondary" (click)="cancelEdit()">Back to deliveries</button>
@@ -211,6 +285,58 @@
       <section class="edit-screen">
         <div class="empty-state">Delivery not found.</div>
         <button type="button" class="btn-secondary" (click)="cancelEdit()">Back to deliveries</button>
+=======
+          <p>{{ editingDelivery.id }} — {{ editingDelivery.branchName }}</p>
+        </div>
+        <button type="button" class="btn secondary-action-btn" (click)="cancelEdit()">Back to deliveries</button>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="saveEdit()" class="add-delivery-form" novalidate>
+        <div class="form-grid">
+          <label class="form-field">
+            <span>Branch Name <span class="required">*</span></span>
+            <input title="Branch Name" formControlName="branchName" />
+            <span class="field-error" *ngIf="form.get('branchName')?.touched && form.get('branchName')?.invalid">Required</span>
+          </label>
+          <label class="form-field">
+            <span>Farmer Count <span class="required">*</span></span>
+            <input title="Farmer Count" type="number" formControlName="farmerCount" min="1" />
+            <span class="field-error" *ngIf="form.get('farmerCount')?.touched && form.get('farmerCount')?.invalid">Enter a valid count</span>
+          </label>
+          <label class="form-field">
+            <span>Commodity <span class="required">*</span></span>
+            <select title="Commodity" formControlName="commodity">
+              <option *ngFor="let c of commodityOptions; trackBy: trackByOption" [value]="c">{{ c }}</option>
+            </select>
+          </label>
+          <label class="form-field">
+            <span>Volume (KG) <span class="required">*</span></span>
+            <input title="Volume" type="number" formControlName="volume" min="0" />
+          </label>
+          <label class="form-field">
+            <span>Est. Value (UGX) <span class="required">*</span></span>
+            <input title="Estimated Value" type="number" formControlName="estimatedValue" min="0" />
+          </label>
+          <label class="form-field">
+            <span>Status <span class="required">*</span></span>
+            <select title="Status" formControlName="status">
+              <option *ngFor="let s of statusOptions; trackBy: trackByOption" [value]="s">{{ s }}</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn secondary-action-btn" (click)="cancelEdit()">Cancel</button>
+          <button type="submit" class="btn primary-action-btn">Save Changes</button>
+        </div>
+      </form>
+    </section>
+
+    <ng-template #missingDelivery>
+      <section class="edit-screen">
+        <p class="empty-state">Delivery not found.</p>
+        <button type="button" class="btn secondary-action-btn" (click)="cancelEdit()">Back to deliveries</button>
+>>>>>>> 9dee8b400e3f8ea25a26ca7d0d86f8ac2a364f3e
       </section>
     </ng-template>
   </ng-template>

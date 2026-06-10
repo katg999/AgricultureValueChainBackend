@@ -31,23 +31,23 @@
 
   <div class="summary-cards">
     <app-stat-card
-      [data]="{ label: 'TOTAL TYPES', value: summary.totalTypes, icon: '📦' }">
+      [data]="{ label: 'TOTAL TYPES', value: summary.totalTypes, icon: 'box' }">
     </app-stat-card>
 
     <app-stat-card
-      [data]="{ label: 'HEALTHY', value: summary.healthy, icon: '✅' }">
+      [data]="{ label: 'HEALTHY', value: summary.healthy, icon: 'check' }">
     </app-stat-card>
 
     <app-stat-card
-      [data]="{ label: 'LOW', value: summary.low, icon: '⚠️', status: 'warning' }">
+      [data]="{ label: 'LOW', value: summary.low, icon: 'alert', status: 'warning' }">
     </app-stat-card>
 
     <app-stat-card
-      [data]="{ label: 'OUT OF STOCK', value: summary.outOfStock, icon: '🚫', status: 'critical' }">
+      [data]="{ label: 'OUT OF STOCK', value: summary.outOfStock, icon: 'alert', status: 'critical' }">
     </app-stat-card>
 
     <app-stat-card
-      [data]="{ label: 'TOTAL VALUE', value: (summary.totalValue | currency:'UGX':'symbol':'1.0-0') ?? '', icon: '💰' }">
+      [data]="{ label: 'TOTAL VALUE', value: (summary.totalValue | currency:'UGX':'symbol':'1.0-0') ?? '', icon: 'wallet' }">
     </app-stat-card>
   </div>
 

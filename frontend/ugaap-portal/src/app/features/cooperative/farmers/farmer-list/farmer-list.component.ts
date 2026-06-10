@@ -1,23 +1,33 @@
 import { CommonModule } from '@angular/common';
+<<<<<<< HEAD
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+=======
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+>>>>>>> 9dee8b400e3f8ea25a26ca7d0d86f8ac2a364f3e
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { BehaviorSubject, combineLatest, map, Observable, Subject, takeUntil } from 'rxjs';
+import { BehaviorSubject, combineLatest, map, Observable, Subject, takeUntil, tap } from 'rxjs';
 
 import { InputComponent } from '../../../../shared/components/input/input.component';
+import { StatsCardComponent } from '../../../../shared/components/stats-card/stats-card.component';
 import { FarmerListItem, FarmerService } from '../../../shared-farmer-domain/farmer.service';
+import { ToastService } from '../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-farmer-list',
   standalone: true,
+<<<<<<< HEAD
   imports: [CommonModule, FormsModule, InputComponent],
+=======
+  imports: [CommonModule, FormsModule, ButtonComponent, InputComponent, StatsCardComponent],
+>>>>>>> 9dee8b400e3f8ea25a26ca7d0d86f8ac2a364f3e
   templateUrl: './farmer-list.component.html',
   styleUrl: './farmer-list.component.css',
 })
 export class FarmerListComponent implements OnInit, OnDestroy {
   searchQuery = '';
   selectedBranch = 'All Branches';
-  selectedStatus = 'Pending';
+  selectedStatus = 'All Statuses';
   selectedCommodity = 'All Commodities';
   selectedStage = 'All Stages';
   openMenuId: string | null = null;
@@ -26,8 +36,20 @@ export class FarmerListComponent implements OnInit, OnDestroy {
   readonly stages = ['All Stages', 'Registered', 'Verified', 'Financed'];
   readonly collectionProgress = 78;
 
+  // ── Pagination ───────────────────────────────────────────────────────────
+  currentPage = 1;
+  readonly itemsPerPage = 10;
+  totalCount = 0;
+
+  get startIndex(): number { return this.totalCount === 0 ? 0 : (this.currentPage - 1) * this.itemsPerPage + 1; }
+  get endIndex(): number { return Math.min(this.currentPage * this.itemsPerPage, this.totalCount); }
+  get pagesArray(): number[] {
+    return Array.from({ length: Math.ceil(this.totalCount / this.itemsPerPage) }, (_, i) => i + 1);
+  }
+
   farmers$!: Observable<FarmerListItem[]>;
   filteredFarmers$!: Observable<FarmerListItem[]>;
+  paginatedFarmers$!: Observable<FarmerListItem[]>;
   loading = false;
   error: string | null = null;
 
@@ -35,10 +57,13 @@ export class FarmerListComponent implements OnInit, OnDestroy {
   private readonly filterState$ = new BehaviorSubject({
     searchQuery: '',
     selectedBranch: 'All Branches',
-    selectedStatus: 'Pending',
+    selectedStatus: 'All Statuses',
     selectedCommodity: 'All Commodities',
     selectedStage: 'All Stages',
   });
+  private readonly pageState$ = new BehaviorSubject<number>(1);
+
+  private toast = inject(ToastService);
 
   constructor(
     private router: Router,
@@ -48,9 +73,16 @@ export class FarmerListComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.farmers$ = this.farmerService.watchForCooperative();
 
-    // The table is derived from the shared stream, so approvals update without a manual reload.
     this.filteredFarmers$ = combineLatest([this.farmers$, this.filterState$]).pipe(
       map(([farmers, filter]) => this.filterFarmers(farmers, filter)),
+    );
+
+    // Track total for pagination info, then slice for the current page
+    this.paginatedFarmers$ = combineLatest([this.filteredFarmers$, this.pageState$]).pipe(
+      tap(([farmers]) => { this.totalCount = farmers.length; }),
+      map(([farmers, page]) =>
+        farmers.slice((page - 1) * this.itemsPerPage, page * this.itemsPerPage),
+      ),
     );
 
     this.refresh();
@@ -58,11 +90,14 @@ export class FarmerListComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.filterState$.complete();
+    this.pageState$.complete();
     this.destroy$.next();
     this.destroy$.complete();
   }
 
   applyFilter(): void {
+    this.currentPage = 1;
+    this.pageState$.next(1);
     this.filterState$.next({
       searchQuery: this.searchQuery,
       selectedBranch: this.selectedBranch,
@@ -72,11 +107,32 @@ export class FarmerListComponent implements OnInit, OnDestroy {
     });
   }
 
+  // ── Pagination methods ────────────────────────────────────────────────────
+  prevPage(): void {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.pageState$.next(this.currentPage);
+    }
+  }
+
+  nextPage(): void {
+    if (this.endIndex < this.totalCount) {
+      this.currentPage++;
+      this.pageState$.next(this.currentPage);
+    }
+  }
+
+  goToPage(page: number): void {
+    if (page !== this.currentPage) {
+      this.currentPage = page;
+      this.pageState$.next(page);
+    }
+  }
+
   refresh(): void {
     this.loading = true;
     this.error = null;
 
-    // Fetch once to hydrate the store; rendering stays subscribed to FarmerService.farmers$.
     this.farmerService.listForCooperative()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -103,14 +159,18 @@ export class FarmerListComponent implements OnInit, OnDestroy {
   }
 
   onApproveFarmer(farmer: FarmerListItem): void {
+<<<<<<< HEAD
     this.closeMenu();
     if (!confirm(`Are you sure you want to approve ${farmer.name}?`)) return;
+=======
+    if (!confirm(`Approve ${farmer.name}? They will be granted active farmer status.`)) return;
+>>>>>>> 9dee8b400e3f8ea25a26ca7d0d86f8ac2a364f3e
 
     this.farmerService.approve(farmer.id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: () => undefined,
-        error: err => alert(err?.error?.message ?? 'Approve failed.'),
+        next: () => this.toast.success('Farmer approved', `${farmer.name} is now an active farmer.`),
+        error: err => this.toast.error('Approval failed', err?.error?.message ?? 'Could not approve this farmer. Please try again.'),
       });
   }
 
@@ -132,20 +192,20 @@ export class FarmerListComponent implements OnInit, OnDestroy {
   }
 
   branches(farmers: FarmerListItem[]): string[] {
-    return ['All Branches', ...new Set(farmers.map(farmer => farmer.branch))];
+    return ['All Branches', ...new Set(farmers.map(f => f.branch))];
   }
 
   commodities(farmers: FarmerListItem[]): string[] {
-    return ['All Commodities', ...new Set(farmers.map(farmer => farmer.primaryCommodity))];
+    return ['All Commodities', ...new Set(farmers.map(f => f.primaryCommodity))];
   }
 
-  newRegistrations(farmers: FarmerListItem[]): string {
-    return String(farmers.filter(farmer => farmer.status === 'Pending').length);
+  newRegistrations(farmers: FarmerListItem[]): number {
+    return farmers.filter(f => f.status === 'Pending').length;
   }
 
   portfolioAtRisk(farmers: FarmerListItem[]): string {
-    const total = farmers.reduce((sum, farmer) => {
-      const n = Number(farmer.balance.replace(/,/g, ''));
+    const total = farmers.reduce((sum, f) => {
+      const n = Number(f.balance.replace(/,/g, ''));
       return sum + (Number.isFinite(n) ? n : 0);
     }, 0);
     return `${(total / 1_000_000).toFixed(1)}M`;
@@ -157,6 +217,10 @@ export class FarmerListComponent implements OnInit, OnDestroy {
 
   trackByOption(_index: number, option: string): string {
     return option;
+  }
+
+  trackByIndex(index: number): number {
+    return index;
   }
 
   private filterFarmers(

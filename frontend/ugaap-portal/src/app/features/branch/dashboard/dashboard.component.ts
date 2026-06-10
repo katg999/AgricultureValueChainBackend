@@ -41,14 +41,14 @@ export class BranchDashboardComponent implements OnInit {
     {
       label:   "Today's Collections",
       value:   '2.4 MT',
-      icon:    '📥',
+      icon:    'box',
       trend:   '+0.8 MT from yesterday',
       trendUp: true,
     },
     {
       label:     'Grading Queue',
       value:     '18',
-      icon:      '⏳',
+      icon:      'clock',
       status:    'warning',
       clickable: true,
       route:     '/branch/collections',
@@ -56,14 +56,14 @@ export class BranchDashboardComponent implements OnInit {
     {
       label:   'Stock on Hand',
       value:   '15.6 MT',
-      icon:    '📦',
+      icon:    'box',
       trend:   'Within capacity',
       trendUp: true,
     },
     {
       label:   'Active Farmers',
       value:   '142',
-      icon:    '🚜',
+      icon:    'farmer',
       trend:   '+3 this week',
       trendUp: true,
     },
