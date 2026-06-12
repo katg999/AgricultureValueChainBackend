@@ -127,8 +127,6 @@ const COOPERATIVE_ADMIN_CONFIG: DashboardConfig = {
 
     { label: 'Branches',        icon: 'branch',     route: '/cooperative/branches',    permissionModule: 'branches' },
 
-
-    // Inventory is a collapsible parent — clicking it reveals current stock, issue stock and stock disbursed
     {
       label: 'Inventory',
       icon:  'inventory',
@@ -186,6 +184,17 @@ const BRANCH_CONFIG: DashboardConfig = {
     { label: 'Collection',    icon: 'collection', route: '/branch/collections', permissionModule: 'collections' },
     { label: 'Farmers',       icon: 'farmers',    route: '/branch/farmers',     permissionModule: 'farmers'     },
 
+    {
+      label: 'Finance',
+      icon:  'finance',
+      route: '/branch/finance/batch-processing',
+      permissionModule: 'finance',
+      children: [
+        { label: 'Batch Processing', icon: '', route: '/branch/finance/batch-processing', permissions: ['finance.view', 'finance.batches.create'] },
+        { label: 'Batch Farmers',    icon: '', route: '/branch/finance/farmers',          permissions: ['finance.view'] },
+      ],
+    },
+
     // Inventory is a collapsible parent — clicking it reveals current stock, issue stock and stock disbursed
    {
       label: 'Inventory',
@@ -196,12 +205,13 @@ const BRANCH_CONFIG: DashboardConfig = {
         { label: 'Current Stock',   icon: '', route: '/branch/inventory/current-stock',   permissions: ['inventory.view'] },
         { label: 'Issue Stock',     icon: '', route: '/branch/inventory/issue-stock',     permissions: ['inventory.issue'] },
         { label: 'Stock-disbursed', icon: '', route: '/branch/inventory/stock-disbursed', permissions: ['inventory.disburse'] },
+        { label: 'Request Stock',   icon: '', route: '/branch/inventory/request-stock',   permissions: ['inventory.request'] },
       ],
     },
   ],
 };
 
-// ── Service ───────────────────────────────────────────────────────────────────
+// Service 
 
 @Injectable({ providedIn: 'root' })
 export class DashboardConfigService {

@@ -114,6 +114,20 @@
       .dot { background: #EF9F27; }
     }
   
+    &.badge-issued {
+      background: #FFF5F0;
+      color: #c44a1e;
+      border: 1px solid rgba(242, 93, 39, 0.2);
+      .dot { background: #F25D27; }
+    }
+
+    &.badge-received {
+      background: #EAF3DE;
+      color: #27500A;
+      border: 1px solid rgba(151, 196, 89, 0.3);
+      .dot { background: #2D7A3A; }
+    }
+
     &.badge-info {
       background: #E6F1FB;
       color: #0C447C;

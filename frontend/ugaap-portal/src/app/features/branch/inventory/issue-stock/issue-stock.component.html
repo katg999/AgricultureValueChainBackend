@@ -1,9 +1,7 @@
 <div class="issue-new-stock-page">
-  <app-page-header
-    [title]="pageTitle"
-    [subtitle]="pageSubtitle"
-    [breadcrumb]="['Inventory','Available Stock', 'Issue Stock']">
-  </app-page-header>
+
+  <!-- Closes the kebab menu when clicking anywhere outside it -->
+  <div class="kebab-backdrop" *ngIf="activeMenuId !== null" (click)="activeMenuId = null"></div>
 
   <div class="form-card">
     <div class="header" *ngIf="!isCooperativeScope">
@@ -70,20 +68,12 @@
               {{ type.name }}
             </option>
           </select>
-        </div>
-
-        <div class="field">
-          <label class="field-label" for="quantity">QUANTITY</label>
-          <div class="field-qty-wrapper">
-            <app-input
-              class="field-qty"
-              type="number"
-              [(ngModel)]="form.quantity"
-              (ngModelChange)="recalculateValue()"
-              placeholder="0">
-            </app-input>
-
-            <span class="field-unit">{{ currentUnit }}</span>
+          <!-- Show category badge only after an item is selected — currentCategory
+               is empty string until the user picks something. -->
+          <div class="field-item-meta" *ngIf="currentCategory">
+            <span class="category-badge" [ngClass]="currentCategoryClass.toLowerCase()">
+              {{ currentCategory }}
+            </span>
           </div>
         </div>
 
@@ -99,6 +89,28 @@
             </option>
           </select>
         </div>
+
+        <div class="field">
+          <label class="field-label" for="quantity">QUANTITY</label>
+          <div class="field-qty-wrapper">
+            <app-input
+              class="field-qty"
+              type="number"
+              [(ngModel)]="form.quantity"
+              (ngModelChange)="recalculateValue()"
+              placeholder="0">
+            </app-input>
+            <span class="field-unit">{{ currentUnit }}</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-label">PRICE PER UNIT</label>
+          <div class="field-readonly" [class.field-readonly--empty]="!currentUnitPrice">
+            <span *ngIf="currentUnitPrice > 0">UGX {{ currentUnitPrice | number }}</span>
+            <span *ngIf="!currentUnitPrice">Select an item above</span>
+          </div>
+        </div>
       </div>
 
       <div class="calc-value" *ngIf="calculatedValue > 0">
@@ -107,26 +119,38 @@
       </div>
     </div>
 
-    <div class="repayment-section">
+    <div class="repayment-section" *ngIf="!isCooperativeScope">
       <h2 class="section-title">Repayment Terms</h2>
 
-      <app-alert
-        variant="info"
-        message="Standard Post-Harvest Deduction (15%). The cost of these inputs will be automatically deducted from the farmer's next harvest payout. Current interest rate: 0.0% for first 90 days.">
-      </app-alert>
+      <div class="input-details-grid">
+        <!-- Repayment method is fixed — cooperatives only use post-harvest
+             deduction, so this is a read-only chip, not a selectable dropdown. -->
+        <div class="field">
+          <label class="field-label">REPAYMENT METHOD</label>
+          <div class="field-readonly field-readonly--fixed">
+            Post-Harvest Deduction
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="deductionRate">DEDUCTION RATE</label>
+          <div class="field-qty-wrapper">
+            <app-input
+              class="field-qty"
+              type="number"
+              id="deductionRate"
+              [(ngModel)]="form.deductionRate"
+              placeholder="0"
+              min="0"
+              max="100">
+            </app-input>
+            <span class="field-unit">%</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="form-footer">
-      <label class="checkbox-label">
-        <input
-          type="checkbox"
-          [(ngModel)]="form.acknowledged"
-          class="checkbox-label-input">
-        <span class="checkbox-label-text">
-          {{ isCooperativeScope ? 'Branch issue has been confirmed' : 'Farmer has acknowledged receipt of inputs' }}
-        </span>
-      </label>
-
       <div class="form-footer-actions">
         <app-button
           variant="ghost"
@@ -140,6 +164,7 @@
           variant="primary"
           size="md"
           type="button"
+          [disabled]="!canSubmit()"
           (clicked)="issueInput()">
           {{ isCooperativeScope ? 'Issue to branch' : 'Issue input' }}
         </app-button>
@@ -149,52 +174,179 @@
 
   <div class="recent-card">
     <div class="recent-card-header">
-      <h3 class="recent-card-title">Recent issuances today</h3>
+      <h3 class="recent-card-title">Recent issuances</h3>
       <a class="recent-card-link" [routerLink]="isCooperativeScope ? '/cooperative/inventory/stock-disbursed' : '/branch/inventory/stock-disbursed'">View All History</a>
     </div>
 
-    <table class="recent-table">
-      <thead>
-        <tr>
-          <th>{{ isCooperativeScope ? 'BRANCH' : 'FARMER' }}</th>
-          <th>ITEM</th>
-          <th>QUANTITY</th>
-          <th>VALUE</th>
-          <th>TIME</th>
-          <th></th>
-        </tr>
-      </thead>
+    <div class="table-scroll-wrapper">
+      <table class="recent-table">
+        <thead>
+          <tr>
+            <th>{{ isCooperativeScope ? 'BRANCH' : 'FARMER' }}</th>
+            <th>ITEM NAME</th>
+            <th>CATEGORY</th>
+            <th>QUANTITY</th>
+            <th>VALUE</th>
+            <th>DATE ISSUED</th>
+            <th>ACTIONS</th>
+          </tr>
+        </thead>
 
-      <tbody>
-        <tr *ngFor="let row of recentIssuances; trackBy: trackById">
-          <td>
-            <div class="recent-row-farmer">
-              <div class="recent-avatar" [style.background]="row.avatarColor">
-                {{ row.initials }}
+        <tbody>
+          <tr *ngFor="let row of recentIssuances; trackBy: trackById">
+            <td>
+              <div class="recent-row-farmer">
+                <div class="recent-avatar" [style.background]="row.avatarColor">
+                  {{ row.initials }}
+                </div>
+                <div>
+                  <p class="recent-row-name">{{ row.farmerName }}</p>
+                  <p class="recent-row-id">ID: {{ row.farmerId }}</p>
+                </div>
               </div>
-              <div>
-                <p class="recent-row-name">{{ row.farmerName }}</p>
-                <p class="recent-row-id">ID: {{ row.farmerId }}</p>
+            </td>
+
+            <td class="item-name-cell">{{ row.item }}</td>
+            <td>
+              <span class="category-badge" [ngClass]="row.itemCategory.toLowerCase()">{{ row.itemCategory }}</span>
+            </td>
+            <td>{{ row.quantity }}</td>
+            <td class="recent-row-value">UGX {{ row.value | number }}</td>
+            <td class="recent-row-date">{{ row.issuedAt }}</td>
+
+            <td class="actions-cell">
+              <div class="kebab-wrapper">
+                <button
+                  class="kebab-btn"
+                  title="More options"
+                  type="button"
+                  (click)="$event.stopPropagation(); toggleMenu(row.id, $event)">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                    <circle cx="8" cy="3" r="1.5"/>
+                    <circle cx="8" cy="8" r="1.5"/>
+                    <circle cx="8" cy="13" r="1.5"/>
+                  </svg>
+                </button>
+
+                <div
+                  class="kebab-menu"
+                  *ngIf="activeMenuId === row.id"
+                  [style.top]="menuPosition.top !== undefined ? menuPosition.top + 'px' : 'auto'"
+                  [style.bottom]="menuPosition.bottom !== undefined ? menuPosition.bottom + 'px' : 'auto'"
+                  [style.right.px]="menuPosition.right">
+                  <button class="kebab-menu-item" type="button" (click)="$event.stopPropagation(); openView(row)">View</button>
+                  <button class="kebab-menu-item" type="button" (click)="$event.stopPropagation(); openEdit(row)">Edit</button>
+                </div>
               </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- View modal -->
+  <div class="modal-overlay" *ngIf="viewingIssuance" (click)="closeModals()">
+    <div class="modal-panel" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">Issuance Details</h3>
+        <button title="close" class="modal-close-btn" type="button" (click)="closeModals()">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <path d="M12.7 4.7l-1.4-1.4L8 6.6 4.7 3.3 3.3 4.7 6.6 8l-3.3 3.3 1.4 1.4L8 9.4l3.3 3.3 1.4-1.4L9.4 8z"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="detail-row">
+          <span class="detail-label">{{ isCooperativeScope ? 'BRANCH' : 'FARMER' }}</span>
+          <div class="detail-value-with-avatar">
+            <div class="recent-avatar" [style.background]="viewingIssuance.avatarColor">
+              {{ viewingIssuance.initials }}
             </div>
-          </td>
+            <div>
+              <p class="recent-row-name">{{ viewingIssuance.farmerName }}</p>
+              <p class="recent-row-id">{{ viewingIssuance.farmerId }}</p>
+            </div>
+          </div>
+        </div>
 
-          <td>{{ row.item }}</td>
-          <td>{{ row.quantity }}</td>
-          <td class="recent-row-value">UGX {{ row.value | number }}</td>
-          <td class="recent-row-time">{{ row.time }}</td>
-          <td>
-            <app-button
-              class="btn-dots"
-              title="More options"
-              variant="ghost"
-              size="sm"
-              type="button">
-              ...
-            </app-button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+        <div class="detail-row">
+          <span class="detail-label">ITEM</span>
+          <div class="detail-item-value">
+            <span class="detail-value">{{ viewingIssuance.item }}</span>
+            <span class="item-category">{{ viewingIssuance.itemCategory }}</span>
+          </div>
+        </div>
+
+        <div class="detail-row">
+          <span class="detail-label">QUANTITY</span>
+          <span class="detail-value">{{ viewingIssuance.quantity }}</span>
+        </div>
+
+        <div class="detail-row">
+          <span class="detail-label">TOTAL VALUE</span>
+          <span class="detail-value detail-value--highlight">UGX {{ viewingIssuance.value | number }}</span>
+        </div>
+
+        <div class="detail-row">
+          <span class="detail-label">TIME</span>
+          <span class="detail-value detail-value--mono">{{ viewingIssuance.issuedAt }}</span>
+        </div>
+
+        <div class="detail-row">
+          <span class="detail-label">REF</span>
+          <span class="detail-value detail-value--mono">{{ viewingIssuance.id }}</span>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <app-button variant="ghost" size="md" (clicked)="closeModals()">Close</app-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit modal -->
+  <div class="modal-overlay" *ngIf="editingIssuance" (click)="closeModals()">
+    <div class="modal-panel" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">Edit Issuance</h3>
+        <button title="close" class="modal-close-btn" type="button" (click)="closeModals()">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <path d="M12.7 4.7l-1.4-1.4L8 6.6 4.7 3.3 3.3 4.7 6.6 8l-3.3 3.3 1.4 1.4L8 9.4l3.3 3.3 1.4-1.4L9.4 8z"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="detail-row">
+          <span class="detail-label">{{ isCooperativeScope ? 'BRANCH' : 'FARMER' }}</span>
+          <span class="detail-value">{{ editingIssuance.farmerName }}</span>
+        </div>
+
+        <div class="detail-row">
+          <span class="detail-label">ITEM</span>
+          <div class="detail-item-value">
+            <span class="detail-value">{{ editingIssuance.item }}</span>
+            <span class="item-category">{{ editingIssuance.itemCategory }}</span>
+          </div>
+        </div>
+
+        <div class="edit-field">
+          <label class="field-label" for="editQty">QUANTITY</label>
+          <app-input id="editQty" [(ngModel)]="editForm.quantity" placeholder="e.g. 4 Bags"></app-input>
+        </div>
+
+        <div class="edit-field">
+          <label class="field-label" for="editValue">VALUE (UGX)</label>
+          <app-input id="editValue" type="number" [(ngModel)]="editForm.value" placeholder="0"></app-input>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <app-button variant="ghost" size="md" (clicked)="closeModals()">Cancel</app-button>
+        <app-button variant="primary" size="md" (clicked)="saveEdit()">Save Changes</app-button>
+      </div>
+    </div>
   </div>
 </div>

@@ -1,4 +1,5 @@
-<!-- Async pipe is the display source of truth, keeping this screen synced with BranchDeliveryService. -->
+<!-- async pipe subscribes to the observable and auto-unsubscribes when the component is destroyed.
+     "as filteredDeliveries" gives us a local template variable to pass into getter methods. -->
 <div class="delivery-page" (click)="closeActionMenu()" *ngIf="filteredDeliveries$ | async as filteredDeliveries">
 
   <!-- =========================================================
@@ -56,68 +57,46 @@
   </div>
 
   <!-- =========================================================
+       SEASON TABS
+       ========================================================= -->
+  <div class="season-tabs">
+    <button type="button"
+      class="season-tab"
+      [class.active]="selectedSeason === ''"
+      (click)="setSeasonFilter('')">
+      All Seasons
+    </button>
+    <button type="button"
+      class="season-tab wet"
+      [class.active]="selectedSeason === 'Wet Season'"
+      (click)="setSeasonFilter('Wet Season')">
+      Wet Season
+    </button>
+    <button type="button"
+      class="season-tab dry"
+      [class.active]="selectedSeason === 'Dry Season'"
+      (click)="setSeasonFilter('Dry Season')">
+      Dry Season
+    </button>
+  </div>
+
+  <!-- =========================================================
        FILTER SECTION
        applyFilter() is triggered whenever values change
        ========================================================= -->
   <div class="filter-card">
-
-    <!-- Search -->
     <div class="filter-group">
       <label>Search</label>
-
       <input
         type="text"
         [(ngModel)]="searchTerm"
         (input)="applyFilter()"
-        placeholder="Search branch, commodity or ID..."
+        placeholder="Search by branch, commodity, status or ID..."
       />
     </div>
-
-    <!-- Commodity Filter -->
-    <div class="filter-group">
-      <label>Commodity</label>
-
-      <select title="commodity"
-        [(ngModel)]="selectedCategory"
-        (change)="applyFilter()"
-      >
-        <option value="">All Commodities</option>
-
-        <option
-          *ngFor="let commodity of commodityOptions; trackBy: trackByOption"
-          [value]="commodity"
-        >
-          {{ commodity }}
-        </option>
-
-      </select>
-    </div>
-
-    <!-- Status Filter -->
-    <div class="filter-group">
-      <label>Status</label>
-
-      <select title="status"
-        [(ngModel)]="selectedStatus"
-        (change)="applyFilter()"
-      >
-        <option value="">All Statuses</option>
-
-        <option
-          *ngFor="let status of statusOptions; trackBy: trackByOption"
-          [value]="status"
-        >
-          {{ status }}
-        </option>
-
-      </select>
-    </div>
-
   </div>
 
-  <!-- =========================================================
-       DELIVERY TABLE
-       ========================================================= -->
+  <!-- DELIVERY TABLE -->
   <div class="table-card">
 
     <div class="table-wrapper">
@@ -129,6 +108,7 @@
           <tr>
             <th>Delivery ID</th>
             <th>Branch</th>
+            <th>Season</th>
             <th>Commodity</th>
             <th>Farmers</th>
             <th>Volume</th>
@@ -141,6 +121,7 @@
         <!-- TABLE BODY -->
         <tbody>
 
+          <!-- trackBy tells Angular how to identify each row by ID so it only re-renders rows that actually changed. -->
           <tr *ngFor="let delivery of filteredDeliveries; trackBy: trackByDeliveryId">
 
             <!-- ID -->
@@ -149,8 +130,15 @@
             </td>
 
             <!-- Branch -->
-            <td>
+            <td class="cell-branch" [title]="delivery.branchName">
               {{ delivery.branchName }}
+            </td>
+
+            <!-- Season -->
+            <td>
+              <span class="season-badge" [ngClass]="seasonClass(delivery.season)">
+                {{ delivery.season }}
+              </span>
             </td>
 
             <!-- Commodity -->
@@ -200,11 +188,12 @@
                   <span></span>
                 </button>
 
-                <div class="menu-panel" *ngIf="openActionMenuId === delivery.id">
-                  <button type="button" (click)="goToFarmerDeliveries(delivery.id)">
-                    Manage farmers
-                  </button>
-
+                <!-- position:fixed with JS-calculated coordinates so the menu
+                     escapes the overflow:hidden on .table-card. -->
+                <div class="menu-panel" *ngIf="openActionMenuId === delivery.id"
+                  [style.top]="menuPosition.top !== undefined ? menuPosition.top + 'px' : 'auto'"
+                  [style.bottom]="menuPosition.bottom !== undefined ? menuPosition.bottom + 'px' : 'auto'"
+                  [style.right.px]="menuPosition.right">
                   <button
                     type="button"
                     (click)="approve(delivery)"
@@ -230,7 +219,7 @@
           <!-- Empty State -->
           <tr *ngIf="filteredDeliveries.length === 0">
 
-            <td colspan="8" class="empty-state">
+            <td colspan="9" class="empty-state">
               No deliveries found.
             </td>
 
@@ -312,6 +301,13 @@
             <span>Status</span>
             <select name="status" required [(ngModel)]="addDeliveryForm.status">
               <option *ngFor="let status of statusOptions; trackBy: trackByOption" [value]="status">{{ status }}</option>
+            </select>
+          </label>
+
+          <label class="form-field">
+            <span>Season</span>
+            <select name="season" required [(ngModel)]="addDeliveryForm.season">
+              <option *ngFor="let season of seasonOptions; trackBy: trackByOption" [value]="season">{{ season }}</option>
             </select>
           </label>
         </div>

@@ -29,13 +29,13 @@
 
 .page-subtitle {
   font-size: 14px;
-  color: #6B6B7B;
+  color: #6b6b7b;
   margin: 0;
 }
 
 .btn-back {
   background: none;
-  border: 1px solid #E8E6ED;
+  border: 1px solid #e8e6ed;
   border-radius: 8px;
   padding: 8px 16px;
   font-size: 13px;
@@ -43,7 +43,9 @@
   color: var(--secondary);
   cursor: pointer;
   white-space: nowrap;
-  transition: border-color 0.15s, color 0.15s;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
 }
 
 .btn-back:hover {
@@ -53,9 +55,9 @@
 
 /* Error banner */
 .error-banner {
-  background: #FEE2E2;
-  color: #991B1B;
-  border: 1px solid #FECACA;
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
   border-radius: 10px;
   padding: 12px 16px;
   font-size: 14px;
@@ -73,9 +75,14 @@ form {
   margin-bottom: 20px;
 }
 
-.form-row:last-child { margin-bottom: 0; }
+.form-row:last-child {
+  margin-bottom: 0;
+}
 
-.form-field { display: flex; flex-direction: column; }
+.form-field {
+  display: flex;
+  flex-direction: column;
+}
 
 .form-label {
   font-size: 11px;
@@ -86,11 +93,13 @@ form {
   margin-bottom: 8px;
 }
 
-.required { color: var(--primary); }
+.required {
+  color: var(--primary);
+}
 
 .form-textarea {
   padding: 12px 16px;
-  border: 1px solid #E8E6ED;
+  border: 1px solid #e8e6ed;
   border-radius: 10px;
   font-family: var(--font-human);
   font-size: 14px;
@@ -98,7 +107,9 @@ form {
   background: var(--surface-highest);
   outline: none;
   resize: vertical;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 
 .form-textarea:focus {
@@ -107,13 +118,17 @@ form {
   background: var(--surface-lowest);
 }
 
-.field-error { font-size: 11px; color: #E53935; margin-top: 4px; }
+.field-error {
+  font-size: 11px;
+  color: #e53935;
+  margin-top: 4px;
+}
 
 /* Permissions summary */
 .permissions-summary {
   padding: 14px 16px;
-  background: #FFF5F0;
-  border: 1px solid #FFCC80;
+  background: #fff5f0;
+  border: 1px solid #ffcc80;
   border-radius: 10px;
   margin-bottom: 24px;
 }
@@ -125,7 +140,11 @@ form {
   margin: 0 0 4px;
 }
 
-.summary-content p { font-size: 13px; color: #6B6B7B; margin: 0; }
+.summary-content p {
+  font-size: 13px;
+  color: #6b6b7b;
+  margin: 0;
+}
 
 /* Permission selection UI lives in the shared <app-permission-tabs> component */
 
@@ -135,13 +154,13 @@ form {
   align-items: center;
   justify-content: space-between;
   padding-top: 24px;
-  border-top: 1px solid #E8E6ED;
+  border-top: 1px solid #e8e6ed;
 }
 
 .btn-cancel {
   background: none;
   border: none;
-  color: #6B6B7B;
+  color: #6b6b7b;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -149,10 +168,103 @@ form {
   transition: color 0.15s;
 }
 
-.btn-cancel:hover { color: var(--primary); }
+.credentials-card {
+  background: var(--color-background-success, #f0fdf4);
+  border: 1px solid var(--color-border-success, #bbf7d0);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.credentials-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.credentials-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.credentials-title {
+  font-size: 1rem;
+  font-weight: 500;
+  margin: 0 0 4px;
+}
+
+.credentials-subtitle {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.credentials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.credential-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.credential-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-secondary);
+}
+
+.credential-value {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.credential-password {
+  font-family: var(--font-mono);
+  letter-spacing: 0.05em;
+}
+
+.credentials-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.btn-copy {
+  padding: 0.5rem 1.25rem;
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.btn-done {
+  padding: 0.5rem 1.25rem;
+  border-radius: 8px;
+  background: var(--color-background-primary);
+  border: 1px solid var(--color-border-primary);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.btn-cancel:hover {
+  color: var(--primary);
+}
 
 @media (max-width: 768px) {
   .form-actions { flex-direction: column-reverse; gap: 12px; }
 
-  .form-actions app-button, .btn-cancel { width: 100%; text-align: center; }
+  .form-actions app-button,
+  .btn-cancel {
+    width: 100%;
+    text-align: center;
+  }
 }

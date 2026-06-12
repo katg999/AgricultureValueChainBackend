@@ -176,7 +176,9 @@ export class UsersListComponent implements OnInit {
    */
   itemsPerPage = 4;
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+  ) {}
 
   ngOnInit(): void {
     // Initialize component

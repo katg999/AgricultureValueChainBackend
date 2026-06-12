@@ -1,0 +1,148 @@
+<section class="batch-root">
+  <header class="batch-header">
+    <div class="batch-header__content">
+      <h1 class="batch-header__title">Batch Processing</h1>
+      <p class="batch-header__subtitle">
+        Manage crop collection batches, input-credit deductions, and net farmer payables.
+      </p>
+    </div>
+    <div class="batch-header__actions">
+      <app-button variant="primary" iconLeft="+" (clicked)="openModal()">
+        Create New Batch
+      </app-button>
+    </div>
+  </header>
+
+  <!-- Summary cards reflect the active season filter -->
+  <div class="summary-grid">
+    <div class="summary-card summary-card--gross">
+      <span class="summary-card__label">Total Gross Value</span>
+      <span class="summary-card__value mono">UGX {{ formatUGX(totalGross) }}</span>
+      <span class="summary-card__sub">{{ filteredBatches.length }} batch{{ filteredBatches.length !== 1 ? 'es' : '' }}</span>
+    </div>
+    <div class="summary-card summary-card--deductions">
+      <span class="summary-card__label">Total Deductions</span>
+      <span class="summary-card__value mono">UGX {{ formatUGX(totalDeductions) }}</span>
+      <span class="summary-card__sub">Input credit</span>
+    </div>
+    <div class="summary-card summary-card--net">
+      <span class="summary-card__label">Net Payable</span>
+      <span class="summary-card__value mono">UGX {{ formatUGX(totalNetPayable) }}</span>
+      <span class="summary-card__sub">After deductions</span>
+    </div>
+    <div class="summary-card summary-card--pending">
+      <span class="summary-card__label">Pending Batches</span>
+      <span class="summary-card__value mono">{{ pendingCount }}</span>
+      <span class="summary-card__sub">Awaiting settlement</span>
+    </div>
+  </div>
+
+  <!-- Season filter tabs -->
+  <div class="season-tabs">
+    <button type="button" class="season-tab"      [class.active]="selectedSeason === ''"           (click)="setSeasonFilter('')">All Seasons</button>
+    <button type="button" class="season-tab wet"  [class.active]="selectedSeason === 'Wet Season'" (click)="setSeasonFilter('Wet Season')">Wet Season</button>
+    <button type="button" class="season-tab dry"  [class.active]="selectedSeason === 'Dry Season'" (click)="setSeasonFilter('Dry Season')">Dry Season</button>
+  </div>
+
+  <div class="table-section">
+    <div class="table-section__header">
+      <h2 class="table-section__title">
+        {{ selectedSeason ? selectedSeason + ' Batches' : 'All Batches' }}
+      </h2>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="batch-table">
+        <thead>
+          <tr>
+            <th>Batch ID</th>
+            <th>Batch Name</th>
+            <th>Season</th>
+            <th class="col-center">Farmers</th>
+            <th class="col-numeric">Gross (UGX)</th>
+            <th class="col-numeric">Deductions (UGX)</th>
+            <th class="col-numeric">Net Payable (UGX)</th>
+            <th>Status</th>
+            <th>Open Date</th>
+            <th>Close Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let group of groupedBatches; trackBy: trackBySeason">
+
+            <tr class="season-group-header">
+              <td colspan="10" class="season-group-header__cell">
+                <span class="season-group-badge" [ngClass]="seasonClass(group.season)">{{ group.season }}</span>
+                <span class="season-group-count">{{ group.batches.length }} batch{{ group.batches.length !== 1 ? 'es' : '' }}</span>
+              </td>
+            </tr>
+
+            <tr *ngFor="let batch of group.batches; trackBy: trackByBatchId" class="batch-table__row">
+              <td class="mono cell-id">{{ batch.id }}</td>
+              <td class="cell-name">
+                <button type="button" class="batch-name-link" [title]="batch.batchName" (click)="goToFarmers(batch)">
+                  {{ batch.batchName }}
+                </button>
+              </td>
+              <td>
+                <span class="season-group-badge" [ngClass]="seasonClass(batch.season)">{{ batch.season }}</span>
+              </td>
+              <td class="col-center">
+                <span class="farmer-count-chip">{{ batch.farmerCount }}</span>
+              </td>
+              <td class="mono col-numeric">{{ formatUGX(batch.grossAmount) }}</td>
+              <td class="mono col-numeric cell-deduction">{{ formatUGX(batch.deductions) }}</td>
+              <td class="mono col-numeric cell-net">{{ formatUGX(batch.netPayable) }}</td>
+              <td>
+                <span class="status-badge" [class]="'status-badge status-badge--' + batch.status">{{ batch.status }}</span>
+              </td>
+              <td class="mono cell-date">{{ batch.createdAt | date:'dd MMM yyyy' }}</td>
+              <td class="mono cell-date">{{ batch.closedAt ? (batch.closedAt | date:'dd MMM yyyy') : '—' }}</td>
+            </tr>
+
+          </ng-container>
+
+          <tr *ngIf="filteredBatches.length === 0">
+            <td colspan="10" class="empty-state">
+              No batches found{{ selectedSeason ? ' for ' + selectedSeason : '' }}.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<app-modal
+  [isOpen]="isModalOpen"
+  title="Create New Batch"
+  subtitle="Create the batch first, then open it to add individual farmers."
+  size="md"
+  confirmLabel="Create Batch"
+  cancelLabel="Cancel"
+  [confirmDisabled]="batchForm.invalid"
+  (confirmed)="onSubmit()"
+  (closed)="closeModal()">
+  <form body [formGroup]="batchForm" class="batch-form" novalidate>
+
+    <div class="form-row form-row--two">
+      <div class="form-field">
+        <label class="form-label">Batch Name <span class="req">*</span></label>
+        <input placeholder="e.g. Arabica Q3 Harvest - Mbale" formControlName="batchName">
+      </div>
+      <div class="form-field">
+        <label class="form-label">Batch ID <span class="req">*</span></label>
+        <input placeholder="e.g. BCH-2024-0098" formControlName="batchId">
+      </div>
+    </div>
+
+    <div class="form-field">
+      <label class="form-label">Season <span class="req">*</span></label>
+      <select title="select-season" formControlName="season">
+        <option value="">Select season…</option>
+        <option *ngFor="let s of seasons" [value]="s">{{ s }}</option>
+      </select>
+    </div>
+
+  </form>
+</app-modal>

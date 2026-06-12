@@ -140,10 +140,24 @@ export const PERMISSION_CATALOG: PermissionService[] = [
       { id: 'inventory.view',     label: 'View current stock',   description: 'See stock levels' },
       { id: 'inventory.receive',  label: 'Receive stock',        description: 'Record incoming stock' },
       { id: 'inventory.issue',    label: 'Issue stock',          description: 'Issue stock to branches or staff' },
+      { id: 'inventory.request',  label: 'Request stock',        description: 'Raise stock requests to the cooperative' },
       { id: 'inventory.disburse', label: 'View disbursed stock', description: 'See the stock-disbursed register' },
       { id: 'inventory.transfer', label: 'Transfer stock',       description: 'Move stock between locations' },
       { id: 'inventory.adjust',   label: 'Adjust stock',         description: 'Correct stock counts' },
       { id: 'inventory.export',   label: 'Export inventory',     description: 'Download inventory data' },
+    ],
+  },
+
+  {
+    key: 'finance', name: 'Finance', icon: 'finance',
+    scopes: ['cooperative', 'branch'],
+    permissions: [
+      { id: 'finance.view',            label: 'View payment batches',    description: 'See batch processing and batch farmer lists' },
+      { id: 'finance.batches.create',  label: 'Create payment batches',  description: 'Assemble farmer payments into a batch' },
+      { id: 'finance.batches.edit',    label: 'Edit payment batches',    description: 'Adjust batches before submission' },
+      { id: 'finance.batches.approve', label: 'Approve payment batches', description: 'Sign off batches for processing' },
+      { id: 'finance.batches.process', label: 'Process payments',        description: 'Execute approved payment batches' },
+      { id: 'finance.export',          label: 'Export finance data',     description: 'Download batch and payment data' },
     ],
   },
 
@@ -236,3 +250,79 @@ export function catalogForScope(scope: PermissionScope): PermissionService[] {
 export function allPermissionIds(): string[] {
   return PERMISSION_CATALOG.flatMap(s => s.permissions.map(p => p.id));
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// BACKEND WIRE FORMAT — MODULE:ACTION constants
+//
+// The constants below mirror the Java enum in shared/security/Permission.java
+// exactly, so permission strings carried in the backend JWT drop straight in
+// without translation. They are consumed by PermissionService.can() and the
+// *appHasPermission directive.
+//
+// Relationship to the catalog above: the catalog ids (e.g. "farmers.approve")
+// are the granular, UI-facing breakdown; each maps onto one of these coarser
+// MODULE:ACTION pairs when talking to the backend (see the role form's
+// toBackendPermissions()). Once the backend stores granular ids natively the
+// two layers collapse into one.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export const PERMISSIONS = {
+
+  // ── MEMBERSHIP — users, farmers, cooperative members, branch members ─────────
+  MEMBERSHIP_VIEW:    'MEMBERSHIP:VIEW',
+  MEMBERSHIP_CREATE:  'MEMBERSHIP:CREATE',
+  MEMBERSHIP_EDIT:    'MEMBERSHIP:EDIT',
+  MEMBERSHIP_APPROVE: 'MEMBERSHIP:APPROVE',
+  MEMBERSHIP_DELETE:  'MEMBERSHIP:DELETE',
+
+  // ── BRANCHES — creating, editing, and deactivating branch offices ────────────
+  BRANCHES_VIEW:    'BRANCHES:VIEW',
+  BRANCHES_CREATE:  'BRANCHES:CREATE',
+  BRANCHES_EDIT:    'BRANCHES:EDIT',
+  BRANCHES_APPROVE: 'BRANCHES:APPROVE',
+  BRANCHES_DELETE:  'BRANCHES:DELETE',
+
+  // ── INVENTORY — stock levels, disbursements, issue stock, grading, pricing ───
+  INVENTORY_VIEW:    'INVENTORY:VIEW',
+  INVENTORY_CREATE:  'INVENTORY:CREATE',
+  INVENTORY_EDIT:    'INVENTORY:EDIT',
+  INVENTORY_APPROVE: 'INVENTORY:APPROVE',
+  INVENTORY_DELETE:  'INVENTORY:DELETE',
+
+  // ── REPORTING — viewing, exporting, and scheduling reports ───────────────────
+  REPORTING_VIEW:    'REPORTING:VIEW',
+  REPORTING_CREATE:  'REPORTING:CREATE',
+  REPORTING_EDIT:    'REPORTING:EDIT',
+  REPORTING_APPROVE: 'REPORTING:APPROVE',
+  REPORTING_DELETE:  'REPORTING:DELETE',
+
+  // ── ACCESS MANAGEMENT — roles, permission assignment, user access ────────────
+  ACCESS_MANAGEMENT_VIEW:    'ACCESS_MANAGEMENT:VIEW',
+  ACCESS_MANAGEMENT_CREATE:  'ACCESS_MANAGEMENT:CREATE',
+  ACCESS_MANAGEMENT_EDIT:    'ACCESS_MANAGEMENT:EDIT',
+  ACCESS_MANAGEMENT_APPROVE: 'ACCESS_MANAGEMENT:APPROVE',
+  ACCESS_MANAGEMENT_DELETE:  'ACCESS_MANAGEMENT:DELETE',
+
+} as const;
+
+/** Strongly-typed union of every valid backend permission string */
+export type Permission = typeof PERMISSIONS[keyof typeof PERMISSIONS];
+
+// ── Role name constants ───────────────────────────────────────────────────────
+// Full names match the backend Role.name field stored in the database.
+// Short aliases match the role strings used in the frontend (session, routes).
+
+export const ROLES = {
+  // Full backend role names (come back in the JWT `roles` claim)
+  PLATFORM_ADMIN:    'PLATFORM_ADMIN',
+  COOPERATIVE_ADMIN: 'COOPERATIVE_ADMIN',
+  BRANCH_MANAGER:    'BRANCH_MANAGER',
+  FIELD_AGENT:       'FIELD_AGENT',
+
+  // Short aliases used in frontend route guards and the dev mock user
+  PLATFORM:          'platform',
+  COOPERATIVE:       'cooperative',
+  BRANCH:            'branch',
+} as const;
+
+export type Role = typeof ROLES[keyof typeof ROLES];

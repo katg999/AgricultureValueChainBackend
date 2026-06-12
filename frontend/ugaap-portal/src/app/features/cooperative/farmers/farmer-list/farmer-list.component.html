@@ -1,96 +1,29 @@
+<!-- async pipe subscribes to farmers$ and auto-unsubscribes on destroy.
+     "as farmers" exposes the full list for KPI methods (newRegistrations, portfolioAtRisk). -->
 <div class="page-shell" *ngIf="farmers$ | async as farmers">
-<<<<<<< HEAD
-
-=======
->>>>>>> 8b23637 (refactored cooperative and branch views)
   <div class="top-header">
     <div class="header-content">
       <h1>Farmers</h1>
       <p class="subtitle">
-<<<<<<< HEAD
-        Total registered farmers: <span class="highlight-count">{{ totalCount }}</span>
-=======
-        Total registered farmers:
-        <span class="highlight-count">{{ farmers.length }}</span>
->>>>>>> 8b23637 (refactored cooperative and branch views)
+        Pending approval:
+        <span class="highlight-count">{{ newRegistrations(farmers) }}</span>
       </p>
     </div>
   </div>
 
-<<<<<<< HEAD
-  <!-- SUMMARY CARDS -->
-  <div class="summary-cards-grid">
-    <app-stats-card
-      label="New Registrations"
-      [value]="newRegistrations(farmers)"
-      icon="users"
-      variant="warning">
-    </app-stats-card>
-    <app-stats-card
-      label="Portfolio at Risk"
-      [value]="portfolioAtRisk(farmers)"
-      icon="alert"
-      variant="danger">
-    </app-stats-card>
-    <app-stats-card
-      label="Collection Progress"
-      [value]="collectionProgress + '%'"
-      icon="chart"
-      variant="success">
-    </app-stats-card>
-  </div>
-
-  <!-- FILTERS -->
-=======
->>>>>>> 8b23637 (refactored cooperative and branch views)
   <div class="filters-section">
     <div class="search-wrapper">
       <app-input
         label="Search"
-        placeholder="Search by name, ID, branch or commodity"
+        placeholder="Search by name, ID, branch, commodity, status or stage"
         type="text"
         [(ngModel)]="searchQuery"
         (ngModelChange)="applyFilter()">
       </app-input>
     </div>
-
-    <div class="select-wrapper">
-      <select title="select-branch" [(ngModel)]="selectedBranch" (ngModelChange)="applyFilter()">
-        <option *ngFor="let branch of branches(farmers); trackBy: trackByOption" [value]="branch">
-          Branch: {{ branch }}
-        </option>
-      </select>
-    </div>
-
-    <div class="select-wrapper">
-      <select title="select-status" [(ngModel)]="selectedStatus" (ngModelChange)="applyFilter()">
-        <option *ngFor="let status of statuses; trackBy: trackByOption" [value]="status">
-          Status: {{ status }}
-        </option>
-      </select>
-    </div>
-
-    <div class="select-wrapper">
-      <select title="select-commodity" [(ngModel)]="selectedCommodity" (ngModelChange)="applyFilter()">
-        <option *ngFor="let commodity of commodities(farmers); trackBy: trackByOption" [value]="commodity">
-          Commodity: {{ commodity }}
-        </option>
-      </select>
-    </div>
-
-    <div class="select-wrapper">
-      <select title="select-stage" [(ngModel)]="selectedStage" (ngModelChange)="applyFilter()">
-        <option *ngFor="let stage of stages; trackBy: trackByOption" [value]="stage">{{ stage }}</option>
-      </select>
-    </div>
   </div>
 
-<<<<<<< HEAD
-  <!-- TABLE -->
   <div class="table-wrapper" *ngIf="paginatedFarmers$ | async as paginatedFarmers">
-=======
-  <div class="table-wrapper" *ngIf="filteredFarmers$ | async as filteredFarmers">
->>>>>>> 8b23637 (refactored cooperative and branch views)
     <table class="farmers-table">
       <thead>
         <tr>
@@ -98,130 +31,79 @@
           <th>NAME</th>
           <th>BRANCH</th>
           <th>PRIMARY COMMODITY</th>
-<<<<<<< HEAD
-          <th>CREDIT LIMIT</th>
-=======
->>>>>>> 8b23637 (refactored cooperative and branch views)
           <th>BALANCE</th>
           <th>STATUS</th>
           <th class="text-center">ACTIONS</th>
         </tr>
       </thead>
-<<<<<<< HEAD
-      <tbody>
-        <tr *ngFor="let farmer of paginatedFarmers; trackBy: trackByFarmerId">
-=======
 
       <tbody>
-        <tr *ngFor="let farmer of filteredFarmers; trackBy: trackByFarmerId">
->>>>>>> 8b23637 (refactored cooperative and branch views)
+        <tr *ngFor="let farmer of paginatedFarmers; trackBy: trackByFarmerId">
           <td class="farmer-id">{{ farmer.id }}</td>
           <td class="farmer-name">{{ farmer.name }}</td>
           <td>{{ farmer.branch }}</td>
           <td>
             <span class="commodity-tag">{{ farmer.primaryCommodity }}</span>
           </td>
-          <td class="text-bold">{{ farmer.creditLimit }}</td>
           <td
             class="text-bold"
-            [ngClass]="{ 'text-danger-custom': farmer.balance !== '0.00' && farmer.balance !== '--' }">
-            {{ farmer.balance }}
+            [ngClass]="{ 'text-danger-custom': farmer.balance !== '0' && farmer.balance !== '0.00' && farmer.balance !== '--' }">
+            {{ (farmer.balance === '0' || farmer.balance === '0.00') ? '--' : farmer.balance }}
           </td>
           <td>
             <span class="status-badge" [ngClass]="farmer.status.toLowerCase()">
               {{ farmer.status }}
             </span>
           </td>
-          <td class="text-center">
-            <app-button
-              *ngIf="farmer.status === 'Pending'"
-              type="button"
-              size="sm"
-              variant="secondary"
-              (clicked)="onReviewFarmer(farmer)">
-              Review
-            </app-button>
-            <app-button
-              *ngIf="farmer.status === 'Pending'"
-              type="button"
-              size="sm"
-              variant="primary"
-              iconLeft="✓"
-              (clicked)="onApproveFarmer(farmer)">
-              Approve
-            </app-button>
-<<<<<<< HEAD
-            <span *ngIf="farmer.status !== 'Pending'" class="text-muted-placeholder">—</span>
+          <td class="text-center actions-cell">
+            <div class="kebab-wrapper">
+              <button
+                class="kebab-btn"
+                type="button"
+                aria-label="Open actions menu"
+                (click)="toggleMenu(farmer.id, $event)">
+                &#8942;
+              </button>
+              <div class="kebab-dropdown" *ngIf="openMenuId === farmer.id">
+                <button class="kebab-item" type="button" (click)="onReviewFarmer(farmer)">
+                  Review
+                </button>
+                <!-- Only show approve/reject for farmers still awaiting a decision. -->
+                <ng-container *ngIf="farmer.status === 'Pending'">
+                  <button class="kebab-item approve" type="button" (click)="onApproveFarmer(farmer)">
+                    Approve
+                  </button>
+                  <button class="kebab-item reject" type="button" (click)="onRejectFarmer(farmer)">
+                    Reject
+                  </button>
+                </ng-container>
+              </div>
+            </div>
           </td>
         </tr>
-        <tr *ngIf="paginatedFarmers.length === 0">
-          <td colspan="8" style="text-align:center; padding:40px; color:#6b6b7b;">
+        <tr *ngIf="paginatedFarmers.length === 0 && !loading">
+          <td colspan="7" class="no-results">
             No farmers match the current filters.
-=======
-            <span *ngIf="farmer.status !== 'Pending'" class="text-muted-placeholder">-</span>
->>>>>>> 8b23637 (refactored cooperative and branch views)
           </td>
         </tr>
       </tbody>
     </table>
 
-<<<<<<< HEAD
-    <!-- PAGINATION -->
-    <div class="pagination-section">
-      <span class="pagination-info">
-        Showing {{ startIndex }} to {{ endIndex }} of {{ totalCount }} entries
-      </span>
-      <div class="pagination-controls">
-        <button
-          class="page-btn"
-          [disabled]="currentPage === 1"
-          (click)="prevPage()">
-          ‹ Previous
-        </button>
-        <button
-          *ngFor="let p of pagesArray; trackBy: trackByIndex"
-          class="page-btn"
-          [class.active]="p === currentPage"
-          (click)="goToPage(p)">
-          {{ p }}
-        </button>
-        <button
-          class="page-btn"
-          [disabled]="endIndex >= totalCount"
-          (click)="nextPage()">
-          Next ›
-        </button>
-=======
     <div class="pagination-section">
       <div class="pagination-info">
-        <span>Showing 1 to {{ filteredFarmers.length }} of {{ farmers.length }} entries</span>
+        <span>Showing {{ startIndex }} to {{ endIndex }} of {{ totalCount }} entries</span>
       </div>
       <div class="pagination-controls">
-        <app-button class="pagination-button" variant="secondary" size="sm">Previous</app-button>
-        <app-button class="pagination-button" variant="primary" size="sm">1</app-button>
-        <app-button class="pagination-button" variant="secondary" size="sm">2</app-button>
-        <app-button class="pagination-button" variant="secondary" size="sm">3</app-button>
-        <app-button class="pagination-button" variant="secondary" size="sm">Next</app-button>
->>>>>>> 8b23637 (refactored cooperative and branch views)
+        <app-button class="pagination-button" variant="secondary" size="sm" (clicked)="prevPage()" [disabled]="currentPage === 1">Previous</app-button>
+        <app-button
+          *ngFor="let page of pagesArray; trackBy: trackByIndex"
+          class="pagination-button"
+          [variant]="page === currentPage ? 'primary' : 'secondary'"
+          size="sm"
+          (clicked)="goToPage(page)">{{ page }}</app-button>
+        <app-button class="pagination-button" variant="secondary" size="sm" (clicked)="nextPage()" [disabled]="endIndex >= totalCount">Next</app-button>
       </div>
     </div>
   </div>
 
-<<<<<<< HEAD
-=======
-  <div class="summary-cards-grid">
-    <div class="summary-card"></div>
-    <div class="summary-card"></div>
-
-    <div class="summary-card">
-      <span class="summary-card-title">COLLECTION PROGRESS</span>
-      <div class="summary-card-value-row stack-layout">
-        <span class="summary-card-main-val">{{ collectionProgress }}%</span>
-        <div class="progress-bar-container">
-          <div class="progress-bar-fill" [style.width.%]="collectionProgress"></div>
-        </div>
-      </div>
-    </div>
-  </div>
->>>>>>> 8b23637 (refactored cooperative and branch views)
 </div>

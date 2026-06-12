@@ -51,16 +51,7 @@
 
 
            <!-- Tenant ID (UNDER DESCRIPTION) -->
-        <div class="form-row">
-          <app-input
-            label="Tenant ID"
-            type="text"
-            placeholder="e.g. ugaap-farmers"
-            formControlName="tenantId"
-            [required]="true"
-            [error]="getFieldError('tenantId')">
-          </app-input>
-        </div>
+        <!--Tenant ID input removed from UI to decouple from cooperatives -->
 
       </app-info-card>
 
@@ -93,13 +84,11 @@
           Cancel
         </button>
 
+         <!-- Removed (clicked) to let (ngSubmit) handle the action properly --> -->
         <app-button
           type="submit"
           variant="primary"
-          size="lg"
-          
-          
-          (clicked)="saveRole()">
+          size="lg">
           {{ isEditMode ? 'Update role' : 'Create role' }}
         </app-button>
       </div>

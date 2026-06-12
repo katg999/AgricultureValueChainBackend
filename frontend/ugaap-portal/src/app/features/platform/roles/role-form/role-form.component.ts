@@ -41,17 +41,20 @@ export class RoleFormComponent implements OnInit {
   roleForm!: FormGroup;
   isLoading = false;
   errorMessage = '';
-  cooperativeInfo: any = null;
+
 
   /** Permission ids granted to this role — two-way bound to the tab picker */
   readonly selectedPermissions = signal<string[]>([]);
 
   constructor(
+
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
     private http: HttpClient,
   ) {}
+
+  
 
   ngOnInit(): void {
     this.roleId = this.route.snapshot.paramMap.get('id');
@@ -62,7 +65,6 @@ export class RoleFormComponent implements OnInit {
       const navigation = this.router.getCurrentNavigation();
       const state = navigation?.extras?.state || history.state;
       if (state?.tenantId) {
-        this.cooperativeInfo = state;
         this.roleForm.patchValue({ tenantId: state.tenantId });
       }
     }

@@ -6,7 +6,6 @@
 
 <div class="page">
   <div class="page-container">
-    
     <!-- Page Header -->
     <div class="page-header">
       <app-logo size="sm" [showSubtitle]="false"></app-logo>
@@ -16,43 +15,47 @@
 
     <!-- Info Alert -->
     <app-alert variant="info">
-      <p><strong>ℹ️ Important:</strong> Both Maker and Checker will have full permissions to manage all cooperative operations. These are the primary admin accounts.</p>
+      <p>
+        <strong>ℹ️ Important:</strong> Both Maker and Checker will have full permissions to manage
+        all cooperative operations. These are the primary admin accounts.
+      </p>
     </app-alert>
 
     <div class="dual-form-container">
-
       <!-- MAKER ACCOUNT -->
       <form [formGroup]="makerForm" class="account-form">
         
         <app-info-card title="MAKER ACCOUNT">
-          
           <!-- Photo Upload -->
           <div class="photo-upload-section">
-            <label class="photo-label">Profile Photo <span class="optional-tag">OPTIONAL</span></label>
-            
+            <label class="photo-label"
+              >Profile Photo <span class="optional-tag">OPTIONAL</span></label
+            >
+
             <div class="photo-upload-container">
               <!-- Photo Preview -->
               <div class="photo-preview" *ngIf="makerPhotoPreview">
-                <img [src]="makerPhotoPreview" alt="Maker photo">
-                <button 
-                  type="button" 
-                  class="photo-remove"
-                  (click)="removeMakerPhoto()">
-                  ✕
-                </button>
+                <img [src]="makerPhotoPreview" alt="Maker photo" />
+                <button type="button" class="photo-remove" (click)="removeMakerPhoto()">✕</button>
               </div>
 
               <!-- Upload Button -->
               <div class="photo-upload-btn" *ngIf="!makerPhotoPreview">
-                <input 
-                  type="file" 
-                  id="makerPhoto" 
+                <input
+                  type="file"
+                  id="makerPhoto"
                   accept="image/*"
                   (change)="onMakerPhotoSelect($event)"
-                  hidden>
+                  hidden
+                />
                 <label for="makerPhoto" class="upload-label">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path
+                      d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                    />
                   </svg>
                   <span>Upload Photo</span>
                 </label>
@@ -69,7 +72,8 @@
             formControlName="fullName"
             [required]="true"
             hint="Full legal name of the Maker"
-            [error]="getFieldError(makerForm, 'fullName')">
+            [error]="getFieldError(makerForm, 'fullName')"
+          >
           </app-input>
 
           <!-- Email & Phone -->
@@ -81,7 +85,8 @@
               formControlName="email"
               [required]="true"
               hint="Used for login and notifications"
-              [error]="getFieldError(makerForm, 'email')">
+              [error]="getFieldError(makerForm, 'email')"
+            >
             </app-input>
 
             <app-input
@@ -91,7 +96,8 @@
               formControlName="phone"
               [required]="true"
               hint="For OTP verification"
-              [error]="getFieldError(makerForm, 'phone')">
+              [error]="getFieldError(makerForm, 'phone')"
+            >
             </app-input>
           </div>
 
@@ -102,14 +108,16 @@
               type="date"
               placeholder="YYYY-MM-DD"
               formControlName="dateOfBirth"
-              hint="Format: YYYY-MM-DD">
+              hint="Format: YYYY-MM-DD"
+            >
             </app-input>
 
             <app-input
               label="National ID number"
               type="text"
               placeholder="CF9200000XXX"
-              formControlName="nationalId">
+              formControlName="nationalId"
+            >
             </app-input>
           </div>
 
@@ -122,37 +130,7 @@
               </option>
             </select>
           </div>
-
-          <!-- Password & Confirm -->
-          <div class="form-row-2col">
-            <app-input
-              label="Password"
-              type="password"
-              placeholder="••••••••"
-              formControlName="password"
-              [required]="true"
-              hint="Minimum 8 characters"
-              [error]="getFieldError(makerForm, 'password')">
-            </app-input>
-
-            <app-input
-              label="Confirm password"
-              type="password"
-              placeholder="••••••••"
-              formControlName="confirmPassword"
-              [required]="true"
-              [error]="getFieldError(makerForm, 'confirmPassword')">
-            </app-input>
-          </div>
-
-          <!-- Password Strength -->
-          <app-password-strength
-            [password]="getMakerPassword()"
-            [showLabel]="true">
-          </app-password-strength>
-
         </app-info-card>
-
       </form>
 
       <!-- CHECKER ACCOUNT -->
@@ -162,31 +140,34 @@
           
           <!-- Photo Upload -->
           <div class="photo-upload-section">
-            <label class="photo-label">Profile Photo <span class="optional-tag">OPTIONAL</span></label>
-            
+            <label class="photo-label"
+              >Profile Photo <span class="optional-tag">OPTIONAL</span></label
+            >
+
             <div class="photo-upload-container">
               <!-- Photo Preview -->
               <div class="photo-preview" *ngIf="checkerPhotoPreview">
-                <img [src]="checkerPhotoPreview" alt="Checker photo">
-                <button 
-                  type="button" 
-                  class="photo-remove"
-                  (click)="removeCheckerPhoto()">
-                  ✕
-                </button>
+                <img [src]="checkerPhotoPreview" alt="Checker photo" />
+                <button type="button" class="photo-remove" (click)="removeCheckerPhoto()">✕</button>
               </div>
 
               <!-- Upload Button -->
               <div class="photo-upload-btn" *ngIf="!checkerPhotoPreview">
-                <input 
-                  type="file" 
-                  id="checkerPhoto" 
+                <input
+                  type="file"
+                  id="checkerPhoto"
                   accept="image/*"
                   (change)="onCheckerPhotoSelect($event)"
-                  hidden>
+                  hidden
+                />
                 <label for="checkerPhoto" class="upload-label">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path
+                      d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                    />
                   </svg>
                   <span>Upload Photo</span>
                 </label>
@@ -203,7 +184,8 @@
             formControlName="fullName"
             [required]="true"
             hint="Full legal name of the Checker"
-            [error]="getFieldError(checkerForm, 'fullName')">
+            [error]="getFieldError(checkerForm, 'fullName')"
+          >
           </app-input>
 
           <!-- Email & Phone -->
@@ -215,7 +197,8 @@
               formControlName="email"
               [required]="true"
               hint="Used for login and notifications"
-              [error]="getFieldError(checkerForm, 'email')">
+              [error]="getFieldError(checkerForm, 'email')"
+            >
             </app-input>
 
             <app-input
@@ -225,7 +208,8 @@
               formControlName="phone"
               [required]="true"
               hint="For OTP verification"
-              [error]="getFieldError(checkerForm, 'phone')">
+              [error]="getFieldError(checkerForm, 'phone')"
+            >
             </app-input>
           </div>
 
@@ -236,14 +220,16 @@
               type="date"
               placeholder="YYYY-MM-DD"
               formControlName="dateOfBirth"
-              hint="Format: YYYY-MM-DD">
+              hint="Format: YYYY-MM-DD"
+            >
             </app-input>
 
             <app-input
               label="National ID number"
               type="text"
               placeholder="CF9200000XXX"
-              formControlName="nationalId">
+              formControlName="nationalId"
+            >
             </app-input>
           </div>
 
@@ -256,49 +242,13 @@
               </option>
             </select>
           </div>
-
-          <!-- Password & Confirm -->
-          <div class="form-row-2col">
-            <app-input
-              label="Password"
-              type="password"
-              placeholder="••••••••"
-              formControlName="password"
-              [required]="true"
-              hint="Minimum 8 characters"
-              [error]="getFieldError(checkerForm, 'password')">
-            </app-input>
-
-            <app-input
-              label="Confirm password"
-              type="password"
-              placeholder="••••••••"
-              formControlName="confirmPassword"
-              [required]="true"
-              [error]="getFieldError(checkerForm, 'confirmPassword')">
-            </app-input>
-          </div>
-
-          <!-- Password Strength -->
-          <app-password-strength
-            [password]="getCheckerPassword()"
-            [showLabel]="true">
-          </app-password-strength>
-
         </app-info-card>
-
       </form>
-
     </div>
 
     <!-- Actions -->
     <div class="form-actions">
-      <button 
-        type="button"
-        class="btn-cancel"
-        (click)="cancel()">
-        Cancel Setup
-      </button>
+      <button type="button" class="btn-cancel" (click)="cancel()">Cancel Setup</button>
 
       <app-button
         type="button"
@@ -306,10 +256,62 @@
         size="lg"
         [loading]="isLoading"
         loadingText="Creating Accounts..."
-        (clicked)="createAccounts()">
+        (clicked)="createAccounts()"
+      >
         Create Both Accounts
       </app-button>
     </div>
-
   </div>
+
+  <!-- Credentials Modal -->
+  <app-modal
+    [isOpen]="showCredentialsModal"
+    [title]="'Maker & Checker Accounts Created'"
+    size="md"
+    (closed)="showCredentialsModal = false"
+  >
+    <div body>
+      <!-- Maker Credentials -->
+      <div class="credentials-section">
+        <h3 class="credentials-role">Maker Account</h3>
+        <div class="credentials-field">
+          <span class="credentials-label">Username</span>
+          <span class="credentials-value">{{ makerCredentials?.username }}</span>
+        </div>
+        <div class="credentials-field">
+          <span class="credentials-label">Temporary Password</span>
+          <span class="credentials-value credentials-password">{{
+            makerCredentials?.temporaryPassword
+          }}</span>
+        </div>
+      </div>
+
+      <hr class="credentials-divider" />
+
+      <!-- Checker Credentials -->
+      <div class="credentials-section">
+        <h3 class="credentials-role">✓ Checker Account</h3>
+        <div class="credentials-field">
+          <span class="credentials-label">Username</span>
+          <span class="credentials-value">{{ checkerCredentials?.username }}</span>
+        </div>
+        <div class="credentials-field">
+          <span class="credentials-label">Temporary Password</span>
+          <span class="credentials-value credentials-password">{{
+            checkerCredentials?.temporaryPassword
+          }}</span>
+        </div>
+      </div>
+
+      <hr class="credentials-divider" />
+
+      <p class="credentials-warning">
+        ⚠️ Please save these credentials now. The temporary passwords will not be shown again.
+      </p>
+    </div>
+
+    <div footer>
+      <app-button variant="primary" size="lg" (clicked)="goToSuccessPage()"> Continue </app-button>
+    </div>
+  </app-modal>
 </div>

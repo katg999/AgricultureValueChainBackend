@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Title } from '@angular/platform-browser';
 
 // Shared components
 import { LogoComponent } from '../../../shared/components/logo/logo.component';
@@ -55,9 +56,11 @@ export class CooperativeOnboardingComponent implements OnInit {
     private fb: FormBuilder,
     private router: Router,
     private cooperativeService: CooperativeService,
+    private titleService: Title
   ) {}
 
   ngOnInit(): void {
+    this.titleService.setTitle('Cooperative Onboarding | UGAAP');
     this.initProfileForm();
   }
 
@@ -110,11 +113,6 @@ export class CooperativeOnboardingComponent implements OnInit {
   activateCooperative(): void {
    //console.log('ACTIVATE BUTTON CLICKED!');
    
-    if(this.profileForm.invalid) {
-      this.profileForm.markAllAsTouched();
-      return;
-    }
-    
     if (this.profileForm.invalid) {
       this.profileForm.markAllAsTouched();
       return;
@@ -140,9 +138,10 @@ export class CooperativeOnboardingComponent implements OnInit {
 
     this.cooperativeService.createCooperative(payload).subscribe({
       next: (res) => {
+        console.log('ONBOARD RESPONSE:', res);
         this.isLoading = false;
 
-        this.router.navigate(['/cooperatives/maker-checker-creation'], {
+        this.router.navigate(['/platform/maker-checker'], {
           state: {
             cooperative: res,
             message: `Cooperative "${payload.name}" created successfully`,

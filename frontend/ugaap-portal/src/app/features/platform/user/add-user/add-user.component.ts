@@ -77,6 +77,8 @@ export class AddUserComponent implements OnInit {
    */
   roleOptions = [
     'Admin',
+    'Maker',
+    'Checker',
     'Logistics Manager',
     'Accountant',
     'Field Officer'
@@ -89,7 +91,7 @@ export class AddUserComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private router: Router
+    private router: Router,
   ) {}
 
   ngOnInit(): void {
@@ -103,7 +105,7 @@ export class AddUserComponent implements OnInit {
     this.userForm = this.fb.group({
       // Personal Details
       fullName: ['', [Validators.required]],
-      email: ['', [Validators.required, Validators.email]],
+      email: ['okeyo@gmail.com', [Validators.required, Validators.email]],
       phone: ['', [Validators.required, Validators.pattern(/^\+256\s?\d{3}\s?\d{3}\s?\d{3}$/)]],
       dateOfBirth: [''], // Optional, but if provided must be valid date
       nationalId: [''],
@@ -165,6 +167,7 @@ export class AddUserComponent implements OnInit {
    */
   cancel(): void {
     this.router.navigate(['/platform/users']);
+
   }
 
   /**
@@ -172,11 +175,11 @@ export class AddUserComponent implements OnInit {
    */
   saveUser(): void {
     if (this.userForm.invalid) {
-      this.router.navigate(['/platform/users']);
       this.userForm.markAllAsTouched();
+      return; // stop here if the form isn't ready!
 
-      return;
     }
+
 
     // Validate date format if provided
     const dob = this.userForm.get('dateOfBirth')?.value;
@@ -185,21 +188,21 @@ export class AddUserComponent implements OnInit {
       return;
     }
 
-    // this.isLoading = true;
+    this.isLoading = true;
 
     const userData = {
       ...this.userForm.value,
       sendWelcomeEmail: this.sendWelcomeEmail,
       requireOTP: this.requireOTP,
       // Format date consistently for DB
-      dateOfBirth: dob ? this.formatDateForDB(dob) : null
+      dateOfBirth: this.userForm.value.dateOfBirth ? 
+      this.formatDateForDB(this.userForm.value.dateOfBirth) : null
     };
 
     console.log('Saving user:', userData);
-    this.router.navigate(['/platform/users']);
+  
 
-    // Simulate API call
-    // setTimeout(() => {
+    // Simulate API calletTimeout(() => {
     //   this.isLoading = false;
     //   this.router.navigate(['/platform/users']);
     // }, 2000);

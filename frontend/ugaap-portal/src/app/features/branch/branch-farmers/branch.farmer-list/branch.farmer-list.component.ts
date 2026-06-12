@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { BehaviorSubject, combineLatest, map, Observable, Subject, takeUntil } from 'rxjs';
@@ -22,6 +22,7 @@ export class BranchFarmerListComponent implements OnInit, OnDestroy {
   selectedStatus = 'All Statuses';
   selectedCommodity = 'All Commodities';
   selectedStage = 'All Stages';
+  openKebabId: string | null = null;
 
   readonly statuses = ['All Statuses', 'Active', 'Pending', 'Rejected', 'Suspended'];
   readonly stages = ['All Stages', 'Registered', 'Verified', 'Financed'];
@@ -97,12 +98,35 @@ export class BranchFarmerListComponent implements OnInit, OnDestroy {
       });
   }
 
+  @HostListener('document:click')
+  onDocumentClick(): void {
+    this.openKebabId = null;
+  }
+
   onAddFarmer(): void {
     this.router.navigate(['../register'], { relativeTo: this.route }).then((success) => {
       console.log('Navigation result:', success);
       console.log('Current URL after nav:', this.router.url);
     });
   }
+
+  toggleKebab(id: string, event: MouseEvent): void {
+    event.stopPropagation();
+    this.openKebabId = this.openKebabId === id ? null : id;
+  }
+
+  onEditFarmer(farmer: FarmerListItem): void {
+    this.router.navigate(['/branch/farmers/register', farmer.id]);
+  }
+
+  onViewProfile(farmer: FarmerListItem): void {
+    this.router.navigate(['/cooperative/farmers/approval', farmer.id]);
+  }
+
+  onViewAllocations(farmer: FarmerListItem): void {
+    this.router.navigate(['/branch/inventory/stock-disbursed']);
+  }
+
   branches(farmers: FarmerListItem[]): string[] {
     return ['All Branches', ...new Set(farmers.map((farmer) => farmer.branch))];
   }

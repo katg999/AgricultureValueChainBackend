@@ -93,6 +93,8 @@
           <div class="form-field">
             <label class="form-label">Role <span class="required">*</span></label>
             <select title="role" class="form-select" formControlName="role">
+              <!-- Default placeholder option -->
+              <option value="" disabled selected>Select a role</option> 
               <option *ngFor="let role of roleOptions" [value]="role">
                 {{ role }}
               </option>
@@ -100,6 +102,7 @@
             <p class="field-note">Branch users are created inside each cooperative portal</p>
           </div>
         </div>
+
 
         <!-- Temporary Password & Confirm - USING REUSABLE INPUT COMPONENT -->
         <div class="form-row form-row-2col">
@@ -155,7 +158,7 @@
 
         <!-- Warning Alert -->
         <app-alert variant="warning">
-          <p><strong></strong> This user will be prompted to change their temporary password on first login. Make sure the phone number is correct before saving, it is used for OTP delivery.</p>
+          <p> This user will be prompted to change their temporary password on first login. Make sure the phone number is correct before saving, it is used for OTP delivery.</p>
         </app-alert>
 
       </app-info-card>
@@ -174,7 +177,6 @@
           variant="primary"
           size="lg"
           [loading]="isLoading"
-          (clicked)="saveUser()"
           loadingText="Saving...">
           Save user
         </app-button>

@@ -24,7 +24,12 @@ export const INVENTORY_ROUTES: Routes = [
       import('./stock-disbursed/stock-disbursed.component')
         .then(m => m.StockDisbursedComponent)
   },
-  
+  {
+    path: 'request-stock',
+    loadComponent: () =>
+      import('./request-stock/request-stock.component')
+        .then(m => m.RequestStockComponent)
+  },
   {
     path: '',
     redirectTo: 'current-stock',

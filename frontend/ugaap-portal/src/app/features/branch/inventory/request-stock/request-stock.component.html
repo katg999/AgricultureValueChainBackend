@@ -1,0 +1,382 @@
+<div class="request-stock-page">
+  <app-page-header
+    title="Request Stock"
+    subtitle="View and manage stock requests submitted to cooperative headquarters"
+    [breadcrumb]="['Inventory', 'Request Stock']">
+  </app-page-header>
+
+  <!-- ── History section ───────────────────────────────────────────────────── -->
+  <div class="history-section">
+
+    <div class="section-header-row">
+      <app-button variant="primary" size="md" type="button" (clicked)="openRequestModal()">
+        + New Request
+      </app-button>
+    </div>
+
+    <div class="stats-grid">
+      <app-stat-card
+        [data]="{ label: 'TOTAL REQUESTS', value: (totalRequests | number) ?? '', icon: 'clipboard' }">
+      </app-stat-card>
+
+      <app-stat-card
+        [data]="{ label: 'PENDING REVIEW', value: (pendingCount | number) ?? '', icon: 'alert', status: 'warning' }">
+      </app-stat-card>
+
+      <app-stat-card
+        [data]="{ label: 'REJECTED', value: (rejectedCount | number) ?? '', icon: 'alert', status: 'critical' }">
+      </app-stat-card>
+
+      <app-stat-card
+        [data]="{ label: 'FULFILLED', value: (fulfilledCount | number) ?? '', icon: 'check' }">
+      </app-stat-card>
+    </div>
+
+    <div class="filter-row">
+      <div class="filter-search">
+        <app-input
+          placeholder="Search item, category, status, urgency…"
+          [(ngModel)]="searchQuery"
+          (ngModelChange)="applyFilters()">
+        </app-input>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th class="col-item">ITEM NAME</th>
+            <th class="col-category">CATEGORY</th>
+            <th class="col-qty">QTY</th>
+            <th class="col-urgency">URGENCY</th>
+            <th class="col-submitted">SUBMITTED</th>
+            <th class="col-delivery">DELIVERY DATE</th>
+            <th class="col-status">STATUS</th>
+            <th class="col-action">ACTIONS</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let row of visibleRequests; trackBy: trackById">
+            <td class="item-name-cell">{{ row.itemName }}</td>
+
+            <td>
+              <span class="category-badge" [ngClass]="row.category.toLowerCase()">
+                {{ row.category }}
+              </span>
+            </td>
+
+            <td class="qty-cell">{{ row.quantity }} {{ row.unit }}</td>
+
+            <td>
+              <app-badge [variant]="getUrgencyVariant(row.urgency)" [dot]="true">
+                {{ row.urgency | titlecase }}
+              </app-badge>
+            </td>
+
+            <td class="date-cell">{{ row.submittedAt }}</td>
+
+            <td class="date-cell">
+              <span *ngIf="row.preferredDeliveryDate; else noDueDate">{{ row.preferredDeliveryDate }}</span>
+              <ng-template #noDueDate><span class="no-date">—</span></ng-template>
+            </td>
+
+            <td>
+              <app-badge [variant]="getStatusVariant(row.status)" [dot]="true">
+                {{ row.status | titlecase }}
+              </app-badge>
+            </td>
+
+            <td class="kebab-cell">
+              <div class="kebab-wrapper">
+                <button
+                  class="kebab-btn"
+                  type="button"
+                  title="More options"
+                  (click)="toggleKebab(row.id, $event)">
+                  &#8942;
+                </button>
+                <div
+                  class="kebab-dropdown"
+                  *ngIf="openKebabId === row.id"
+                  [style.top]="kebabPosition.top !== undefined ? kebabPosition.top + 'px' : 'auto'"
+                  [style.bottom]="kebabPosition.bottom !== undefined ? kebabPosition.bottom + 'px' : 'auto'"
+                  [style.right.px]="kebabPosition.right">
+                  <button class="kebab-item" type="button" (click)="onViewDetails(row, $event)">
+                    View details
+                  </button>
+                  <button
+                    class="kebab-item kebab-item--danger"
+                    type="button"
+                    *ngIf="row.status === 'pending'"
+                    (click)="onCancelRequest(row, $event)">
+                    Cancel request
+                  </button>
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <tr *ngIf="visibleRequests.length === 0">
+            <td colspan="8" class="empty-row">No requests match your search.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="table-footer">
+        <span>Showing {{ pageStart }}–{{ pageEnd }} of {{ totalFiltered }} entries</span>
+
+        <div class="pagination">
+          <app-button
+            title="Previous page"
+            size="sm"
+            variant="ghost"
+            type="button"
+            [disabled]="currentPage === 1"
+            (clicked)="prevPage()">
+          </app-button>
+
+          <app-button
+            *ngFor="let p of visiblePages"
+            size="sm"
+            [variant]="p === currentPage ? 'primary' : 'ghost'"
+            type="button"
+            (clicked)="goToPage(p)">
+            {{ p }}
+          </app-button>
+
+          <app-button
+            title="Next page"
+            size="sm"
+            variant="ghost"
+            type="button"
+            iconLeft=">"
+            [disabled]="currentPage === totalPages"
+            (clicked)="nextPage()">
+          </app-button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── New Request Modal ─────────────────────────────────────────────────── -->
+<app-modal
+  [(isOpen)]="showRequestModal"
+  title="New Stock Request"
+  subtitle="Request items from cooperative headquarters"
+  size="lg"
+  (closed)="closeRequestModal()">
+
+  <div body>
+    <!-- Item Details -->
+    <div class="form-section">
+      <h3 class="form-section-title">Item Details</h3>
+      <div class="form-grid">
+
+        <div class="field field--wide">
+          <label class="field-label" for="itemName">ITEM NAME</label>
+          <app-input
+            id="itemName"
+            placeholder="e.g. NPK Fertilizer 50kg"
+            [(ngModel)]="form.itemName">
+          </app-input>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="category">CATEGORY</label>
+          <select id="category" class="field-select" [(ngModel)]="form.category">
+            <option *ngFor="let cat of categories" [value]="cat">{{ cat | titlecase }}</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="unit">UNIT</label>
+          <select id="unit" class="field-select" [(ngModel)]="form.unit">
+            <option *ngFor="let u of units" [value]="u">{{ u }}</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="quantity">QUANTITY REQUESTED</label>
+          <div class="field-qty-wrapper">
+            <app-input
+              class="field-qty"
+              id="quantity"
+              type="number"
+              [(ngModel)]="form.quantity"
+              placeholder="0">
+            </app-input>
+            <span class="field-unit">{{ form.unit }}</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Request Details -->
+    <div class="form-section form-section--last">
+      <h3 class="form-section-title">Request Details</h3>
+      <div class="form-grid">
+
+        <div class="field">
+          <label class="field-label" for="urgency">URGENCY</label>
+          <select id="urgency" class="field-select" [(ngModel)]="form.urgency"
+            [ngClass]="'urgency-' + form.urgency">
+            <option *ngFor="let opt of urgencyOptions" [value]="opt.value">{{ opt.label }}</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="deliveryDate">PREFERRED DELIVERY DATE</label>
+          <input
+            id="deliveryDate"
+            type="date"
+            class="field-select"
+            [min]="today"
+            [(ngModel)]="form.preferredDeliveryDate">
+        </div>
+
+      </div>
+
+      <div class="field reason-field">
+        <label class="field-label" for="reason">
+          REASON / NOTES <span class="field-optional">(optional)</span>
+        </label>
+        <textarea
+          id="reason"
+          class="reason-textarea"
+          rows="3"
+          maxlength="500"
+          placeholder="Describe why this stock is needed…"
+          [(ngModel)]="form.reason">
+        </textarea>
+        <span class="char-count">{{ form.reason.length }}/500</span>
+      </div>
+    </div>
+  </div>
+
+  <div footer>
+    <app-button variant="ghost" size="md" type="button" (clicked)="closeRequestModal()">
+      Cancel
+    </app-button>
+    <app-button
+      variant="primary"
+      size="md"
+      type="button"
+      [disabled]="!canSubmit()"
+      [loading]="submitting"
+      loadingText="Submitting…"
+      (clicked)="submitRequest()">
+      Submit Request
+    </app-button>
+  </div>
+</app-modal>
+
+<!-- ── Detail Modal ──────────────────────────────────────────────────────── -->
+<app-modal
+  [(isOpen)]="showDetailModal"
+  [title]="selectedRequest ? selectedRequest.id : ''"
+  subtitle="Request details"
+  size="md"
+  (closed)="closeDetailModal()">
+
+  <div body *ngIf="selectedRequest">
+    <dl class="detail-grid">
+      <div class="detail-row">
+        <dt>ITEM NAME</dt>
+        <dd class="detail-value">{{ selectedRequest.itemName }}</dd>
+      </div>
+      <div class="detail-row">
+        <dt>CATEGORY</dt>
+        <dd>
+          <span class="category-badge" [ngClass]="selectedRequest.category.toLowerCase()">
+            {{ selectedRequest.category }}
+          </span>
+        </dd>
+      </div>
+      <div class="detail-row">
+        <dt>QUANTITY</dt>
+        <dd>{{ selectedRequest.quantity }} {{ selectedRequest.unit }}</dd>
+      </div>
+      <div class="detail-row">
+        <dt>URGENCY</dt>
+        <dd>
+          <app-badge [variant]="getUrgencyVariant(selectedRequest.urgency)" [dot]="true">
+            {{ selectedRequest.urgency | titlecase }}
+          </app-badge>
+        </dd>
+      </div>
+      <div class="detail-row">
+        <dt>STATUS</dt>
+        <dd>
+          <app-badge [variant]="getStatusVariant(selectedRequest.status)" [dot]="true">
+            {{ selectedRequest.status | titlecase }}
+          </app-badge>
+        </dd>
+      </div>
+      <div class="detail-row">
+        <dt>SUBMITTED</dt>
+        <dd>{{ selectedRequest.submittedAt }}</dd>
+      </div>
+      <div class="detail-row" *ngIf="selectedRequest.preferredDeliveryDate">
+        <dt>DELIVERY DATE</dt>
+        <dd>{{ selectedRequest.preferredDeliveryDate }}</dd>
+      </div>
+      <div class="detail-row" *ngIf="selectedRequest.reason">
+        <dt>REASON</dt>
+        <dd class="detail-reason">{{ selectedRequest.reason }}</dd>
+      </div>
+      <div class="detail-row" *ngIf="selectedRequest.reviewedAt">
+        <dt>REVIEWED BY</dt>
+        <dd>{{ selectedRequest.reviewedBy }} on {{ selectedRequest.reviewedAt }}</dd>
+      </div>
+      <div class="detail-row" *ngIf="selectedRequest.rejectionReason">
+        <dt>REJECTION REASON</dt>
+        <dd class="detail-danger">{{ selectedRequest.rejectionReason }}</dd>
+      </div>
+      <div class="detail-row" *ngIf="selectedRequest.fulfilledAt">
+        <dt>FULFILLED ON</dt>
+        <dd>{{ selectedRequest.fulfilledAt }}</dd>
+      </div>
+    </dl>
+  </div>
+
+  <div footer>
+    <app-button variant="ghost" size="md" type="button" (clicked)="closeDetailModal()">
+      Close
+    </app-button>
+  </div>
+</app-modal>
+
+<!-- ── Cancel Confirmation Modal ─────────────────────────────────────────── -->
+<app-modal
+  [(isOpen)]="showCancelModal"
+  title="Cancel Request"
+  subtitle="This action cannot be undone"
+  size="md"
+  (closed)="closeCancelModal()">
+
+  <div body *ngIf="selectedRequest">
+    <p class="confirm-text">
+      Are you sure you want to cancel the request for
+      <strong>{{ selectedRequest.quantity }} {{ selectedRequest.unit }} of {{ selectedRequest.itemName }}</strong>?
+    </p>
+  </div>
+
+  <div footer>
+    <app-button variant="ghost" size="md" type="button" (clicked)="closeCancelModal()">
+      Keep Request
+    </app-button>
+    <app-button
+      variant="danger"
+      size="md"
+      type="button"
+      [loading]="cancellingRequest"
+      loadingText="Cancelling…"
+      (clicked)="confirmCancel()">
+      Yes, Cancel It
+    </app-button>
+  </div>
+</app-modal>

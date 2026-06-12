@@ -1,0 +1,199 @@
+:host { display: block; font-family: var(--font-human); }
+.mono { font-family: var(--font-technical); }
+
+/* ── PAGE ── */
+.cf-page {
+  min-height: 100vh;
+  padding: 24px;
+  background: var(--surface-low);
+  color: var(--secondary);
+}
+
+.cf-header { margin-bottom: 24px; }
+.cf-title   { margin: 0 0 6px; font-size: 28px; font-weight: 700; color: var(--secondary); }
+.cf-subtitle { margin: 0; font-size: 14px; color: var(--muted-purple); }
+
+/* ── KPI CARDS ── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.kpi-card {
+  position: relative;
+  overflow: hidden;
+  padding: 20px;
+  border-radius: 16px;
+  background: var(--surface-lowest);
+  box-shadow: 0 2px 8px rgba(32, 11, 38, 0.06);
+}
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+}
+.kpi-card--batches::before  { background: var(--secondary); }
+.kpi-card--pending::before  { background: var(--primary); }
+.kpi-card--farmers::before  { background: #0284c7; }
+.kpi-card--net::before      { background: #15976d; }
+
+.kpi-label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 13px;
+  color: var(--muted-purple);
+}
+.kpi-value {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--secondary);
+}
+
+/* ── SEASON TABS ── */
+.season-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.season-tab {
+  height: 38px;
+  padding: 0 18px;
+  border: 1.5px solid transparent;
+  border-radius: 999px;
+  background: var(--surface-lowest);
+  color: var(--muted-purple);
+  font-family: var(--font-human);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.18s ease;
+  box-shadow: 0 1px 4px rgba(32, 11, 38, 0.06);
+}
+.season-tab:hover       { background: var(--surface-highest); color: var(--secondary); }
+.season-tab.active      { background: var(--secondary); color: #fff; border-color: var(--secondary); }
+.season-tab.wet.active  { background: #0284c7; border-color: #0284c7; }
+.season-tab.dry.active  { background: #d97706; border-color: #d97706; }
+
+/* ── TABLE ── */
+.table-section {
+  border-radius: 16px;
+  background: var(--surface-lowest);
+  box-shadow: 0 2px 8px rgba(32, 11, 38, 0.06);
+  overflow: hidden;
+}
+.table-wrapper { overflow-x: auto; }
+
+.cf-table {
+  width: 100%;
+  min-width: 820px;
+  border-collapse: collapse;
+  color: var(--secondary);
+}
+.cf-table thead { background: var(--surface-highest); }
+.cf-table th {
+  padding: 14px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+.cf-table td {
+  padding: 13px 16px;
+  border-top: 1px solid #f0edf2;
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+/* ── BRANCH GROUP ROW ── */
+.branch-group-row { background: #f3f0f6; }
+.branch-group-cell {
+  padding: 10px 16px !important;
+  border-top: 2px solid #ddd6e6 !important;
+  vertical-align: middle;
+}
+
+.branch-icon {
+  color: var(--primary);
+  margin-right: 8px;
+  font-size: 10px;
+}
+.branch-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--secondary);
+  margin-right: 10px;
+}
+.branch-count {
+  font-size: 12px;
+  color: var(--muted-purple);
+}
+
+/* ── BATCH ROW ── */
+.batch-row:hover { background: #faf9fb; }
+
+.col-num     { color: var(--muted-purple); font-size: 12px; width: 36px; }
+.col-numeric { text-align: right; }
+
+.cell-name {
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+.cell-deduction { color: #dc3545; }
+.cell-net       { color: #15976d; font-weight: 600; }
+
+/* ── STATUS SELECT ── */
+.status-select {
+  appearance: none;
+  border: 1.5px solid #e0dae8;
+  border-radius: 999px;
+  padding: 4px 28px 4px 12px;
+  font-family: var(--font-human);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23888' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 10px;
+  text-transform: capitalize;
+  transition: border-color 0.15s;
+}
+.status-select:focus { outline: none; border-color: var(--primary); }
+
+.status-select--pending   { background-color: rgba(242, 93, 39, 0.08);  color: var(--primary);  border-color: rgba(242, 93, 39, 0.3); }
+.status-select--processed { background-color: rgba(2, 132, 199, 0.08);  color: #0284c7;         border-color: rgba(2, 132, 199, 0.3); }
+.status-select--settled   { background-color: rgba(21, 151, 109, 0.08); color: #15976d;         border-color: rgba(21, 151, 109, 0.3); }
+
+/* ── SEASON BADGES ── */
+.season-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.season-wet { background: rgba(2, 132, 199, 0.12); color: #0284c7; }
+.season-dry { background: rgba(217, 119, 6, 0.12);  color: #d97706; }
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  text-align: center;
+  padding: 48px 16px;
+  color: var(--muted-purple);
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .cf-page  { padding: 16px; }
+  .cf-title { font-size: 22px; }
+}

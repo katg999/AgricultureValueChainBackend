@@ -1,16 +1,19 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router, ActivatedRoute } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 
+// remove HttpClient import, add BranchService
+import { BranchService, BranchCreatePayload } from '../../../../core/services/branch.service';
+
 // Shared components
-import { LogoComponent } from '../../../../shared/components/logo/logo.component';
 import { StepperComponent, Step } from '../../../../shared/components/stepper/stepper.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 import { AlertComponent } from '../../../../shared/components/alert/alert.component';
-import { ToastService }   from '../../../../core/services/toast.service';
+import { ToastService } from '../../../../core/services/toast.service';
+import { API_ENDPOINTS } from '../../../../core/constants/api-endpoints';
 
 @Component({
   selector: 'app-branch-onboarding',
@@ -19,23 +22,23 @@ import { ToastService }   from '../../../../core/services/toast.service';
     CommonModule,
     RouterModule,
     ReactiveFormsModule,
-    LogoComponent,
     StepperComponent,
     InputComponent,
     ButtonComponent,
     ModalComponent,
-    AlertComponent
+    AlertComponent,
   ],
   templateUrl: './branch-onboarding.component.html',
-  styleUrls: ['./branch-onboarding.component.css']
+  styleUrls: ['./branch-onboarding.component.css'],
 })
 export class BranchOnboardingComponent implements OnInit {
-
   // ── Stepper ───────────────────────────────────────────────
   steps: Step[] = [
-    { label: 'BRANCH INFO', number: '01' },
-    { label: 'MANAGER', number: '02' },
-    { label: 'REVIEW', number: '03' }
+    { label: 'IDENTITY', number: '01' },
+    { label: 'LOCATION', number: '02' },
+    { label: 'CONTACT',  number: '03' },
+    { label: 'MANAGER',  number: '04' },
+    { label: 'REVIEW',   number: '05' },
   ];
 
   currentStep = 0;
@@ -49,6 +52,7 @@ export class BranchOnboardingComponent implements OnInit {
   // ── Loading states ────────────────────────────────────────
   isLoading = false;
   isSaving = false;
+
   private toast = inject(ToastService);
 
   // ── Error & success ───────────────────────────────────────
@@ -57,7 +61,8 @@ export class BranchOnboardingComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private router: Router
+    private router: Router,
+    private branchService: BranchService,
   ) {}
 
   ngOnInit(): void {
@@ -65,9 +70,9 @@ export class BranchOnboardingComponent implements OnInit {
   }
 
   // ── Init form ─────────────────────────────────────────────
-
   initBranchForm(): void {
     this.branchForm = this.fb.group({
+      tenantId: ['', []],
       branchName: ['', [Validators.required, Validators.minLength(3)]],
       branchRegistrationNumber: ['', [Validators.required, Validators.pattern(/^[A-Z0-9]+$/)]],
       location: ['', Validators.required],
@@ -76,7 +81,6 @@ export class BranchOnboardingComponent implements OnInit {
       establishedDate: ['', Validators.required],
       address: ['', [Validators.required, Validators.minLength(10)]],
       poBox: ['', [Validators.required, Validators.minLength(5)]],
-      websiteUrl: ['', [Validators.required, Validators.pattern(/https?:\/\/.+/)]],
       managerName: ['', [Validators.required, Validators.minLength(3)]],
       managerEmail: ['', [Validators.required, Validators.email]],
       managerPhone: ['', [Validators.required, Validators.pattern(/^\+\d{1,3}\d{4,14}$/)]]
@@ -84,13 +88,8 @@ export class BranchOnboardingComponent implements OnInit {
   }
 
   // ── Navigation ────────────────────────────────────────────
-
   nextStep(): void {
-    if (this.currentStep === 0) {
-      if (!this.isStepValid(0)) return;
-    } else if (this.currentStep === 1) {
-      if (!this.isStepValid(1)) return;
-    }
+    if (!this.isStepValid(this.currentStep)) return;
     this.currentStep++;
   }
 
@@ -100,13 +99,17 @@ export class BranchOnboardingComponent implements OnInit {
 
   // ── Step validation ───────────────────────────────────────
 
-  private isStepValid(step: number): boolean {
-    const controls = step === 0
-      ? ['branchName', 'branchRegistrationNumber', 'location', 'region', 'country', 'establishedDate', 'address', 'poBox', 'websiteUrl']
-      : ['managerName', 'managerEmail', 'managerPhone'];
+  private readonly STEP_FIELDS: Record<number, string[]> = {
+    0: ['branchName', 'branchRegistrationNumber'],
+    1: ['location', 'region', 'country', 'establishedDate'],
+    2: ['address', 'poBox'],
+    3: ['managerName', 'managerEmail', 'managerPhone'],
+  };
 
+  private isStepValid(step: number): boolean {
+    const fields = this.STEP_FIELDS[step] ?? [];
     let valid = true;
-    for (const field of controls) {
+    for (const field of fields) {
       const control = this.branchForm.get(field);
       if (control?.invalid) {
         control.markAsTouched();
@@ -117,7 +120,6 @@ export class BranchOnboardingComponent implements OnInit {
   }
 
   // ── Modal ─────────────────────────────────────────────────
-
   openConfirmModal(): void {
     this.showConfirmModal = true;
     this.errorMessage = '';
@@ -128,35 +130,34 @@ export class BranchOnboardingComponent implements OnInit {
   }
 
   // ── Register branch ───────────────────────────────────────
-
   registerBranch(): void {
-    // this.isLoading = true;
     this.errorMessage = '';
-    this.submitSuccess = false;
-    this.router.navigate(['/branches/success']);
-    // Simulate API call
-    // setTimeout(() => {
-    //   this.isLoading = false;
-    //   this.showConfirmModal = false;
-    //   this.submitSuccess = true;
-
-    //   // Optional: Navigate or show success message in the current view
-    //   // this.router.navigate(['/branches/success'], { state: { branch: this.branchForm.value } });
-    // }, 1500);
+    this.router.navigate(['/cooperative/branches/dashboard'], {
+      state: {
+        newBranch: {
+          name:        this.formValue.branchName,
+          location:    `${this.formValue.location}, ${this.formValue.region}`,
+          branchCode:  this.formValue.branchRegistrationNumber,
+          country:     this.formValue.country,
+          managerName: this.formValue.managerName,
+        },
+      },
+    });
   }
 
   // ── Save progress ─────────────────────────────────────────
-
   saveProgress(): void {
     this.isSaving = true;
     setTimeout(() => {
       this.isSaving = false;
-      this.toast.success('Progress saved', 'Your branch details have been saved. You can continue later.');
+      this.toast.success(
+        'Progress saved',
+        'Your branch details have been saved. You can continue later.',
+      );
     }, 1000);
   }
 
   // ── Field error helper ────────────────────────────────────
-
   getFieldError(fieldName: string): string {
     const control = this.branchForm.get(fieldName);
     if (control?.touched && control?.errors) {
@@ -165,7 +166,6 @@ export class BranchOnboardingComponent implements OnInit {
       if (control.errors['pattern']) {
         // Custom messages per field
         if (fieldName === 'branchRegistrationNumber') return 'Only uppercase letters and numbers allowed (e.g., KAS001)';
-        if (fieldName === 'websiteUrl') return 'Enter a valid URL (e.g., https://example.com)';
         if (fieldName === 'managerPhone') return 'Include country code (e.g., +256712345678)';
         return 'Invalid format';
       }
@@ -178,7 +178,6 @@ export class BranchOnboardingComponent implements OnInit {
   }
 
   // ── Form value getter ─────────────────────────────────────
-
   get formValue() {
     return this.branchForm.value;
   }
