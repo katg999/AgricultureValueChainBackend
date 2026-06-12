@@ -38,6 +38,42 @@
   position: relative;
   z-index: 2;
 }
+/* 
+   LOGIN MODE TABS
+   Task 2.1: Switcher for login modes
+    */
+
+.login-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 24px;
+  padding: 4px;
+  background: var(--surface-low);
+  border-radius: 8px;
+}
+
+.login-tabs button {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  color: var(--secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  font-family: var(--font-human);
+}
+
+.login-tabs button.active {
+  background: var(--surface-lowest);
+  color: var(--primary);
+  box-shadow: 0 2px 8px rgba(32, 11, 38, 0.04);
+}
+
+/* 
 
 /* 
    FORM LAYOUT

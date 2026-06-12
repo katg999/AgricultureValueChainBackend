@@ -9,6 +9,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
+// Shared components
+
 import { StatCardComponent, StatCardData } from '../../../shared/components/stat-card/stat-card.component';
 import { ProgressBarComponent } from '../../../shared/components/progress-bar/progress-bar.component';
 
@@ -132,6 +134,9 @@ export class PlatformDashboardComponent implements OnInit {
     { actor: 'Admin Bot',   event: 'SYNC',     eventVariant: 'info',    object: 'BATCH_992',        when: '14m ago' },
     { actor: 'R.Namubiru',  event: 'CONFIG',   eventVariant: 'warning', object: 'SYS_PARAM_RATE',  when: '1h ago'  },
   ];
+
+  constructor() {}
+
 
   ngOnInit(): void {
     // TODO: replace mock data with API calls

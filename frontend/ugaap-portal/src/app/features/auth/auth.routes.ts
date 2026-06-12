@@ -12,22 +12,20 @@
 import { Routes } from '@angular/router';
 
 export const AUTH_ROUTES: Routes = [
-
   // Bare /auth → go straight to login
   { path: '', redirectTo: 'login', pathMatch: 'full' },
 
   // Step 1 — Enter credentials + role
   {
     path: 'login',
-    loadComponent: () =>
-      import('./login/login.componet').then(m => m.LoginComponent),
+    loadComponent: () => import('./login/login.component').then((m) => m.LoginComponent),
   },
 
   // Step 2 — Verify the OTP received after login
   {
     path: 'otp',
     loadComponent: () =>
-      import('./otp-verify/otp-verify.component').then(m => m.OtpVerifyComponent),
+      import('./otp-verify/otp-verify.component').then((m) => m.OtpVerifyComponent),
   },
 
   // Forgot-password flow ────────────────────────────────────────────────────
@@ -36,7 +34,7 @@ export const AUTH_ROUTES: Routes = [
   {
     path: 'forgot-password',
     loadComponent: () =>
-      import('./forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent),
+      import('./forgot-password/forgot-password.component').then((m) => m.ForgotPasswordComponent),
   },
   {
     path: 'first-time-login',
@@ -47,16 +45,18 @@ export const AUTH_ROUTES: Routes = [
   // Step 2 — Verify the reset OTP sent to email/phone
   {
     path: 'reset-otp',
-    loadComponent: () =>
-      import('./reset-otp/reset-otp.component').then(m => m.ResetOtpComponent),
+    loadComponent: () => import('./reset-otp/reset-otp.component').then((m) => m.ResetOtpComponent),
   },
 
   // Step 3 — Choose a new password
   {
     path: 'set-new-password',
     loadComponent: () =>
-      import('./set-new-password/set-new-password.component').then(m => m.SetNewPasswordComponent),
+      import('./set-new-password/set-new-password.component').then(
+        (m) => m.SetNewPasswordComponent,
+      ),
   },
+  
   
   // Default redirect to login
   // {
@@ -65,5 +65,3 @@ export const AUTH_ROUTES: Routes = [
   //   pathMatch: 'full'
   // }
 ];
-
-

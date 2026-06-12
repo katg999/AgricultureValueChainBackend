@@ -22,6 +22,18 @@ public class BranchDto {
 
         private String location;
         private String branchCode;
+        private String registrationNumber;
+        private String address;
+        private String poBox;
+        private String websiteUrl;
+        private String country;
+        private String region;
+        private String establishedDate;
+        private String contactPersonName;
+        private String contactPersonPhone;
+        private String contactPersonEmail;
+        private String defaultBranchName;
+        private String defaultBranchLocation;
     }
 
     @Data
