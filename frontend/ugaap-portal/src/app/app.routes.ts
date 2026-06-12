@@ -18,11 +18,13 @@ export const routes: Routes = [
   {
     path: '',
     component: AdminLayoutComponent,
+    
     // canActivate: [authGuard],
     children: [
       // Platform admin — cooperative management
       {
         path: 'platform',
+        title: 'Platform Admin' + ' | UGAAP',
         loadChildren: () =>
           import('./features/platform/platform.routes').then((m) => m.PLATFORM_ROUTES),
       },
@@ -30,6 +32,7 @@ export const routes: Routes = [
       // Cooperative admin — grading & pricing
       {
         path: 'cooperative',
+        title: 'Cooperative Admin' + ' | UGAAP',
         loadChildren: () =>
           import('./features/cooperative/cooperative.routes').then((m) => m.COOPERATIVE_ROUTES),
       },
@@ -37,12 +40,14 @@ export const routes: Routes = [
       // Branch staff — daily grading
       {
         path: 'branch',
+        title: 'Branch' + ' | UGAAP',
         loadChildren: () => import('./features/branch/branch.routes').then((m) => m.BRANCH_ROUTES),
       },
 
       // Cooperative organisation management (list, onboarding, maker-checker)
       {
         path: 'cooperatives',
+        title: 'Cooperatives' + ' | UGAAP',
         loadChildren: () =>
           import('./features/cooperative/cooperative.routes').then((m) => m.COOPERATIVE_ROUTES),
       },
@@ -57,5 +62,5 @@ export const routes: Routes = [
   },
 
   // Catch-all
-  { path: '**', redirectTo: 'auth' },
+  { path: '**', redirectTo: 'auth/login' },
 ];

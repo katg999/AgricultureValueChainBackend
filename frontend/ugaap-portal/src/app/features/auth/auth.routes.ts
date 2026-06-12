@@ -18,7 +18,7 @@ export const AUTH_ROUTES: Routes = [
   // Step 1 — Enter credentials + role
   {
     path: 'login',
-    loadComponent: () => import('./login/login.componet').then((m) => m.LoginComponent),
+    loadComponent: () => import('./login/login.component').then((m) => m.LoginComponent),
   },
 
   // Step 2 — Verify the OTP received after login
@@ -56,13 +56,7 @@ export const AUTH_ROUTES: Routes = [
         (m) => m.SetNewPasswordComponent,
       ),
   },
-  {
-    path: 'first-time-login',
-    loadComponent: () =>
-      import('./first-time-login/first-time-login.component').then(
-        (m) => m.FirstTimeLoginComponent,
-      ),
-  },
+  
   
   // Default redirect to login
   // {

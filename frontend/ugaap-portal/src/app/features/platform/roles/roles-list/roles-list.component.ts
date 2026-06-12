@@ -112,7 +112,10 @@ export class RolesListComponent implements OnInit {
     );
   }
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+  ) {}
+
 
   ngOnInit(): void {
     // Initialize component
@@ -139,7 +142,6 @@ export class RolesListComponent implements OnInit {
     }
     this.router.navigate(['/platform/roles/role-form', role.id]);
   }
-
   /**
    * Delete role
    * Shows confirmation before deletion
@@ -171,9 +173,9 @@ export class RolesListComponent implements OnInit {
    * Route: /platform/roles/:id
    * Note: This route is not yet implemented
    */
-  viewRole(role: RoleCardData): void {
-    console.log('View role details:', role);
+  viewRole(role: any): void {
+  
     // TODO: Implement role details page
-    // this.router.navigate(['/platform/roles', role.id]);
+    this.router.navigate(['/platform/roles/role-form', role.id]);
   }
 }

@@ -64,8 +64,7 @@ export class MakerCheckerCreationComponent implements OnInit {
   cooperativeName = '';
   cooperativeMessage = '';
 
-  //Pick Cooperative values
-  cooperativeId = '';
+  // Pick Cooperative values
   tenantId = '';
 
   /**
@@ -98,7 +97,8 @@ export class MakerCheckerCreationComponent implements OnInit {
     private fb: FormBuilder,
     private router: Router,
     private makerCheckerService: MakerCheckerService,
-    private cdr: ChangeDetectorRef,
+    private cdr: ChangeDetectorRef
+  
   ) {
     const navigation = this.router.getCurrentNavigation();
 

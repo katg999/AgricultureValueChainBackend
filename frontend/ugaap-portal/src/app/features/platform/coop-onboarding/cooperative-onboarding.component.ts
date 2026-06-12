@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Title } from '@angular/platform-browser';
 
 // Shared components
 import { LogoComponent } from '../../../shared/components/logo/logo.component';
@@ -54,12 +55,13 @@ export class CooperativeOnboardingComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private router: Router) {}
     private router: Router,
     private cooperativeService: CooperativeService,
+    private titleService: Title
   ) {}
 
   ngOnInit(): void {
+    this.titleService.setTitle('Cooperative Onboarding | UGAAP');
     this.initProfileForm();
   }
 

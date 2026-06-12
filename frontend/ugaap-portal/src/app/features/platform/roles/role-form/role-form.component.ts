@@ -44,7 +44,7 @@ export class RoleFormComponent implements OnInit {
   roleForm!: FormGroup;
   isLoading = false;
   errorMessage = '';
-  cooperativeInfo: any = null;
+
 
    permissionModules: PermissionModule[] = [
       {
@@ -54,15 +54,6 @@ export class RoleFormComponent implements OnInit {
           { id: 'membership.create', label: 'Create users', checked: false },
           { id: 'membership.edit',   label: 'Edit users',   checked: false },
           { id: 'membership.delete', label: 'Delete users', checked: false },
-        ],
-      },
-      {
-        name: 'Cooperatives', icon: '🏢',
-        permissions: [
-          { id: 'coops.view',   label: 'View cooperatives',   checked: false },
-          { id: 'coops.create', label: 'Create cooperatives', checked: false },
-          { id: 'coops.edit',   label: 'Edit cooperatives',   checked: false },
-          { id: 'coops.delete', label: 'Delete cooperatives', checked: false },
         ],
       },
       
@@ -77,11 +68,14 @@ export class RoleFormComponent implements OnInit {
     ];
 
   constructor(
+
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
     private http: HttpClient
   ) {}
+
+  
 
   ngOnInit(): void {
     this.roleId = this.route.snapshot.paramMap.get('id');
@@ -92,7 +86,6 @@ export class RoleFormComponent implements OnInit {
       const navigation = this.router.getCurrentNavigation();
       const state = navigation?.extras?.state || history.state;
       if (state?.tenantId) {
-        this.cooperativeInfo = state;
         this.roleForm.patchValue({ tenantId: state.tenantId });
       }
     }
@@ -106,7 +99,7 @@ export class RoleFormComponent implements OnInit {
     this.roleForm = this.fb.group({
       name: ['', Validators.required],
       description: ['', Validators.required],
-      tenantId: ['', Validators.required]
+      tenantId: ['ugaap-platform', Validators.required]
     });
   }
 
