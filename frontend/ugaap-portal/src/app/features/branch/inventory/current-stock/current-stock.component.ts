@@ -5,7 +5,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { AlertComponent } from '../../../../shared/components/alert/alert.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
-import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
 import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
 import {
   InventoryScope,
@@ -31,7 +30,6 @@ const THRESHOLD_MULTIPLIER = 4;
     FormsModule,
     AlertComponent,
     ButtonComponent,
-    PageHeaderComponent,
     StatCardComponent,
   ],
   templateUrl: './current-stock.component.html',
