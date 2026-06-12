@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router, ActivatedRoute } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Title } from '@angular/platform-browser';
 
@@ -12,7 +12,6 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
 import { ModalComponent } from '../../../shared/components/modal/modal.component';
 import { AlertComponent } from '../../../shared/components/alert/alert.component';
 import { CooperativeService } from '../../../core/services/cooperative.service';
-import { API_ENDPOINTS } from '../../../core/constants/api-endpoints';
 
 @Component({
   selector: 'app-cooperative-onboarding',

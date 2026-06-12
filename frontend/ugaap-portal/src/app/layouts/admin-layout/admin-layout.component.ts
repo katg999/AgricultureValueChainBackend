@@ -14,7 +14,7 @@
 //   a cooperative context, or if roles are extended in the future.
 
 import {
-  Component, OnInit, inject, signal, DestroyRef,
+  Component, OnInit, inject, signal, computed, DestroyRef,
 } from '@angular/core';
 import { Router, NavigationEnd, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs/operators';
@@ -22,6 +22,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { SessionService }                          from '../../core/services/session.service';
 import { DashboardConfigService, NavItem, UserLevel } from '../../core/services/dashboard-config.service';
+import { PermissionsService }                      from '../../core/services/permissions.service';
 import { AuthService }                             from '../../core/services/auth.service';
 import { SidebarComponent } from '../../shared/components/sidebar/sidebar.component';
 import { ToastComponent }   from '../../shared/components/toast/toast.component';
@@ -39,6 +40,7 @@ export class AdminLayoutComponent implements OnInit {
   private router          = inject(Router);
   private session         = inject(SessionService);
   private dashboardConfig = inject(DashboardConfigService);
+  private permissions     = inject(PermissionsService);
   private authService     = inject(AuthService);
   private destroyRef      = inject(DestroyRef);
 
@@ -48,11 +50,21 @@ export class AdminLayoutComponent implements OnInit {
   readonly user = this.session.currentUser;
 
   /**
-   * Nav items shown in the sidebar.
-   * Writable signal — updated whenever the URL prefix changes.
-   * Starts empty and is populated immediately in ngOnInit.
+   * Area-level nav items for the current URL prefix (unfiltered).
+   * Updated whenever the URL prefix changes; starts empty and is
+   * populated immediately in ngOnInit.
    */
-  readonly navItems = signal<NavItem[]>([]);
+  private readonly areaNavItems = signal<NavItem[]>([]);
+
+  /**
+   * Nav items actually shown in the sidebar — the area menu filtered down to
+   * what the logged-in user holds permissions for. Re-computes automatically
+   * when either the URL area or the session permissions change, so a user
+   * with no "farmers.*" grants never sees the Farmers entry.
+   */
+  readonly navItems = computed<NavItem[]>(() =>
+    this.permissions.filterNav(this.areaNavItems()),
+  );
 
   // ── Lifecycle ────────────────────────────────────────────────────────────────
 
@@ -78,10 +90,7 @@ export class AdminLayoutComponent implements OnInit {
   private syncMenuToUrl(url: string): void {
     const level = this.resolveLevel(url);
     const config = this.dashboardConfig.getConfig(level);
-    this.navItems.set(config.navItems);
-
-    // Dev aid — remove before production
-    console.log(`[AdminLayout] url="${url}" → level="${level}" (${config.navItems.length} items)`);
+    this.areaNavItems.set(config.navItems);
   }
 
   /**

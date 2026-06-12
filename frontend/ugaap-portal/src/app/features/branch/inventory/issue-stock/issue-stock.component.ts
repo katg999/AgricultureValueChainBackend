@@ -6,7 +6,6 @@ import { Router, RouterModule } from '@angular/router';
 import { ToastService } from '../../../../core/services/toast.service';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
-import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
 import {
   BranchDisbursement,
   BranchOption,
@@ -58,7 +57,6 @@ interface RecentIssuance {
     RouterModule,
     ButtonComponent,
     InputComponent,
-    PageHeaderComponent,
   ],
   templateUrl: './issue-stock.component.html',
   styleUrl: './issue-stock.component.css',

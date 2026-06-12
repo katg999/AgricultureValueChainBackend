@@ -20,7 +20,14 @@
     <!-- GENERATED CREDENTIALS CARD (shown after successful creation) -->
     <div class="credentials-card" *ngIf="generatedCredentials">
       <div class="credentials-header">
-        <div class="credentials-icon">🔐</div>
+        <div class="credentials-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="11" width="18" height="11" rx="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        </div>
         <div>
           <h3 class="credentials-title">Account created successfully</h3>
           <p class="credentials-subtitle">
@@ -151,48 +158,15 @@
       <app-info-card title="PERMISSIONS">
         <div class="permissions-summary">
           <div class="summary-content">
-            <h3>
-              {{ selectedPermissionsCount }} permission{{
-                selectedPermissionsCount === 1 ? '' : 's'
-              }}
-              selected
-            </h3>
-            <p>Grant specific access rights to users with this role</p>
+            <h3>{{ selectedPermissionsCount }} permission{{ selectedPermissionsCount === 1 ? '' : 's' }} selected</h3>
+            <p>Select a service tab to see everything this role can do under it. Users only see sidebar entries they hold permissions for.</p>
           </div>
         </div>
 
-        <div class="permissions-modules">
-          <div *ngFor="let module of permissionModules" class="permission-module">
-            <div class="module-header">
-              <div class="module-title-row">
-                <span class="module-icon">{{ module.icon }}</span>
-                <h4 class="module-name">{{ module.name }}</h4>
-                <label class="checkbox-container checkbox-select-all">
-                  <input
-                    type="checkbox"
-                    [checked]="isModuleFullySelected(module)"
-                    [indeterminate]="isModulePartiallySelected(module)"
-                    (change)="toggleModulePermissions(module, $any($event.target).checked)"
-                  />
-                  <span class="checkmark"></span>
-                  <span class="checkbox-label">Select all</span>
-                </label>
-              </div>
-            </div>
-
-            <div class="module-permissions">
-              <label *ngFor="let permission of module.permissions" class="checkbox-container">
-                <input
-                  type="checkbox"
-                  [(ngModel)]="permission.checked"
-                  [ngModelOptions]="{ standalone: true }"
-                />
-                <span class="checkmark"></span>
-                <span class="checkbox-label">{{ permission.label }}</span>
-              </label>
-            </div>
-          </div>
-        </div>
+        <app-permission-tabs
+          scope="cooperative"
+          [(selected)]="selectedPermissions">
+        </app-permission-tabs>
       </app-info-card>
 
       <!-- Actions -->

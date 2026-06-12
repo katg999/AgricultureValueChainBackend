@@ -24,7 +24,8 @@
     <div class="dual-form-container">
       <!-- MAKER ACCOUNT -->
       <form [formGroup]="makerForm" class="account-form">
-        <app-info-card title="MAKER ACCOUNT" icon="👤">
+        
+        <app-info-card title="MAKER ACCOUNT">
           <!-- Photo Upload -->
           <div class="photo-upload-section">
             <label class="photo-label"
@@ -134,7 +135,9 @@
 
       <!-- CHECKER ACCOUNT -->
       <form [formGroup]="checkerForm" class="account-form">
-        <app-info-card title="CHECKER ACCOUNT" icon="✓">
+        
+        <app-info-card title="CHECKER ACCOUNT">
+          
           <!-- Photo Upload -->
           <div class="photo-upload-section">
             <label class="photo-label"
@@ -270,7 +273,7 @@
     <div body>
       <!-- Maker Credentials -->
       <div class="credentials-section">
-        <h3 class="credentials-role">👤 Maker Account</h3>
+        <h3 class="credentials-role">Maker Account</h3>
         <div class="credentials-field">
           <span class="credentials-label">Username</span>
           <span class="credentials-value">{{ makerCredentials?.username }}</span>

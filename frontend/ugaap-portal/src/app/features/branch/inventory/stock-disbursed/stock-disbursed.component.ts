@@ -7,7 +7,6 @@ import { BadgeComponent } from '../../../../shared/components/badge/badge';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
-import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
 import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
 import {
   BranchDisbursement,
@@ -57,7 +56,6 @@ interface Summary {
     ButtonComponent,
     InputComponent,
     ModalComponent,
-    PageHeaderComponent,
     StatCardComponent,
   ],
   templateUrl: './stock-disbursed.component.html',

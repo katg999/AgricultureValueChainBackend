@@ -130,138 +130,9 @@ form {
   margin: 0;
 }
 
-/* 
-   PERMISSION MODULES
-    */
+/* Permission selection UI lives in the shared <app-permission-tabs> component */
 
-.permissions-modules {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.permission-module {
-  border: 1px solid #E8E6ED;
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-/* Module Header */
-.module-header {
-  background: var(--surface-low);
-  padding: 16px 20px;
-  border-bottom: 1px solid #E8E6ED;
-}
-
-.module-title-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.module-icon {
-  font-size: 20px;
-}
-
-.module-name {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--secondary);
-  margin: 0;
-  flex: 1;
-}
-
-/* Module Permissions */
-.module-permissions {
-  padding: 20px;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-}
-
-/* 
-   CHECKBOX CONTAINER
-    */
-
-.checkbox-container {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  position: relative;
-
-}
-
-.checkbox-container input {
-  position: absolute;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.checkmark {
-  width: 20px;
-  height: 20px;
-  background: var(--surface-lowest);
-  border: 2px solid #D1CDD8;
-  border-radius: 4px;
-  flex-shrink: 0;
-  transition: all 0.15s;
-  position: relative;
-}
-
-.checkbox-container:hover .checkmark {
-  border-color: var(--primary);
-}
-
-.checkbox-container input:checked ~ .checkmark {
-  background: var(--primary);
-  border-color: var(--primary);
-}
-
-.checkbox-container input:indeterminate ~ .checkmark {
-  background: var(--primary);
-  border-color: var(--primary);
-}
-
-.checkbox-container input:checked ~ .checkmark::after {
-  content: '';
-  position: absolute;
-  left: 5px;
-  top: 2px;
-  width: 6px;
-  height: 10px;
-  border: solid white;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
-}
-
-.checkbox-container input:indeterminate ~ .checkmark::after {
-  content: '';
-  position: absolute;
-  left: 3px;
-  top: 7px;
-  width: 10px;
-  height: 2px;
-  background: white;
-}
-
-.checkbox-label {
-  font-size: 14px;
-  color: var(--secondary);
-  font-weight: 500;
-}
-
-.checkbox-select-all {
-  margin-left: auto;
-}
-
-.checkbox-select-all .checkbox-label {
-  font-size: 13px;
-  color: var(--primary);
-  font-weight: 600;
-}
-
-/* 
+/*
    FORM ACTIONS
     */
 
@@ -293,21 +164,6 @@ form {
     */
 
 @media (max-width: 768px) {
-  .module-permissions {
-    grid-template-columns: 1fr;
-  }
-
-  .module-title-row {
-    flex-wrap: wrap;
-  }
-
-  .checkbox-select-all {
-    margin-left: 0;
-    width: 100%;
-    padding-top: 12px;
-    border-top: 1px solid #E8E6ED;
-  }
-
   .form-actions {
     flex-direction: column-reverse;
     gap: 12px;

@@ -27,6 +27,7 @@
 
 .header-actions {
   flex-shrink: 0;
+  margin-bottom: 20px;
 }
 
 .summary-cards {

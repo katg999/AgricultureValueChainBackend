@@ -5,12 +5,11 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { BehaviorSubject, combineLatest, map, Observable, shareReplay, Subject, takeUntil, tap } from 'rxjs';
 import { BranchDelivery, BranchDeliveryFormData, DeliveryStatus, Season } from '../../../branch/collections/branch.delivery.model';
 import { BranchDeliveryService } from '../../../branch/collections/branch.delivery.service';
-import { StatsCardComponent } from '../../../../shared/components/stats-card/stats-card.component';
 
 @Component({
   selector: 'app-cooperative-deliveries',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, StatsCardComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './delivery.cooperative.list.component.html',
   styleUrls: ['./delivery.cooperative.list.component.css'],
 })
