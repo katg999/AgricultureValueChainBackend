@@ -35,6 +35,16 @@ export class AddStockItemComponent {
     });
   }
 
+  private get scope(): 'cooperative' | 'branch' {
+    return this.router.url.startsWith('/cooperative') ? 'cooperative' : 'branch';
+  }
+
+  get pageSubtitle(): string {
+    return this.scope === 'cooperative'
+      ? 'Add new input stock to the cooperative inventory.'
+      : 'Add new input stock to the branch inventory.';
+  }
+
   onSubmit(): void {
     if (this.stockForm.invalid) {
       this.stockForm.markAllAsTouched();
@@ -43,11 +53,11 @@ export class AddStockItemComponent {
 
     const value = this.stockForm.getRawValue();
     this.inventoryService.addStockItem(value).subscribe(() => {
-      this.router.navigate(['/cooperative/inventory/current-stock']);
+      this.router.navigate([`/${this.scope}/inventory/current-stock`]);
     });
   }
 
   onCancel(): void {
-    this.router.navigate(['/cooperative/inventory/current-stock']);
+    this.router.navigate([`/${this.scope}/inventory/current-stock`]);
   }
 }

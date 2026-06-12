@@ -7,7 +7,6 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { BranchService, BranchCreatePayload } from '../../../../core/services/branch.service';
 
 // Shared components
-import { LogoComponent } from '../../../../shared/components/logo/logo.component';
 import { StepperComponent, Step } from '../../../../shared/components/stepper/stepper.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
@@ -23,7 +22,6 @@ import { API_ENDPOINTS } from '../../../../core/constants/api-endpoints';
     CommonModule,
     RouterModule,
     ReactiveFormsModule,
-    LogoComponent,
     StepperComponent,
     InputComponent,
     ButtonComponent,
@@ -36,8 +34,11 @@ import { API_ENDPOINTS } from '../../../../core/constants/api-endpoints';
 export class BranchOnboardingComponent implements OnInit {
   // ── Stepper ───────────────────────────────────────────────
   steps: Step[] = [
-    { label: 'BRANCH INFO', number: '01' },
-    { label: 'REVIEW', number: '02' },
+    { label: 'IDENTITY', number: '01' },
+    { label: 'LOCATION', number: '02' },
+    { label: 'CONTACT',  number: '03' },
+    { label: 'MANAGER',  number: '04' },
+    { label: 'REVIEW',   number: '05' },
   ];
 
   currentStep = 0;
@@ -80,15 +81,15 @@ export class BranchOnboardingComponent implements OnInit {
       establishedDate: ['', Validators.required],
       address: ['', [Validators.required, Validators.minLength(10)]],
       poBox: ['', [Validators.required, Validators.minLength(5)]],
-      websiteUrl: ['', [Validators.required, Validators.pattern(/https?:\/\/.+/)]],
+      managerName: ['', [Validators.required, Validators.minLength(3)]],
+      managerEmail: ['', [Validators.required, Validators.email]],
+      managerPhone: ['', [Validators.required, Validators.pattern(/^\+\d{1,3}\d{4,14}$/)]]
     });
   }
 
   // ── Navigation ────────────────────────────────────────────
   nextStep(): void {
-    if (this.currentStep === 0) {
-      if (!this.isStepValid(0)) return;
-    }
+    if (!this.isStepValid(this.currentStep)) return;
     this.currentStep++;
   }
 
@@ -97,25 +98,18 @@ export class BranchOnboardingComponent implements OnInit {
   }
 
   // ── Step validation ───────────────────────────────────────
-  private isStepValid(step: number): boolean {
-    const controls =
-      step === 0
-        ? [
-            'tenantId',
-            'branchName',
-            'branchRegistrationNumber',
-            'location',
-            'region',
-            'country',
-            'establishedDate',
-            'address',
-            'poBox',
-            'websiteUrl',
-          ]
-        : [];
 
+  private readonly STEP_FIELDS: Record<number, string[]> = {
+    0: ['branchName', 'branchRegistrationNumber'],
+    1: ['location', 'region', 'country', 'establishedDate'],
+    2: ['address', 'poBox'],
+    3: ['managerName', 'managerEmail', 'managerPhone'],
+  };
+
+  private isStepValid(step: number): boolean {
+    const fields = this.STEP_FIELDS[step] ?? [];
     let valid = true;
-    for (const field of controls) {
+    for (const field of fields) {
       const control = this.branchForm.get(field);
       if (control?.invalid) {
         control.markAsTouched();
@@ -137,48 +131,16 @@ export class BranchOnboardingComponent implements OnInit {
 
   // ── Register branch ───────────────────────────────────────
   registerBranch(): void {
-    // this.isLoading = true;
     this.errorMessage = '';
-    this.submitSuccess = false;
-
-    const formVal = this.branchForm.value;
-
-    const payload: BranchCreatePayload = {
-      name: formVal.branchName,
-      tenantId: formVal.tenantId,
-      registrationNumber: formVal.branchRegistrationNumber,
-      location: formVal.location,
-      region: formVal.region,
-      country: formVal.country,
-      establishedDate: formVal.establishedDate,
-      address: formVal.address,
-      poBox: formVal.poBox,
-      websiteUrl: formVal.websiteUrl,
-    };
-
-    console.log('BRANCH PAYLOAD:', payload);
-
-    this.branchService.createBranch(payload).subscribe({
-      next: (res) => {
-        console.log('BRANCH CREATED:', res);
-        this.isLoading = false;
-        this.showConfirmModal = false;
-        this.submitSuccess = true;
-
-        this.toast.success(
-          'Branch registered',
-          `${formVal.branchName} has been successfully registered.`,
-        );
-
-        setTimeout(() => {
-          this.router.navigate(['/cooperatives/branches/onboarding']);
-        }, 1500);
-      },
-      error: (err) => {
-        console.error('BRANCH REGISTRATION FAILED:', err);
-        this.isLoading = false;
-        this.showConfirmModal = false;
-        this.errorMessage = err?.error?.message ?? 'Failed to register branch. Please try again.';
+    this.router.navigate(['/cooperative/branches/dashboard'], {
+      state: {
+        newBranch: {
+          name:        this.formValue.branchName,
+          location:    `${this.formValue.location}, ${this.formValue.region}`,
+          branchCode:  this.formValue.branchRegistrationNumber,
+          country:     this.formValue.country,
+          managerName: this.formValue.managerName,
+        },
       },
     });
   }
@@ -202,11 +164,9 @@ export class BranchOnboardingComponent implements OnInit {
       if (control.errors['required']) return 'This field is required';
       if (control.errors['email']) return 'Invalid email format';
       if (control.errors['pattern']) {
-        if (fieldName === 'tenantId')
-          return 'Only uppercase letters, numbers, and hyphens allowed (e.g., TENANT-001)';
-        if (fieldName === 'branchRegistrationNumber')
-          return 'Only uppercase letters and numbers allowed (e.g., KAS001)';
-        if (fieldName === 'websiteUrl') return 'Enter a valid URL (e.g., https://example.com)';
+        // Custom messages per field
+        if (fieldName === 'branchRegistrationNumber') return 'Only uppercase letters and numbers allowed (e.g., KAS001)';
+        if (fieldName === 'managerPhone') return 'Include country code (e.g., +256712345678)';
         return 'Invalid format';
       }
       if (control.errors['minlength']) {

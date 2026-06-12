@@ -40,6 +40,31 @@ export const BRANCH_ROUTES: Routes = [
     redirectTo: 'farmers',
     pathMatch: 'full',
   },
+  // Branch finance management
+  {
+    path: 'finance',
+    redirectTo: 'finance/batch-processing',
+    pathMatch: 'full',
+  },
+  {
+    path: 'finance/batch-processing',
+    loadComponent: () =>
+      import('./finance/batch-processing/batch-processing')
+        .then(m => m.BatchProcessingComponent),
+  },
+  {
+    path: 'finance/farmers',
+    loadComponent: () =>
+      import('./finance/all-batch-farmers/all-batch-farmers.component')
+        .then(m => m.AllBatchFarmersComponent),
+  },
+  {
+    path: 'finance/batch/:id/farmers',
+    loadComponent: () =>
+      import('./finance/batch-farmers/batch-farmers.component')
+        .then(m => m.BatchFarmersComponent),
+  },
+
   // Branch inventory management
   {
     path: 'inventory',

@@ -12,6 +12,19 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthUser } from '../models/auth.model';
+import { environment } from '../../../environments/environment';
+
+/** Seeded only in development when no real session exists — lets role-based filtering be demonstrated without a backend. */
+const DEV_MOCK_USER: AuthUser = {
+  id: 'DEV-BR-001',
+  fullName: 'Demo Branch User',
+  email: 'branch.mbale@ugaap.dev',
+  phone: '0700000001',
+  role: 'branch',
+  branchId: 'BR-MBL',
+  cooperativeId: 'COOP-001',
+  permissions: [],
+};
 
 /** Keys used in storage — centralised so there are no magic strings elsewhere */
 const KEYS = {
@@ -74,7 +87,7 @@ export class SessionService {
     return sessionStorage.getItem(KEYS.TEMP_TOKEN);
   }
 
-  // ── Token accessors ─────────────────────────────────────────────────────────
+  // Token accessors 
 
   getAccessToken(): string | null {
     return localStorage.getItem(KEYS.ACCESS_TOKEN);
@@ -90,7 +103,7 @@ export class SessionService {
     this._accessToken.set(token);
   }
 
-  // ── Forgot-password / Reset-password flow ───────────────────────────────────
+  // Forgot-password / Reset-password flow
 
   /**
    * Store the reset token returned by POST /auth/forgot-password.
@@ -135,14 +148,14 @@ export class SessionService {
     sessionStorage.removeItem(KEYS.RESET_EMAIL);
   }
 
-  // ── Permission helpers ──────────────────────────────────────────────────────
+  //  Permission helpers 
 
   /** True if the current user has the given permission string */
   hasPermission(permission: string): boolean {
     return this.permissions().includes(permission);
   }
 
-  // ── Token validity ──────────────────────────────────────────────────────────
+  //  Token validity 
 
   /**
    * Decode the JWT payload and check the expiry claim.
@@ -159,7 +172,7 @@ export class SessionService {
     }
   }
 
-  // ── Session teardown ────────────────────────────────────────────────────────
+  // Session teardown
 
   /** Remove all stored data without redirecting — called by the interceptor */
   clearSession(): void {
@@ -178,12 +191,15 @@ export class SessionService {
     this.router.navigate(['/auth/login']);
   }
 
-  // ── Private helpers ─────────────────────────────────────────────────────────
+  //  Private helpers 
 
   private _loadUser(): AuthUser | null {
     try {
       const raw = localStorage.getItem(KEYS.USER);
-      return raw ? (JSON.parse(raw) as AuthUser) : null;
+      if (raw) return JSON.parse(raw) as AuthUser;
+      // In development with no stored session, seed a branch user so role-based
+      // filtering (batch visibility, etc.) is demonstrable without a real login.
+      return environment.production ? null : DEV_MOCK_USER;
     } catch {
       return null;   // Corrupted storage — start fresh
     }

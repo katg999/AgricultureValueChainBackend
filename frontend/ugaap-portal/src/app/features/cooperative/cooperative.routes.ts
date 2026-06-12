@@ -78,14 +78,7 @@ export const COOPERATIVE_ROUTES: Routes = [
   { path: 'farmers/approval', redirectTo: 'farmers', pathMatch: 'full' },
   {
     path: 'branches',
-    loadComponent: () =>
-      import('./farmers/farmer-approval/farmer-approval.component')
-        .then(m => m.FarmerApprovalComponent),
-  },
-  { path: 'farmers/approval', redirectTo: 'farmers', pathMatch: 'full' },
-  {
-    path: 'branches',
-    loadChildren:()=>
+    loadChildren: () =>
       import('./branches/branch.routes')
         .then(m => m.BRANCH_ROUTES),
   },
@@ -123,6 +116,15 @@ export const COOPERATIVE_ROUTES: Routes = [
       import('./activation-success/activation-success.component')
         .then(m => m.ActivationSuccessComponent),
   },
+
+  // ── Finance ─────────────────────────────────────────────────────────────────
+  {
+    path: 'finance/batch-processing',
+    loadComponent: () =>
+      import('./finance/cooperative-finance.component')
+        .then(m => m.CooperativeFinanceComponent),
+  },
+  { path: 'finance', redirectTo: 'finance/batch-processing', pathMatch: 'full' },
 
   {
     path: 'inventory',

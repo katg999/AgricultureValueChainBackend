@@ -20,7 +20,7 @@
         </div>
         <div class="field">
           <label>Grade *</label>
-          <select formControlName="grade">
+          <select title="select-grade" formControlName="grade">
             <option value="">— Select Grade —</option>
             <option value="A">A – Premium</option>
             <option value="B">B – Standard</option>
@@ -29,11 +29,11 @@
         </div>
         <div class="field">
           <label>Weight (kg) *</label>
-          <input formControlName="weightKg" type="number" step="0.1" min="0" />
+          <input  title="select-weight" formControlName="weightKg" type="number" step="0.1" min="0" />
         </div>
         <div class="field">
           <label>Moisture (%) *</label>
-          <input formControlName="moisture" type="number" step="0.1" min="0" max="100" />
+          <input title="select-moisture" formControlName="moisture" type="number" step="0.1" min="0" max="100" />
         </div>
         <div class="form-actions">
           <button type="button" class="btn btn-secondary" (click)="closeForm()">Cancel</button>
