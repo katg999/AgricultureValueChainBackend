@@ -141,8 +141,33 @@ const COOPERATIVE_ADMIN_CONFIG: DashboardConfig = {
       ],
     },
 
+
     { label: 'User Management', icon: 'users',      route: '/cooperative/users',    permissionModule: 'users' },
     { label: 'Roles',           icon: 'roles',      route: '/cooperative/roles',    permissionModule: 'roles' },
+// =======
+//     { label: 'User Management', icon: 'users',      route: '/cooperative/users'    },
+//     { label: 'Roles',           icon: 'roles',      route: '/cooperative/roles'    },
+    
+//     {label:'Farmers',         icon:'farmers',     route:'/cooperative/farmers' },
+
+//     {label:'Branches',         icon:'branch',     route:'/cooperative/branches'               },
+
+
+//     { label: 'Finance',         icon: 'finance',    route: '/cooperative/finance'  },
+//     // Inventory is a collapsible parent — clicking it reveals current stock, issue stock and stock disbursed
+//     {
+//       label: 'Inventory',
+//       icon:  'inventory',
+//       route: '/cooperative/inventory',
+//       children: [
+//         { label: 'Current Stock',   icon: '', route: '/cooperative/inventory/current-stock' },
+//         { label: 'Issue Stock',     icon: '', route: '/cooperative/inventory/issue-stock' },
+//         { label: 'Stock-disbursed', icon: '', route: '/cooperative/inventory/stock-disbursed' },
+//       ],
+//     },
+
+//     { label: 'User Management', icon: 'users',      route: '/cooperative/users'                  },
+// >>>>>>> 82790e03fd252287ef071e22636f2f57993c20ce
 
   ],
 
@@ -161,7 +186,6 @@ const BRANCH_CONFIG: DashboardConfig = {
     { label: 'Collection',    icon: 'collection', route: '/branch/collections', permissionModule: 'collections' },
     { label: 'Farmers',       icon: 'farmers',    route: '/branch/farmers',     permissionModule: 'farmers'     },
 
-
     // Inventory is a collapsible parent — clicking it reveals current stock, issue stock and stock disbursed
    {
       label: 'Inventory',
@@ -174,7 +198,6 @@ const BRANCH_CONFIG: DashboardConfig = {
         { label: 'Stock-disbursed', icon: '', route: '/branch/inventory/stock-disbursed', permissions: ['inventory.disburse'] },
       ],
     },
-
   ],
 };
 

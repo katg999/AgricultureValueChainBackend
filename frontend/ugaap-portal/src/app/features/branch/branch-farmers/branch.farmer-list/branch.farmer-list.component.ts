@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { BehaviorSubject, combineLatest, map, Observable, Subject, takeUntil } from 'rxjs';
 
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
@@ -44,9 +44,14 @@ export class BranchFarmerListComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private farmerService: FarmerService,
+    private route: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
+    console.log(
+      'Current route snapshot:',
+      this.route.snapshot.pathFromRoot.map((r) => r.url.toString()),
+    );
     this.farmers$ = this.farmerService.watchForBranch();
 
     // The branch list subscribes to the shared farmer store instead of a stale local array.
@@ -54,7 +59,7 @@ export class BranchFarmerListComponent implements OnInit, OnDestroy {
       map(([farmers, filter]) => this.filterFarmers(farmers, filter)),
     );
 
-    this.refresh();
+    //this.refresh();
   }
 
   ngOnDestroy(): void {
@@ -78,11 +83,14 @@ export class BranchFarmerListComponent implements OnInit, OnDestroy {
     this.error = null;
 
     // HTTP hydration updates FarmerService.farmers$; the template remains async-pipe driven.
-    this.farmerService.listForBranch()
+    this.farmerService
+      .listForBranch()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: () => { this.loading = false; },
-        error: err => {
+        next: () => {
+          this.loading = false;
+        },
+        error: (err) => {
           this.error = err?.error?.message ?? err.message;
           this.loading = false;
         },
@@ -90,19 +98,21 @@ export class BranchFarmerListComponent implements OnInit, OnDestroy {
   }
 
   onAddFarmer(): void {
-    this.router.navigate(['/branch/farmers/register']);
+    this.router.navigate(['../register'], { relativeTo: this.route }).then((success) => {
+      console.log('Navigation result:', success);
+      console.log('Current URL after nav:', this.router.url);
+    });
   }
-
   branches(farmers: FarmerListItem[]): string[] {
-    return ['All Branches', ...new Set(farmers.map(farmer => farmer.branch))];
+    return ['All Branches', ...new Set(farmers.map((farmer) => farmer.branch))];
   }
 
   commodities(farmers: FarmerListItem[]): string[] {
-    return ['All Commodities', ...new Set(farmers.map(farmer => farmer.primaryCommodity))];
+    return ['All Commodities', ...new Set(farmers.map((farmer) => farmer.primaryCommodity))];
   }
 
   newRegistrations(farmers: FarmerListItem[]): string {
-    return String(farmers.filter(farmer => farmer.status === 'Pending').length);
+    return String(farmers.filter((farmer) => farmer.status === 'Pending').length);
   }
 
   portfolioAtRisk(farmers: FarmerListItem[]): string {
@@ -133,17 +143,22 @@ export class BranchFarmerListComponent implements OnInit, OnDestroy {
   ): FarmerListItem[] {
     const q = filter.searchQuery.trim().toLowerCase();
 
-    return farmers.filter(farmer => {
+    return farmers.filter((farmer) => {
       const matchSearch =
         !q ||
         farmer.id.toLowerCase().includes(q) ||
         farmer.name.toLowerCase().includes(q) ||
         farmer.branch.toLowerCase().includes(q) ||
         farmer.primaryCommodity.toLowerCase().includes(q);
-      const matchBranch = filter.selectedBranch === 'All Branches' || farmer.branch === filter.selectedBranch;
-      const matchStatus = filter.selectedStatus === 'All Statuses' || farmer.status === filter.selectedStatus;
-      const matchCommodity = filter.selectedCommodity === 'All Commodities' || farmer.primaryCommodity === filter.selectedCommodity;
-      const matchStage = filter.selectedStage === 'All Stages' || farmer.stage === filter.selectedStage;
+      const matchBranch =
+        filter.selectedBranch === 'All Branches' || farmer.branch === filter.selectedBranch;
+      const matchStatus =
+        filter.selectedStatus === 'All Statuses' || farmer.status === filter.selectedStatus;
+      const matchCommodity =
+        filter.selectedCommodity === 'All Commodities' ||
+        farmer.primaryCommodity === filter.selectedCommodity;
+      const matchStage =
+        filter.selectedStage === 'All Stages' || farmer.stage === filter.selectedStage;
 
       return matchSearch && matchBranch && matchStatus && matchCommodity && matchStage;
     });

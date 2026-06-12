@@ -5,28 +5,23 @@ import { SessionService } from '../services/session.service';
 import { AuthService } from '../services/auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (
-  req: HttpRequest<unknown>,
+  req: HttpRequest<any>,
   next: HttpHandlerFn,
-): Observable<HttpEvent<unknown>> => {
+): Observable<HttpEvent<any>> => {
   const session = inject(SessionService);
-  const auth    = inject(AuthService);
 
   const token = session.getAccessToken();
-  if (!token) return next(req);
 
-  if (session.isTokenExpired()) {
-    return auth.refreshToken().pipe(
-      switchMap(res => next(addBearer(req, res.accessToken))),
-      catchError(err => {
-        session.logout();
-        return throwError(() => err);
-      }),
-    );
-  }
+  if (!token) return next(req);
 
   return next(addBearer(req, token));
 };
 
-function addBearer(req: HttpRequest<unknown>, token: string): HttpRequest<unknown> {
-  return req.clone({ setHeaders: { Authorization: `Bearer ${token}` } });
+// ✅ helper function (must exist in same file)
+function addBearer(req: HttpRequest<any>, token: string): HttpRequest<any> {
+  return req.clone({
+    setHeaders: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 }

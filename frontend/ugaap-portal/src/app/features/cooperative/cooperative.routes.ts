@@ -98,8 +98,18 @@ export const COOPERATIVE_ROUTES: Routes = [
   { path: 'farmers/approval', redirectTo: 'farmers', pathMatch: 'full' },
   {
     path: 'branches',
+
     canActivate: [permissionGuard],
     data: { permissionModule: 'branches' },
+// =======
+//     loadComponent: () =>
+//       import('./farmers/farmer-approval/farmer-approval.component')
+//         .then(m => m.FarmerApprovalComponent),
+//   },
+//   { path: 'farmers/approval', redirectTo: 'farmers', pathMatch: 'full' },
+//   {
+//     path: 'branches',
+// >>>>>>> 82790e03fd252287ef071e22636f2f57993c20ce
     loadChildren:()=>
       import('./branches/branch.routes')
         .then(m => m.BRANCH_ROUTES),
