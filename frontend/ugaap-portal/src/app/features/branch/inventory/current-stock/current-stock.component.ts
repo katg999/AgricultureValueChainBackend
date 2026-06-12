@@ -11,7 +11,6 @@ import {
   InventoryScope,
   InventoryService,
   StockItem,
-  StockStatus,
 } from '../../../shared-inventory-domain/inventory.service';
 
 export interface StockSummary {
@@ -45,9 +44,6 @@ export class CurrentStockComponent implements OnInit {
     private readonly inventoryService: InventoryService,
   ) {}
 
-  filterBranch = '';
-  filterStatus: '' | StockStatus = '';
-  filterSeason = '';
   searchQuery = '';
 
   alertMessage = '';
@@ -97,28 +93,21 @@ export class CurrentStockComponent implements OnInit {
   }
 
   applyFilters(): void {
-    let items = [...this.allItems];
+    const q = this.searchQuery.trim().toLowerCase();
 
-    if (this.filterBranch) {
-      items = items.filter(item => item.branchNames.includes(this.filterBranch));
+    if (!q) {
+      this.filteredItems = [...this.allItems];
+      return;
     }
 
-    if (this.filterStatus) {
-      items = items.filter(item => item.stockStatus === this.filterStatus);
-    }
-
-    if (this.filterSeason) {
-      items = items.filter(item => item.season === this.filterSeason);
-    }
-
-    if (this.searchQuery.trim()) {
-      const q = this.searchQuery.trim().toLowerCase();
-      items = items.filter(
-        item => item.name.toLowerCase().includes(q) || item.category.toLowerCase().includes(q),
-      );
-    }
-
-    this.filteredItems = items;
+    this.filteredItems = this.allItems.filter(item =>
+      item.name.toLowerCase().includes(q) ||
+      item.category.toLowerCase().includes(q) ||
+      item.stockStatus.includes(q) ||
+      item.season.toLowerCase().includes(q) ||
+      item.supplierName.toLowerCase().includes(q) ||
+      item.branchNames.some(b => b.toLowerCase().includes(q)),
+    );
   }
 
   getBarPercent(item: StockItem): number {    //GET BETTER LOGIC FOR THIS
@@ -159,11 +148,6 @@ export class CurrentStockComponent implements OnInit {
 
     document.body.appendChild(fileInput);
     fileInput.click();
-  }
-
-  reviewLowStock(): void {
-    this.filterStatus = 'low';
-    this.applyFilters();
   }
 
   private buildAlertMessage(): string {

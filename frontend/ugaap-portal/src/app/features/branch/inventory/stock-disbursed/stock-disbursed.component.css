@@ -77,9 +77,21 @@
 
 .data-table {
   width: 100%;
+  min-width: 900px;
   border-collapse: collapse;
   font-size: 13px;
+  table-layout: fixed;
 }
+
+.col-destination  { width: 150px; }
+.col-branch       { width: 110px; }
+.col-item-name    { width: 160px; }
+.col-quantity     { width:  90px; }
+.col-total-value  { width: 150px; }
+.col-issue-date   { width: 110px; }
+.col-status       { width: 100px; }
+.col-alloc-date   { width: 120px; }
+.col-action       { width:  52px; }
 
 .data-table thead tr {
   background: var(--surface-low);
@@ -92,6 +104,9 @@
   color: var(--secondary);
   text-align: left;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 0;
 }
 
 .data-table th {
@@ -112,6 +127,29 @@
 
 .name-cell {
   font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item-name-cell {
+  font-weight: 600;
+  color: var(--secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.category-cell {
+  overflow: hidden;
+}
+
+.item-category {
+  font-size: 11px;
+  font-family: var(--font-technical);
+  color: var(--muted-purple);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .text-danger {
@@ -151,10 +189,8 @@
 }
 
 .kebab-dropdown {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 4px);
-  z-index: 100;
+  position: fixed;
+  z-index: 300;
   min-width: 150px;
   padding: 4px 0;
   background: var(--surface-lowest);
@@ -216,6 +252,23 @@
 .detail-value {
   font-family: var(--font-technical);
   font-weight: 700;
+}
+
+.edit-select {
+  width: 100%;
+  min-height: 38px;
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: var(--surface-highest);
+  color: var(--secondary);
+  font-size: 13px;
+  outline: 0;
+}
+
+.edit-select:focus {
+  background: var(--surface-lowest);
+  box-shadow: 0 0 0 2px rgba(242, 93, 39, 0.22);
 }
 
 .detail-danger {

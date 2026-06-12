@@ -29,7 +29,7 @@ import { Injectable } from '@angular/core';
 import { Permission, PERMISSIONS, Role, ROLES } from '../constants/permissions';
 import { SessionService } from './session.service';
 
-// ── Role → default permissions map ───────────────────────────────────────────
+// Role → default permissions map 
 // These are the minimum permissions a role gets when the JWT carries no
 // explicit permission list.  Adjust to match your business rules.
 
@@ -118,15 +118,14 @@ const ROLE_PERMISSIONS: Record<string, Permission[]> = {
   [ROLES.BRANCH]:            BRANCH_MANAGER_PERMISSIONS,
 };
 
-// ── Service ───────────────────────────────────────────────────────────────────
+// Service 
 
 @Injectable({ providedIn: 'root' })
 export class PermissionService {
 
   constructor(private session: SessionService) {}
 
-  // ── Core permission checks ──────────────────────────────────────────────────
-
+  // Core permission checks
   /**
    * Returns true if the current user has the given permission.
    *
@@ -162,8 +161,7 @@ export class PermissionService {
     return permissions.every(p => this.can(p));
   }
 
-  // ── Role utilities ──────────────────────────────────────────────────────────
-
+  //  Role utilities 
   /**
    * Returns the configured default permission set for a given role name.
    * Useful in the role management UI to show what a new role would get.
@@ -197,7 +195,7 @@ export class PermissionService {
     return this._effectivePermissions();
   }
 
-  // ── Private helpers ─────────────────────────────────────────────────────────
+  //  Private helpers 
 
   /**
    * Resolves which permission set to use.

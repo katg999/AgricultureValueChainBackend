@@ -19,9 +19,7 @@ export class CooperativeDeliveriesComponent implements OnInit, OnDestroy {
   paginatedDeliveries$!: Observable<BranchDelivery[]>;
 
   searchTerm = '';
-  selectedCategory = '';
   selectedSeason = '';
-  selectedStatus = '';
 
   isEditRoute = false;
   editingDelivery: BranchDelivery | null = null;
@@ -45,9 +43,7 @@ export class CooperativeDeliveriesComponent implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   private readonly filterState$ = new BehaviorSubject({
     searchTerm: '',
-    selectedCategory: '',
     selectedSeason: '',
-    selectedStatus: '',
   });
   private readonly pageState$ = new BehaviorSubject<number>(1);
 
@@ -63,14 +59,18 @@ export class CooperativeDeliveriesComponent implements OnInit, OnDestroy {
     this.commodityOptions = this.svc.getCommodityOptions();
     this.seasonOptions = this.svc.getSeasonOptions();
 
+    // Cooperative sees ALL deliveries across branches.
     this.branchDeliveries$ = this.svc.getDeliveries().pipe(
       shareReplay({ bufferSize: 1, refCount: true }),
     );
 
+    // Step 1 — apply search + season filter.
     this.filteredDeliveries$ = combineLatest([this.branchDeliveries$, this.filterState$]).pipe(
       map(([deliveries, filter]) => this.filterDeliveries(deliveries, filter)),
     );
 
+    // Step 2 — paginate the already-filtered list. tap() captures the total count
+    // for the pagination footer before the slice happens.
     this.paginatedDeliveries$ = combineLatest([this.filteredDeliveries$, this.pageState$]).pipe(
       tap(([deliveries]) => { this.totalCount = deliveries.length; }),
       map(([deliveries, page]) =>
@@ -78,8 +78,10 @@ export class CooperativeDeliveriesComponent implements OnInit, OnDestroy {
       ),
     );
 
+    // Watch the URL for /:id/edit so the edit modal opens/closes via navigation
+    // rather than a local boolean flag — this makes the edit state bookmarkable.
     combineLatest([this.branchDeliveries$, this.route.paramMap])
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntil(this.destroy$)) // unsubscribe when component is destroyed to avoid memory leaks
       .subscribe(([deliveries, params]) => {
         const editId = params.get('id');
         this.isEditRoute = Boolean(editId);
@@ -107,9 +109,7 @@ export class CooperativeDeliveriesComponent implements OnInit, OnDestroy {
     this.pageState$.next(1);
     this.filterState$.next({
       searchTerm: this.searchTerm,
-      selectedCategory: this.selectedCategory,
       selectedSeason: this.selectedSeason,
-      selectedStatus: this.selectedStatus,
     });
   }
 
@@ -257,7 +257,7 @@ export class CooperativeDeliveriesComponent implements OnInit, OnDestroy {
 
   private filterDeliveries(
     deliveries: BranchDelivery[],
-    filter: { searchTerm: string; selectedCategory: string; selectedSeason: string; selectedStatus: string },
+    filter: { searchTerm: string; selectedSeason: string },
   ): BranchDelivery[] {
     const term = filter.searchTerm.trim().toLowerCase();
 
@@ -266,11 +266,12 @@ export class CooperativeDeliveriesComponent implements OnInit, OnDestroy {
         !term ||
         d.branchName.toLowerCase().includes(term) ||
         d.id.toLowerCase().includes(term) ||
-        d.commodity.toLowerCase().includes(term);
-      const matchCategory = !filter.selectedCategory || d.commodity === filter.selectedCategory;
+        d.commodity.toLowerCase().includes(term) ||
+        d.status.toLowerCase().includes(term);
+
       const matchSeason = !filter.selectedSeason || d.season === filter.selectedSeason;
-      const matchStatus = !filter.selectedStatus || d.status === filter.selectedStatus;
-      return matchSearch && matchCategory && matchSeason && matchStatus;
+
+      return matchSearch && matchSeason;
     });
   }
 }

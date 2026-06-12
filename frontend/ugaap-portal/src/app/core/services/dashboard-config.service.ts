@@ -174,12 +174,13 @@ const BRANCH_CONFIG: DashboardConfig = {
         { label: 'Current Stock',   icon: '', route: '/branch/inventory/current-stock' },
         { label: 'Issue Stock',     icon: '', route: '/branch/inventory/issue-stock' },
         { label: 'Stock-disbursed', icon: '', route: '/branch/inventory/stock-disbursed' },
+        { label: 'Request Stock',   icon: '', route: '/branch/inventory/request-stock' },
       ],
     },
   ],
 };
 
-// ── Service ───────────────────────────────────────────────────────────────────
+// Service 
 
 @Injectable({ providedIn: 'root' })
 export class DashboardConfigService {

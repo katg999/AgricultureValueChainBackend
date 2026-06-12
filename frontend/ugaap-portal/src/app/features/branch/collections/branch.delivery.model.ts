@@ -3,18 +3,19 @@ export type Season = 'Wet Season' | 'Dry Season';
 
 export interface BranchDelivery {
   id: string;
-  branchId?: string;
+  branchId?: string;       // not present on older records; don't rely on it for filtering alone
   branchName: string;
   farmerCount: number;
   commodity: string;
-  volume: number;          // in KG
-  estimatedValue: number;  // in UGX
+  volume: number;          // kg
+  estimatedValue: number;  // UGX
   status: DeliveryStatus;
   season: Season;
   createdAt: Date;
   updatedAt: Date;
 }
 
+// id and timestamps are server-generated; this is what the form sends
 export interface BranchDeliveryFormData {
   branchId?: string;
   branchName: string;

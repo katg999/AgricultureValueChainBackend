@@ -1,12 +1,15 @@
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, map, of } from 'rxjs';
+import { catchError, startWith, tap, timeout } from 'rxjs/operators';
+import { API_ENDPOINTS } from '../../../core/constants/api-endpoints';
 import { FarmerDelivery, FarmerDeliveryFormData } from './farmer.delivery.model';
 import { BranchDeliveryService } from './branch.delivery.service';
 
 @Injectable({ providedIn: 'root' })
 export class FarmerDeliveryService {
 
-  private farmers: FarmerDelivery[] = [
+  private readonly seed: FarmerDelivery[] = [
     // ── Wet Season — BD-001 (Kampala Central, Maize) ────────────────────────
     { id: 'FD-001', branchDeliveryId: 'BD-001', branchId: 'BR-KLA',  farmerId: 'UG-F-00101', farmerName: 'Akello Grace',      phone: '0772100001', commodity: 'Maize',    volume: 320,  estimatedValue:   800_000, notes: 'Grade A quality',   status: 'Approved', season: 'Wet Season', createdAt: new Date('2025-05-10'), updatedAt: new Date('2025-05-10') },
     { id: 'FD-002', branchDeliveryId: 'BD-001', branchId: 'BR-KLA',  farmerId: 'UG-F-00102', farmerName: 'Okello James',      phone: '0754200002', commodity: 'Maize',    volume: 410,  estimatedValue: 1_025_000, notes: '',                  status: 'Approved', season: 'Wet Season', createdAt: new Date('2025-05-10'), updatedAt: new Date('2025-05-10') },
@@ -50,21 +53,24 @@ export class FarmerDeliveryService {
     { id: 'FD-022', branchDeliveryId: 'BD-010', branchId: 'BR-MBA2', farmerId: 'UG-F-01002', farmerName: 'Nakato Prossy',     phone: '0701301002', commodity: 'Coffee',   volume: 155,  estimatedValue:   930_000, notes: '',                  status: 'Approved', season: 'Dry Season', createdAt: new Date('2025-05-19'), updatedAt: new Date('2025-05-19') },
   ];
 
-  private farmers$ = new BehaviorSubject<FarmerDelivery[]>([...this.farmers]);
+  private readonly farmers$ = new BehaviorSubject<FarmerDelivery[]>([...this.seed]);
   private counter = 22;
 
-  constructor(private branchSvc: BranchDeliveryService) {}
+  constructor(
+    private readonly http: HttpClient,
+    private readonly branchSvc: BranchDeliveryService,
+  ) {}
 
-  /** All farmer deliveries as observable */
   getAll(): Observable<FarmerDelivery[]> {
-    return this.farmers$.asObservable();
+    const snapshot = [...this.farmers$.value];
+    return this.http.get<FarmerDelivery[]>(API_ENDPOINTS.BRANCH.FARMER_DELIVERIES).pipe(
+      timeout(3000),
+      tap(rows => this.farmers$.next(rows)),
+      catchError(() => of(snapshot)),
+      startWith(snapshot),
+    );
   }
 
-  /**
-   * Role-scoped delivery stream.
-   * - branch user → only deliveries for their branchId
-   * - cooperative_admin (or unknown) → all deliveries
-   */
   allForRole$(branchId: string | null | undefined, role: string | null | undefined): Observable<FarmerDelivery[]> {
     return this.farmers$.pipe(
       map(deliveries => {
@@ -74,13 +80,62 @@ export class FarmerDeliveryService {
     );
   }
 
-  /** Farmer deliveries filtered to one branch */
+  // Sync — called during template rendering; Observable would cause change-detection issues here.
   getByBranch(branchDeliveryId: string): FarmerDelivery[] {
-    return this.farmers.filter(f => f.branchDeliveryId === branchDeliveryId);
+    return this.farmers$.value.filter(f => f.branchDeliveryId === branchDeliveryId);
   }
 
-  /** Add a new farmer delivery and re-aggregate the parent branch when attached */
   add(form: FarmerDeliveryFormData): Observable<FarmerDelivery> {
+    return this.http.post<FarmerDelivery>(API_ENDPOINTS.BRANCH.FARMER_DELIVERIES, form).pipe(
+      timeout(2000),
+      tap(entry => {
+        this.farmers$.next([...this.farmers$.value, entry]);
+        this.aggregate(form.branchDeliveryId);
+      }),
+      catchError(() => of(this.addMock(form))),
+    );
+  }
+
+  update(id: string, form: FarmerDeliveryFormData): Observable<FarmerDelivery | null> {
+    const rows = this.farmers$.value;
+    const idx = rows.findIndex(f => f.id === id);
+    if (idx === -1) return of(null);
+    const oldBranchId = rows[idx].branchDeliveryId;
+    const localUpdated: FarmerDelivery = { ...rows[idx], ...form, updatedAt: new Date() };
+    return this.http.put<FarmerDelivery>(API_ENDPOINTS.BRANCH.FARMER_DELIVERY_BY_ID(id), form).pipe(
+      timeout(2000),
+      tap(updated => {
+        this.replaceAt(idx, updated);
+        this.aggregate(oldBranchId);
+        if (form.branchDeliveryId !== oldBranchId) this.aggregate(form.branchDeliveryId);
+      }),
+      catchError(() => {
+        this.replaceAt(idx, localUpdated);
+        this.aggregate(oldBranchId);
+        if (form.branchDeliveryId !== oldBranchId) this.aggregate(form.branchDeliveryId);
+        return of(localUpdated);
+      }),
+    );
+  }
+
+  delete(id: string): Observable<void> {
+    const target = this.farmers$.value.find(f => f.id === id);
+    if (!target) return of(void 0);
+    return this.http.delete<void>(API_ENDPOINTS.BRANCH.FARMER_DELIVERY_BY_ID(id)).pipe(
+      timeout(2000),
+      tap(() => {
+        this.farmers$.next(this.farmers$.value.filter(f => f.id !== id));
+        this.aggregate(target.branchDeliveryId);
+      }),
+      catchError(() => {
+        this.farmers$.next(this.farmers$.value.filter(f => f.id !== id));
+        this.aggregate(target.branchDeliveryId);
+        return of(void 0);
+      }),
+    );
+  }
+
+  private addMock(form: FarmerDeliveryFormData): FarmerDelivery {
     this.counter++;
     const entry: FarmerDelivery = {
       ...form,
@@ -88,50 +143,21 @@ export class FarmerDeliveryService {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    this.farmers = [...this.farmers, entry];
-    this.farmers$.next([...this.farmers]);
+    this.farmers$.next([...this.farmers$.value, entry]);
     this.aggregate(form.branchDeliveryId);
-    return of(entry);
+    return entry;
   }
 
-  /** Edit an existing farmer delivery and re-aggregate */
-  update(id: string, form: FarmerDeliveryFormData): Observable<FarmerDelivery | null> {
-    const idx = this.farmers.findIndex(f => f.id === id);
-    if (idx === -1) return of(null);
-    const oldBranchId = this.farmers[idx].branchDeliveryId;
-    const updated: FarmerDelivery = { ...this.farmers[idx], ...form, updatedAt: new Date() };
-    this.farmers = [
-      ...this.farmers.slice(0, idx),
-      updated,
-      ...this.farmers.slice(idx + 1),
-    ];
-    this.farmers$.next([...this.farmers]);
-    // Re-aggregate both old and new branch when the assignment changes.
-    this.aggregate(oldBranchId);
-    if (form.branchDeliveryId !== oldBranchId) this.aggregate(form.branchDeliveryId);
-    return of(updated);
+  private replaceAt(idx: number, updated: FarmerDelivery): void {
+    const rows = this.farmers$.value;
+    this.farmers$.next([...rows.slice(0, idx), updated, ...rows.slice(idx + 1)]);
   }
 
-  /** Delete a farmer delivery and re-aggregate its branch when attached */
-  delete(id: string): Observable<void> {
-    const target = this.farmers.find(f => f.id === id);
-    if (!target) return of(void 0);
-    this.farmers = this.farmers.filter(f => f.id !== id);
-    this.farmers$.next([...this.farmers]);
-    this.aggregate(target.branchDeliveryId);
-    return of(void 0);
-  }
-
-  /**
-   * Auto-aggregate: recalculate branch-level totals from all child farmer deliveries.
-   * Updates: farmerCount, volume, estimatedValue on the parent BranchDelivery.
-   * commodity is derived from the most common commodity among farmers.
-   * status stays as-is (managed independently on the branch).
-   */
+  // Recalculates batch totals from current farmer rows whenever a farmer delivery changes.
   private aggregate(branchDeliveryId?: string): void {
     if (!branchDeliveryId) return;
 
-    const children = this.farmers.filter(f => f.branchDeliveryId === branchDeliveryId);
+    const children = this.farmers$.value.filter(f => f.branchDeliveryId === branchDeliveryId);
     const branch = this.branchSvc.getDeliveryById(branchDeliveryId);
     if (!branch) return;
 
@@ -139,7 +165,6 @@ export class FarmerDeliveryService {
     const volume = children.reduce((s, f) => s + (f.volume || 0), 0);
     const estimatedValue = children.reduce((s, f) => s + (f.estimatedValue || 0), 0);
 
-    // Derive dominant commodity
     const commodityCount: Record<string, number> = {};
     children.forEach(f => {
       commodityCount[f.commodity] = (commodityCount[f.commodity] || 0) + 1;
@@ -154,8 +179,8 @@ export class FarmerDeliveryService {
       commodity,
       volume,
       estimatedValue,
-      status: branch.status,   // status not touched by aggregation
-      season: branch.season,   // season not touched by aggregation
-    });
+      status: branch.status,
+      season: branch.season,
+    }).subscribe(); // fire-and-forget — catchError in updateDelivery means this can't throw
   }
 }

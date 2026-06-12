@@ -50,6 +50,10 @@ export const API_ENDPOINTS = {
     BRANCHES: `${BASE}/cooperative/branches`,
     BRANCH_BY_ID: (id: string) => `${BASE}/cooperative/branches/${id}`,
 
+    // Collections
+    COLLECTIONS: `${BASE}/cooperative/collections`,
+    COLLECTION_BY_ID: (id: string) => `${BASE}/cooperative/collections/${id}`,
+
     // Inventory & Users
     INVENTORY: `${BASE}/cooperative/inventory`,
     USERS: `${BASE}/cooperative/users`,
@@ -69,6 +73,10 @@ export const API_ENDPOINTS = {
     // Farmers registered at this branch
     FARMERS: `${BASE}/branch/farmers`,
     FARMER_BY_ID: (id: string) => `${BASE}/branch/farmers/${id}`,
+
+    // Farmer-level deliveries nested inside branch collections
+    FARMER_DELIVERIES: `${BASE}/branch/farmer-deliveries`,
+    FARMER_DELIVERY_BY_ID: (id: string) => `${BASE}/branch/farmer-deliveries/${id}`,
 
     // Inventory at this branch
     INVENTORY: `${BASE}/branch/inventory`,

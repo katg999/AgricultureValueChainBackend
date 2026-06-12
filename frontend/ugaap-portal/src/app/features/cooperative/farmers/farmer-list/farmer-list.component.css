@@ -41,11 +41,9 @@
 /* --- FILTERS SECTION STYLING --- */
 .filters-section {
   display: grid;
-  grid-template-columns: minmax(220px, 1.4fr) repeat(4, minmax(160px, 1fr));
+  grid-template-columns: 1fr;
   gap: 12px;
   margin-bottom: 20px;
-  /* CHANGED: Align elements to the bottom so dropdowns line up perfectly with the search input */
-  align-items: flex-end; 
 }
 
 /* Fixes any unexpected line-height/margin issues coming from the 'SEARCH' label wrapper */
@@ -349,17 +347,8 @@
 
 /* --- RESPONSIVE MEDIA QUERIES --- */
 
-/* Small Desktops / Tablets Landscape */
-@media (max-width: 1024px) {
-  .filters-section {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    align-items: stretch; /* Stretch looks cleaner when boxes break to multi-lines */
-  }
-}
-
 /* Tablets Portrait */
 @media (max-width: 768px) {
-  .filters-section,
   .summary-cards-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

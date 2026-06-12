@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { BehaviorSubject, combineLatest, map, Observable, shareReplay } from 'rxjs';
 
 import { BranchDelivery, BranchDeliveryFormData, DeliveryStatus, Season } from '../branch.delivery.model';
@@ -23,28 +23,24 @@ export class BranchDeliveriesComponent implements OnInit, OnDestroy {
   filteredDeliveries$!: Observable<BranchDelivery[]>;
 
   searchTerm = '';
-  selectedCategory = '';
-  selectedStatus = '';
   selectedSeason = '';
 
   statusOptions: DeliveryStatus[] = [];
   commodityOptions: string[] = [];
   seasonOptions: Season[] = [];
   openActionMenuId: string | null = null;
+  menuPosition: { top?: number; bottom?: number; right: number } = { right: 0 };
   showAddDeliveryModal = false;
   addDeliveryForm!: BranchDeliveryFormData;
 
   private readonly filterState$ = new BehaviorSubject({
     searchTerm: '',
-    selectedCategory: '',
-    selectedStatus: '',
     selectedSeason: '',
   });
 
   constructor(
     private svc: BranchDeliveryService,
     private router: Router,
-    private route: ActivatedRoute,
     private session: SessionService
   ) {}
 
@@ -54,11 +50,14 @@ export class BranchDeliveriesComponent implements OnInit, OnDestroy {
     this.seasonOptions = this.svc.getSeasonOptions();
     this.addDeliveryForm = this.createAddDeliveryForm();
 
+    // getDeliveries() hydrates the BehaviorSubject; getDeliveriesForBranch pipes from it.
+    this.svc.getDeliveries().subscribe();
+
+    // shareReplay so combineLatest below doesn't re-trigger the HTTP call on each filter change.
     this.deliveries$ = this.svc
       .getDeliveriesForBranch(this.session.branchId(), this.currentBranchName)
       .pipe(shareReplay({ bufferSize: 1, refCount: true }));
 
-    // The branch table renders from this stream, so service emissions sync without manual reloads.
     this.filteredDeliveries$ = combineLatest([this.deliveries$, this.filterState$]).pipe(
       map(([deliveries, filter]) => this.filterDeliveries(deliveries, filter)),
     );
@@ -71,8 +70,6 @@ export class BranchDeliveriesComponent implements OnInit, OnDestroy {
   applyFilter(): void {
     this.filterState$.next({
       searchTerm: this.searchTerm,
-      selectedCategory: this.selectedCategory,
-      selectedStatus: this.selectedStatus,
       selectedSeason: this.selectedSeason,
     });
   }
@@ -92,7 +89,7 @@ export class BranchDeliveriesComponent implements OnInit, OnDestroy {
       estimatedValue: delivery.estimatedValue,
       status: 'Approved',
       season: delivery.season,
-    });
+    }).subscribe();
     this.openActionMenuId = null;
   }
 
@@ -106,13 +103,26 @@ export class BranchDeliveriesComponent implements OnInit, OnDestroy {
       estimatedValue: delivery.estimatedValue,
       status: 'Rejected',
       season: delivery.season,
-    });
+    }).subscribe();
     this.openActionMenuId = null;
   }
 
   toggleActionMenu(deliveryId: string, event: MouseEvent): void {
     event.stopPropagation();
-    this.openActionMenuId = this.openActionMenuId === deliveryId ? null : deliveryId;
+    if (this.openActionMenuId === deliveryId) {
+      this.openActionMenuId = null;
+      return;
+    }
+    const btn = event.currentTarget as HTMLElement;
+    const rect = btn.getBoundingClientRect();
+    const dropdownHeight = 130;
+    const right = window.innerWidth - rect.right;
+    if (window.innerHeight - rect.bottom < dropdownHeight) {
+      this.menuPosition = { bottom: window.innerHeight - rect.top + 4, right };
+    } else {
+      this.menuPosition = { top: rect.bottom + 4, right };
+    }
+    this.openActionMenuId = deliveryId;
   }
 
   closeActionMenu(): void {
@@ -132,13 +142,12 @@ export class BranchDeliveriesComponent implements OnInit, OnDestroy {
   submitAddDelivery(): void {
     if (!this.isAddDeliveryFormValid()) return;
 
-    // Adding through the service pushes into the BehaviorSubject store, so the async table updates immediately.
     this.svc.addDelivery({
       ...this.addDeliveryForm,
       farmerCount: Number(this.addDeliveryForm.farmerCount),
       volume: Number(this.addDeliveryForm.volume),
       estimatedValue: Number(this.addDeliveryForm.estimatedValue),
-    });
+    }).subscribe();
     this.closeAddDeliveryModal();
   }
 
@@ -148,16 +157,6 @@ export class BranchDeliveriesComponent implements OnInit, OnDestroy {
 
   trackByOption(_index: number, option: string): string {
     return option;
-  }
-
-  goToFarmerDeliveries(deliveryId?: string): void {
-    this.openActionMenuId = null;
-
-    if (deliveryId) {
-      this.router.navigate(['../deliveries', deliveryId], { relativeTo: this.route });
-    } else {
-      this.router.navigate(['../farmer-deliveries'], { relativeTo: this.route });
-    }
   }
 
   formatUGX(value: number): string {
@@ -245,27 +244,22 @@ export class BranchDeliveriesComponent implements OnInit, OnDestroy {
 
   private filterDeliveries(
     deliveries: BranchDelivery[],
-    filter: { searchTerm: string; selectedCategory: string; selectedStatus: string; selectedSeason: string },
+    filter: { searchTerm: string; selectedSeason: string },
   ): BranchDelivery[] {
-    const term = filter.searchTerm.toLowerCase();
+    const term = filter.searchTerm.trim().toLowerCase();
 
     return deliveries.filter(d => {
       const matchSearch =
         !term ||
         d.branchName.toLowerCase().includes(term) ||
         d.id.toLowerCase().includes(term) ||
-        d.commodity.toLowerCase().includes(term);
-
-      const matchCategory =
-        !filter.selectedCategory || d.commodity === filter.selectedCategory;
-
-      const matchStatus =
-        !filter.selectedStatus || d.status === filter.selectedStatus;
+        d.commodity.toLowerCase().includes(term) ||
+        d.status.toLowerCase().includes(term);
 
       const matchSeason =
         !filter.selectedSeason || d.season === filter.selectedSeason;
 
-      return matchSearch && matchCategory && matchStatus && matchSeason;
+      return matchSearch && matchSeason;
     });
   }
 }

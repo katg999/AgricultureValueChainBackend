@@ -1,10 +1,12 @@
+<!-- async pipe subscribes to farmers$ and auto-unsubscribes on destroy.
+     "as farmers" exposes the full list for KPI methods (newRegistrations, portfolioAtRisk). -->
 <div class="page-shell" *ngIf="farmers$ | async as farmers">
   <div class="top-header">
     <div class="header-content">
       <h1>Farmers</h1>
       <p class="subtitle">
-        Total registered farmers:
-        <span class="highlight-count">{{ farmers.length }}</span>
+        Pending approval:
+        <span class="highlight-count">{{ newRegistrations(farmers) }}</span>
       </p>
     </div>
   </div>
@@ -13,41 +15,11 @@
     <div class="search-wrapper">
       <app-input
         label="Search"
-        placeholder="Search by name, ID, branch or commodity"
+        placeholder="Search by name, ID, branch, commodity, status or stage"
         type="text"
         [(ngModel)]="searchQuery"
         (ngModelChange)="applyFilter()">
       </app-input>
-    </div>
-
-    <div class="select-wrapper">
-      <select title="select-branch" [(ngModel)]="selectedBranch" (ngModelChange)="applyFilter()">
-        <option *ngFor="let branch of branches(farmers); trackBy: trackByOption" [value]="branch">
-          Branch: {{ branch }}
-        </option>
-      </select>
-    </div>
-
-    <div class="select-wrapper">
-      <select title="select-status" [(ngModel)]="selectedStatus" (ngModelChange)="applyFilter()">
-        <option *ngFor="let status of statuses; trackBy: trackByOption" [value]="status">
-          Status: {{ status }}
-        </option>
-      </select>
-    </div>
-
-    <div class="select-wrapper">
-      <select title="select-commodity" [(ngModel)]="selectedCommodity" (ngModelChange)="applyFilter()">
-        <option *ngFor="let commodity of commodities(farmers); trackBy: trackByOption" [value]="commodity">
-          Commodity: {{ commodity }}
-        </option>
-      </select>
-    </div>
-
-    <div class="select-wrapper">
-      <select title="select-stage" [(ngModel)]="selectedStage" (ngModelChange)="applyFilter()">
-        <option *ngFor="let stage of stages; trackBy: trackByOption" [value]="stage">{{ stage }}</option>
-      </select>
     </div>
   </div>
 
@@ -96,6 +68,7 @@
                 <button class="kebab-item" type="button" (click)="onReviewFarmer(farmer)">
                   Review
                 </button>
+                <!-- Only show approve/reject for farmers still awaiting a decision. -->
                 <ng-container *ngIf="farmer.status === 'Pending'">
                   <button class="kebab-item approve" type="button" (click)="onApproveFarmer(farmer)">
                     Approve

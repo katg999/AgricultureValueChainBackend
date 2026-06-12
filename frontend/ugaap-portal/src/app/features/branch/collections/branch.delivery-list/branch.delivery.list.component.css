@@ -335,10 +335,8 @@ tbody tr:hover {
 }
 
 .menu-panel {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  z-index: 10;
+  position: fixed;
+  z-index: 300;
   min-width: 168px;
   padding: 6px;
   border-radius: 12px;

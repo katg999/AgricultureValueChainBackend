@@ -1,3 +1,6 @@
+// A FarmerDelivery is one farmer's individual contribution inside a BranchDelivery batch.
+// branchDeliveryId links it back to the parent batch so totals can be re-calculated.
+
 import { DeliveryStatus, Season } from './branch.delivery.model';
 
 export interface FarmerDelivery {

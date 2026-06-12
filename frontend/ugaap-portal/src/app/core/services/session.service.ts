@@ -87,7 +87,7 @@ export class SessionService {
     return sessionStorage.getItem(KEYS.TEMP_TOKEN);
   }
 
-  // ── Token accessors ─────────────────────────────────────────────────────────
+  // Token accessors 
 
   getAccessToken(): string | null {
     return localStorage.getItem(KEYS.ACCESS_TOKEN);
@@ -103,7 +103,7 @@ export class SessionService {
     this._accessToken.set(token);
   }
 
-  // ── Forgot-password / Reset-password flow ───────────────────────────────────
+  // Forgot-password / Reset-password flow
 
   /**
    * Store the reset token returned by POST /auth/forgot-password.
@@ -148,14 +148,14 @@ export class SessionService {
     sessionStorage.removeItem(KEYS.RESET_EMAIL);
   }
 
-  // ── Permission helpers ──────────────────────────────────────────────────────
+  //  Permission helpers 
 
   /** True if the current user has the given permission string */
   hasPermission(permission: string): boolean {
     return this.permissions().includes(permission);
   }
 
-  // ── Token validity ──────────────────────────────────────────────────────────
+  //  Token validity 
 
   /**
    * Decode the JWT payload and check the expiry claim.
@@ -172,7 +172,7 @@ export class SessionService {
     }
   }
 
-  // ── Session teardown ────────────────────────────────────────────────────────
+  // Session teardown
 
   /** Remove all stored data without redirecting — called by the interceptor */
   clearSession(): void {
@@ -191,7 +191,7 @@ export class SessionService {
     this.router.navigate(['/auth/login']);
   }
 
-  // ── Private helpers ─────────────────────────────────────────────────────────
+  //  Private helpers 
 
   private _loadUser(): AuthUser | null {
     try {

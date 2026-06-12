@@ -52,21 +52,7 @@
   <div class="filter-card">
     <div class="filter-group">
       <label>Search</label>
-      <input type="text" [(ngModel)]="searchTerm" (input)="applyFilter()" placeholder="Search branch name, ID or commodity..." />
-    </div>
-    <div class="filter-group">
-      <label>Commodity</label>
-      <select title="commodity" [(ngModel)]="selectedCategory" (change)="applyFilter()">
-        <option value="">All Commodities</option>
-        <option *ngFor="let c of commodityOptions; trackBy: trackByOption" [value]="c">{{ c }}</option>
-      </select>
-    </div>
-    <div class="filter-group">
-      <label>Status</label>
-      <select title="status" [(ngModel)]="selectedStatus" (change)="applyFilter()">
-        <option value="">All Statuses</option>
-        <option *ngFor="let s of statusOptions; trackBy: trackByOption" [value]="s">{{ s }}</option>
-      </select>
+      <input type="text" [(ngModel)]="searchTerm" (input)="applyFilter()" placeholder="Search by branch, commodity, status or ID..." />
     </div>
   </div>
 

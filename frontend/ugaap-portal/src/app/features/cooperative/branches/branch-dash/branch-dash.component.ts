@@ -5,7 +5,6 @@ import { RouterModule} from '@angular/router';
 import { Router } from '@angular/router';
 
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
-import { AlertComponent } from '../../../../shared/components/alert/alert.component';
 import { StatsCardComponent } from '../../../../shared/components/stats-card/stats-card.component';
 import { ToastService }      from '../../../../core/services/toast.service';
 
@@ -35,7 +34,6 @@ interface ActivityItem {
     FormsModule,
     RouterModule,
     ButtonComponent,
-    AlertComponent,
     StatsCardComponent
   ],
 })
@@ -63,6 +61,23 @@ export class BranchDashboardComponent implements OnInit {
   ngOnInit(): void {
     this.loadBranchData();
     this.loadRecentActivities();
+    this.applyNavigationState();
+  }
+
+  private applyNavigationState(): void {
+    const state = history.state as { newBranch?: { name: string; location: string; branchCode: string; country: string; managerName: string } };
+    if (!state?.newBranch) return;
+
+    const nb = state.newBranch;
+    this.branches = [
+      { id: Date.now(), name: nb.name, location: nb.location, farmers: 0, centres: 0, status: 'PENDING' },
+      ...this.branches,
+    ];
+
+    this.toast.success('Branch registered', `${nb.name} has been added and is pending activation.`);
+
+    // Clear the state so a page refresh doesn't re-add the branch
+    history.replaceState({}, '');
   }
 
   // ---------- Filter logic ----------

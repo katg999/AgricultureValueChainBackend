@@ -18,14 +18,8 @@ import { ToastService } from '../../../../core/services/toast.service';
 })
 export class FarmerListComponent implements OnInit, OnDestroy {
   searchQuery = '';
-  selectedBranch = 'All Branches';
-  selectedStatus = 'All Statuses';
-  selectedCommodity = 'All Commodities';
-  selectedStage = 'All Stages';
   openMenuId: string | null = null;
 
-  readonly statuses = ['All Statuses', 'Active', 'Pending', 'Rejected', 'Suspended'];
-  readonly stages = ['All Stages', 'Registered', 'Verified', 'Financed'];
   readonly collectionProgress = 78;
 
   // ── Pagination ───────────────────────────────────────────────────────────
@@ -46,13 +40,7 @@ export class FarmerListComponent implements OnInit, OnDestroy {
   error: string | null = null;
 
   private readonly destroy$ = new Subject<void>();
-  private readonly filterState$ = new BehaviorSubject({
-    searchQuery: '',
-    selectedBranch: 'All Branches',
-    selectedStatus: 'All Statuses',
-    selectedCommodity: 'All Commodities',
-    selectedStage: 'All Stages',
-  });
+  private readonly filterState$ = new BehaviorSubject({ searchQuery: '' });
   private readonly pageState$ = new BehaviorSubject<number>(1);
 
   private toast = inject(ToastService);
@@ -63,13 +51,18 @@ export class FarmerListComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    // watchForCooperative() returns a live BehaviorSubject stream — it updates
+    // whenever the service adds or approves a farmer, so the table stays in sync.
     this.farmers$ = this.farmerService.watchForCooperative();
 
+    // combineLatest re-runs filterFarmers whenever EITHER the farmer list OR the
+    // search query changes, so the filter is always applied to the latest data.
     this.filteredFarmers$ = combineLatest([this.farmers$, this.filterState$]).pipe(
       map(([farmers, filter]) => this.filterFarmers(farmers, filter)),
     );
 
-    // Track total for pagination info, then slice for the current page
+    // Track total for pagination info, then slice for the current page.
+    // tap() reads the total before map() reduces the list to one page.
     this.paginatedFarmers$ = combineLatest([this.filteredFarmers$, this.pageState$]).pipe(
       tap(([farmers]) => { this.totalCount = farmers.length; }),
       map(([farmers, page]) =>
@@ -87,16 +80,12 @@ export class FarmerListComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  // Push latest search text into filterState$ — the combineLatest above picks
+  // it up automatically and re-filters without touching the raw farmer data.
   applyFilter(): void {
     this.currentPage = 1;
     this.pageState$.next(1);
-    this.filterState$.next({
-      searchQuery: this.searchQuery,
-      selectedBranch: this.selectedBranch,
-      selectedStatus: this.selectedStatus,
-      selectedCommodity: this.selectedCommodity,
-      selectedStage: this.selectedStage,
-    });
+    this.filterState$.next({ searchQuery: this.searchQuery });
   }
 
   // ── Pagination methods ────────────────────────────────────────────────────
@@ -121,6 +110,9 @@ export class FarmerListComponent implements OnInit, OnDestroy {
     }
   }
 
+  // Triggers an HTTP fetch (or mock fallback) and populates the BehaviorSubject
+  // store. takeUntil ensures the subscription is cancelled if the user navigates
+  // away before the request completes, preventing a "memory leak" console warning.
   refresh(): void {
     this.loading = true;
     this.error = null;
@@ -179,14 +171,6 @@ export class FarmerListComponent implements OnInit, OnDestroy {
     this.router.navigate(['/cooperative/farmers/approval', farmer.id]);
   }
 
-  branches(farmers: FarmerListItem[]): string[] {
-    return ['All Branches', ...new Set(farmers.map(f => f.branch))];
-  }
-
-  commodities(farmers: FarmerListItem[]): string[] {
-    return ['All Commodities', ...new Set(farmers.map(f => f.primaryCommodity))];
-  }
-
   newRegistrations(farmers: FarmerListItem[]): number {
     return farmers.filter(f => f.status === 'Pending').length;
   }
@@ -213,29 +197,18 @@ export class FarmerListComponent implements OnInit, OnDestroy {
 
   private filterFarmers(
     farmers: FarmerListItem[],
-    filter: {
-      searchQuery: string;
-      selectedBranch: string;
-      selectedStatus: string;
-      selectedCommodity: string;
-      selectedStage: string;
-    },
+    filter: { searchQuery: string },
   ): FarmerListItem[] {
     const q = filter.searchQuery.trim().toLowerCase();
+    if (!q) return farmers;
 
-    return farmers.filter(farmer => {
-      const matchSearch =
-        !q ||
-        farmer.id.toLowerCase().includes(q) ||
-        farmer.name.toLowerCase().includes(q) ||
-        farmer.branch.toLowerCase().includes(q) ||
-        farmer.primaryCommodity.toLowerCase().includes(q);
-      const matchBranch = filter.selectedBranch === 'All Branches' || farmer.branch === filter.selectedBranch;
-      const matchStatus = filter.selectedStatus === 'All Statuses' || farmer.status === filter.selectedStatus;
-      const matchCommodity = filter.selectedCommodity === 'All Commodities' || farmer.primaryCommodity === filter.selectedCommodity;
-      const matchStage = filter.selectedStage === 'All Stages' || farmer.stage === filter.selectedStage;
-
-      return matchSearch && matchBranch && matchStatus && matchCommodity && matchStage;
-    });
+    return farmers.filter(farmer =>
+      farmer.id.toLowerCase().includes(q) ||
+      farmer.name.toLowerCase().includes(q) ||
+      farmer.branch.toLowerCase().includes(q) ||
+      farmer.primaryCommodity.toLowerCase().includes(q) ||
+      farmer.status.toLowerCase().includes(q) ||
+      (farmer.stage ?? '').toLowerCase().includes(q),
+    );
   }
 }
