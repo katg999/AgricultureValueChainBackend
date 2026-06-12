@@ -45,6 +45,16 @@ export interface NavItem {
 
   /** Child items turn this into a collapsible submenu instead of a direct link */
   children?: NavItem[];
+
+  /**
+   * Service module key from core/constants/permissions.ts (e.g. 'farmers').
+   * The item shows only if the user holds ANY permission under that module.
+   * Leave both permission fields unset for always-visible items (e.g. Main).
+   */
+  permissionModule?: string;
+
+  /** Exact permission ids — the item shows if the user holds ANY of them */
+  permissions?: string[];
 }
 
 export interface DashboardConfig {
@@ -77,14 +87,14 @@ const PLATFORM_ADMIN_CONFIG: DashboardConfig = {
     { label: 'Main',               icon: 'home',     route: '/platform/dashboard'    },
     // { label: 'Organisation Setup', icon: 'building', route: '/platform/cooperatives' },
     // Platform has its own user management at /platform/users (not the global /users)
-    { label: 'Users',              icon: 'users',    route: '/platform/users'        },
+    { label: 'Users',              icon: 'users',    route: '/platform/users',           permissionModule: 'users'        },
     // Cooperatives management — list, onboarding, maker-checker (all under /platform/cooperatives/*)
-    { label: 'Cooperatives',       icon: 'building', route: '/platform/cooperatives' },
-    
+    { label: 'Cooperatives',       icon: 'building', route: '/platform/cooperatives',    permissionModule: 'cooperatives' },
+
     // Role & permission management
-    { label: 'Roles',              icon: 'roles',    route: '/platform/roles/roles-list' },
+    { label: 'Roles',              icon: 'roles',    route: '/platform/roles/roles-list', permissionModule: 'roles'       },
     // Platform-wide configuration
-    { label: 'System Settings',    icon: 'settings', route: '/platform/settings'     },
+    { label: 'System Settings',    icon: 'settings', route: '/platform/settings',        permissionModule: 'settings'     },
   ],
 };
 
@@ -96,25 +106,26 @@ const COOPERATIVE_ADMIN_CONFIG: DashboardConfig = {
     { label: 'Main',               icon: 'home',     route: '/cooperative/dashboard' },
     // Organisation Setup opens the cooperatives management section:
     // cooperatives-list → onboarding → maker-checker (all under /cooperatives/*)
-    { label: 'Organisation Setup', icon: 'building', route: '/cooperatives'           },
+    { label: 'Organisation Setup', icon: 'building', route: '/cooperatives',          permissionModule: 'organisation' },
 
     // Configuration is a collapsible parent — clicking it reveals grade setup and pricing
     {
       label: 'Configuration',
       icon:  'settings',
       route: '/cooperative/configuration',
+      permissionModule: 'configuration',
       children: [
-        { label: 'Grade Config', icon: '', route: '/cooperative/grade-config' },
-        { label: 'Edit Prices',  icon: '', route: '/cooperative/edit-prices'  },
+        { label: 'Grade Config', icon: '', route: '/cooperative/grade-config', permissions: ['configuration.grades.view'] },
+        { label: 'Edit Prices',  icon: '', route: '/cooperative/edit-prices',  permissions: ['configuration.prices.view', 'configuration.prices.edit'] },
       ],
     },
 
-    { label: 'Collection',      icon: 'collection', route: '/cooperative/collections'            },
+    { label: 'Collection',      icon: 'collection', route: '/cooperative/collections', permissionModule: 'collections' },
 
-    
-    {label:'Farmers',         icon:'farmers',     route:'/cooperative/farmers' },
 
-    {label:'Branches',         icon:'branch',     route:'/cooperative/branches'               },
+    { label: 'Farmers',         icon: 'farmers',    route: '/cooperative/farmers',     permissionModule: 'farmers'  },
+
+    { label: 'Branches',        icon: 'branch',     route: '/cooperative/branches',    permissionModule: 'branches' },
 
 
     // Inventory is a collapsible parent — clicking it reveals current stock, issue stock and stock disbursed
@@ -122,15 +133,16 @@ const COOPERATIVE_ADMIN_CONFIG: DashboardConfig = {
       label: 'Inventory',
       icon:  'inventory',
       route: '/cooperative/inventory',
+      permissionModule: 'inventory',
       children: [
-        { label: 'Current Stock',   icon: '', route: '/cooperative/inventory/current-stock' },
-        { label: 'Issue Stock',     icon: '', route: '/cooperative/inventory/issue-stock' },
-        { label: 'Stock-disbursed', icon: '', route: '/cooperative/inventory/stock-disbursed' },
+        { label: 'Current Stock',   icon: '', route: '/cooperative/inventory/current-stock',   permissions: ['inventory.view'] },
+        { label: 'Issue Stock',     icon: '', route: '/cooperative/inventory/issue-stock',     permissions: ['inventory.issue'] },
+        { label: 'Stock-disbursed', icon: '', route: '/cooperative/inventory/stock-disbursed', permissions: ['inventory.disburse'] },
       ],
     },
 
-    { label: 'User Management', icon: 'users',      route: '/cooperative/users'    },
-    { label: 'Roles',           icon: 'roles',      route: '/cooperative/roles'    },
+    { label: 'User Management', icon: 'users',      route: '/cooperative/users',    permissionModule: 'users' },
+    { label: 'Roles',           icon: 'roles',      route: '/cooperative/roles',    permissionModule: 'roles' },
 
   ],
 
@@ -146,8 +158,8 @@ const BRANCH_CONFIG: DashboardConfig = {
   homeRoute: '/branch/dashboard',
   navItems: [
     { label: 'Main',          icon: 'home',       route: '/branch/dashboard'        },
-     { label: 'Collection',    icon: 'collection', route: '/branch/collections'              },
-    { label: 'Farmers',       icon: 'farmers',    route: '/branch/farmers'                  },
+    { label: 'Collection',    icon: 'collection', route: '/branch/collections', permissionModule: 'collections' },
+    { label: 'Farmers',       icon: 'farmers',    route: '/branch/farmers',     permissionModule: 'farmers'     },
 
 
     // Inventory is a collapsible parent — clicking it reveals current stock, issue stock and stock disbursed
@@ -155,10 +167,11 @@ const BRANCH_CONFIG: DashboardConfig = {
       label: 'Inventory',
       icon:  'inventory',
       route: '/branch/inventory',
+      permissionModule: 'inventory',
       children: [
-        { label: 'Current Stock',   icon: '', route: '/branch/inventory/current-stock' },
-        { label: 'Issue Stock',     icon: '', route: '/branch/inventory/issue-stock' },
-        { label: 'Stock-disbursed', icon: '', route: '/branch/inventory/stock-disbursed' },
+        { label: 'Current Stock',   icon: '', route: '/branch/inventory/current-stock',   permissions: ['inventory.view'] },
+        { label: 'Issue Stock',     icon: '', route: '/branch/inventory/issue-stock',     permissions: ['inventory.issue'] },
+        { label: 'Stock-disbursed', icon: '', route: '/branch/inventory/stock-disbursed', permissions: ['inventory.disburse'] },
       ],
     },
 

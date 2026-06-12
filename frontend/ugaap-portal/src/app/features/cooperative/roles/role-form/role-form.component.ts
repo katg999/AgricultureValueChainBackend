@@ -1,26 +1,24 @@
-import { Component, OnInit, inject } from '@angular/core';
+// features/cooperative/roles/role-form/role-form.component.ts
+//
+// Create / edit a cooperative role.
+//
+// Permissions are picked through the shared <app-permission-tabs> component:
+// one tab per service (Farmers, Inventory, …) showing every granular action
+// available under it. The selected ids drive the sidebar + guards at login
+// time, so a role with nothing under "farmers" never sees the Farmers menu.
+
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 
 import { API_ENDPOINTS } from '../../../../core/constants/api-endpoints';
 import { InputComponent }   from '../../../../shared/components/input/input.component';
 import { ButtonComponent }  from '../../../../shared/components/button/button.component';
 import { InfoCardComponent } from '../../../../shared/components/info-card/info-card.component';
+import { PermissionTabsComponent } from '../../../../shared/components/permission-tabs/permission-tabs.component';
 import { ToastService }     from '../../../../core/services/toast.service';
-
-export interface Permission {
-  id: string;
-  label: string;
-  checked: boolean;
-}
-
-export interface PermissionModule {
-  name: string;
-  icon: string;
-  permissions: Permission[];
-}
 
 @Component({
   selector: 'app-role-form',
@@ -29,10 +27,10 @@ export interface PermissionModule {
     CommonModule,
     RouterModule,
     ReactiveFormsModule,
-    FormsModule,
     InputComponent,
     ButtonComponent,
     InfoCardComponent,
+    PermissionTabsComponent,
   ],
   templateUrl: './role-form.component.html',
   styleUrls: ['./role-form.component.css'],
@@ -45,50 +43,8 @@ export class RoleFormComponent implements OnInit {
   isLoading = false;
   errorMessage = '';
 
-  permissionModules: PermissionModule[] = [
-    {
-      name: 'Users Management', icon: '👥',
-      permissions: [
-        { id: 'membership.view',   label: 'View users',   checked: false },
-        { id: 'membership.create', label: 'Create users', checked: false },
-        { id: 'membership.edit',   label: 'Edit users',   checked: false },
-        { id: 'membership.delete', label: 'Delete users', checked: false },
-      ],
-    },
-    {
-      name: 'Cooperatives', icon: '🏢',
-      permissions: [
-        { id: 'coops.view',   label: 'View cooperatives',   checked: false },
-        { id: 'coops.create', label: 'Create cooperatives', checked: false },
-        { id: 'coops.edit',   label: 'Edit cooperatives',   checked: false },
-        { id: 'coops.delete', label: 'Delete cooperatives', checked: false },
-      ],
-    },
-    {
-      name: 'Financial Reports', icon: '📊',
-      permissions: [
-        { id: 'reports.view',   label: 'View reports',     checked: false },
-        { id: 'reports.create', label: 'Generate reports', checked: false },
-      ],
-    },
-    {
-      name: 'Inventory Management', icon: '📦',
-      permissions: [
-        { id: 'inventory.view',   label: 'View inventory',      checked: false },
-        { id: 'inventory.create', label: 'Add stock',            checked: false },
-        { id: 'inventory.edit',   label: 'Edit / Transfer stock', checked: false },
-        { id: 'inventory.delete', label: 'Delete stock',         checked: false },
-      ],
-    },
-    {
-      name: 'System Settings', icon: '⚙️',
-      permissions: [
-        { id: 'settings.view',  label: 'View settings',  checked: false },
-        { id: 'settings.edit',  label: 'Edit settings',  checked: false },
-        { id: 'settings.roles', label: 'Manage roles',   checked: false },
-      ],
-    },
-  ];
+  /** Permission ids granted to this role — two-way bound to the tab picker */
+  readonly selectedPermissions = signal<string[]>([]);
 
   private toast = inject(ToastService);
 
@@ -120,25 +76,8 @@ export class RoleFormComponent implements OnInit {
     }
   }
 
-  // ── Permissions helpers ───────────────────────────────────────────────────
-
-  toggleModulePermissions(module: PermissionModule, checked: boolean): void {
-    module.permissions.forEach(p => (p.checked = checked));
-  }
-
-  isModuleFullySelected(module: PermissionModule): boolean {
-    return module.permissions.every(p => p.checked);
-  }
-
-  isModulePartiallySelected(module: PermissionModule): boolean {
-    const n = module.permissions.filter(p => p.checked).length;
-    return n > 0 && n < module.permissions.length;
-  }
-
   get selectedPermissionsCount(): number {
-    return this.permissionModules.reduce(
-      (sum, m) => sum + m.permissions.filter(p => p.checked).length, 0,
-    );
+    return this.selectedPermissions().length;
   }
 
   // ── Form helpers ──────────────────────────────────────────────────────────
@@ -172,16 +111,15 @@ export class RoleFormComponent implements OnInit {
       name:        this.roleForm.value.name,
       description: this.roleForm.value.description,
       tenantId:    this.roleForm.value.tenantId,
+      permissions: this.selectedPermissions(),
     };
-            
-
 
     // this.http.post(API_ENDPOINTS.ACCESS.ROLES, rolePayload).subscribe({
     //   next: (res: any) => {
     //     const roleId = res.roleId;
     //     this.http.post(
     //       API_ENDPOINTS.ACCESS.ROLE_PERMISSIONS(roleId),
-    //       { permissions: this.getFormattedPermissions() },
+    //       { permissions: this.selectedPermissions() },
     //     ).subscribe({
     //       next: () => {
     //         this.isLoading = false;
@@ -208,36 +146,12 @@ export class RoleFormComponent implements OnInit {
   // ── Private helpers ───────────────────────────────────────────────────────
 
   // private loadRoleData(): void {
-  //   // Stub — replace with real API call when endpoint is available
+  //   // Stub — replace with real API call when endpoint is available.
+  //   // On load, push the role's granted ids into the picker:
+  //   //   this.selectedPermissions.set(role.permissions);
   //   this.roleForm.patchValue({
   //     name: 'Logistics Manager',
   //     description: 'Manage inventory, shipments, and logistics',
   //   });
   // }
-
-  private getFormattedPermissions(): any[] {
-    const modMap: Record<string, string> = {
-      membership: 'MEMBERSHIP',
-      coops:      'BRANCHES',
-      inventory:  'INVENTORY',
-      reports:    'REPORTING',
-      settings:   'ACCESS_MANAGEMENT',
-    };
-    const actMap: Record<string, string> = {
-      view: 'VIEW', create: 'CREATE', edit: 'EDIT', delete: 'DELETE',
-      generate: 'CREATE', transfer: 'EDIT', roles: 'EDIT',
-    };
-
-    const out: any[] = [];
-    this.permissionModules.forEach(mod => {
-      mod.permissions.forEach(p => {
-        if (!p.checked) return;
-        const [modKey, actKey] = p.id.split('.');
-        const module = modMap[modKey];
-        const action = actMap[actKey];
-        if (module && action) out.push({ module, action, description: p.label });
-      });
-    });
-    return out;
-  }
 }
