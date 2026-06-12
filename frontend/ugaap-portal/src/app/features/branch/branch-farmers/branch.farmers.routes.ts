@@ -15,9 +15,15 @@ export const BRANCH_FARMERS_ROUTES: Routes = [
         .then(m => m.BranchFarmerListComponent)
   },
 
-  // Farmer Registration
+  // Farmer Registration (new) and Edit (with :id)
   {
     path: 'register',
+    loadComponent: () =>
+      import('./branch.farmer-register/branch.farmer-register.component')
+        .then(m => m.BranchFarmerRegisterComponent)
+  },
+  {
+    path: 'register/:id',
     loadComponent: () =>
       import('./branch.farmer-register/branch.farmer-register.component')
         .then(m => m.BranchFarmerRegisterComponent)

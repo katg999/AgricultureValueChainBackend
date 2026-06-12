@@ -17,7 +17,7 @@ export class ToastService {
 
   private nextId = 0;
 
-  // ── Public API ────────────────────────────────────────────────────────────
+  //  Public API 
 
   success(title: string, message?: string, duration = 4000): void {
     this._push('success', title, message, duration);
@@ -39,7 +39,7 @@ export class ToastService {
     this.toasts.update(ts => ts.filter(t => t.id !== id));
   }
 
-  // ── Internal ──────────────────────────────────────────────────────────────
+  //  Internal 
 
   private _push(variant: ToastVariant, title: string, message?: string, duration = 4000): void {
     const id = ++this.nextId;

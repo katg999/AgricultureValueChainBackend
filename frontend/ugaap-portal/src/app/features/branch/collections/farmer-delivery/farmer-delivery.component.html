@@ -150,7 +150,7 @@
           Delivery details
         </div>
 
-        <div class="field-row-2" style="margin-bottom: 16px;">
+        <div class="field-row-3 spaced-row">
           <div class="field-group" [class.has-error]="isFieldInvalid('branch')">
             <label for="branch">Branch <span class="required">*</span></label>
             <select id="branch" formControlName="branch">
@@ -159,6 +159,14 @@
             </select>
             <div class="field-error" *ngIf="isFieldInvalid('branch')">Please select a branch.</div>
           </div>
+          <div class="field-group" [class.has-error]="isFieldInvalid('season')">
+            <label for="season">Season <span class="required">*</span></label>
+            <select id="season" formControlName="season">
+              <option value="">Select season…</option>
+              <option *ngFor="let s of seasonOptions" [value]="s">{{ s }}</option>
+            </select>
+            <div class="field-error" *ngIf="isFieldInvalid('season')">Please select a season.</div>
+          </div>
           <div class="field-group">
             <label for="batch">Delivery batch</label>
             <input id="batch" type="text" formControlName="batch" placeholder="e.g. BATCH-2026-05" />
@@ -166,7 +174,7 @@
           </div>
         </div>
 
-        <div class="field-row-2" style="margin-bottom: 16px;">
+        <div class="field-row-2 spaced-row">
           <div class="field-group" [class.has-error]="isFieldInvalid('commodity')">
             <label for="commodity">Commodity <span class="required">*</span></label>
             <select id="commodity" formControlName="commodity">
@@ -182,7 +190,7 @@
           </div>
         </div>
 
-        <div class="field-row-3" style="margin-bottom: 16px;">
+        <div class="field-row-3 spaced-row">
           <div class="field-group" [class.has-error]="isFieldInvalid('volume')">
             <label for="volume">Volume (KG) <span class="required">*</span></label>
             <input id="volume" type="number" formControlName="volume" placeholder="0" min="0" (input)="calcEstValue()" />

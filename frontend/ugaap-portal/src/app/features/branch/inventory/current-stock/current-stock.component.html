@@ -66,40 +66,6 @@
   </div>
 
   <div class="filters-row">
-    <div class="filter-select">
-      <select title="Filter by Branch" [(ngModel)]="filterBranch" (change)="applyFilters()">
-        <option value="">Branch: All</option>
-        <option *ngFor="let b of branches" [value]="b">{{ b }}</option>
-      </select>
-      <svg class="select-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polyline points="6 9 12 15 18 9" />
-      </svg>
-    </div>
-
-    <div class="filter-select">
-      <select title="Filter by Status" [(ngModel)]="filterStatus" (change)="applyFilters()">
-        <option value="">Status: All</option>
-        <option value="healthy">Healthy</option>
-        <option value="low">Low</option>
-        <option value="out">Out of Stock</option>
-      </select>
-      <svg class="select-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polyline points="6 9 12 15 18 9" />
-      </svg>
-    </div>
-
-    <div class="filter-select">
-      <select title="Filter by Season" [(ngModel)]="filterSeason" (change)="applyFilters()">
-        <option value="">Season: All</option>
-        <option value="2026A">2026 Season A</option>
-        <option value="2026B">2026 Season B</option>
-        <option value="2025B">2025 Season B</option>
-      </select>
-      <svg class="select-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polyline points="6 9 12 15 18 9" />
-      </svg>
-    </div>
-
     <div class="search-box">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="11" cy="11" r="8" />
@@ -107,7 +73,7 @@
       </svg>
       <input
         type="text"
-        placeholder="Search"
+        placeholder="Search by name, category, status, season or branch…"
         [(ngModel)]="searchQuery"
         (input)="applyFilters()"
       />
@@ -123,8 +89,6 @@
           <th>QUANTITY</th>
           <th>UNIT</th>
           <th>MIN. THRESHOLD</th>
-          <th>STATUS</th>
-          <th>BRANCHES</th>
           <th>ENTRY DATE</th>
         </tr>
       </thead>
@@ -147,31 +111,11 @@
           </td>
           <td>{{ item.unit }}</td>
           <td class="threshold-cell">{{ item.minThreshold | number }}</td>
-          <td>
-            <div class="status-bar-wrap">
-              <div class="status-bar">
-                <div
-                  class="status-bar-fill"
-                  [ngClass]="item.stockStatus"
-                  [style.width.%]="getBarPercent(item)">
-                </div>
-              </div>
-              <span *ngIf="item.stockStatus === 'out'" class="out-dot" aria-label="Out of stock"></span>
-            </div>
-          </td>
-          <td class="branches-cell">
-            <span *ngIf="item.branchNames.length === branches.length">All</span>
-            <span *ngIf="item.branchNames.length !== branches.length">
-              {{ item.branchNames.length }}
-              <br />
-              <span class="branch-label">Branch{{ item.branchNames.length > 1 ? 'es' : '' }}</span>
-            </span>
-          </td>
           <td class="date-cell">{{ item.updatedAt }}</td>
         </tr>
 
         <tr *ngIf="filteredItems.length === 0">
-          <td colspan="8" class="empty-row">No stock items match your filters.</td>
+          <td colspan="6" class="empty-row">No stock items match your filters.</td>
         </tr>
       </tbody>
     </table>

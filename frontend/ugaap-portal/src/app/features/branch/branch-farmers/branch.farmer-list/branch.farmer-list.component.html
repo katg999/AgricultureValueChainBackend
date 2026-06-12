@@ -118,6 +118,7 @@
           <th>CREDIT LIMIT</th>
           <th>BALANCE</th>
           <th>STATUS</th>
+          <th></th>
         </tr>
       </thead>
 
@@ -142,6 +143,28 @@
             <span class="status-badge" [ngClass]="farmer.status.toLowerCase()">
               {{ farmer.status }}
             </span>
+          </td>
+          <td class="kebab-cell">
+            <div class="kebab-wrapper">
+              <button
+                class="kebab-btn"
+                type="button"
+                title="More options"
+                (click)="toggleKebab(farmer.id, $event)">
+                &#8942;
+              </button>
+              <div class="kebab-dropdown" *ngIf="openKebabId === farmer.id">
+                <button class="kebab-item" type="button" (click)="onEditFarmer(farmer)">
+                  Edit details
+                </button>
+                <button class="kebab-item" type="button" (click)="onViewProfile(farmer)">
+                  View profile
+                </button>
+                <button class="kebab-item" type="button" (click)="onViewAllocations(farmer)">
+                  View allocations
+                </button>
+              </div>
+            </div>
           </td>
         </tr>
       </tbody>

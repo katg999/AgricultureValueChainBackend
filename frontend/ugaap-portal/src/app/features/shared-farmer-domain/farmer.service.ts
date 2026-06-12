@@ -228,6 +228,33 @@ export class FarmerService {
     );
 }
 
+  // Update
+
+  /**
+   * Updates an existing farmer's registration details.
+   * PATCH /api/v1/branch/farmers/:id
+   */
+  update(id: string, form: FarmerRegistrationForm): Observable<FarmerProfile> {
+    return this.http.patch<FarmerProfile>(
+      API_ENDPOINTS.BRANCH.FARMER_BY_ID(id),
+      form,
+    ).pipe(
+      tap(profile => this._upsertFarmer(this._listItemFromProfile(profile, form))),
+      catchError(() => {
+        const item = this.farmersSubject.value.find(f => f.id === id);
+        if (item) {
+          const updated: FarmerListItem = {
+            ...item,
+            name: form.fullName,
+            primaryCommodity: this._primaryCommodity(form),
+          };
+          this._upsertFarmer(updated);
+        }
+        return of(buildMockFarmerProfile(id));
+      }),
+    );
+  }
+
   // Approval Workflow
 
   /**
@@ -268,7 +295,7 @@ export class FarmerService {
   }
 
   private _farmersForBranch(farmers: FarmerListItem[], branchId: string | null): FarmerListItem[] {
-    if (!branchId) return farmers.filter(farmer => farmer.branchId === 'BR-KLA');
+    if (!branchId) return [];
     return farmers.filter(farmer => farmer.branchId === branchId);
   }
 

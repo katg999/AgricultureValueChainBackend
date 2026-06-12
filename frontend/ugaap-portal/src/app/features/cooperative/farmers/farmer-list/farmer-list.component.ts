@@ -1,31 +1,25 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { BehaviorSubject, combineLatest, map, Observable, Subject, takeUntil, tap } from 'rxjs';
 
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
-import { StatsCardComponent } from '../../../../shared/components/stats-card/stats-card.component';
 import { FarmerListItem, FarmerService } from '../../../shared-farmer-domain/farmer.service';
 import { ToastService } from '../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-farmer-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonComponent, InputComponent, StatsCardComponent],
+  imports: [CommonModule, FormsModule, InputComponent, ButtonComponent],
   templateUrl: './farmer-list.component.html',
   styleUrl: './farmer-list.component.css',
 })
 export class FarmerListComponent implements OnInit, OnDestroy {
   searchQuery = '';
-  selectedBranch = 'All Branches';
-  selectedStatus = 'All Statuses';
-  selectedCommodity = 'All Commodities';
-  selectedStage = 'All Stages';
+  openMenuId: string | null = null;
 
-  readonly statuses = ['All Statuses', 'Active', 'Pending', 'Rejected', 'Suspended'];
-  readonly stages = ['All Stages', 'Registered', 'Verified', 'Financed'];
   readonly collectionProgress = 78;
 
   // ── Pagination ───────────────────────────────────────────────────────────
@@ -46,13 +40,7 @@ export class FarmerListComponent implements OnInit, OnDestroy {
   error: string | null = null;
 
   private readonly destroy$ = new Subject<void>();
-  private readonly filterState$ = new BehaviorSubject({
-    searchQuery: '',
-    selectedBranch: 'All Branches',
-    selectedStatus: 'All Statuses',
-    selectedCommodity: 'All Commodities',
-    selectedStage: 'All Stages',
-  });
+  private readonly filterState$ = new BehaviorSubject({ searchQuery: '' });
   private readonly pageState$ = new BehaviorSubject<number>(1);
 
   private toast = inject(ToastService);
@@ -63,13 +51,18 @@ export class FarmerListComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    // watchForCooperative() returns a live BehaviorSubject stream — it updates
+    // whenever the service adds or approves a farmer, so the table stays in sync.
     this.farmers$ = this.farmerService.watchForCooperative();
 
+    // combineLatest re-runs filterFarmers whenever EITHER the farmer list OR the
+    // search query changes, so the filter is always applied to the latest data.
     this.filteredFarmers$ = combineLatest([this.farmers$, this.filterState$]).pipe(
       map(([farmers, filter]) => this.filterFarmers(farmers, filter)),
     );
 
-    // Track total for pagination info, then slice for the current page
+    // Track total for pagination info, then slice for the current page.
+    // tap() reads the total before map() reduces the list to one page.
     this.paginatedFarmers$ = combineLatest([this.filteredFarmers$, this.pageState$]).pipe(
       tap(([farmers]) => { this.totalCount = farmers.length; }),
       map(([farmers, page]) =>
@@ -87,16 +80,12 @@ export class FarmerListComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  // Push latest search text into filterState$ — the combineLatest above picks
+  // it up automatically and re-filters without touching the raw farmer data.
   applyFilter(): void {
     this.currentPage = 1;
     this.pageState$.next(1);
-    this.filterState$.next({
-      searchQuery: this.searchQuery,
-      selectedBranch: this.selectedBranch,
-      selectedStatus: this.selectedStatus,
-      selectedCommodity: this.selectedCommodity,
-      selectedStage: this.selectedStage,
-    });
+    this.filterState$.next({ searchQuery: this.searchQuery });
   }
 
   // ── Pagination methods ────────────────────────────────────────────────────
@@ -121,6 +110,9 @@ export class FarmerListComponent implements OnInit, OnDestroy {
     }
   }
 
+  // Triggers an HTTP fetch (or mock fallback) and populates the BehaviorSubject
+  // store. takeUntil ensures the subscription is cancelled if the user navigates
+  // away before the request completes, preventing a "memory leak" console warning.
   refresh(): void {
     this.loading = true;
     this.error = null;
@@ -136,7 +128,22 @@ export class FarmerListComponent implements OnInit, OnDestroy {
       });
   }
 
+  @HostListener('document:click')
+  onDocumentClick(): void {
+    this.openMenuId = null;
+  }
+
+  toggleMenu(id: string, event: MouseEvent): void {
+    event.stopPropagation();
+    this.openMenuId = this.openMenuId === id ? null : id;
+  }
+
+  closeMenu(): void {
+    this.openMenuId = null;
+  }
+
   onApproveFarmer(farmer: FarmerListItem): void {
+    this.closeMenu();
     if (!confirm(`Approve ${farmer.name}? They will be granted active farmer status.`)) return;
 
     this.farmerService.approve(farmer.id)
@@ -147,16 +154,21 @@ export class FarmerListComponent implements OnInit, OnDestroy {
       });
   }
 
+  onRejectFarmer(farmer: FarmerListItem): void {
+    this.closeMenu();
+    if (!confirm(`Are you sure you want to reject ${farmer.name}?`)) return;
+
+    this.farmerService.reject(farmer.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => undefined,
+        error: err => alert(err?.error?.message ?? 'Reject failed.'),
+      });
+  }
+
   onReviewFarmer(farmer: FarmerListItem): void {
+    this.closeMenu();
     this.router.navigate(['/cooperative/farmers/approval', farmer.id]);
-  }
-
-  branches(farmers: FarmerListItem[]): string[] {
-    return ['All Branches', ...new Set(farmers.map(f => f.branch))];
-  }
-
-  commodities(farmers: FarmerListItem[]): string[] {
-    return ['All Commodities', ...new Set(farmers.map(f => f.primaryCommodity))];
   }
 
   newRegistrations(farmers: FarmerListItem[]): number {
@@ -185,29 +197,18 @@ export class FarmerListComponent implements OnInit, OnDestroy {
 
   private filterFarmers(
     farmers: FarmerListItem[],
-    filter: {
-      searchQuery: string;
-      selectedBranch: string;
-      selectedStatus: string;
-      selectedCommodity: string;
-      selectedStage: string;
-    },
+    filter: { searchQuery: string },
   ): FarmerListItem[] {
     const q = filter.searchQuery.trim().toLowerCase();
+    if (!q) return farmers;
 
-    return farmers.filter(farmer => {
-      const matchSearch =
-        !q ||
-        farmer.id.toLowerCase().includes(q) ||
-        farmer.name.toLowerCase().includes(q) ||
-        farmer.branch.toLowerCase().includes(q) ||
-        farmer.primaryCommodity.toLowerCase().includes(q);
-      const matchBranch = filter.selectedBranch === 'All Branches' || farmer.branch === filter.selectedBranch;
-      const matchStatus = filter.selectedStatus === 'All Statuses' || farmer.status === filter.selectedStatus;
-      const matchCommodity = filter.selectedCommodity === 'All Commodities' || farmer.primaryCommodity === filter.selectedCommodity;
-      const matchStage = filter.selectedStage === 'All Stages' || farmer.stage === filter.selectedStage;
-
-      return matchSearch && matchBranch && matchStatus && matchCommodity && matchStage;
-    });
+    return farmers.filter(farmer =>
+      farmer.id.toLowerCase().includes(q) ||
+      farmer.name.toLowerCase().includes(q) ||
+      farmer.branch.toLowerCase().includes(q) ||
+      farmer.primaryCommodity.toLowerCase().includes(q) ||
+      farmer.status.toLowerCase().includes(q) ||
+      (farmer.stage ?? '').toLowerCase().includes(q),
+    );
   }
 }

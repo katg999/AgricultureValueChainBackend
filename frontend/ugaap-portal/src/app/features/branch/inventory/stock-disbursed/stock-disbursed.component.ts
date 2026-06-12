@@ -1,15 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 
-import { AlertComponent } from '../../../../shared/components/alert/alert.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge';
+import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
 import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
-import { ToastService }      from '../../../../core/services/toast.service';
 import {
   BranchDisbursement,
   FarmerAllocation,
@@ -18,8 +17,8 @@ import {
   RecoveryStatus,
 } from '../../../shared-inventory-domain/inventory.service';
 
-type BadgeVariant = 'settled' | 'partial' | 'overdue' | 'info'; //Badge variants corresponding to recovery status, with 'info' for any additional informational badges
-type AlertVariant = 'error' | 'warning' | 'info' | 'success'; //Alert variants for recent issues, used to visually differentiate the severity of messages in the UI
+type BadgeVariant = 'settled' | 'partial' | 'overdue' | 'issued' | 'received' | 'info';
+type AllocationStatus = RecoveryStatus | 'issued' | 'received';
 
 interface Allocation {
   id: string;
@@ -27,13 +26,14 @@ interface Allocation {
   destinationId: string;
   farmerName: string;
   branch: string;
+  itemName: string;
   itemType: string;
   quantity: string;
   totalValue: number;
   issueDate: string;
   allocationDate: string;
   outstanding: number;
-  status: RecoveryStatus;
+  status: AllocationStatus;
 }
 
 interface Summary {
@@ -45,16 +45,6 @@ interface Summary {
   recoveryRate: number;
 }
 
-interface Performance {
-  inputDisbursement: number;
-  produceCollected: number;
-  maxValue: number;
-}
-
-interface RecentIssue {
-  variant: AlertVariant;
-  message: string;
-}
 
 @Component({
   selector: 'app-stock-disbursed',
@@ -63,50 +53,37 @@ interface RecentIssue {
     CommonModule,
     FormsModule,
     RouterModule,
-    AlertComponent,
     BadgeComponent,
     ButtonComponent,
     InputComponent,
+    ModalComponent,
     PageHeaderComponent,
     StatCardComponent,
   ],
   templateUrl: './stock-disbursed.component.html',
   styleUrl: './stock-disbursed.component.css',
 })
-export class StockDisbursedComponent implements OnInit { // Main component for managing and displaying stock disbursement data
+// Same template, two datasets — scope getter picks the right one based on URL prefix.
+export class StockDisbursedComponent implements OnInit {
   searchQuery = '';
-  filterItemType = '';
-  filterBranch = '';
-  showAdvancedFilters = false;
   currentPage = 1;
   readonly pageSize = 5;
+
+  openKebabId: string | null = null;
+  kebabPosition: { top?: number; bottom?: number; right: number } = { top: 0, right: 0 };
+  showDetailModal = false;
+  showEditModal = false;
+  selectedAllocation: Allocation | null = null;
+  editForm: { status: AllocationStatus; outstanding: string; quantity: string; totalValue: string } = {
+    status: 'settled',
+    outstanding: '0',
+    quantity: '',
+    totalValue: '',
+  };
 
   allocations: Allocation[] = [];
 
   filteredAllocations: Allocation[] = [];
-
-  readonly performance: Performance = {  // Mocked performance data for demonstration
-    inputDisbursement: 42.0,
-    produceCollected: 57.5,
-    maxValue: 60,
-  };
-
-  readonly recentIssues: RecentIssue[] = [  // Mocked recent issues for demonstration
-    {
-      variant: 'warning',
-      message: 'Two overdue allocations require branch follow-up this week.',
-    },
-    {
-      variant: 'info',
-      message: 'Seed allocations in Gulu Branch are tracking below seasonal plan.',
-    },
-    {
-      variant: 'success',
-      message: 'Kampala Central recovered all fertilizer allocations issued last cycle.',
-    },
-  ];
-
-  private toast = inject(ToastService);
 
   constructor(
     private readonly router: Router,
@@ -155,14 +132,6 @@ export class StockDisbursedComponent implements OnInit { // Main component for m
     };
   }
 
-  get itemTypes(): string[] {
-    return [...new Set(this.allocations.map(row => row.itemType))];
-  }
-
-  get branches(): string[] {
-    return [...new Set(this.allocations.map(row => row.branch))];
-  }
-
   get visibleAllocations(): Allocation[] {
     const start = (this.currentPage - 1) * this.pageSize;
     return this.filteredAllocations.slice(start, start + this.pageSize);
@@ -190,8 +159,9 @@ export class StockDisbursedComponent implements OnInit { // Main component for m
   }
 
   ngOnInit(): void {
+    // Both paths map to the same Allocation shape so the template doesn't care which.
     if (this.isCooperativeScope) {
-      this.inventoryService.listBranchDisbursements().subscribe(rows => {
+      this.inventoryService.listBranchDisbursementsForRole$().subscribe(rows => {
         this.allocations = rows.map(row => this.fromBranchDisbursement(row));
         this.applyFilters();
       });
@@ -205,24 +175,21 @@ export class StockDisbursedComponent implements OnInit { // Main component for m
   }
 
   applyFilters(): void {
-    const query = this.searchQuery.trim().toLowerCase();
+    const q = this.searchQuery.trim().toLowerCase();
 
     this.filteredAllocations = this.allocations.filter(row => {
-      const matchesSearch =
-        !query ||
-        row.destinationName.toLowerCase().includes(query) ||
-        row.id.toLowerCase().includes(query);
-      const matchesItemType = !this.filterItemType || row.itemType === this.filterItemType;
-      const matchesBranch = !this.filterBranch || row.branch === this.filterBranch;
-
-      return matchesSearch && matchesItemType && matchesBranch;
+      if (!q) return true;
+      return (
+        row.destinationName.toLowerCase().includes(q) ||
+        row.id.toLowerCase().includes(q) ||
+        row.itemName.toLowerCase().includes(q) ||
+        row.itemType.toLowerCase().includes(q) ||
+        row.branch.toLowerCase().includes(q) ||
+        row.status.toLowerCase().includes(q)
+      );
     });
 
     this.currentPage = Math.min(this.currentPage, this.totalPages);
-  }
-
-  toggleAdvancedFilters(): void {
-    this.showAdvancedFilters = !this.showAdvancedFilters;
   }
 
   goToPage(page: number): void {
@@ -237,16 +204,92 @@ export class StockDisbursedComponent implements OnInit { // Main component for m
     this.goToPage(this.currentPage + 1);
   }
 
-  downloadReport(): void {
-    this.toast.info('Coming soon', 'Stock disbursement report download will be available shortly.');
+  @HostListener('document:click')
+  onDocumentClick(): void {
+    this.openKebabId = null;
   }
 
-  getBarPercent(value: number, maxValue: number): number {
-    if (maxValue <= 0) return 0;
-    return Math.min(Math.round((value / maxValue) * 100), 100);
+  // position:fixed + getBoundingClientRect so the dropdown escapes overflow:hidden parents.
+  toggleKebab(id: string, event: MouseEvent): void {
+    event.stopPropagation();
+    if (this.openKebabId === id) {
+      this.openKebabId = null;
+      return;
+    }
+    const btn = event.currentTarget as HTMLElement;
+    const rect = btn.getBoundingClientRect();
+    const dropdownHeight = 90;
+    const right = window.innerWidth - rect.right;
+    if (window.innerHeight - rect.bottom < dropdownHeight) {
+      this.kebabPosition = { bottom: window.innerHeight - rect.top + 4, right };
+    } else {
+      this.kebabPosition = { top: rect.bottom + 4, right };
+    }
+    this.openKebabId = id;
   }
 
-  getStatusVariant(status: RecoveryStatus): BadgeVariant {
+  onViewDetails(row: Allocation, event: MouseEvent): void {
+    event.stopPropagation();
+    this.selectedAllocation = row;
+    this.showDetailModal = true;
+    this.openKebabId = null;
+  }
+
+  closeDetailModal(): void {
+    this.showDetailModal = false;
+    this.selectedAllocation = null;
+  }
+
+  get statusOptions(): { value: AllocationStatus; label: string }[] {
+    return this.isCooperativeScope
+      ? [
+          { value: 'issued',   label: 'Issued'   },
+          { value: 'received', label: 'Received' },
+        ]
+      : [
+          { value: 'partial', label: 'Partial' },
+          { value: 'settled', label: 'Settled' },
+          { value: 'overdue', label: 'Overdue' },
+        ];
+  }
+
+  onEditDetails(row: Allocation, event: MouseEvent): void {
+    event.stopPropagation();
+    this.selectedAllocation = row;
+    this.editForm = {
+      status: row.status,
+      outstanding: String(row.outstanding),
+      quantity: row.quantity,
+      totalValue: String(row.totalValue),
+    };
+    this.showEditModal = true;
+    this.openKebabId = null;
+  }
+
+  closeEditModal(): void {
+    this.showEditModal = false;
+    this.selectedAllocation = null;
+  }
+
+  saveEdit(): void {
+    if (!this.selectedAllocation) return;
+    const id = this.selectedAllocation.id;
+    this.allocations = this.allocations.map(a =>
+      a.id === id
+        ? {
+            ...a,
+            status: this.editForm.status,
+            outstanding: Number(this.editForm.outstanding) || 0,
+            quantity: this.editForm.quantity,
+            totalValue: Number(this.editForm.totalValue) || a.totalValue,
+          }
+        : a,
+    );
+    this.applyFilters();
+    this.closeEditModal();
+  }
+
+  getStatusVariant(status: AllocationStatus): BadgeVariant {
     return status;
   }
 
@@ -261,13 +304,14 @@ export class StockDisbursedComponent implements OnInit { // Main component for m
       destinationId: row.branchId,
       farmerName: row.branchName,
       branch: row.branchName,
+      itemName: row.itemName,
       itemType: row.itemType,
       quantity: `${row.quantity} ${row.unit}`,
       totalValue: row.totalValue,
       issueDate: row.issueDate,
       allocationDate: row.issueDate,
       outstanding: 0,
-      status: 'settled',
+      status: row.status,
     };
   }
 
@@ -278,6 +322,7 @@ export class StockDisbursedComponent implements OnInit { // Main component for m
       destinationId: row.farmerId,
       farmerName: row.farmerName,
       branch: row.branchName,
+      itemName: row.itemName,
       itemType: row.itemType,
       quantity: `${row.quantity} ${row.unit}`,
       totalValue: row.totalValue,

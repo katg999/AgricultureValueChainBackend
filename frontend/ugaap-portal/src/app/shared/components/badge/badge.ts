@@ -25,6 +25,8 @@ export class BadgeComponent {
     'closed' |
     'healthy' |
     'low' |
+    'issued' |
+    'received' |
     'info' = 'info';
 
   @Input() dot = false;

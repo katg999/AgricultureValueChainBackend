@@ -54,7 +54,6 @@ export class CooperativeOnboardingComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private router: Router) {}
     private router: Router,
     private cooperativeService: CooperativeService,
   ) {}
@@ -112,11 +111,6 @@ export class CooperativeOnboardingComponent implements OnInit {
   activateCooperative(): void {
    //console.log('ACTIVATE BUTTON CLICKED!');
    
-    if(this.profileForm.invalid) {
-      this.profileForm.markAllAsTouched();
-      return;
-    }
-    
     if (this.profileForm.invalid) {
       this.profileForm.markAllAsTouched();
       return;

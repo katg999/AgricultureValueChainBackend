@@ -1,0 +1,101 @@
+<section class="cf-page">
+
+  <!-- Header -->
+  <div class="cf-header">
+    <h1 class="cf-title">Finance — Batch Overview</h1>
+    <p class="cf-subtitle">All batch processing records across every branch. Update status inline.</p>
+  </div>
+
+  <!-- KPI cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card kpi-card--batches">
+      <span class="kpi-label">Total Batches</span>
+      <h2 class="kpi-value">{{ totalBatches }}</h2>
+    </div>
+    <div class="kpi-card kpi-card--pending">
+      <span class="kpi-label">Pending</span>
+      <h2 class="kpi-value">{{ pendingCount }}</h2>
+    </div>
+    <div class="kpi-card kpi-card--farmers">
+      <span class="kpi-label">Total Farmers</span>
+      <h2 class="kpi-value">{{ totalFarmers }}</h2>
+    </div>
+    <div class="kpi-card kpi-card--net">
+      <span class="kpi-label">Net Payable</span>
+      <h2 class="kpi-value mono">UGX {{ formatUGX(totalNet) }}</h2>
+    </div>
+  </div>
+
+  <!-- Season tabs -->
+  <div class="season-tabs">
+    <button type="button" class="season-tab"     [class.active]="selectedSeason === ''"           (click)="setSeasonFilter('')">All Seasons</button>
+    <button type="button" class="season-tab wet" [class.active]="selectedSeason === 'Wet Season'" (click)="setSeasonFilter('Wet Season')">Wet Season</button>
+    <button type="button" class="season-tab dry" [class.active]="selectedSeason === 'Dry Season'" (click)="setSeasonFilter('Dry Season')">Dry Season</button>
+  </div>
+
+  <!-- Table -->
+  <div class="table-section">
+    <div class="table-wrapper">
+      <table class="cf-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Batch Name</th>
+            <th>Season</th>
+            <th class="col-numeric">Farmers</th>
+            <th class="col-numeric">Gross (UGX)</th>
+            <th class="col-numeric">Deductions (UGX)</th>
+            <th class="col-numeric">Net Payable (UGX)</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <ng-container *ngFor="let group of branchGroups; trackBy: trackByBranchId">
+
+            <!-- Branch group header -->
+            <tr class="branch-group-row">
+              <td class="branch-group-cell" colspan="8">
+                <span class="branch-icon">&#9679;</span>
+                <span class="branch-name">{{ group.branchName }}</span>
+                <span class="branch-count">{{ group.batches.length }} batch{{ group.batches.length !== 1 ? 'es' : '' }}</span>
+              </td>
+            </tr>
+
+            <!-- Batch rows -->
+            <tr *ngFor="let batch of group.batches; let i = index; trackBy: trackByBatchId" class="batch-row">
+              <td class="col-num mono">{{ i + 1 }}</td>
+              <td class="cell-name" [title]="batch.batchName">{{ batch.batchName }}</td>
+              <td>
+                <span class="season-badge" [ngClass]="seasonClass(batch.season)">{{ batch.season }}</span>
+              </td>
+              <td class="col-numeric mono">{{ batch.farmerCount }}</td>
+              <td class="col-numeric mono">{{ formatUGX(batch.grossAmount) }}</td>
+              <td class="col-numeric mono cell-deduction">{{ formatUGX(batch.deductions) }}</td>
+              <td class="col-numeric mono cell-net">{{ formatUGX(batch.netPayable) }}</td>
+              <td>
+                <select
+                  [ngClass]="['status-select', 'status-select--' + batch.status]"
+                  [value]="batch.status"
+                  (change)="onStatusChange(batch.id, $event)"
+                  title="Change batch status">
+                  <option *ngFor="let s of statusOptions" [value]="s">{{ s }}</option>
+                </select>
+              </td>
+            </tr>
+
+          </ng-container>
+
+          <!-- Empty state -->
+          <tr *ngIf="branchGroups.length === 0">
+            <td colspan="8" class="empty-state">
+              No batches found{{ selectedSeason ? ' for ' + selectedSeason : '' }}.
+            </td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</section>
