@@ -21,8 +21,8 @@ import { SpinnerComponent } from '../spinner/spinner.component';
  * </app-button>
  * 
  * <!-- With icons -->
- * <app-button variant="secondary" iconLeft="📧" iconRight="→">
- *   Send Email
+ * <app-button variant="secondary" iconLeft="+" iconRight="→">
+ *   Add Item
  * </app-button>
  * ```
  */

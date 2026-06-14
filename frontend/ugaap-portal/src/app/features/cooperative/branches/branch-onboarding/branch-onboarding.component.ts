@@ -3,13 +3,17 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 
+// remove HttpClient import, add BranchService
+import { BranchService, BranchCreatePayload } from '../../../../core/services/branch.service';
+
 // Shared components
 import { StepperComponent, Step } from '../../../../shared/components/stepper/stepper.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 import { AlertComponent } from '../../../../shared/components/alert/alert.component';
-import { ToastService }   from '../../../../core/services/toast.service';
+import { ToastService } from '../../../../core/services/toast.service';
+import { API_ENDPOINTS } from '../../../../core/constants/api-endpoints';
 
 @Component({
   selector: 'app-branch-onboarding',
@@ -22,13 +26,12 @@ import { ToastService }   from '../../../../core/services/toast.service';
     InputComponent,
     ButtonComponent,
     ModalComponent,
-    AlertComponent
+    AlertComponent,
   ],
   templateUrl: './branch-onboarding.component.html',
-  styleUrls: ['./branch-onboarding.component.css']
+  styleUrls: ['./branch-onboarding.component.css'],
 })
 export class BranchOnboardingComponent implements OnInit {
-
   // ── Stepper ───────────────────────────────────────────────
   steps: Step[] = [
     { label: 'IDENTITY', number: '01' },
@@ -49,6 +52,7 @@ export class BranchOnboardingComponent implements OnInit {
   // ── Loading states ────────────────────────────────────────
   isLoading = false;
   isSaving = false;
+
   private toast = inject(ToastService);
 
   // ── Error & success ───────────────────────────────────────
@@ -57,7 +61,8 @@ export class BranchOnboardingComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private router: Router
+    private router: Router,
+    private branchService: BranchService,
   ) {}
 
   ngOnInit(): void {
@@ -65,9 +70,9 @@ export class BranchOnboardingComponent implements OnInit {
   }
 
   // ── Init form ─────────────────────────────────────────────
-
   initBranchForm(): void {
     this.branchForm = this.fb.group({
+      tenantId: ['', []],
       branchName: ['', [Validators.required, Validators.minLength(3)]],
       branchRegistrationNumber: ['', [Validators.required, Validators.pattern(/^[A-Z0-9]+$/)]],
       location: ['', Validators.required],
@@ -83,7 +88,6 @@ export class BranchOnboardingComponent implements OnInit {
   }
 
   // ── Navigation ────────────────────────────────────────────
-
   nextStep(): void {
     if (!this.isStepValid(this.currentStep)) return;
     this.currentStep++;
@@ -116,7 +120,6 @@ export class BranchOnboardingComponent implements OnInit {
   }
 
   // ── Modal ─────────────────────────────────────────────────
-
   openConfirmModal(): void {
     this.showConfirmModal = true;
     this.errorMessage = '';
@@ -127,7 +130,6 @@ export class BranchOnboardingComponent implements OnInit {
   }
 
   // ── Register branch ───────────────────────────────────────
-
   registerBranch(): void {
     this.errorMessage = '';
     this.router.navigate(['/cooperative/branches/dashboard'], {
@@ -144,17 +146,18 @@ export class BranchOnboardingComponent implements OnInit {
   }
 
   // ── Save progress ─────────────────────────────────────────
-
   saveProgress(): void {
     this.isSaving = true;
     setTimeout(() => {
       this.isSaving = false;
-      this.toast.success('Progress saved', 'Your branch details have been saved. You can continue later.');
+      this.toast.success(
+        'Progress saved',
+        'Your branch details have been saved. You can continue later.',
+      );
     }, 1000);
   }
 
   // ── Field error helper ────────────────────────────────────
-
   getFieldError(fieldName: string): string {
     const control = this.branchForm.get(fieldName);
     if (control?.touched && control?.errors) {
@@ -175,7 +178,6 @@ export class BranchOnboardingComponent implements OnInit {
   }
 
   // ── Form value getter ─────────────────────────────────────
-
   get formValue() {
     return this.branchForm.value;
   }

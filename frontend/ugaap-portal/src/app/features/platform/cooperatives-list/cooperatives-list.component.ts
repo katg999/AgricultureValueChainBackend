@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { Title } from '@angular/platform-browser';
 
 // Shared components
 import { TableComponent, TableColumn } from '../../../shared/components/table/table.component';
@@ -154,9 +155,10 @@ export class CooperativesListComponent implements OnInit {
    */
   isExporting = false;
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private titleService: Title) {}
 
   ngOnInit(): void {
+    this.titleService.setTitle('Cooperatives List | UGAAP');
     // Initialize filtered data
     this.filteredCooperatives = [...this.cooperatives];
   }

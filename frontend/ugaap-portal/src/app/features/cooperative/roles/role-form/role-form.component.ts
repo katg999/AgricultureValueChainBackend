@@ -1,25 +1,38 @@
-import { Component, OnInit, inject } from '@angular/core';
+// features/cooperative/roles/role-form/role-form.component.ts
+//
+// Create / edit a cooperative role, and provision the first user for it.
+//
+// Permissions are picked through the shared <app-permission-tabs> component:
+// one tab per service (Farmers, Inventory, …) showing every granular action
+// available under it. The selected ids drive the sidebar + guards at login
+// time, so a role with nothing under "farmers" never sees the Farmers menu.
+//
+// Save flow (three chained calls):
+//   1. POST /access/roles                  → create the role
+//   2. POST /access/roles/:id/permissions  → attach the selected permissions
+//   3. POST /access/users                  → create the user, returns generated
+//      credentials which are displayed once for the admin to copy.
+
+import { Component, OnInit, inject, signal, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 
 import { API_ENDPOINTS } from '../../../../core/constants/api-endpoints';
-import { InputComponent }   from '../../../../shared/components/input/input.component';
-import { ButtonComponent }  from '../../../../shared/components/button/button.component';
+import { InputComponent } from '../../../../shared/components/input/input.component';
+import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { InfoCardComponent } from '../../../../shared/components/info-card/info-card.component';
-import { ToastService }     from '../../../../core/services/toast.service';
+import { PermissionTabsComponent } from '../../../../shared/components/permission-tabs/permission-tabs.component';
+import { ToastService } from '../../../../core/services/toast.service';
 
-export interface Permission {
-  id: string;
-  label: string;
-  checked: boolean;
-}
-
-export interface PermissionModule {
-  name: string;
-  icon: string;
-  permissions: Permission[];
+/** Login details returned by the backend after the role's user is created */
+export interface GeneratedCredentials {
+  roleName: string;
+  username: string;
+  fullName: string;
+  email: string;
+  temporaryPassword: string;
 }
 
 @Component({
@@ -29,66 +42,27 @@ export interface PermissionModule {
     CommonModule,
     RouterModule,
     ReactiveFormsModule,
-    FormsModule,
     InputComponent,
     ButtonComponent,
     InfoCardComponent,
+    PermissionTabsComponent,
   ],
   templateUrl: './role-form.component.html',
   styleUrls: ['./role-form.component.css'],
 })
 export class RoleFormComponent implements OnInit {
-
   roleId: string | null = null;
   isEditMode = false;
   roleForm!: FormGroup;
   isLoading = false;
   errorMessage = '';
 
-  permissionModules: PermissionModule[] = [
-    {
-      name: 'Users Management', icon: '👥',
-      permissions: [
-        { id: 'membership.view',   label: 'View users',   checked: false },
-        { id: 'membership.create', label: 'Create users', checked: false },
-        { id: 'membership.edit',   label: 'Edit users',   checked: false },
-        { id: 'membership.delete', label: 'Delete users', checked: false },
-      ],
-    },
-    {
-      name: 'Cooperatives', icon: '🏢',
-      permissions: [
-        { id: 'coops.view',   label: 'View cooperatives',   checked: false },
-        { id: 'coops.create', label: 'Create cooperatives', checked: false },
-        { id: 'coops.edit',   label: 'Edit cooperatives',   checked: false },
-        { id: 'coops.delete', label: 'Delete cooperatives', checked: false },
-      ],
-    },
-    {
-      name: 'Financial Reports', icon: '📊',
-      permissions: [
-        { id: 'reports.view',   label: 'View reports',     checked: false },
-        { id: 'reports.create', label: 'Generate reports', checked: false },
-      ],
-    },
-    {
-      name: 'Inventory Management', icon: '📦',
-      permissions: [
-        { id: 'inventory.view',   label: 'View inventory',      checked: false },
-        { id: 'inventory.create', label: 'Add stock',            checked: false },
-        { id: 'inventory.edit',   label: 'Edit / Transfer stock', checked: false },
-        { id: 'inventory.delete', label: 'Delete stock',         checked: false },
-      ],
-    },
-    {
-      name: 'System Settings', icon: '⚙️',
-      permissions: [
-        { id: 'settings.view',  label: 'View settings',  checked: false },
-        { id: 'settings.edit',  label: 'Edit settings',  checked: false },
-        { id: 'settings.roles', label: 'Manage roles',   checked: false },
-      ],
-    },
-  ];
+  /** Permission ids granted to this role — two-way bound to the tab picker */
+  readonly selectedPermissions = signal<string[]>([]);
+
+  /** Set after a successful save — switches the view to the credentials card */
+  generatedCredentials: GeneratedCredentials | null = null;
+  credentialsCopied = false;
 
   private toast = inject(ToastService);
 
@@ -97,6 +71,7 @@ export class RoleFormComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private http: HttpClient,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -104,9 +79,12 @@ export class RoleFormComponent implements OnInit {
     this.isEditMode = !!this.roleId;
 
     this.roleForm = this.fb.group({
-      name:        ['', Validators.required],
+      name: ['', Validators.required],
       description: ['', Validators.required],
-      tenantId:    ['', Validators.required],
+      tenantId: ['', Validators.required],
+      fullName: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
+      phone: ['', [Validators.required, Validators.pattern(/^\+\d{1,3}\d{4,14}$/)]],
     });
 
     // Accept tenantId passed via router state (e.g. from onboarding)
@@ -120,35 +98,41 @@ export class RoleFormComponent implements OnInit {
     }
   }
 
-  // ── Permissions helpers ───────────────────────────────────────────────────
-
-  toggleModulePermissions(module: PermissionModule, checked: boolean): void {
-    module.permissions.forEach(p => (p.checked = checked));
-  }
-
-  isModuleFullySelected(module: PermissionModule): boolean {
-    return module.permissions.every(p => p.checked);
-  }
-
-  isModulePartiallySelected(module: PermissionModule): boolean {
-    const n = module.permissions.filter(p => p.checked).length;
-    return n > 0 && n < module.permissions.length;
-  }
-
   get selectedPermissionsCount(): number {
-    return this.permissionModules.reduce(
-      (sum, m) => sum + m.permissions.filter(p => p.checked).length, 0,
-    );
+    return this.selectedPermissions().length;
   }
 
   // ── Form helpers ──────────────────────────────────────────────────────────
 
   getFieldError(field: string): string {
     const ctrl = this.roleForm.get(field);
-    return (ctrl?.touched && ctrl?.errors?.['required']) ? 'This field is required' : '';
+    if (ctrl?.touched && ctrl?.errors) {
+      if (ctrl.errors['required']) return 'This field is required';
+      if (ctrl.errors['email']) return 'Please enter a valid email address';
+      if (ctrl.errors['pattern'] && field === 'phone')
+        return 'Include country code (e.g. +256712345678)';
+    }
+    return '';
   }
 
   cancel(): void {
+    this.router.navigate(['/cooperative/roles']);
+  }
+
+  // ── Credential helpers ────────────────────────────────────────────────────
+
+  copyAllCredentials(): void {
+    if (!this.generatedCredentials) return;
+    const { fullName, roleName, username, email, temporaryPassword } = this.generatedCredentials;
+    const text = `Full name: ${fullName}\nRole: ${roleName}\nUsername: ${username}\nEmail: ${email}\nPassword: ${temporaryPassword}`;
+    navigator.clipboard.writeText(text).then(() => {
+      this.credentialsCopied = true;
+      setTimeout(() => (this.credentialsCopied = false), 3000);
+    });
+  }
+
+  dismissCredentials(): void {
+    this.generatedCredentials = null;
     this.router.navigate(['/cooperative/roles']);
   }
 
@@ -160,84 +144,156 @@ export class RoleFormComponent implements OnInit {
       return;
     }
     if (this.selectedPermissionsCount === 0) {
-      this.toast.warning('No permissions selected', 'Please select at least one permission before saving.');
+      this.toast.warning(
+        'No permissions selected',
+        'Please select at least one permission before saving.',
+      );
       return;
     }
-    this.router.navigate(['/cooperative/roles']);
 
-    // this.isLoading = true;
-    // this.errorMessage = '';
+    this.isLoading = true;
+    this.errorMessage = '';
 
-    const rolePayload = {
-      name:        this.roleForm.value.name,
-      description: this.roleForm.value.description,
-      tenantId:    this.roleForm.value.tenantId,
-    };
-            
+    const { name, description, tenantId, fullName, email, phone } = this.roleForm.value;
 
+    // Step 1: Create role
+    this.http.post<any>(API_ENDPOINTS.ACCESS.ROLES, { name, description, tenantId }).subscribe({
+      next: (roleRes) => {
+        const createdRoleId = roleRes.roleId;
 
-    // this.http.post(API_ENDPOINTS.ACCESS.ROLES, rolePayload).subscribe({
-    //   next: (res: any) => {
-    //     const roleId = res.roleId;
-    //     this.http.post(
-    //       API_ENDPOINTS.ACCESS.ROLE_PERMISSIONS(roleId),
-    //       { permissions: this.getFormattedPermissions() },
-    //     ).subscribe({
-    //       next: () => {
-    //         this.isLoading = false;
-    //         this.toast.success('Role saved', `"${this.roleForm.value.name}" has been ${this.isEditMode ? 'updated' : 'created'} successfully.`);
-    //         this.router.navigate(['/cooperative/roles']);
-    //       },
-    //       error: (err) => {
-    //         this.isLoading = false;
-    //         const msg = err?.error?.message ?? 'Role was created but permissions could not be assigned.';
-    //         this.errorMessage = msg;
-    //         this.toast.error('Permissions failed', msg);
-    //       },
-    //     });
-    //   },
-    //   error: (err) => {
-    //     this.isLoading = false;
-    //     const msg = err?.error?.message ?? 'Failed to save the role. Please try again.';
-    //     this.errorMessage = msg;
-    //     this.toast.error('Save failed', msg);
-    //   },
-    // });
+        // Step 2: Assign permissions
+        this.http
+          .post<any>(API_ENDPOINTS.ACCESS.ROLE_PERMISSIONS(createdRoleId), {
+            permissions: this.toBackendPermissions(),
+          })
+          .subscribe({
+            next: () => {
+              // Step 3: Create user for this role
+              const state = history.state;
+              this.http
+                .post<any>(API_ENDPOINTS.ACCESS.USERS, {
+                  fullName,
+                  email,
+                  phone,
+                  tenantId,
+                  branchId: state?.branchId ?? '',
+                  roleId: createdRoleId,
+                })
+                .subscribe({
+                  next: (userRes) => {
+                    this.isLoading = false;
+                    this.generatedCredentials = {
+                      roleName: userRes.roleName,
+                      username: userRes.username,
+                      fullName: userRes.fullName,
+                      email: userRes.email,
+                      temporaryPassword: userRes.temporaryPassword,
+                    };
+                    this.cdr.detectChanges();
+                    this.toast.success(
+                      'Role created',
+                      `"${name}" and user account set up successfully.`,
+                    );
+                  },
+                  error: (err) => {
+                    this.isLoading = false;
+                    const msg =
+                      err?.error?.message ?? 'Role and permissions saved but user creation failed.';
+                    this.errorMessage = msg;
+                    this.toast.error('User creation failed', msg);
+                  },
+                });
+            },
+            error: (err) => {
+              this.isLoading = false;
+              const msg =
+                err?.error?.message ?? 'Role created but permissions could not be assigned.';
+              this.errorMessage = msg;
+              this.toast.error('Permissions failed', msg);
+            },
+          });
+      },
+      error: (err) => {
+        this.isLoading = false;
+        const msg = err?.error?.message ?? 'Failed to save the role. Please try again.';
+        this.errorMessage = msg;
+        this.toast.error('Save failed', msg);
+      },
+    });
   }
 
   // ── Private helpers ───────────────────────────────────────────────────────
 
   // private loadRoleData(): void {
-  //   // Stub — replace with real API call when endpoint is available
-  //   this.roleForm.patchValue({
-  //     name: 'Logistics Manager',
-  //     description: 'Manage inventory, shipments, and logistics',
-  //   });
+  //   // Stub — replace with real API call when endpoint is available.
+  //   // On load, push the role's granted ids into the picker:
+  //   //   this.selectedPermissions.set(role.permissions);
   // }
 
-  private getFormattedPermissions(): any[] {
-    const modMap: Record<string, string> = {
-      membership: 'MEMBERSHIP',
-      coops:      'BRANCHES',
-      inventory:  'INVENTORY',
-      reports:    'REPORTING',
-      settings:   'ACCESS_MANAGEMENT',
+  /**
+   * Converts the granular frontend ids (e.g. "farmers.approve",
+   * "reports.payments.view") into the {module, action} pairs the backend
+   * accepts today (shared/security/Permission.java). The original id is sent
+   * in `description` so nothing is lost; once the backend stores granular ids
+   * natively this mapping can be dropped and the raw ids sent instead.
+   */
+  private toBackendPermissions(): { module: string; action: string; description: string }[] {
+    const moduleMap: Record<string, string> = {
+      dashboard: 'REPORTING',
+      organisation: 'BRANCHES',
+      configuration: 'ACCESS_MANAGEMENT',
+      collections: 'INVENTORY',
+      farmers: 'MEMBERSHIP',
+      branches: 'BRANCHES',
+      inventory: 'INVENTORY',
+      users: 'MEMBERSHIP',
+      roles: 'ACCESS_MANAGEMENT',
+      reports: 'REPORTING',
+      cooperatives: 'BRANCHES',
+      settings: 'ACCESS_MANAGEMENT',
     };
-    const actMap: Record<string, string> = {
-      view: 'VIEW', create: 'CREATE', edit: 'EDIT', delete: 'DELETE',
-      generate: 'CREATE', transfer: 'EDIT', roles: 'EDIT',
+    const actionMap: Record<string, string> = {
+      view: 'VIEW',
+      metrics: 'VIEW',
+      performance: 'VIEW',
+      disburse: 'VIEW',
+      export: 'VIEW',
+      create: 'CREATE',
+      register: 'CREATE',
+      record: 'CREATE',
+      onboard: 'CREATE',
+      receive: 'CREATE',
+      issue: 'CREATE',
+      generate: 'CREATE',
+      build: 'CREATE',
+      edit: 'EDIT',
+      transfer: 'EDIT',
+      adjust: 'EDIT',
+      assign: 'EDIT',
+      submit: 'EDIT',
+      grade: 'EDIT',
+      reset_password: 'EDIT',
+      approve: 'APPROVE',
+      reject: 'APPROVE',
+      delete: 'DELETE',
+      deactivate: 'DELETE',
+      suspend: 'DELETE',
     };
 
-    const out: any[] = [];
-    this.permissionModules.forEach(mod => {
-      mod.permissions.forEach(p => {
-        if (!p.checked) return;
-        const [modKey, actKey] = p.id.split('.');
-        const module = modMap[modKey];
-        const action = actMap[actKey];
-        if (module && action) out.push({ module, action, description: p.label });
-      });
-    });
+    const seen = new Set<string>();
+    const out: { module: string; action: string; description: string }[] = [];
+
+    for (const id of this.selectedPermissions()) {
+      const parts = id.split('.');
+      const module = moduleMap[parts[0]];
+      const action = actionMap[parts[parts.length - 1]];
+      if (!module || !action) continue;
+
+      const key = `${module}:${action}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({ module, action, description: id });
+    }
     return out;
   }
 }

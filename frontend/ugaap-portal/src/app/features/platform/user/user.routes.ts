@@ -10,27 +10,33 @@ export const USER_ROUTES: Routes = [
   // URL: /platform/users
   {
     path: '',
+    title: 'Users List' + ' | UGAAP',
     loadComponent: () =>
       import('./users-list/users-list.component')
         .then(m => m.UsersListComponent),
+    
   },
 
   // Add new user
   // URL: /platform/users/add-user
   {
     path: 'add-user',
+    title: 'Add User' + ' | UGAAP',
     loadComponent: () =>
       import('./add-user/add-user.component')
         .then(m => m.AddUserComponent),
+     
   },
 
   // User detail view
   // URL: /platform/users/user/:id
   {
     path: 'user/:id',
+    title: 'User',
     loadComponent: () =>
       import('./user-details/user-details.component')
         .then(m => m.UserDetailsComponent),
+     
   },
 
   

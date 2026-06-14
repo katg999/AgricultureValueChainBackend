@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router, ActivatedRoute } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Title } from '@angular/platform-browser';
 
 // Shared components
 import { StepperComponent, Step } from '../../../shared/components/stepper/stepper.component';
@@ -10,7 +11,6 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
 import { ModalComponent } from '../../../shared/components/modal/modal.component';
 import { AlertComponent } from '../../../shared/components/alert/alert.component';
 import { CooperativeService } from '../../../core/services/cooperative.service';
-import { API_ENDPOINTS } from '../../../core/constants/api-endpoints';
 
 @Component({
   selector: 'app-cooperative-onboarding',
@@ -66,9 +66,11 @@ export class CooperativeOnboardingComponent implements OnInit {
     private fb: FormBuilder,
     private router: Router,
     private cooperativeService: CooperativeService,
+    private titleService: Title
   ) {}
 
   ngOnInit(): void {
+    this.titleService.setTitle('Cooperative Onboarding | UGAAP');
     this.initProfileForm();
   }
 
@@ -156,9 +158,10 @@ export class CooperativeOnboardingComponent implements OnInit {
 
     this.cooperativeService.createCooperative(payload).subscribe({
       next: (res) => {
+        console.log('ONBOARD RESPONSE:', res);
         this.isLoading = false;
 
-        this.router.navigate(['/cooperatives/maker-checker-creation'], {
+        this.router.navigate(['/platform/maker-checker'], {
           state: {
             cooperative: res,
             message: `Cooperative "${payload.name}" created successfully`,

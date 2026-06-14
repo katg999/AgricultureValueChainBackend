@@ -1,10 +1,6 @@
-<!-- 
-  Login Page
-  
-  Main authentication entry point
-  Uses reusable components: Logo, Alert, Input, Button
--->
-
+<!-- Login Page 
+ Main authentication entry point Uses reusable components:
+Logo, Alert, Input, Button-->
 <div class="auth-page">
   <!-- Main Auth Card -->
   <div class="auth-card">
@@ -12,7 +8,8 @@
     <app-logo size="md" [showSubtitle]="true"></app-logo>
 
     <!-- Error Alert (Reusable Component) -->
-    <app-alert variant="error" [message]="errorMessage" *ngIf="errorMessage"> </app-alert>
+    <app-alert variant="error" [message]="errorMessage" *ngIf="errorMessage">
+    </app-alert>
 
     <!-- Login Form -->
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
@@ -46,13 +43,12 @@
 
       <!-- Submit Button (Reusable Component) -->
       <app-button
-        type="submit"
+        type="button"
         variant="primary"
         size="lg"
         [fullWidth]="true"
         [loading]="isLoading"
-        loadingText="Logging in..."
-      >
+        (clicked)="onSubmit()">
         Login
       </app-button>
     </form>

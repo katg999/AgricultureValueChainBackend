@@ -69,31 +69,39 @@ public class RoleService {
             AccessManagementDto.AssignPermissionsRequest request) {
 
         Role role = roleRepository.findById(UUID.fromString(roleId))
-                .orElseThrow(() -> new AuthException(
-                        "Role not found: " + roleId));
+                .orElseThrow(() -> new AuthException("Role not found: " + roleId));
 
         Set<Permission> permissions = new HashSet<>();
+
         for (AccessManagementDto.PermissionRequest pr : request.getPermissions()) {
-            Permission permission = permissionRepository
-                    .findByModuleAndAction(
-                            Permission.Module.valueOf(pr.getModule()),
-                            Permission.Action.valueOf(pr.getAction()))
-                    .orElseGet(() -> permissionRepository.save(
-                            Permission.builder()
-                                    .module(Permission.Module.valueOf(pr.getModule()))
-                                    .action(Permission.Action.valueOf(pr.getAction()))
-                                    .description(pr.getDescription())
-                                    .build()
-                    ));
-            permissions.add(permission);
+
+            // Split comma-separated modules and actions, This allows to accept any structure from the frontend either comma separated values or individual objects
+            String[] modules = pr.getModule().split(",");
+            String[] actions = pr.getAction().split(",");
+
+            for (String moduleStr : modules) {
+                for (String actionStr : actions) {
+                    Permission.Module module = Permission.Module.valueOf(moduleStr.trim());
+                    Permission.Action action = Permission.Action.valueOf(actionStr.trim());
+
+                    Permission permission = permissionRepository
+                            .findByModuleAndAction(module, action)
+                            .orElseGet(() -> permissionRepository.save(
+                                    Permission.builder()
+                                            .module(module)
+                                            .action(action)
+                                            .description(pr.getDescription())
+                                            .build()
+                            ));
+                    permissions.add(permission);
+                }
+            }
         }
 
         role.setPermissions(permissions);
         roleRepository.save(role);
 
-        log.info("Permissions assigned to roleId={}, count={}",
-                roleId, permissions.size());
-
+        log.info("Permissions assigned to roleId={}, count={}", roleId, permissions.size());
         return mapToResponse(role);
     }
 

@@ -73,11 +73,13 @@ export class OtpVerifyComponent implements OnInit, AfterViewInit, OnDestroy {
   // ── Lifecycle ───────────────────────────────────────────────────────────────
 
   ngOnInit(): void {
-    // If there is no tempToken the user jumped here directly — send them back
-    if (!this.session.getTempToken()) {
-      this.router.navigate(['/auth/login']);
-      return;
-    }
+    // const token = this.session.getTempToken();
+    // console.log('OTP page -token:', token);
+    // if (!token) {
+    //   console.log('No token -> redirecting');
+    //   this.router.navigate(['/auth/login']);
+    //   return;
+    // }
     this.startCountdown();
   }
 

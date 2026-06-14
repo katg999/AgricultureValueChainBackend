@@ -51,16 +51,7 @@
 
 
            <!-- Tenant ID (UNDER DESCRIPTION) -->
-        <div class="form-row">
-          <app-input
-            label="Tenant ID"
-            type="text"
-            placeholder="e.g. ugaap-farmers"
-            formControlName="tenantId"
-            [required]="true"
-            [error]="getFieldError('tenantId')">
-          </app-input>
-        </div>
+        <!--Tenant ID input removed from UI to decouple from cooperatives -->
 
       </app-info-card>
 
@@ -69,58 +60,18 @@
         
         <!-- Permissions Summary -->
         <div class="permissions-summary">
-          
+
           <div class="summary-content">
-            <h3>{{ selectedPermissionsCount }} permissions selected</h3>
-            <p>Grant specific access rights to users with this role</p>
+            <h3>{{ selectedPermissionsCount }} permission{{ selectedPermissionsCount === 1 ? '' : 's' }} selected</h3>
+            <p>Select a service tab to see everything this role can do under it. Users only see sidebar entries they hold permissions for.</p>
           </div>
         </div>
 
-        <!-- Permission Modules -->
-        <div class="permissions-modules">
-          
-          <div 
-            *ngFor="let module of permissionModules"
-            class="permission-module">
-            
-            <!-- Module Header -->
-            <div class="module-header">
-              <div class="module-title-row">
-                <span class="module-icon">{{ module.icon }}</span>
-                <h4 class="module-name">{{ module.name }}</h4>
-                
-                <!-- Select All Checkbox -->
-                <label class="checkbox-container checkbox-select-all">
-                  <input
-                    type="checkbox"
-                    [checked]="isModuleFullySelected(module)"
-                    [indeterminate]="isModulePartiallySelected(module)"
-                    (change)="toggleModulePermissions(module, $any($event.target).checked)">
-                  <span class="checkmark"></span>
-                  <span class="checkbox-label">Select all</span>
-                </label>
-              </div>
-            </div>
-
-            <!-- Module Permissions -->
-            <div class="module-permissions">
-              
-              <label 
-                *ngFor="let permission of module.permissions"
-                class="checkbox-container">
-                <input
-                  type="checkbox"
-                  [(ngModel)]="permission.checked"
-                  [ngModelOptions]="{standalone: true}">
-                <span class="checkmark"></span>
-                <span class="checkbox-label">{{ permission.label }}</span>
-              </label>
-
-            </div>
-
-          </div>
-
-        </div>
+        <!-- Tabbed permission picker — one tab per platform service -->
+        <app-permission-tabs
+          scope="platform"
+          [(selected)]="selectedPermissions">
+        </app-permission-tabs>
 
       </app-info-card>
 
@@ -133,13 +84,11 @@
           Cancel
         </button>
 
+         <!-- Removed (clicked) to let (ngSubmit) handle the action properly --> -->
         <app-button
           type="submit"
           variant="primary"
-          size="lg"
-          
-          
-          (clicked)="saveRole()">
+          size="lg">
           {{ isEditMode ? 'Update role' : 'Create role' }}
         </app-button>
       </div>

@@ -138,7 +138,7 @@ export class UserDetailsComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
   ) {}
 
   ngOnInit(): void {
@@ -158,6 +158,7 @@ export class UserDetailsComponent implements OnInit {
    */
   editProfile(): void {
     this.router.navigate(['/users', this.userId, 'edit']);
+
   }
 
   /**
