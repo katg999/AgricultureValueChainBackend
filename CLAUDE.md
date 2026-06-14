@@ -21,8 +21,9 @@ npm install          # Install dependencies
 ng serve             # Dev server at http://localhost:4200
 ng build             # Development build
 ng build --configuration production  # Production build
-ng test              # Run unit tests (Vitest/Karma)
+ng test              # Run unit tests (Vitest)
 ng test --code-coverage              # Tests with coverage
+ng test --include="**/path/to/component.spec.ts"  # Run a single spec file
 ng lint              # Lint
 ng generate component features/<name> --standalone  # New component
 ng generate service core/services/<name>            # New service
@@ -50,6 +51,9 @@ Required environment variables for each service (set as env vars or in a `.env` 
 - `REDIS_HOST`, `REDIS_PORT` — Redis (used for OTP and session blacklisting)
 - `JWT_SECRET` — must be ≥32 chars
 - `INTERNAL_API_KEY` — shared secret for inter-service calls
+- `MINIO_ENDPOINT`, `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD`, `MINIO_BUCKET` — MinIO file storage (used by shared `MinioService`)
+
+Java version: 21 (parent/AuthenticationService/MembershipService), 17 (shared library, InventoryService 2).
 
 ---
 
@@ -62,10 +66,10 @@ backend/
 ├── eureka-server/       # Service registry (port 8761) — start first
 ├── config-server/       # Centralized config (port 8888)
 ├── api-gateway/         # Spring Cloud Gateway (port 8083) — all frontend traffic goes here
-├── shared/              # Shared library: security filters, JWT util, Feign clients, global exception handler
+├── shared/              # Shared library: security filters, JWT util, Feign clients, MinioService, global exception handler
 ├── AuthenticationService/   # Login, OTP, JWT issuance, session/blacklist via Redis (port 8081)
 ├── MembershipService/       # Cooperatives, branches, users, roles, permissions (port 8082)
-└── InventoryService 2/      # Stock, input allocations, produce collections
+└── InventoryService 2/      # Stock, input allocations, produce collections (check application.properties for port)
 ```
 
 All services register with Eureka. The gateway routes by path prefix:
@@ -77,7 +81,7 @@ All services register with Eureka. The gateway routes by path prefix:
 
 **Permission enforcement** on the backend uses AOP: annotate a service method with `@RequiresPermission(module = Permission.Module.X, action = Permission.Action.Y)` and `PermissionCheckAspect` enforces it. Permission strings are `MODULE:ACTION` (e.g. `MEMBERSHIP:APPROVE`).
 
-### Frontend — Angular 18 standalone
+### Frontend — Angular 21 standalone
 
 ```
 frontend/ugaap-portal/src/app/
@@ -86,9 +90,9 @@ frontend/ugaap-portal/src/app/
 │   ├── guards/          # auth-guard.ts
 │   ├── interceptors/    # auth (Bearer token), tenant (X-Cooperative-ID / X-Branch-ID), error (401/403)
 │   ├── models/          # auth.model.ts, farmer.model.ts
-│   └── services/        # session, auth, permission, dashboard-config, toast, tenant, cooperative
+│   └── services/        # session, auth, permission, dashboard-config, toast, tenant, cooperative, export
 ├── features/
-│   ├── auth/            # Login → OTP → session; forgot-password → reset-otp → set-new-password
+│   ├── auth/            # Login → OTP → session; forgot-password → reset-otp → set-new-password; account-locked, session-expired, first-time-login
 │   ├── platform/        # Platform admin: cooperatives list, onboarding wizard, users, roles, settings
 │   ├── cooperative/     # Coop admin: dashboard, grade-config, pricing, farmers, branches, collections, finance, inventory, roles
 │   └── branch/          # Branch staff: dashboard, collections, farmers, finance/batch, inventory, daily-grading
@@ -129,6 +133,7 @@ Three lazy-loaded route trees under the `AdminLayoutComponent` shell:
 All colours and fonts are CSS custom properties defined in `src/styles.css`:
 - Primary brand: `--primary: #F25D27` (orange)
 - Deep secondary: `--secondary: #200B26`
+- Surface low: `--surface-low: #F4F3F5`
 - Fonts: `--font-human: 'Inter'` (UI text), `--font-technical: 'IBM Plex Mono'` (IDs, codes, timestamps)
 
 Always use CSS variables — never hardcode hex values.
@@ -136,6 +141,10 @@ Always use CSS variables — never hardcode hex values.
 ### Development mock user
 
 In non-production builds, `SessionService._loadUser()` seeds a `DEV_MOCK_USER` with role `branch` when no real session exists. This lets the UI be developed without a running backend. To test other roles, update `DEV_MOCK_USER.role` locally (do not commit).
+
+### Frontend environment config
+
+`src/environments/environment.ts` has `apiUrl: 'http://localhost:3000/api/v1'`, but the actual API Gateway runs on port **8083**. When connecting to a real backend, update `environment.ts` (or set the proxy) to point to `http://localhost:8083`.
 
 ---
 

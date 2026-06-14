@@ -1,316 +1,86 @@
-<div class="bf-page" (click)="closeMenu()">
+<!-- batch-farmers.component.html
+     Shows only the ELIGIBLE farmers for ONE specific batch (identified by the :id URL param).
+     Three sections:
+       1. Page header: back button + batch metadata (name, season, date range)
+       2. Summary bar: count + total payout amount
+       3. Farmer table
+-->
 
-  <!-- Batch not found -->
-  <div class="bf-not-found" *ngIf="!batch">
-    <p>Batch not found.</p>
-    <button type="button" class="btn-back" (click)="goBack()">← Back to Batch Processing</button>
+<div class="farmers-page">
+
+  <!-- ── 1. Page header ──────────────────────────────────────────────────── -->
+  <div class="page-header">
+    <!-- (click)="goBack()" navigates back to the batch list -->
+    <button class="back-btn" type="button" (click)="goBack()">← Back to Batches</button>
+
+    <!-- 'batch' starts as undefined (the lookup happens in ngOnInit).
+         @if (batch) waits until it's loaded before trying to access batch.batchName etc.
+         @else shows a fallback message in case the ID in the URL doesn't match any batch. -->
+    @if (batch) {
+      <h1>{{ batch.batchName }}</h1>
+      <!-- &nbsp;·&nbsp; = a "·" bullet separator with non-breaking spaces on each side
+           so it doesn't awkwardly wrap onto its own line on small screens -->
+      <p>
+        {{ batch.season }} &nbsp;·&nbsp;
+        {{ batch.openingDate }} — {{ batch.closingDate }} &nbsp;·&nbsp;
+        {{ batch.commodityFilter }} &nbsp;·&nbsp; {{ batch.branch }}
+      </p>
+    } @else {
+      <h1>Batch not found</h1>
+    }
   </div>
 
-  <ng-container *ngIf="batch">
-
-    <!-- Breadcrumb -->
-    <nav class="bf-breadcrumb" aria-label="Breadcrumb">
-      <span class="bc-link" (click)="goBack()">Batch Processing</span>
-      <span class="bc-sep">›</span>
-      <span class="bc-current">{{ batch.batchName }}</span>
-    </nav>
-
-    <!-- Page header -->
-    <div class="bf-header">
-      <div class="bf-header__left">
-        <button type="button" class="btn-back" (click)="goBack()">← Back</button>
-        <div>
-          <h1 class="bf-title">{{ batch.batchName }}</h1>
-          <div class="bf-meta">
-            <span class="season-badge" [ngClass]="seasonClass(batch.season)">{{ batch.season }}</span>
-            <span class="status-badge" [class]="'status-badge status-badge--' + batch.status">{{ batch.status }}</span>
-            <span class="bf-date">Opened {{ batch.createdAt | date:'dd MMM yyyy' }}</span>
-          </div>
-        </div>
-      </div>
-      <app-button variant="primary" iconLeft="+" (clicked)="openAddModal()">
-        Add Farmer
-      </app-button>
+  <!-- ── 2. Summary bar ──────────────────────────────────────────────────── -->
+  <!-- Only shown when there are farmers — no point showing "0 eligible farmers / Total: UGX 0" -->
+  @if (farmers.length > 0) {
+    <div class="summary-bar">
+      <span><strong>{{ farmers.length }}</strong> eligible farmers</span>
+      <span class="divider">|</span>
+      <!-- totalAmount is a getter in the .ts file — it calls reduce() on the farmers array -->
+      <span>Total: <strong class="mono">{{ formatCurrency(totalAmount) }}</strong></span>
     </div>
+  }
 
-    <!-- Summary cards (reactive to farmer mutations) -->
-    <div class="bf-summary-grid" *ngIf="batch">
-      <div class="bf-card bf-card--farmers">
-        <span class="bf-card__label">Farmers in Batch</span>
-        <span class="bf-card__value">{{ batch.farmerCount }}</span>
-        <span class="bf-card__sub">Registered entries</span>
-      </div>
-      <div class="bf-card bf-card--gross">
-        <span class="bf-card__label">Total Gross</span>
-        <span class="bf-card__value mono">UGX {{ formatUGX(batch.grossAmount) }}</span>
-        <span class="bf-card__sub">Before deductions</span>
-      </div>
-      <div class="bf-card bf-card--deductions">
-        <span class="bf-card__label">Total Deductions</span>
-        <span class="bf-card__value mono">UGX {{ formatUGX(batch.deductions) }}</span>
-        <span class="bf-card__sub">Input credit</span>
-      </div>
-      <div class="bf-card bf-card--net">
-        <span class="bf-card__label">Net Payable</span>
-        <span class="bf-card__value mono">UGX {{ formatUGX(batch.netPayable) }}</span>
-        <span class="bf-card__sub">After deductions</span>
-      </div>
-    </div>
-
-    <!-- Farmer table -->
-    <div class="bf-table-section" *ngIf="farmers$ | async as farmers">
-      <div class="bf-table-header">
-        <div class="bf-table-header__left">
-          <span class="bf-table-title">Farmer Breakdown</span>
-          <span class="bf-table-count">{{ farmers.length }} farmer{{ farmers.length !== 1 ? 's' : '' }}</span>
-        </div>
-        <button
-          type="button"
-          class="btn-export"
-          [disabled]="farmers.length === 0"
-          (click)="exportCsv(farmers)">
-          ↓ Export CSV
-        </button>
-      </div>
-
-      <div class="bf-table-wrapper">
-        <table class="bf-table">
-          <thead>
+  <!-- ── 3. Farmer table ─────────────────────────────────────────────────── -->
+  <!-- Unlike the other farmer pages, this one doesn't use an Observable —
+       farmers is a plain array loaded synchronously in ngOnInit from the service. -->
+  <div class="table-card">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Farmer ID</th>
+            <th>Name</th>
+            <th>Commodity</th>
+            <th>Branch</th>
+            <th>Delivery Date</th>
+            <th>Payment Method</th>
+            <th class="numeric">Net Payable</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- track f.farmerId = stable identity for each row — avoids unnecessary re-renders -->
+          @for (f of farmers; track f.farmerId) {
             <tr>
-              <th>#</th>
-              <th>Farmer ID</th>
-              <th>Farmer Name</th>
-              <th>Phone</th>
-              <th>Commodity</th>
-              <th class="col-numeric">Gross (UGX)</th>
-              <th class="col-numeric">Deductions (UGX)</th>
-              <th class="col-numeric">Net Payable (UGX)</th>
-              <th>Status</th>
-              <th>Payment</th>
-              <th>Date Added</th>
-              <th class="col-center">Actions</th>
+              <td class="mono">{{ f.farmerId }}</td>
+              <td>{{ f.fullName }}</td>
+              <td>{{ f.commodity }}</td>
+              <td>{{ f.branch }}</td>
+              <td class="mono">{{ f.deliveryDate }}</td>
+              <td>{{ f.paymentMethod }}</td>
+              <td class="numeric mono">{{ formatCurrency(f.netPayable) }}</td>
             </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let farmer of farmers; let i = index; trackBy: trackByFarmerId" class="bf-table__row">
-              <td class="col-num mono">{{ i + 1 }}</td>
-              <td class="mono cell-id">{{ farmer.farmerId }}</td>
-              <td class="cell-name" [title]="farmer.farmerName">{{ farmer.farmerName }}</td>
-              <td class="mono">{{ farmer.phone }}</td>
-              <td>
-                <span class="commodity-tag">{{ farmer.commodity }}</span>
-              </td>
-              <td class="mono col-numeric">{{ formatUGX(farmer.grossAmount) }}</td>
-              <td class="mono col-numeric cell-deduction">{{ formatUGX(farmer.deductions) }}</td>
-              <td class="mono col-numeric cell-net">{{ formatUGX(farmer.netPayable) }}</td>
-              <td>
-                <span class="status-badge" [class]="'status-badge status-badge--' + farmer.status">{{ farmer.status }}</span>
-              </td>
-              <td>
-                <ng-container *ngIf="farmer.payment; else noPayment">
-                  <span class="pay-badge" [ngClass]="paymentBadgeClass(farmer)">
-                    {{ paymentLabel(farmer) }}
-                  </span>
-                  <div class="pay-detail">{{ paymentDetail(farmer) }}</div>
-                </ng-container>
-                <ng-template #noPayment>
-                  <span class="cell-id">—</span>
-                </ng-template>
-              </td>
-              <td class="mono cell-date">{{ farmer.addedAt | date:'dd MMM yyyy' }}</td>
-              <td class="col-center">
-                <div class="action-menu" (click)="$event.stopPropagation()">
-                  <button
-                    type="button"
-                    class="kebab-btn"
-                    aria-label="Farmer actions"
-                    [attr.aria-expanded]="openMenuId === farmer.id"
-                    (click)="toggleMenu(farmer.id, $event)">
-                    <span></span><span></span><span></span>
-                  </button>
-                  <div class="menu-panel" *ngIf="openMenuId === farmer.id">
-                    <button type="button" (click)="openEditModal(farmer)">Edit</button>
-                    <button type="button" class="danger" (click)="onRemove(farmer)">Remove</button>
-                  </div>
-                </div>
+          } @empty {
+            <!-- colspan="7" spans all 7 columns so the empty message is centered -->
+            <tr>
+              <td colspan="7" class="empty-state">
+                No eligible farmers for this batch (check commodity / branch filter).
               </td>
             </tr>
-
-            <tr *ngIf="farmers.length === 0">
-              <td colspan="12" class="empty-state">
-                No farmers in this batch yet. Click <strong>Add Farmer</strong> to get started.
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+          }
+        </tbody>
+      </table>
     </div>
+  </div>
 
-  </ng-container>
 </div>
-
-<!-- Add / Edit farmer modal -->
-<app-modal
-  [isOpen]="isModalOpen"
-  [title]="modalTitle"
-  subtitle="Gross and deductions apply to this farmer's share of the batch."
-  size="lg"
-  [confirmLabel]="editingFarmer ? 'Save Changes' : 'Add Farmer'"
-  cancelLabel="Cancel"
-  [confirmDisabled]="farmerForm.invalid"
-  (confirmed)="onSubmit()"
-  (closed)="closeModal()">
-  <form body [formGroup]="farmerForm" class="farmer-form" novalidate>
-
-    <!-- Delivery picker — only shown when adding a new farmer, not when editing -->
-    <ng-container *ngIf="!editingFarmer">
-      <div class="delivery-picker">
-        <label class="form-label">Pick from Season Deliveries</label>
-        <select title="select-delivery" #deliveryPicker class="delivery-picker__select" (change)="onDeliverySelect(deliveryPicker.value)">
-          <option value="">Choose a farmer delivery to auto-fill…</option>
-          <option *ngFor="let d of availableDeliveries" [value]="d.id">
-            {{ d.farmerName }} · {{ d.commodity }} · UGX {{ formatUGX(d.estimatedValue) }}
-          </option>
-        </select>
-        <p class="delivery-picker__hint" *ngIf="availableDeliveries.length === 0">
-          No unassigned {{ batch?.season }} deliveries found. Fill in the form manually.
-        </p>
-        <p class="delivery-picker__hint delivery-picker__hint--count" *ngIf="availableDeliveries.length > 0">
-          {{ availableDeliveries.length }} delivery record{{ availableDeliveries.length !== 1 ? 's' : '' }} available for {{ batch?.season }}
-        </p>
-      </div>
-      <div class="form-divider">
-        <span class="form-divider__label">Farmer Details</span>
-      </div>
-    </ng-container>
-
-    <div class="form-row form-row--two">
-      <div class="form-field">
-        <label class="form-label">Farmer Name <span class="req">*</span></label>
-        <input placeholder="e.g. Akello Grace" formControlName="farmerName">
-      </div>
-      <div class="form-field">
-        <label class="form-label">Farmer ID</label>
-        <input placeholder="e.g. F-00412" formControlName="farmerId">
-      </div>
-    </div>
-
-    <div class="form-row form-row--two">
-      <div class="form-field">
-        <label class="form-label">Phone</label>
-        <input placeholder="e.g. 0772100001" formControlName="phone">
-      </div>
-      <div class="form-field">
-        <label class="form-label">Commodity <span class="req">*</span></label>
-        <select  title="select-commodity" formControlName="commodity">
-          <option value="">Select commodity…</option>
-          <option *ngFor="let c of commodities" [value]="c">{{ c }}</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="form-divider">
-      <span class="form-divider__label">Financial Details</span>
-    </div>
-
-    <div class="form-row form-row--two">
-      <div class="form-field">
-        <label class="form-label">Gross Amount (UGX) <span class="req">*</span></label>
-        <input type="number" min="0" placeholder="0" formControlName="grossAmount">
-      </div>
-      <div class="form-field">
-        <label class="form-label">Deductions — Input Credit (UGX) <span class="req">*</span></label>
-        <input type="number" min="0" placeholder="0" formControlName="deductions">
-      </div>
-    </div>
-
-    <div class="form-row form-row--two">
-      <div class="form-field net-payable-field">
-        <label class="form-label">Net Payable (UGX)</label>
-        <div class="net-payable-display">
-          <span class="net-payable-display__prefix">UGX</span>
-          <span class="net-payable-display__value mono">
-            {{ farmerForm.get('netPayable')?.value !== null
-                ? formatUGX(farmerForm.get('netPayable')?.value ?? 0)
-                : '—' }}
-          </span>
-          <span class="net-payable-display__hint">Auto-calculated</span>
-        </div>
-      </div>
-      <div class="form-field">
-        <label class="form-label">Status <span class="req">*</span></label>
-        <select title="select-status" formControlName="status">
-          <option *ngFor="let s of statusOptions" [value]="s">{{ s }}</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- Payment Method -->
-    <div class="form-divider">
-      <span class="form-divider__label">Payment Method</span>
-    </div>
-
-    <div class="payment-toggle-group">
-      <button
-        type="button"
-        class="payment-toggle-btn"
-        [class.payment-toggle-btn--active]="selectedPaymentMethod === 'mobile_money'"
-        (click)="setPaymentMethod('mobile_money')">
-        Mobile Money
-      </button>
-      <button
-        type="button"
-        class="payment-toggle-btn"
-        [class.payment-toggle-btn--active]="selectedPaymentMethod === 'bank_account'"
-        (click)="setPaymentMethod('bank_account')">
-        Bank Account
-      </button>
-      <button
-        type="button"
-        class="payment-toggle-btn payment-toggle-btn--none"
-        [class.payment-toggle-btn--active]="selectedPaymentMethod === ''"
-        (click)="setPaymentMethod('')">
-        None
-      </button>
-    </div>
-
-    <!-- Mobile Money fields -->
-    <ng-container *ngIf="selectedPaymentMethod === 'mobile_money'">
-      <div class="form-row form-row--two">
-        <div class="form-field">
-          <label class="form-label">Provider <span class="req">*</span></label>
-          <select title="select-mm-provider" formControlName="mmProvider">
-            <option value="">Select provider…</option>
-            <option value="MTN">MTN Mobile Money</option>
-            <option value="Airtel">Airtel Money</option>
-          </select>
-        </div>
-        <div class="form-field">
-          <label class="form-label">Mobile Money Name <span class="req">*</span></label>
-          <input placeholder="Name registered on account" formControlName="mmAccountName">
-        </div>
-      </div>
-    </ng-container>
-
-    <!-- Bank Account fields -->
-    <ng-container *ngIf="selectedPaymentMethod === 'bank_account'">
-      <div class="form-row">
-        <div class="form-field">
-          <label class="form-label">Bank Name <span class="req">*</span></label>
-          <input placeholder="e.g. Stanbic Bank Uganda" formControlName="bankName">
-        </div>
-      </div>
-      <div class="form-row form-row--two">
-        <div class="form-field">
-          <label class="form-label">Account Number <span class="req">*</span></label>
-          <input placeholder="e.g. 9030012300001" formControlName="accountNumber" class="mono">
-        </div>
-        <div class="form-field">
-          <label class="form-label">Account Holder Name <span class="req">*</span></label>
-          <input placeholder="Name on bank account" formControlName="accountHolderName">
-        </div>
-      </div>
-    </ng-container>
-
-  </form>
-</app-modal>

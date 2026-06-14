@@ -1,116 +1,188 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
+// BatchProcessingComponent = the main batch list page.
+// It shows all payment batches, lets you filter by status or search by name,
+// and has a kebab menu on each row for actions (view farmers, submit, delete).
 
-import { SessionService } from '../../../../core/services/session.service';
-import { ButtonComponent } from '../../../../shared/components/button/button.component';
-import { ModalComponent } from '../../../../shared/components/modal/modal.component';
-import { Season } from '../../collections/branch.delivery.model';
-import { BatchRecord } from '../batch.model';
-import { BatchService } from '../batch.service';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { AsyncPipe, CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+// combineLatest = merges two streams. Whenever EITHER changes, re-run the mapping function.
+// shareReplay = prevents the HTTP call from re-firing when filterState$ changes.
+import { BehaviorSubject, combineLatest, map, Observable, shareReplay } from 'rxjs';
+
+import { PaymentBatchService } from '../services/payment-batch.service';
+import { PaymentExportService } from '../services/payment-export.service';
+import { PaymentBatch, BatchStatus } from '../models/batch.models';
 
 @Component({
   selector: 'app-batch-processing',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ButtonComponent, ModalComponent],
+  // AsyncPipe is imported separately so we can use the '| async' pipe in the template
+  // without importing the whole CommonModule (though CommonModule also includes it).
+  imports: [CommonModule, FormsModule, AsyncPipe],
   templateUrl: './batch-processing.html',
   styleUrls: ['./batch-processing.css'],
 })
 export class BatchProcessingComponent implements OnInit, OnDestroy {
-  private readonly destroy$ = new Subject<void>();
+  // '!' = "trust me TypeScript, this WILL be set before it's used" (in ngOnInit).
+  // Without it, TypeScript would complain that it might be undefined.
+  filteredBatches$!: Observable<PaymentBatch[]>;
 
-  isModalOpen = false;
-  batchForm!: FormGroup;
-  batches: BatchRecord[] = [];
+  // These two-way-bind to the filter inputs in the template via [(ngModel)].
+  searchTerm = '';
+  selectedStatus = '';
 
-  selectedSeason: '' | Season = '';
-  readonly seasons: Season[] = ['Wet Season', 'Dry Season'];
+  // Tracks which row's kebab menu is open. null = all menus closed.
+  openActionMenuId: string | null = null;
 
-  get filteredBatches(): BatchRecord[] {
-    if (!this.selectedSeason) return this.batches;
-    return this.batches.filter(b => b.season === this.selectedSeason);
-  }
+  // Stores where to position the dropdown (calculated from the button's screen position).
+  menuPosition: { top?: number; bottom?: number; right: number } = { right: 0 };
 
-  get groupedBatches(): { season: Season; batches: BatchRecord[] }[] {
-    return this.seasons
-      .map(season => ({ season, batches: this.filteredBatches.filter(b => b.season === season) }))
-      .filter(g => g.batches.length > 0);
-  }
+  // The tab buttons across the top — 'All' has an empty value so it doesn't filter anything.
+  readonly statusTabs: Array<{ label: string; value: string }> = [
+    { label: 'All',              value: '' },
+    { label: 'Draft',            value: 'Draft' },
+    { label: 'Pending Approval', value: 'Pending Approval' },
+    { label: 'Approved',         value: 'Approved' },
+    { label: 'Rejected',         value: 'Rejected' },
+    { label: 'Disbursed',        value: 'Disbursed' },
+  ];
 
-  get totalGross(): number    { return this.filteredBatches.reduce((s, b) => s + b.grossAmount, 0); }
-  get totalDeductions(): number { return this.filteredBatches.reduce((s, b) => s + b.deductions, 0); }
-  get totalNetPayable(): number { return this.filteredBatches.reduce((s, b) => s + b.netPayable, 0); }
-  get pendingCount(): number  { return this.filteredBatches.filter(b => b.status === 'pending').length; }
+  private readonly svc = inject(PaymentBatchService);
+  private readonly exportSvc = inject(PaymentExportService);
+  private readonly router = inject(Router);
 
-  constructor(
-    private readonly fb: FormBuilder,
-    private readonly batchService: BatchService,
-    private readonly router: Router,
-    private readonly session: SessionService,
-  ) {}
+  // filterState$ holds the current search+status values as a reactive stream.
+  // When we call .next({...}), the filtered list automatically recalculates.
+  private readonly filterState$ = new BehaviorSubject({ searchTerm: '', selectedStatus: '' });
 
   ngOnInit(): void {
-    this.initForm();
-    this.batchService.batchesForRole$(this.session.branchId(), this.session.userRole())
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(batches => { this.batches = batches; });
+    // shareReplay caches the last emitted value — so when filterState$ changes,
+    // it doesn't re-trigger the HTTP fetch in getBatches().
+    const batches$ = this.svc.getBatches().pipe(shareReplay({ bufferSize: 1, refCount: true }));
+
+    // combineLatest watches both streams. Either one changing triggers a new filtered list.
+    this.filteredBatches$ = combineLatest([batches$, this.filterState$]).pipe(
+      map(([batches, filter]) => this.filterBatches(batches, filter)),
+    );
   }
 
+  // BehaviorSubject must be completed when the component is destroyed
+  // to prevent memory leaks (it holds a reference that keeps the component alive).
   ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
+    this.filterState$.complete();
   }
 
-  setSeasonFilter(season: '' | Season): void {
-    this.selectedSeason = season;
+  // Called every time the search input changes — pushes a new value to filterState$.
+  applyFilter(): void {
+    this.filterState$.next({ searchTerm: this.searchTerm, selectedStatus: this.selectedStatus });
   }
 
-  seasonClass(season: Season): string {
-    return season === 'Wet Season' ? 'season-wet' : 'season-dry';
+  // Tab click handler — sets the status and triggers a re-filter.
+  setStatusFilter(status: string): void {
+    this.selectedStatus = status;
+    this.applyFilter();
   }
 
-  goToFarmers(batch: BatchRecord): void {
+  goToCreateBatch(): void {
+    this.router.navigate(['/branch/finance/batch-create']);
+  }
+
+  viewFarmers(batch: PaymentBatch): void {
+    // Navigate to the dynamic route — Angular fills in batch.id for the :id segment.
     this.router.navigate(['/branch/finance/batch', batch.id, 'farmers']);
+    this.openActionMenuId = null;
   }
 
-  openModal(): void {
-    this.batchForm.reset();
-    this.isModalOpen = true;
+  submitForApproval(batch: PaymentBatch): void {
+    this.svc.updateBatchStatus(batch.id, 'Pending Approval');
+    this.openActionMenuId = null;
   }
 
-  closeModal(): void {
-    this.isModalOpen = false;
+  deleteBatch(batch: PaymentBatch): void {
+    this.svc.deleteBatch(batch.id);
+    this.openActionMenuId = null;
   }
 
-  onSubmit(): void {
-    if (this.batchForm.invalid) {
-      this.batchForm.markAllAsTouched();
+  // Builds and downloads the bank bulk-payment CSV for this batch.
+  // Only available once a batch is past Draft — Draft means the batch isn't finalised yet.
+  exportPaymentFile(batch: PaymentBatch): void {
+    this.exportSvc.exportBatchPaymentFile(batch);
+    this.openActionMenuId = null;
+  }
+
+  // Handles opening/closing the kebab dropdown.
+  // Also calculates whether to position it above or below the button
+  // (if there's not enough space below, flip it upward).
+  toggleActionMenu(batchId: string, event: MouseEvent): void {
+    event.stopPropagation(); // prevents the page-level click from immediately closing it
+    if (this.openActionMenuId === batchId) {
+      this.openActionMenuId = null; // clicking the same button closes it
       return;
     }
-    const raw = this.batchForm.getRawValue();
-    this.batchService.addBatch({
-      batchId: raw.batchId,
-      batchName: raw.batchName,
-      season: raw.season,
-      branchId: this.session.branchId() ?? '',
-    });
-    this.closeModal();
+    const btn = event.currentTarget as HTMLElement;
+    const rect = btn.getBoundingClientRect(); // gets the button's position on screen
+    const right = window.innerWidth - rect.right;
+    const dropdownHeight = 120;
+    // If there's less than dropdownHeight pixels below the button, open upward instead.
+    if (window.innerHeight - rect.bottom < dropdownHeight) {
+      this.menuPosition = { bottom: window.innerHeight - rect.top + 4, right };
+    } else {
+      this.menuPosition = { top: rect.bottom + 4, right };
+    }
+    this.openActionMenuId = batchId;
   }
 
-  trackByBatchId(_i: number, b: BatchRecord): string { return b.id; }
-  trackBySeason(_i: number, g: { season: Season }): string { return g.season; }
-
-  formatUGX(value: number): string {
-    return new Intl.NumberFormat('en-UG', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
+  closeActionMenu(): void {
+    this.openActionMenuId = null;
   }
 
-  private initForm(): void {
-    this.batchForm = this.fb.group({
-      batchName: ['', Validators.required],
-      batchId:   ['', Validators.required],
-      season:    ['', Validators.required],
+  // Maps each BatchStatus value to a CSS class name defined in the stylesheet.
+  // Record<BatchStatus, string> = TypeScript ensures every status has an entry — no gaps.
+  statusClass(status: BatchStatus): string {
+    const classes: Record<BatchStatus, string> = {
+      'Draft':            'status-draft',
+      'Pending Approval': 'status-pending',
+      'Approved':         'status-approved',
+      'Rejected':         'status-rejected',
+      'Disbursed':        'status-disbursed',
+    };
+    return classes[status];
+  }
+
+  formatCurrency(amount: number): string {
+    return new Intl.NumberFormat('en-UG', {
+      style: 'currency',
+      currency: 'UGX',
+      maximumFractionDigits: 0,
+    }).format(amount);
+  }
+
+  // trackById tells Angular how to identify each table row.
+  // Without it, Angular destroys and re-creates every row on each filter change.
+  // With it, Angular only re-renders rows that actually changed — much more efficient.
+  trackById(_index: number, item: PaymentBatch): string {
+    return item.id;
+  }
+
+  // Filters the batch array by both search text and selected status tab.
+  // 'private' means only this class can call it — components outside can't touch it.
+  private filterBatches(
+    batches: PaymentBatch[],
+    filter: { searchTerm: string; selectedStatus: string },
+  ): PaymentBatch[] {
+    const term = filter.searchTerm.trim().toLowerCase();
+    return batches.filter(b => {
+      // If term is empty, !term is true = include everything (no search applied).
+      const matchSearch =
+        !term ||
+        b.id.toLowerCase().includes(term) ||
+        b.batchName.toLowerCase().includes(term) ||
+        b.season.toLowerCase().includes(term) ||
+        b.commodityFilter.toLowerCase().includes(term);
+      // If no status tab is selected (value = ''), show all statuses.
+      const matchStatus = !filter.selectedStatus || b.status === filter.selectedStatus;
+      return matchSearch && matchStatus;
     });
   }
 }

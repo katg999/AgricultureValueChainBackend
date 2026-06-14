@@ -1,0 +1,205 @@
+<!-- batch-create.component.html
+     Sections:
+       1. Page header  (app-page-header — shared component)
+       2. The form     (app-input for text/date fields, raw <select> for dropdowns,
+                        app-button for actions — app-input doesn't support <select>)
+       3. Preview section — visible only after "Preview Farmers" is clicked
+-->
+
+<div class="batch-create-page">
+
+  <!-- ── 1. Page header ──────────────────────────────────────────────────── -->
+  <!-- app-page-header renders the breadcrumb, h1 title, and subtitle for us.
+       Anything placed inside its tags goes into the <ng-content> slot (top-right area). -->
+  <app-page-header
+    title="Batch details"
+    subtitle="Define filters to preview and create a farmer payment batch."
+    [breadcrumb]="['Finance', 'Batch details']">
+  </app-page-header>
+
+  <!-- ── 2. The form ─────────────────────────────────────────────────────── -->
+  <!-- [formGroup]="form" links this element to the FormGroup defined in the .ts file -->
+  <form [formGroup]="form" class="batch-form">
+
+    <!-- app-input handles the <label>, <input>, and error message internally.
+         [error]="getError('batchName')" passes an empty string when valid (hides the error),
+         or a message string when invalid + touched (shows the error below the input). -->
+    <app-input
+      formControlName="batchName"
+      label="Batch name"
+      type="text"
+      placeholder="e.g. October 2024 Payment Run"
+      [required]="true"
+      [error]="getError('batchName')">
+    </app-input>
+
+    <!-- app-input doesn't wrap <select> — season/commodity/branch stay as raw selects.
+         @for = Angular's new loop syntax; track s = stable identity so Angular doesn't
+         re-render unchanged options on every change detection cycle. -->
+    <div class="field">
+      <label for="season">Season</label>
+      <select id="season" formControlName="season">
+        @for (s of seasons; track s) {
+          <option [value]="s">{{ s }}</option>
+        }
+      </select>
+    </div>
+
+    <!-- field-row = side-by-side layout; field-col gives each child flex: 1 so they share width equally -->
+    <div class="field-row">
+      <div class="field-col">
+        <app-input
+          formControlName="openingDate"
+          label="Opening date"
+          type="date"
+          [required]="true"
+          [error]="getError('openingDate')">
+        </app-input>
+      </div>
+      <div class="field-col">
+        <app-input
+          formControlName="closingDate"
+          label="Closing date"
+          type="date"
+          [required]="true"
+          [error]="getError('closingDate')">
+        </app-input>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="commodityFilter">Commodity filter</label>
+      <select id="commodityFilter" formControlName="commodityFilter">
+        @for (c of commodities; track c) {
+          <option [value]="c">{{ c }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="branch">Branch / Collection Center</label>
+      <select id="branch" formControlName="branch">
+        @for (b of branches; track b) {
+          <option [value]="b">{{ b }}</option>
+        }
+      </select>
+    </div>
+
+    <!-- app-button's (clicked) output only fires when the button isn't disabled or loading.
+         variant="ghost" = transparent with border (same visual intent as the old btn-outline).
+         variant="secondary" = muted background (Cancel).
+         variant="primary" = orange (main CTA). -->
+    <div class="form-actions">
+      <app-button variant="secondary" type="button" (clicked)="onCancel()">Cancel</app-button>
+      <app-button variant="ghost" type="button" (clicked)="onPreviewFarmers()">Preview Farmers</app-button>
+      <app-button variant="primary" type="button" (clicked)="onCreateBatch()">Create Batch</app-button>
+    </div>
+  </form>
+
+  <!-- ── 3. Preview section ──────────────────────────────────────────────── -->
+  <!-- hasPreviewed() is a signal — flips to true when Preview Farmers is clicked.
+       @if re-evaluates it on every change detection; this whole block appears instantly. -->
+  @if (hasPreviewed()) {
+    <div class="preview-section">
+
+      <!-- Success banner — only shows after the batch has been saved -->
+      @if (createdBatchId()) {
+        <div class="success-banner">
+          Batch <strong>{{ createdBatchId() }}</strong> created with status
+          <strong>Draft</strong>. You can review it later from the batch list.
+          <button class="link-btn" (click)="onGoToBatchList()">Go to Batch List →</button>
+        </div>
+      }
+
+      <!-- Warning banner — alerts the user that some farmers won't be in the batch -->
+      @if (previewExcluded().length > 0) {
+        <div class="warning-banner">
+          ⚠ {{ previewExcluded().length }} farmer(s) excluded due to missing or
+          incomplete bank details. They will not be included in this batch.
+        </div>
+      }
+
+      <!-- Three quick summary numbers -->
+      <div class="summary-cards">
+        <div class="summary-card">
+          <span class="summary-label">Eligible Farmers</span>
+          <span class="summary-value">{{ previewEligible().length }}</span>
+        </div>
+        <div class="summary-card">
+          <span class="summary-label">Excluded Farmers</span>
+          <span class="summary-value summary-warning">{{ previewExcluded().length }}</span>
+        </div>
+        <div class="summary-card">
+          <span class="summary-label">Total Amount</span>
+          <span class="summary-value mono">{{ formatCurrency(totalEligibleAmount) }}</span>
+        </div>
+      </div>
+
+      <!-- ── Eligible farmers table ──────────────────────────────────────── -->
+      <h2 class="section-title">Eligible Farmers</h2>
+      <div class="table-card">
+        <table class="farmer-table">
+          <thead>
+            <tr>
+              <th>Farmer ID</th>
+              <th>Name</th>
+              <th>Commodity</th>
+              <th>Branch</th>
+              <th>Delivery Date</th>
+              <th>Payment Method</th>
+              <th class="numeric">Net Payable</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (f of previewEligible(); track f.farmerId) {
+              <tr>
+                <td>{{ f.farmerId }}</td>
+                <td>{{ f.fullName }}</td>
+                <td>{{ f.commodity }}</td>
+                <td>{{ f.branch }}</td>
+                <td>{{ f.deliveryDate }}</td>
+                <td>{{ f.paymentMethod }}</td>
+                <td class="numeric mono">{{ formatCurrency(f.netPayable) }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="7" class="empty-state">No farmers match the selected criteria.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ── Excluded farmers table ──────────────────────────────────────── -->
+      @if (previewExcluded().length > 0) {
+        <h2 class="section-title">Excluded Farmers (incomplete bank details)</h2>
+        <div class="table-card">
+          <table class="farmer-table">
+            <thead>
+              <tr>
+                <th>Farmer ID</th>
+                <th>Name</th>
+                <th>Commodity</th>
+                <th>Branch</th>
+                <th>Reason</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (f of previewExcluded(); track f.farmerId) {
+                <tr class="excluded-row">
+                  <td>{{ f.farmerId }}</td>
+                  <td>{{ f.fullName }}</td>
+                  <td>{{ f.commodity }}</td>
+                  <td>{{ f.branch }}</td>
+                  <td>Missing bank account / payment details</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+    </div>
+  }
+
+</div>

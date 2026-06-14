@@ -80,6 +80,10 @@ export const API_ENDPOINTS = {
 
     // Inventory at this branch
     INVENTORY: `${BASE}/branch/inventory`,
+
+    // Payment batches
+    BATCHES: `${BASE}/branch/batches`,
+    BATCH_BY_ID: (id: string) => `${BASE}/branch/batches/${id}`,
   },
 
   // ── Access Control (Roles & Permissions) ───────────────────────────────────
