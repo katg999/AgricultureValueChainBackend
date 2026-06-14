@@ -7,7 +7,7 @@
 // cooperative's profile via TenantService or a settings API.
 
 import { inject, Injectable } from '@angular/core';
-import { ExportService } from '../../../../../core/services/export.service';
+import { ExportService } from '../../../../core/services/export.service';
 import { PaymentBatchService } from './payment-batch.service';
 import { FarmerRecord, PaymentBatch, PaymentMethod } from '../models/batch.models';
 
