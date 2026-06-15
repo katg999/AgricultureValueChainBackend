@@ -62,7 +62,7 @@ export class ResetOtpComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit(): void {
     // Guard: user must have arrived from the forgot-password screen
     if (!this.session.getResetToken()) {
-      this.router.navigate(['/auth/forgot-password']);
+      this.router.navigate(['/auth/set-new-password']);
       return;
     }
     this.startCountdown();

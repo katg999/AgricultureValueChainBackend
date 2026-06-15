@@ -160,7 +160,7 @@ export class OtpVerifyComponent implements OnInit, AfterViewInit, OnDestroy {
     const tempToken = this.session.getTempToken();
     if (!tempToken) {
       this.errorMessage = 'Session expired. Please log in again.';
-      this.router.navigate(['/auth/login']);
+      this.router.navigate(['/auth/set-new-password']);
       return;
     }
 
