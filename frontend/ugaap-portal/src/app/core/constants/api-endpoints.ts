@@ -90,6 +90,10 @@ export const API_ENDPOINTS = {
 
     // Inventory at this branch
     INVENTORY: `${BASE}/branch/inventory`,
+
+    // Payment batches
+    BATCHES: `${BASE}/branch/batches`,
+    BATCH_BY_ID: (id: string) => `${BASE}/branch/batches/${id}`,
   },
 
   USERS: `${BASE}/api/v1/access/users`,

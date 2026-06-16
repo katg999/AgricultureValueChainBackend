@@ -5,7 +5,6 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { Title } from '@angular/platform-browser';
 
 // Shared components
-import { LogoComponent } from '../../../shared/components/logo/logo.component';
 import { StepperComponent, Step } from '../../../shared/components/stepper/stepper.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
@@ -20,7 +19,6 @@ import { CooperativeService } from '../../../core/services/cooperative.service';
     CommonModule,
     RouterModule,
     ReactiveFormsModule,
-    LogoComponent,
     StepperComponent,
     InputComponent,
     ButtonComponent,
@@ -33,14 +31,26 @@ import { CooperativeService } from '../../../core/services/cooperative.service';
 export class CooperativeOnboardingComponent implements OnInit {
   // ── Stepper ───────────────────────────────────────────────
   steps: Step[] = [
-    { label: 'PROFILE', number: '01' },
-    { label: 'REVIEW', number: '02' },
+    { label: 'IDENTITY', number: '01' },
+    { label: 'ADDRESS', number: '02' },
+    { label: 'CONTACT', number: '03' },
+    { label: 'DEFAULT BRANCH', number: '04' },
+    { label: 'REVIEW', number: '05' },
   ];
 
   currentStep = 0;
 
   // ── Forms ─────────────────────────────────────────────────
   profileForm!: FormGroup;
+
+  // Field groups per step, used for step-level validation
+  private stepFields: string[][] = [
+    ['name', 'registrationNumber'],
+    ['address', 'country', 'poBox', 'websiteUrl'],
+    ['contactPersonName', 'contactPersonPhone', 'contactPersonEmail'],
+    ['defaultBranchName', 'defaultBranchLocation'],
+    [],
+  ];
 
   // ── Modal ─────────────────────────────────────────────────
   showConfirmModal = false;
@@ -71,26 +81,38 @@ export class CooperativeOnboardingComponent implements OnInit {
       name: ['', Validators.required],
       registrationNumber: ['', Validators.required],
       address: ['', Validators.required],
-      defaultBranchName: ['', Validators.required],
-      defaultBranchLocation: [''],
+      country: ['', Validators.required],
       poBox: [''],
       websiteUrl: [''],
-      country: ['', Validators.required],
       contactPersonName: ['', Validators.required],
       contactPersonPhone: ['', Validators.required],
       contactPersonEmail: ['', [Validators.required, Validators.email]],
+      defaultBranchName: ['', Validators.required],
+      defaultBranchLocation: [''],
     });
   }
 
   // ── Navigation ────────────────────────────────────────────
 
   nextStep(): void {
-    if (this.currentStep === 0) {
-      if (this.profileForm.invalid) {
-        this.profileForm.markAllAsTouched();
+    const fields = this.stepFields[this.currentStep];
+
+    if (fields.length) {
+      let stepValid = true;
+
+      for (const field of fields) {
+        const control = this.profileForm.get(field);
+        if (control && control.invalid) {
+          control.markAsTouched();
+          stepValid = false;
+        }
+      }
+
+      if (!stepValid) {
         return;
       }
     }
+
     this.currentStep++;
   }
 
@@ -111,8 +133,6 @@ export class CooperativeOnboardingComponent implements OnInit {
   // ── Submit (Navigate to Maker & Checker Creation) ────────
 
   activateCooperative(): void {
-   //console.log('ACTIVATE BUTTON CLICKED!');
-   
     if (this.profileForm.invalid) {
       this.profileForm.markAllAsTouched();
       return;

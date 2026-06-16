@@ -1,109 +1,80 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+// AllBatchFarmersComponent shows the full pool of farmers that exist in the system.
+// It's a read-only list — no editing here, just search and browse.
+// Accessible from the batch list at /branch/finance/farmers.
+
+import { Component, inject, OnInit } from '@angular/core';
+import { AsyncPipe, CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { combineLatest, Subject, takeUntil } from 'rxjs';
+// combineLatest listens to two streams at once — farmer list AND search term.
+// Whenever either changes, it re-runs the filter automatically.
+import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
 
-import { SessionService } from '../../../../core/services/session.service';
-import { Season } from '../../collections/branch.delivery.model';
-import { BatchFarmerRecord, BatchRecord } from '../batch.model';
-import { BatchService } from '../batch.service';
-
-export interface BatchWithFarmers {
-  batch: BatchRecord;
-  farmers: BatchFarmerRecord[];
-}
+import { PaymentBatchService } from '../services/payment-batch.service';
+import { FarmerRecord } from '../models/batch.models';
 
 @Component({
   selector: 'app-all-batch-farmers',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule, AsyncPipe],
   templateUrl: './all-batch-farmers.component.html',
   styleUrls: ['./all-batch-farmers.component.css'],
 })
-export class AllBatchFarmersComponent implements OnInit, OnDestroy {
-  private readonly destroy$ = new Subject<void>();
+export class AllBatchFarmersComponent implements OnInit {
+  // '!' = assigned in ngOnInit, not here — TypeScript needs reassurance it won't be undefined.
+  filteredFarmers$!: Observable<FarmerRecord[]>;
 
-  private batches: BatchRecord[] = [];
-  private allFarmers: BatchFarmerRecord[] = [];
+  private readonly svc = inject(PaymentBatchService);
+  private readonly router = inject(Router);
 
-  selectedSeason: '' | Season = '';
-  readonly seasons: Season[] = ['Wet Season', 'Dry Season'];
+  // Bound to the search input via [(ngModel)] in the template.
+  searchTerm = '';
 
-  // ── Computed getters ───────────────────────────────────────────────────────
-
-  get groups(): BatchWithFarmers[] {
-    return this.batches
-      .filter(b => !this.selectedSeason || b.season === this.selectedSeason)
-      .map(batch => ({
-        batch,
-        farmers: this.allFarmers.filter(f => f.batchId === batch.id),
-      }))
-      .filter(g => g.farmers.length > 0);
-  }
-
-  get kpiFarmers(): BatchFarmerRecord[] {
-    const visibleBatchIds = new Set(this.groups.map(g => g.batch.id));
-    return this.allFarmers.filter(f => visibleBatchIds.has(f.batchId));
-  }
-
-  get totalCount(): number      { return this.kpiFarmers.length; }
-  get totalGross(): number      { return this.kpiFarmers.reduce((s, f) => s + f.grossAmount, 0); }
-  get totalDeductions(): number { return this.kpiFarmers.reduce((s, f) => s + f.deductions,  0); }
-  get totalNet(): number        { return this.kpiFarmers.reduce((s, f) => s + f.netPayable,   0); }
-
-  constructor(
-    private readonly batchService: BatchService,
-    private readonly router: Router,
-    private readonly session: SessionService,
-  ) {}
+  // BehaviorSubject holds the current search term as a stream.
+  // Starts empty ('') = no filter = show all farmers.
+  private readonly search$ = new BehaviorSubject('');
 
   ngOnInit(): void {
-    combineLatest([
-      this.batchService.batchesForRole$(this.session.branchId(), this.session.userRole()),
-      this.batchService.farmers$,
-    ])
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(([batches, farmers]) => {
-        this.batches    = batches;
-        this.allFarmers = farmers;
-      });
+    // Combine the full farmer list with the search stream.
+    // Every time search$ emits a new value, this re-runs and the template re-renders.
+    this.filteredFarmers$ = combineLatest([this.svc.getAllFarmers(), this.search$]).pipe(
+      map(([farmers, term]) => this.filter(farmers, term)),
+    );
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
+  // Called by (input) event in the template — pushes the trimmed lowercase term to search$.
+  // trim() removes accidental spaces; toLowerCase() makes the search case-insensitive.
+  applySearch(): void {
+    this.search$.next(this.searchTerm.trim().toLowerCase());
   }
 
-  setSeasonFilter(season: '' | Season): void {
-    this.selectedSeason = season;
+  goBack(): void {
+    this.router.navigate(['/branch/finance/batch-processing']);
   }
 
-  seasonClass(season: Season): string {
-    return season === 'Wet Season' ? 'season-wet' : 'season-dry';
+  formatCurrency(amount: number): string {
+    return new Intl.NumberFormat('en-UG', {
+      style: 'currency',
+      currency: 'UGX',
+      maximumFractionDigits: 0,
+    }).format(amount);
   }
 
-  paymentLabel(farmer: BatchFarmerRecord): string {
-    if (!farmer.payment) return '—';
-    if (farmer.payment.method === 'mobile_money') return farmer.payment.provider;
-    return 'Bank';
+  // trackById helps Angular avoid re-rendering rows that haven't changed.
+  // _i is the index (prefixed with _ to signal we intentionally don't use it).
+  trackById(_i: number, f: FarmerRecord): string {
+    return f.farmerId;
   }
 
-  paymentBadgeClass(farmer: BatchFarmerRecord): string {
-    if (!farmer.payment) return '';
-    if (farmer.payment.method === 'mobile_money') {
-      return farmer.payment.provider === 'MTN' ? 'pay-badge--mtn' : 'pay-badge--airtel';
-    }
-    return 'pay-badge--bank';
-  }
-
-  goToBatch(batch: BatchRecord): void {
-    this.router.navigate(['/branch/finance/batch', batch.id, 'farmers']);
-  }
-
-  trackByBatchId(_i: number, g: BatchWithFarmers): string { return g.batch.id; }
-  trackByFarmerId(_i: number, f: BatchFarmerRecord): string { return f.id; }
-
-  formatUGX(value: number): string {
-    return new Intl.NumberFormat('en-UG', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
+  // Searches across multiple fields — farmer might type a name, ID, commodity, or branch.
+  // If term is empty, return the full list unchanged.
+  private filter(farmers: FarmerRecord[], term: string): FarmerRecord[] {
+    if (!term) return farmers;
+    return farmers.filter(f =>
+      f.farmerId.toLowerCase().includes(term) ||
+      f.fullName.toLowerCase().includes(term) ||
+      f.commodity.toLowerCase().includes(term) ||
+      f.branch.toLowerCase().includes(term),
+    );
   }
 }

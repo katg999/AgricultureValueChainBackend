@@ -1,71 +1,24 @@
+// This is a SEPARATE model used by the cooperative-level finance view.
+// It's different from models/batch.models.ts — that one is for branch staff creating batches.
+// This one is for the cooperative admin seeing a read-only summary across all branches.
+//
+// Key difference: this model has grossAmount and deductions (for financial reporting),
+// while the branch model just has a totalAmount. Different view, different data shape.
+
 import { Season } from '../collections/branch.delivery.model';
 
+// Status here is simpler than the branch version — just 3 steps for reporting purposes.
 export type BatchStatus = 'pending' | 'processed' | 'settled';
-
-// ── Payment method ────────────────────────────────────────────────────────────
-
-export type PaymentMethod = 'mobile_money' | 'bank_account';
-
-export interface MobileMoneyPayment {
-  method: 'mobile_money';
-  provider: 'MTN' | 'Airtel';
-  mobileMoneyName: string;
-}
-
-export interface BankAccountPayment {
-  method: 'bank_account';
-  bankName: string;
-  accountNumber: string;
-  accountHolderName: string;
-}
-
-/** Discriminated union — use `payment.method` to narrow the type. */
-export type PaymentInfo = MobileMoneyPayment | BankAccountPayment;
 
 export interface BatchRecord {
   id: string;
-  branchId: string;
   batchName: string;
-  season: Season;
-  createdAt: Date;
-  closedAt: Date | null;
-  status: BatchStatus;
-  // Aggregated from BatchFarmerRecord[] — recomputed by BatchService on every farmer mutation
+  branchId: string;     // which branch this batch belongs to
+  season: Season;       // reused from the delivery model — 'Wet Season' | 'Dry Season'
   farmerCount: number;
-  grossAmount: number;
-  deductions: number;
-  netPayable: number;
-}
-
-export interface BatchFarmerRecord {
-  id: string;
-  batchId: string;
-  farmerId: string;
-  farmerName: string;
-  phone: string;
-  commodity: string;
-  grossAmount: number;
-  deductions: number;
-  netPayable: number;
+  grossAmount: number;  // total before deductions
+  deductions: number;   // fees, levies, loans recovered, etc.
+  netPayable: number;   // what farmers actually receive (gross - deductions)
   status: BatchStatus;
-  payment?: PaymentInfo;
-  addedAt: Date;
-}
-
-export interface BatchFarmerFormData {
-  farmerId: string;
-  farmerName: string;
-  phone: string;
-  commodity: string;
-  grossAmount: number;
-  deductions: number;
-  status: BatchStatus;
-  payment?: PaymentInfo;
-}
-
-export interface BatchFormData {
-  batchName: string;
-  batchId: string;
-  season: Season;
-  branchId: string;
+  createdAt: Date;
 }
