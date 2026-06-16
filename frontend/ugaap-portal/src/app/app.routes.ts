@@ -52,6 +52,15 @@ export const routes: Routes = [
           import('./features/cooperative/cooperative.routes').then((m) => m.COOPERATIVE_ROUTES),
       },
 
+      // Logged-in user's own profile — shared across all areas
+      {
+        path: 'profile',
+        title: 'My Profile' + ' | UGAAP',
+        loadComponent: () =>
+          import('./features/shared/user-profile/user-profile.component')
+            .then((m) => m.UserProfileComponent),
+      },
+
       // // Inventory — shared across cooperative & branch roles
       // {
       //   path: 'inventory',

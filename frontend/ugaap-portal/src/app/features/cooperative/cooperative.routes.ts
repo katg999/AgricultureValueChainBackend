@@ -29,6 +29,16 @@ export const COOPERATIVE_ROUTES: Routes = [
         .then(m => m.CooperativeDashboardComponent),
   },
 
+  // ── Cooperative profile (registration, contacts, bank details) ──────────────
+  {
+    path: 'profile',
+    canActivate: [permissionGuard],
+    data: { permissionModule: 'organisation' },
+    loadComponent: () =>
+      import('./profile/cooperative-profile.component')
+        .then(m => m.CooperativeProfileComponent),
+  },
+
   // ── Configuration hub ───────────────────────────────────────────────────────
   // Landing screen that links to grade-config and edit-prices
   {
@@ -97,20 +107,28 @@ export const COOPERATIVE_ROUTES: Routes = [
   },
   { path: 'farmers/approval', redirectTo: 'farmers', pathMatch: 'full' },
   {
-    path: 'branches',
+    path: 'agents',
+    canActivate: [permissionGuard],
+    data: { permissionModule: 'agents' },
+    loadChildren: () =>
+      import('./agents/agents.routes')
+        .then(m => m.AGENTS_ROUTES),
+  },
 
+  // ── Collection Hubs ─────────────────────────────────────────────────────────
+  {
+    path: 'collection-hubs',
+    canActivate: [permissionGuard],
+    data: { permissionModule: 'collection_hubs' },
+    loadChildren: () =>
+      import('./collection-hubs/collection-hubs.routes')
+        .then(m => m.COLLECTION_HUBS_ROUTES),
+  },
+  {
+    path: 'branches',
     canActivate: [permissionGuard],
     data: { permissionModule: 'branches' },
-// =======
-//     loadComponent: () =>
-//       import('./farmers/farmer-approval/farmer-approval.component')
-//         .then(m => m.FarmerApprovalComponent),
-//   },
-//   { path: 'farmers/approval', redirectTo: 'farmers', pathMatch: 'full' },
-//   {
-//     path: 'branches',
-// >>>>>>> 82790e03fd252287ef071e22636f2f57993c20ce
-    loadChildren:()=>
+    loadChildren: () =>
       import('./branches/branch.routes')
         .then(m => m.BRANCH_ROUTES),
   },

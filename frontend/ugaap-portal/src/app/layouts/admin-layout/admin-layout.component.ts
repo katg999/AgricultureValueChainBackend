@@ -65,6 +65,7 @@ export class AdminLayoutComponent implements OnInit {
   readonly navItems = computed<NavItem[]>(() =>
     this.permissions.filterNav(this.areaNavItems()),
   );
+  
 
   // ── Lifecycle ────────────────────────────────────────────────────────────────
 

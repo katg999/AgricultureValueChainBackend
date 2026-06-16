@@ -3,6 +3,16 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
 
+/** Settlement details for farmer payment disbursements */
+export interface CooperativeBankDetails {
+  bankName: string;
+  bankBranch?: string;
+  accountName: string;
+  accountNumber: string;
+  mobileMoneyProvider?: string;
+  mobileMoneyNumber?: string;
+}
+
 export interface CreateCooperativeRequest {
   name: string;
   registrationNumber: string;
@@ -15,6 +25,7 @@ export interface CreateCooperativeRequest {
   country: string;
   defaultBranchName: string;
   defaultBranchLocation?: string;
+  bankDetails?: CooperativeBankDetails;
 }
 
 @Injectable({ providedIn: 'root' })

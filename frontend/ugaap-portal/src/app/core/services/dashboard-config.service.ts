@@ -16,8 +16,9 @@
 //   The `icon` string is just a lookup key.  The sidebar template maps it to an
 //   SVG via @switch.  Add a matching @case there whenever you introduce a new key.
 
-import { Injectable, computed } from '@angular/core';
+import { Injectable, computed, inject } from '@angular/core';
 import { SessionService } from './session.service';
+import { PermissionsService } from './permissions.service';
 
 /**
  * Which "area" of the app the user is currently in.
@@ -84,7 +85,7 @@ export interface DashboardConfig {
 const PLATFORM_ADMIN_CONFIG: DashboardConfig = {
   homeRoute: '/platform/dashboard',
   navItems: [
-    { label: 'Main',               icon: 'home',     route: '/platform/dashboard'    },
+    { label: 'Main',               icon: 'home',     route: '/platform/dashboard',       permissionModule: 'dashboard'    },
     // { label: 'Organisation Setup', icon: 'building', route: '/platform/cooperatives' },
     // Platform has its own user management at /platform/users (not the global /users)
     { label: 'Users',              icon: 'users',    route: '/platform/users',           permissionModule: 'users'        },
@@ -103,7 +104,7 @@ const PLATFORM_ADMIN_CONFIG: DashboardConfig = {
 const COOPERATIVE_ADMIN_CONFIG: DashboardConfig = {
   homeRoute: '/cooperative/dashboard',
   navItems: [
-    { label: 'Main',               icon: 'home',     route: '/cooperative/dashboard' },
+    { label: 'Main',               icon: 'home',     route: '/cooperative/dashboard', permissionModule: 'dashboard' },
     // Organisation Setup opens the cooperatives management section:
     // cooperatives-list → onboarding → maker-checker (all under /cooperatives/*)
     { label: 'Organisation Setup', icon: 'building', route: '/cooperatives',          permissionModule: 'organisation' },
@@ -125,6 +126,10 @@ const COOPERATIVE_ADMIN_CONFIG: DashboardConfig = {
 
     { label: 'Farmers',         icon: 'farmers',    route: '/cooperative/farmers',     permissionModule: 'farmers'  },
 
+    { label: 'Agents',           icon: 'agents',     route: '/cooperative/agents',           permissionModule: 'agents'          },
+
+    { label: 'Collection Hubs', icon: 'hub',        route: '/cooperative/collection-hubs',  permissionModule: 'collection_hubs' },
+
     { label: 'Branches',        icon: 'branch',     route: '/cooperative/branches',    permissionModule: 'branches' },
 
     {
@@ -142,6 +147,7 @@ const COOPERATIVE_ADMIN_CONFIG: DashboardConfig = {
 
     { label: 'User Management', icon: 'users',      route: '/cooperative/users',    permissionModule: 'users' },
     { label: 'Roles',           icon: 'roles',      route: '/cooperative/roles',    permissionModule: 'roles' },
+    { label: 'Profile',         icon: 'building',   route: '/cooperative/profile',  permissionModule: 'organisation' },
 // =======
 //     { label: 'User Management', icon: 'users',      route: '/cooperative/users'    },
 //     { label: 'Roles',           icon: 'roles',      route: '/cooperative/roles'    },
@@ -180,7 +186,7 @@ const COOPERATIVE_ADMIN_CONFIG: DashboardConfig = {
 const BRANCH_CONFIG: DashboardConfig = {
   homeRoute: '/branch/dashboard',
   navItems: [
-    { label: 'Main',          icon: 'home',       route: '/branch/dashboard'        },
+    { label: 'Main',          icon: 'home',       route: '/branch/dashboard',   permissionModule: 'dashboard'   },
     { label: 'Collection',    icon: 'collection', route: '/branch/collections', permissionModule: 'collections' },
     { label: 'Farmers',       icon: 'farmers',    route: '/branch/farmers',     permissionModule: 'farmers'     },
 
@@ -216,6 +222,9 @@ const BRANCH_CONFIG: DashboardConfig = {
 @Injectable({ providedIn: 'root' })
 export class DashboardConfigService {
 
+  /** Injected lazily via inject() to keep the ctor signature stable */
+  private permissions = inject(PermissionsService);
+
   constructor(private session: SessionService) {}
 
   // ── URL-based lookup (primary — called by AdminLayoutComponent) ───────────
@@ -247,6 +256,21 @@ export class DashboardConfigService {
     }
   }
 
+  // ── Permission-aware landing route ──────────────────────────────────────────
+
+  /**
+   * First route the user can actually open in the given area, derived from
+   * the permission-filtered nav. A user without dashboard access lands on
+   * their first permitted section instead; /profile is the final fallback
+   * since every authenticated user can open it.
+   */
+  landingRoute(level: UserLevel): string {
+    const visible = this.permissions.filterNav(this.getConfig(level).navItems);
+    const first = visible[0];
+    if (!first) return '/profile';
+    return first.children?.length ? first.children[0].route : first.route;
+  }
+
   // ── Role-based computed signals (kept for backward compatibility) ──────────
 
   /** Config driven by session role — still used by auth guards and redirects */
@@ -254,6 +278,13 @@ export class DashboardConfigService {
     this.getConfig(this.levelForRole(this.session.userRole()))
   );
 
-  readonly homeRoute = computed(() => this.config().homeRoute);
+  /**
+   * Where to send the user after login or a denied navigation.
+   * Permission-aware: tracks both the session role and granted permissions.
+   */
+  readonly homeRoute = computed(() =>
+    this.landingRoute(this.levelForRole(this.session.userRole()))
+  );
+
   readonly navItems  = computed(() => this.config().navItems);
 }

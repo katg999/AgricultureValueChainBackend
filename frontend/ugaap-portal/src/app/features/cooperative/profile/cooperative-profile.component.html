@@ -1,0 +1,167 @@
+<div class="page-container">
+
+  <!-- Page header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Cooperative Profile</h1>
+      <p class="page-subtitle">Registration details, contacts and settlement account</p>
+    </div>
+    <span class="status-pill" [class.pill-active]="profile.status === 'active'">
+      {{ profile.status | uppercase }}
+    </span>
+  </div>
+
+  <!-- ORGANISATION -->
+  <app-info-card title="ORGANISATION">
+    <dl class="detail-list">
+      <div class="detail-item">
+        <dt>Cooperative name</dt>
+        <dd>{{ profile.name }}</dd>
+      </div>
+      <div class="detail-item">
+        <dt>Registration number</dt>
+        <dd class="mono">{{ profile.registrationNumber }}</dd>
+      </div>
+      <div class="detail-item">
+        <dt>Address</dt>
+        <dd>{{ profile.address }}</dd>
+      </div>
+      <div class="detail-item">
+        <dt>Country</dt>
+        <dd>{{ profile.country }}</dd>
+      </div>
+      <div class="detail-item">
+        <dt>P.O. Box</dt>
+        <dd>{{ profile.poBox }}</dd>
+      </div>
+      <div class="detail-item">
+        <dt>Website</dt>
+        <dd>{{ profile.websiteUrl }}</dd>
+      </div>
+      <div class="detail-item">
+        <dt>Member since</dt>
+        <dd class="mono">{{ profile.memberSince }}</dd>
+      </div>
+    </dl>
+  </app-info-card>
+
+  <!-- CONTACT PERSON -->
+  <app-info-card title="CONTACT PERSON">
+    <dl class="detail-list">
+      <div class="detail-item">
+        <dt>Name</dt>
+        <dd>{{ profile.contactPersonName }}</dd>
+      </div>
+      <div class="detail-item">
+        <dt>Phone</dt>
+        <dd class="mono">{{ profile.contactPersonPhone }}</dd>
+      </div>
+      <div class="detail-item">
+        <dt>Email</dt>
+        <dd>{{ profile.contactPersonEmail }}</dd>
+      </div>
+    </dl>
+  </app-info-card>
+
+  <!-- BANK DETAILS -->
+  <app-info-card title="BANK DETAILS">
+
+    <!-- Read view -->
+    <ng-container *ngIf="!isEditingBank">
+      <dl class="detail-list">
+        <div class="detail-item">
+          <dt>Bank</dt>
+          <dd>{{ bankDetails.bankName }}</dd>
+        </div>
+        <div class="detail-item">
+          <dt>Branch</dt>
+          <dd>{{ bankDetails.bankBranch || '—' }}</dd>
+        </div>
+        <div class="detail-item">
+          <dt>Account name</dt>
+          <dd>{{ bankDetails.accountName }}</dd>
+        </div>
+        <div class="detail-item">
+          <dt>Account number</dt>
+          <dd class="mono">{{ maskedAccountNumber }}</dd>
+        </div>
+        <div class="detail-item">
+          <dt>Mobile money</dt>
+          <dd>
+            {{ bankDetails.mobileMoneyProvider ? bankDetails.mobileMoneyProvider + ' · ' + bankDetails.mobileMoneyNumber : '—' }}
+          </dd>
+        </div>
+      </dl>
+
+      <div class="card-actions">
+        <app-button
+          *hasPermission="'organisation.edit'"
+          variant="secondary" size="md" type="button"
+          (clicked)="startEditingBank()">
+          Edit bank details
+        </app-button>
+      </div>
+    </ng-container>
+
+    <!-- Edit view -->
+    <form *ngIf="isEditingBank" [formGroup]="bankForm" (ngSubmit)="saveBankDetails()">
+      <div class="form-grid">
+        <app-input
+          label="Bank name"
+          type="text"
+          formControlName="bankName"
+          [required]="true"
+          [error]="getBankFieldError('bankName')">
+        </app-input>
+
+        <app-input
+          label="Bank branch"
+          type="text"
+          formControlName="bankBranch">
+        </app-input>
+
+        <app-input
+          label="Account name"
+          type="text"
+          formControlName="accountName"
+          [required]="true"
+          [error]="getBankFieldError('accountName')">
+        </app-input>
+
+        <app-input
+          label="Account number"
+          type="text"
+          formControlName="accountNumber"
+          [required]="true"
+          hint="Digits only, 6–20 characters"
+          [error]="getBankFieldError('accountNumber')">
+        </app-input>
+
+        <app-input
+          label="Mobile money provider"
+          type="text"
+          formControlName="mobileMoneyProvider"
+          hint="Optional alternative payment rail">
+        </app-input>
+
+        <app-input
+          label="Mobile money number"
+          type="text"
+          formControlName="mobileMoneyNumber">
+        </app-input>
+      </div>
+
+      <div class="card-actions">
+        <app-button variant="ghost" size="md" type="button" (clicked)="cancelEditingBank()">
+          Cancel
+        </app-button>
+        <app-button
+          variant="primary" size="md" type="submit"
+          [loading]="isSaving" loadingText="Saving...">
+          Save bank details
+        </app-button>
+      </div>
+    </form>
+
+  </app-info-card>
+</div>

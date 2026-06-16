@@ -22,9 +22,10 @@
         [data]="{
           label: 'New Registrations',
           value: newRegistrations(farmers),
-          icon: 'New',
+          icon: 'users',
           trend: '+8.5%',
           trendUp: true,
+          route: '/branch/farmers/register'
         }"
       >
       </app-stat-card>
@@ -35,10 +36,11 @@
         [data]="{
           label: 'Portfolio At Risk',
           value: 'UGX ' + portfolioAtRisk(farmers),
-          icon: 'Risk',
+          icon: 'alert',
           trend: '-5.2%',
           trendUp: false,
           status: 'warning',
+          route: '/branch/finance/batch-processing'
         }"
       >
       </app-stat-card>

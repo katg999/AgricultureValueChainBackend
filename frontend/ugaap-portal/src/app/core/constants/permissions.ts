@@ -122,6 +122,31 @@ export const PERMISSION_CATALOG: PermissionService[] = [
   },
 
   {
+    key: 'agents', name: 'Agents', icon: 'agents',
+    scopes: ['cooperative'],
+    permissions: [
+      { id: 'agents.view',       label: 'View agents',       description: 'See the agent list and profiles' },
+      { id: 'agents.register',   label: 'Register agents',   description: 'Enroll new field agents' },
+      { id: 'agents.edit',       label: 'Edit agents',       description: 'Update agent details and branch assignment' },
+      { id: 'agents.deactivate', label: 'Deactivate agents', description: 'Suspend or reactivate agent accounts' },
+      { id: 'agents.export',     label: 'Export agents',     description: 'Download agent data' },
+    ],
+  },
+
+  {
+    key: 'collection_hubs', name: 'Collection Hubs', icon: 'hub',
+    scopes: ['cooperative'],
+    permissions: [
+      { id: 'collection_hubs.view',       label: 'View hubs',        description: 'See the collection hub list and details' },
+      { id: 'collection_hubs.create',     label: 'Create hubs',      description: 'Register new collection hubs' },
+      { id: 'collection_hubs.edit',       label: 'Edit hubs',        description: 'Update hub details, capacity and commodities' },
+      { id: 'collection_hubs.deactivate', label: 'Deactivate hubs',  description: 'Suspend or reactivate collection hubs' },
+      { id: 'collection_hubs.delete',     label: 'Delete hubs',      description: 'Permanently remove collection hubs' },
+      { id: 'collection_hubs.export',     label: 'Export hub data',  description: 'Download collection hub records' },
+    ],
+  },
+
+  {
     key: 'branches', name: 'Branches', icon: 'branches',
     scopes: ['cooperative'],
     permissions: [

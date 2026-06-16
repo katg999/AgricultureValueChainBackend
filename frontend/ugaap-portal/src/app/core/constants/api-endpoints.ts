@@ -61,6 +61,18 @@ export const API_ENDPOINTS = {
     INVENTORY: `${BASE}/cooperative/inventory`,
     USERS: `${BASE}/cooperative/users`,
     USER_BY_ID: (id: string) => `${BASE}/cooperative/users/${id}`,
+
+    // Field agents
+    AGENTS: `${BASE}/cooperative/agents`,
+    AGENT_BY_ID: (id: string) => `${BASE}/cooperative/agents/${id}`,
+    AGENT_DEACTIVATE: (id: string) => `${BASE}/cooperative/agents/${id}/deactivate`,
+    AGENT_ACTIVATE: (id: string) => `${BASE}/cooperative/agents/${id}/activate`,
+
+    // Collection hubs
+    COLLECTION_HUBS: `${BASE}/cooperative/collection-hubs`,
+    COLLECTION_HUB_BY_ID: (id: string) => `${BASE}/cooperative/collection-hubs/${id}`,
+    COLLECTION_HUB_ACTIVATE: (id: string) => `${BASE}/cooperative/collection-hubs/${id}/activate`,
+    COLLECTION_HUB_DEACTIVATE: (id: string) => `${BASE}/cooperative/collection-hubs/${id}/deactivate`,
   },
 
   // ── Branches ────────────────────────────────────────────────────────────────

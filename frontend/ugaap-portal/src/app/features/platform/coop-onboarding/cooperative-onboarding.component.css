@@ -1,210 +1,83 @@
-/**
- * Cooperative Onboarding Styles
- * Uses UGAAP design tokens
- */
-
-.onboarding-container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 60px 20px; /* was 40px 20px */
-  font-family: var(--font-human);
-}
-
-
-   HEADER
-   
-
-.onboarding-header {
-  text-align: center;
-  margin-bottom: 50px; /* was 40px */
-}
-
-.onboarding-title {
-  font-size: 30px;
-  font-weight: 700;
-  color: var(--secondary);
-  margin: 30px 0 10px; /* was 24px 0 8px */
-}
-
-.onboarding-subtitle {
-  font-size: 20px;
-  color: #6B6B7B;
-  margin: 0;
-}
-
-/* 
-   FORM SECTIONS
-    */
+/* Layout and field styling come from the shared <app-form-wizard> shell and
+   the global wizard form kit in styles.css. This file only styles what is
+   unique to this form: the review cards and the confirmation modal actions. */
 
 form {
-  margin-top: 16px; /* was 32px */
-}
-
-.form-section {
-  background: var(--surface-lowest);
-  border: 1px solid #E8E6ED;
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 24px;
-}
-
-.section-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin: 0 0 20px;
-  padding-bottom: 12px;
-  border-bottom: 2px solid var(--primary);
-}
-
-/* Field spacing */
-.form-section app-input {
-  display: block;
-  margin-bottom: 20px;
-}
-
-.form-section app-input:last-child {
-  margin-bottom: 0;
-}
-
-/* 
-   FORM ACTIONS
-    */
-
-.form-actions {
+  flex: 1;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 32px;
-  padding-top: 24px;
-  border-top: 1px solid #E8E6ED;
+  flex-direction: column;
 }
 
-.btn-secondary {
-  background: var(--surface-low);
-  border: 1px solid #E8E6ED;
-  color: var(--secondary);
-  font-size: 14px;
-  font-weight: 600;
-  padding: 12px 24px;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.btn-secondary:hover {
-  background: var(--surface-lowest);
-  border-color: var(--primary);
-}
-
-.btn-secondary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* 
-   REVIEW SECTION
-    */
-
-.review-section {
-  margin-top: 32px;
-}
+/* ── Review cards (final step) ───────────────────────────────────────────── */
 
 .review-card {
-  background: var(--surface-lowest);
-  border: 1px solid #E8E6ED;
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 20px;
+  border: 1px solid #E8E4EE;
+  border-radius: 10px;
+  background: #FAF9FB;
+  padding: 18px 20px;
 }
 
 .review-card-title {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
-  color: var(--secondary);
+  color: #6B6277;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin: 0 0 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #F0F0F0;
+  letter-spacing: 0.06em;
+  margin: 0 0 14px;
 }
 
 .review-grid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 24px;
 }
 
 .review-item {
   display: flex;
-  justify-content: space-between;
-  padding: 8px 0;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .review-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #6B6B7B;
+  font-size: 11px;
+  color: #9C94A8;
 }
 
 .review-value {
   font-size: 13px;
-  color: var(--secondary);
   font-weight: 600;
-  text-align: right;
+  color: var(--secondary);
+  overflow-wrap: anywhere;
 }
 
-/* 
-   MODAL ACTIONS
-    */
+/* ── Confirmation modal actions ──────────────────────────────────────────── */
 
 .modal-actions {
   display: flex;
-  gap: 12px;
   justify-content: flex-end;
-  margin-top: 24px;
+  gap: 10px;
+  margin-top: 20px;
 }
 
-/* 
-   RESPONSIVE DESIGN
-    */
+.btn-secondary {
+  background: none;
+  border: 1px solid #E8E4EE;
+  border-radius: 8px;
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--secondary);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
 
-@media (max-width: 768px) {
-  .onboarding-container {
-    padding: 20px 16px;
-  }
+.btn-secondary:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
 
-  .form-section {
-    padding: 20px;
-  }
+/* ── Responsive ──────────────────────────────────────────────────────────── */
 
-  .form-actions {
-    flex-direction: column-reverse;
-    gap: 12px;
-  }
-
-  .form-actions app-button,
-  .form-actions .btn-secondary {
-    width: 100%;
-  }
-
-  .review-item {
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .review-value {
-    text-align: left;
-  }
-
-  .modal-actions {
-    flex-direction: column;
-  }
-
-  .modal-actions app-button,
-  .modal-actions .btn-secondary {
-    width: 100%;
-  }
+@media (max-width: 720px) {
+  .review-grid { grid-template-columns: 1fr; }
 }

@@ -1,0 +1,130 @@
+<app-form-wizard
+  [title]="isEditMode ? 'Edit agent' : 'Register agent'"
+  [steps]="steps"
+  [currentStep]="currentStep"
+  (stepSelected)="goToStep($event)">
+
+  <form [formGroup]="agentForm" (ngSubmit)="saveAgent()">
+
+    <!-- ── STEP 0: Agent details ── -->
+    <section *ngIf="currentStep === 0" class="form-panel" aria-labelledby="step0-heading">
+      <div class="panel-header">
+        <h2 id="step0-heading" class="panel-title">Agent details</h2>
+        <p class="panel-sub">Identity and contact information</p>
+      </div>
+
+      <div class="field-grid field-grid--2">
+        <app-input
+          label="Full name"
+          placeholder="e.g. Moses Byaruhanga"
+          type="text"
+          [required]="true"
+          [error]="getFieldError('fullName')"
+          formControlName="fullName">
+        </app-input>
+
+        <app-input
+          label="National ID (NIN)"
+          placeholder="e.g. CM900421003XKE"
+          type="text"
+          [required]="true"
+          [error]="getFieldError('nationalId')"
+          formControlName="nationalId">
+        </app-input>
+      </div>
+
+      <div class="field-grid field-grid--2">
+        <div class="field-stack">
+          <app-input
+            label="Phone number"
+            placeholder="+256712345678"
+            type="tel"
+            [required]="true"
+            [error]="getFieldError('phone')"
+            formControlName="phone">
+          </app-input>
+          <p class="field-hint">Include country code</p>
+        </div>
+
+        <app-input
+          label="Email address"
+          placeholder="e.g. moses@cooperative.ug"
+          type="email"
+          [required]="true"
+          [error]="getFieldError('email')"
+          formControlName="email">
+        </app-input>
+      </div>
+    </section>
+
+    <!-- ── STEP 1: Assignment ── -->
+    <section *ngIf="currentStep === 1" class="form-panel" aria-labelledby="step1-heading">
+      <div class="panel-header">
+        <h2 id="step1-heading" class="panel-title">Assignment</h2>
+        <p class="panel-sub">Role and the branch this agent works under</p>
+      </div>
+
+      <div class="field-grid field-grid--2">
+        <div class="field-group">
+          <label class="field-label">Agent role <span class="required-mark">*</span></label>
+          <select title="select agent role" class="form-select" formControlName="role">
+            <option value="field_agent">Field Agent</option>
+            <option value="collection_clerk">Collection Clerk</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Branch <span class="required-mark">*</span></label>
+          <select
+            title="select branch"
+            class="form-select"
+            formControlName="branchId"
+            [class.input-error]="getFieldError('branchId')">
+            <option value="" disabled>Select a branch…</option>
+            <option *ngFor="let branch of branches" [value]="branch.id">{{ branch.name }}</option>
+          </select>
+          <p class="field-error" *ngIf="getFieldError('branchId')">
+            {{ getFieldError('branchId') }}
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Bottom nav ── -->
+    <div class="form-nav">
+      <app-button variant="ghost" size="md" type="button" (clicked)="cancel()">
+        Cancel
+      </app-button>
+
+      <div class="form-nav__right">
+        <app-button
+          *ngIf="currentStep > 0"
+          variant="ghost"
+          size="md"
+          type="button"
+          (clicked)="prevStep()">
+          ← Back
+        </app-button>
+
+        <app-button
+          *ngIf="currentStep < steps.length - 1"
+          variant="primary"
+          size="md"
+          type="button"
+          (clicked)="nextStep()">
+          Next →
+        </app-button>
+
+        <app-button
+          *ngIf="currentStep === steps.length - 1"
+          variant="primary"
+          size="md"
+          type="submit"
+          [disabled]="isSaving">
+          {{ isSaving ? 'Saving…' : (isEditMode ? 'Save changes' : 'Register agent') }}
+        </app-button>
+      </div>
+    </div>
+
+  </form>
+</app-form-wizard>
