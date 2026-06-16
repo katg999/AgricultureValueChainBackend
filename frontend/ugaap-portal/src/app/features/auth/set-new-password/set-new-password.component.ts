@@ -20,20 +20,15 @@
 
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {
-  ReactiveFormsModule,
-  FormBuilder,
-  FormGroup,
-  Validators,
-} from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 
-import { AuthService }    from '../../../core/services/auth.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { SessionService } from '../../../core/services/session.service';
 
 // Shared UI components
-import { LogoComponent }   from '../../../shared/components/logo/logo.component';
-import { InputComponent }  from '../../../shared/components/input/input.component';
+import { LogoComponent } from '../../../shared/components/logo/logo.component';
+import { InputComponent } from '../../../shared/components/input/input.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 
 @Component({
@@ -48,53 +43,48 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
     ButtonComponent,
   ],
   templateUrl: './set-new-password.component.html',
-  styleUrl:    './set-new-password.component.css',
+  styleUrl: './set-new-password.component.css',
 })
 export class SetNewPasswordComponent implements OnInit {
-
   passwordForm!: FormGroup;
-
-  isLoading    = false;
+  isLoading = false;
   errorMessage = '';
 
   constructor(
-    private fb:          FormBuilder,
-    private router:      Router,
+    private fb: FormBuilder,
+    private router: Router,
     private authService: AuthService,
-    private session:     SessionService,
+    private session: SessionService,
   ) {}
 
   ngOnInit(): void {
-    // Guard: must have arrived through the full reset flow
-    if (!this.session.getResetToken() || !this.session.getResetOtpCode()) {
+    // Guard: must have verifiedToken from reset-otp screen
+    if (!this.session.getResetToken()) {
       this.router.navigate(['/auth/forgot-password']);
       return;
     }
 
     this.passwordForm = this.fb.group({
-      newPassword:     ['', [Validators.required, Validators.minLength(8)]],
+      newPassword: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', Validators.required],
     });
   }
 
   // ── Computed password strength ──────────────────────────────────────────────
 
-  /** Current value of the new-password field */
   get password(): string {
     return this.passwordForm.get('newPassword')?.value ?? '';
   }
 
-  /** Real-time criteria flags — bound to the UI checklist */
   get criteria() {
     return {
-      length:    this.password.length >= 8,
+      length: this.password.length >= 8,
       uppercase: /[A-Z]/.test(this.password),
-      number:    /\d/.test(this.password),
-      special:   /[^A-Za-z0-9]/.test(this.password),
+      number: /\d/.test(this.password),
+      special: /[^A-Za-z0-9]/.test(this.password),
     };
   }
 
-  /** True only when every criterion is satisfied */
   get allCriteriaMet(): boolean {
     return Object.values(this.criteria).every(Boolean);
   }
@@ -104,17 +94,17 @@ export class SetNewPasswordComponent implements OnInit {
   getNewPasswordError(): string {
     const c = this.passwordForm.get('newPassword');
     if (c?.touched && c.errors) {
-      if (c.errors['required'])  return 'New password is required';
+      if (c.errors['required']) return 'New password is required';
       if (c.errors['minlength']) return 'Password must be at least 8 characters';
     }
     return '';
   }
 
   getConfirmPasswordError(): string {
-    const c           = this.passwordForm.get('confirmPassword');
+    const c = this.passwordForm.get('confirmPassword');
     const newPassword = this.passwordForm.get('newPassword')?.value;
     if (c?.touched) {
-      if (c.errors?.['required'])            return 'Please confirm your password';
+      if (c.errors?.['required']) return 'Please confirm your password';
       if (newPassword && c.value && newPassword !== c.value) return 'Passwords do not match';
     }
     return '';
@@ -130,32 +120,28 @@ export class SetNewPasswordComponent implements OnInit {
 
     const { newPassword, confirmPassword } = this.passwordForm.value;
 
-    // Extra client-side safety check for password match
     if (newPassword !== confirmPassword) return;
 
-    // // Read the reset context tokens that were stored by previous screens
-    // const resetToken = this.session.getResetToken()!;
-    // const otpCode    = this.session.getResetOtpCode()!;
+    // Read verifiedToken stored by reset-otp screen
+    const verifiedToken = this.session.getResetToken()!;
 
-    // this.isLoading    = true;
-    // this.errorMessage = '';
+    this.isLoading = true;
+    this.errorMessage = '';
 
-    // this.authService
-    //   .resetPassword({ resetToken, otpCode, newPassword, confirmPassword })
-    //   .subscribe({
-    //     next: () => {
-    //       this.isLoading = false;
+    this.authService.resetPassword({ verifiedToken, newPassword }).subscribe({
+      next: () => {
+        this.isLoading = false;
 
-          // Clean up all temporary reset data from sessionStorage
-          this.session.clearResetContext();
+        // Clean up all reset context from sessionStorage
+        this.session.clearResetContext();
 
-          // Return to login — force the user to authenticate with the new password
-          this.router.navigate(['/auth/login']);
-      //   },
-      //   error: (err) => {
-      //     this.isLoading    = false;
-      //     this.errorMessage = err?.error?.message ?? 'Password reset failed. Please try again.';
-      //   },
-      // });
+        // Back to login — user authenticates with new password
+        this.router.navigate(['/auth/login']);
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.errorMessage = err?.error?.message ?? 'Password reset failed. Please try again.';
+      },
+    });
   }
 }
