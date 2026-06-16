@@ -18,14 +18,8 @@ import { FarmerListItem, FarmerService } from '../../../shared-farmer-domain/far
 })
 export class BranchFarmerListComponent implements OnInit, OnDestroy {
   searchQuery = '';
-  selectedBranch = 'All Branches';
-  selectedStatus = 'All Statuses';
-  selectedCommodity = 'All Commodities';
-  selectedStage = 'All Stages';
   openKebabId: string | null = null;
 
-  readonly statuses = ['All Statuses', 'Active', 'Pending', 'Rejected', 'Suspended'];
-  readonly stages = ['All Stages', 'Registered', 'Verified', 'Financed'];
   readonly collectionProgress = 78;
 
   farmers$!: Observable<FarmerListItem[]>;
@@ -34,13 +28,7 @@ export class BranchFarmerListComponent implements OnInit, OnDestroy {
   error: string | null = null;
 
   private readonly destroy$ = new Subject<void>();
-  private readonly filterState$ = new BehaviorSubject({
-    searchQuery: '',
-    selectedBranch: 'All Branches',
-    selectedStatus: 'All Statuses',
-    selectedCommodity: 'All Commodities',
-    selectedStage: 'All Stages',
-  });
+  private readonly filterState$ = new BehaviorSubject({ searchQuery: '' });
 
   constructor(
     private router: Router,
@@ -49,18 +37,13 @@ export class BranchFarmerListComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    console.log(
-      'Current route snapshot:',
-      this.route.snapshot.pathFromRoot.map((r) => r.url.toString()),
-    );
     this.farmers$ = this.farmerService.watchForBranch();
 
-    // The branch list subscribes to the shared farmer store instead of a stale local array.
     this.filteredFarmers$ = combineLatest([this.farmers$, this.filterState$]).pipe(
       map(([farmers, filter]) => this.filterFarmers(farmers, filter)),
     );
 
-    //this.refresh();
+    this.refresh();
   }
 
   ngOnDestroy(): void {
@@ -70,13 +53,7 @@ export class BranchFarmerListComponent implements OnInit, OnDestroy {
   }
 
   applyFilter(): void {
-    this.filterState$.next({
-      searchQuery: this.searchQuery,
-      selectedBranch: this.selectedBranch,
-      selectedStatus: this.selectedStatus,
-      selectedCommodity: this.selectedCommodity,
-      selectedStage: this.selectedStage,
-    });
+    this.filterState$.next({ searchQuery: this.searchQuery });
   }
 
   refresh(): void {
@@ -120,23 +97,13 @@ export class BranchFarmerListComponent implements OnInit, OnDestroy {
   }
 
   onViewProfile(farmer: FarmerListItem): void {
-    this.router.navigate(['/cooperative/farmers/approval', farmer.id]);
+    this.router.navigate(['/branch/farmers/profile', farmer.id]);
   }
 
   onViewAllocations(farmer: FarmerListItem): void {
-    this.router.navigate(['/branch/inventory/stock-disbursed']);
-  }
-
-  branches(farmers: FarmerListItem[]): string[] {
-    return ['All Branches', ...new Set(farmers.map((farmer) => farmer.branch))];
-  }
-
-  commodities(farmers: FarmerListItem[]): string[] {
-    return ['All Commodities', ...new Set(farmers.map((farmer) => farmer.primaryCommodity))];
-  }
-
-  newRegistrations(farmers: FarmerListItem[]): string {
-    return String(farmers.filter((farmer) => farmer.status === 'Pending').length);
+    this.router.navigate(['/branch/inventory/stock-disbursed'], {
+      queryParams: { farmer: farmer.name },
+    });
   }
 
   portfolioAtRisk(farmers: FarmerListItem[]): string {
@@ -151,40 +118,20 @@ export class BranchFarmerListComponent implements OnInit, OnDestroy {
     return farmer.id;
   }
 
-  trackByOption(_index: number, option: string): string {
-    return option;
-  }
-
   private filterFarmers(
     farmers: FarmerListItem[],
-    filter: {
-      searchQuery: string;
-      selectedBranch: string;
-      selectedStatus: string;
-      selectedCommodity: string;
-      selectedStage: string;
-    },
+    filter: { searchQuery: string },
   ): FarmerListItem[] {
     const q = filter.searchQuery.trim().toLowerCase();
+    if (!q) return farmers;
 
-    return farmers.filter((farmer) => {
-      const matchSearch =
-        !q ||
-        farmer.id.toLowerCase().includes(q) ||
-        farmer.name.toLowerCase().includes(q) ||
-        farmer.branch.toLowerCase().includes(q) ||
-        farmer.primaryCommodity.toLowerCase().includes(q);
-      const matchBranch =
-        filter.selectedBranch === 'All Branches' || farmer.branch === filter.selectedBranch;
-      const matchStatus =
-        filter.selectedStatus === 'All Statuses' || farmer.status === filter.selectedStatus;
-      const matchCommodity =
-        filter.selectedCommodity === 'All Commodities' ||
-        farmer.primaryCommodity === filter.selectedCommodity;
-      const matchStage =
-        filter.selectedStage === 'All Stages' || farmer.stage === filter.selectedStage;
-
-      return matchSearch && matchBranch && matchStatus && matchCommodity && matchStage;
-    });
+    return farmers.filter((farmer) =>
+      farmer.id.toLowerCase().includes(q) ||
+      farmer.name.toLowerCase().includes(q) ||
+      farmer.branch.toLowerCase().includes(q) ||
+      farmer.primaryCommodity.toLowerCase().includes(q) ||
+      farmer.status.toLowerCase().includes(q) ||
+      farmer.stage.toLowerCase().includes(q),
+    );
   }
 }

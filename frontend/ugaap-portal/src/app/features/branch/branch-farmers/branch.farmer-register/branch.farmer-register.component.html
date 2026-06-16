@@ -253,12 +253,12 @@
         </div>
 
         <!-- Farm aerial map -->
-        <div class="farm-map-wrapper">
+        <!-- <div class="farm-map-wrapper">
           <img [src]="farmImageUrl" alt="Farm aerial view" class="farm-map-img">
           <div class="farm-map-overlay">
             <span class="map-badge">&#x1F4CD;&nbsp;Awaiting GPS capture</span>
           </div>
-        </div>
+        </div> -->
       </section>
 
       <!--STEP 2: Payment Method -->
@@ -414,50 +414,28 @@
           <p class="panel-sub">Crops grown and livestock on the farm</p>
         </div>
 
+        <!-- Primary commodity -->
         <div class="field-group">
-          <label class="field-label">Primary crops</label>
-          <div class="crop-grid">
-            <label class="crop-chip" [class.crop-chip--active]="form.production.coffee">
-              <input type="checkbox" [(ngModel)]="form.production.coffee" name="coffee">
-              Coffee
-            </label>
-            <label class="crop-chip" [class.crop-chip--active]="form.production.maize">
-              <input type="checkbox" [(ngModel)]="form.production.maize" name="maize">
-              Maize
-            </label>
-            <label class="crop-chip" [class.crop-chip--active]="form.production.cocoa">
-              <input type="checkbox" [(ngModel)]="form.production.cocoa" name="cocoa">
-              Cocoa
-            </label>
-            <label class="crop-chip" [class.crop-chip--active]="form.production.vanilla">
-              <input type="checkbox" [(ngModel)]="form.production.vanilla" name="vanilla">
-              Vanilla
-            </label>
-          </div>
+          <app-input
+            label="Commodity to deliver"
+            placeholder="e.g. Coffee, Maize, Beans…"
+            type="text"
+            [(ngModel)]="form.production.commodity"
+            name="commodity">
+          </app-input>
+          <p class="field-hint">The main crop this farmer delivers — this appears on their record in the farmer list</p>
         </div>
 
+        <!-- Livestock -->
         <div class="field-group">
-          <label class="field-label">Livestock inventory</label>
-          <div class="livestock-grid">
-            <div class="livestock-card">
-              <label class="livestock-card__label" for="cattle">Cattle</label>
-              <input id="cattle" class="form-input livestock-input"
-                     type="number" [(ngModel)]="form.production.cattle"
-                     name="cattle" min="0" placeholder="0">
-            </div>
-            <div class="livestock-card">
-              <label class="livestock-card__label" for="goats">Goats</label>
-              <input id="goats" class="form-input livestock-input"
-                     type="number" [(ngModel)]="form.production.goats"
-                     name="goats" min="0" placeholder="0">
-            </div>
-            <div class="livestock-card">
-              <label class="livestock-card__label" for="poultry">Poultry</label>
-              <input id="poultry" class="form-input livestock-input"
-                     type="number" [(ngModel)]="form.production.poultry"
-                     name="poultry" min="0" placeholder="0">
-            </div>
-          </div>
+          <app-input
+            label="Livestock kept"
+            placeholder="e.g. Cattle, Goats, Pigs…"
+            type="text"
+            [(ngModel)]="form.production.livestock"
+            name="livestock">
+          </app-input>
+          <p class="field-hint">Animals kept on the farm — this appears on the farmer's record</p>
         </div>
 
         <!-- Save error -->

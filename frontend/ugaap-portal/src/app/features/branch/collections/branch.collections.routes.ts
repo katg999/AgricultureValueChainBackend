@@ -25,6 +25,17 @@ export const BRANCH_COLLECTIONS_ROUTES: Routes = [
   },
 
   /**
+   * Every farmer who has delivered at this branch — read-only list,
+   * opened by tapping the FARMERS stat card on the deliveries page.
+   */
+  {
+    path: 'farmers',
+    loadComponent: () =>
+      import('./farmer-deliveries-list/farmer-deliveries-list.component')
+        .then(m => m.FarmerDeliveriesListComponent),
+  },
+
+  /**
    * Single branch delivery batch
    * Shows:
    * - aggregate totals

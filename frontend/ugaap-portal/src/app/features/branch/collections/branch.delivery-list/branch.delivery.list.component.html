@@ -17,7 +17,7 @@
 
     <div class="header-actions">
       <button class="btn primary-action-btn" (click)="openAddDeliveryModal()">
-        <span class="icon-plus">+</span> Add Farmer Deliveries
+        <span class="icon-plus">+</span> Add Farmer Delivery
       </button>
     </div>
   </div>
@@ -28,38 +28,31 @@
        KPI CARDS
        These values come from the getter methods in TS
        ========================================================= -->
-  <div class="kpi-grid">
+  <!-- <div class="stats-grid">
 
-    <div class="kpi-card">
-      <span class="kpi-label">Total Volume</span>
-      <h2>{{ totalVolume(filteredDeliveries) | number }}</h2>
-      <small>KGs Collected</small>
-    </div>
+    <app-stat-card
+      [data]="{ label: 'TOTAL VOLUME', value: (totalVolume(filteredDeliveries) | number) ?? '0', icon: 'box' }">
+    </app-stat-card>
 
-    <div class="kpi-card">
-      <span class="kpi-label">Total Value</span>
-      <h2>UGX {{ formatUGX(totalValue(filteredDeliveries)) }}</h2>
-      <small>Estimated Worth</small>
-    </div>
+    <app-stat-card
+      [data]="{ label: 'TOTAL VALUE', value: 'UGX ' + formatUGX(totalValue(filteredDeliveries)), icon: 'wallet' }">
+    </app-stat-card>
 
-    <div class="kpi-card">
-      <span class="kpi-label">Farmers</span>
-      <h2>{{ totalFarmers(filteredDeliveries) }}</h2>
-      <small>Participating Farmers</small>
-    </div>
+    <app-stat-card
+      [data]="{ label: 'FARMERS', value: totalFarmers(filteredDeliveries), icon: 'farmer', clickable: true }"
+      (cardClicked)="goToFarmersList()">
+    </app-stat-card>
 
-    <div class="kpi-card">
-      <span class="kpi-label">Approved</span>
-      <h2>{{ approvedCount(filteredDeliveries) }}</h2>
-      <small>Approved Deliveries</small>
-    </div>
+    <app-stat-card
+      [data]="{ label: 'APPROVED', value: approvedCount(filteredDeliveries), icon: 'check' }">
+    </app-stat-card>
 
-  </div>
+  </div> -->
 
   <!-- =========================================================
        SEASON TABS
        ========================================================= -->
-  <div class="season-tabs">
+  <!-- <div class="season-tabs">
     <button type="button"
       class="season-tab"
       [class.active]="selectedSeason === ''"
@@ -78,7 +71,7 @@
       (click)="setSeasonFilter('Dry Season')">
       Dry Season
     </button>
-  </div>
+  </div> -->
 
   <!-- =========================================================
        FILTER SECTION
@@ -91,13 +84,13 @@
         type="text"
         [(ngModel)]="searchTerm"
         (input)="applyFilter()"
-        placeholder="Search by branch, commodity, status or ID..."
+        placeholder="Search by branch, commodity, status, season, session or ID..."
       />
     </div>
   </div>
 
   <!-- DELIVERY TABLE -->
-  <div class="table-card">
+  <div class="table-card" *ngIf="paginatedDeliveries$ | async as paginatedDeliveries">
 
     <div class="table-wrapper">
 
@@ -110,7 +103,6 @@
             <th>Branch</th>
             <th>Season</th>
             <th>Commodity</th>
-            <th>Farmers</th>
             <th>Volume</th>
             <th>Estimated Value</th>
             <th>Status</th>
@@ -122,7 +114,7 @@
         <tbody>
 
           <!-- trackBy tells Angular how to identify each row by ID so it only re-renders rows that actually changed. -->
-          <tr *ngFor="let delivery of filteredDeliveries; trackBy: trackByDeliveryId">
+          <tr *ngFor="let delivery of paginatedDeliveries; trackBy: trackByDeliveryId">
 
             <!-- ID -->
             <td class="mono">
@@ -146,14 +138,9 @@
               {{ delivery.commodity }}
             </td>
 
-            <!-- Farmers -->
-            <td>
-              {{ delivery.farmerCount }}
-            </td>
-
             <!-- Volume -->
             <td>
-              {{ delivery.volume | number }} KG
+              {{ delivery.volume | number }} {{ delivery.volumeUnit || 'KG' }}
             </td>
 
             <!-- Value -->
@@ -196,17 +183,14 @@
                   [style.right.px]="menuPosition.right">
                   <button
                     type="button"
-                    (click)="approve(delivery)"
-                    [disabled]="delivery.status === 'Approved'">
-                    Approve
+                    (click)="viewDelivery(delivery)">
+                    View
                   </button>
 
                   <button
                     type="button"
-                    class="danger"
-                    (click)="reject(delivery)"
-                    [disabled]="delivery.status === 'Rejected'">
-                    Reject
+                    (click)="editDelivery(delivery)">
+                    Edit
                   </button>
                 </div>
 
@@ -217,9 +201,9 @@
           </tr>
 
           <!-- Empty State -->
-          <tr *ngIf="filteredDeliveries.length === 0">
+          <tr *ngIf="paginatedDeliveries.length === 0">
 
-            <td colspan="9" class="empty-state">
+            <td colspan="8" class="empty-state">
               No deliveries found.
             </td>
 
@@ -231,19 +215,34 @@
 
     </div>
 
+    <div class="pagination-section" *ngIf="totalCount > itemsPerPage">
+      <span class="pagination-info">Showing {{ startIndex }}–{{ endIndex }} of {{ totalCount }}</span>
+      <div class="pagination-controls">
+        <button type="button" class="btn secondary-action-btn" (click)="prevPage()" [disabled]="currentPage === 1">Previous</button>
+        <button
+          *ngFor="let page of pagesArray; trackBy: trackByIndex"
+          type="button"
+          class="btn"
+          [class.primary-action-btn]="page === currentPage"
+          [class.secondary-action-btn]="page !== currentPage"
+          (click)="goToPage(page)">{{ page }}</button>
+        <button type="button" class="btn secondary-action-btn" (click)="nextPage()" [disabled]="endIndex >= totalCount">Next</button>
+      </div>
+    </div>
+
   </div>
 
   <div class="modal-backdrop" *ngIf="showAddDeliveryModal" (click)="closeAddDeliveryModal()">
     <section class="add-delivery-modal" (click)="$event.stopPropagation()" aria-modal="true" role="dialog">
       <div class="modal-header">
         <div>
-          <h2>Add Farmer Deliveries</h2>
-          <p>Create a delivery batch first, then manage the farmers attached to it.</p>
+          <h2>{{ editingDeliveryId ? 'Edit Delivery' : 'Add Farmer Delivery' }}</h2>
+          <p>{{ editingDeliveryId ? 'Update this delivery\'s details.' : 'Create a delivery first, then manage the farmers attached to it.' }}</p>
         </div>
         <button type="button" class="modal-close-btn" aria-label="Close add delivery modal" (click)="closeAddDeliveryModal()">x</button>
       </div>
 
-      <!-- This form submits through BranchDeliveryService.addDelivery(), which updates deliveries$ for this table. -->
+      <!-- Submits through BranchDeliveryService — addDelivery() when creating, updateDelivery() when editingDeliveryId is set. -->
       <form class="add-delivery-form" #deliveryForm="ngForm" (ngSubmit)="submitAddDelivery()" novalidate>
         <div class="form-grid">
           <label class="form-field">
@@ -265,25 +264,32 @@
           </label>
 
           <label class="form-field">
-            <span>Farmers</span>
+            <span>Farmer Name</span>
             <input
-              name="farmerCount"
-              type="number"
-              min="0"
+              name="farmerName"
+              type="text"
               required
-              [(ngModel)]="addDeliveryForm.farmerCount"
+              placeholder="e.g. John Tumwesigye"
+              [(ngModel)]="addDeliveryForm.farmerName"
             />
           </label>
 
           <label class="form-field">
-            <span>Volume (KG)</span>
-            <input
-              name="volume"
-              type="number"
-              min="0"
-              required
-              [(ngModel)]="addDeliveryForm.volume"
-            />
+            <span>Volume</span>
+            <div class="input-with-unit">
+              <input
+                name="volume"
+                type="number"
+                min="0"
+                required
+                [(ngModel)]="addDeliveryForm.volume"
+                (keydown)="blockNegativeKey($event)"
+                (paste)="blockNegativePaste($event)"
+              />
+              <select name="volumeUnit" required [(ngModel)]="addDeliveryForm.volumeUnit" class="unit-select">
+                <option *ngFor="let unit of volumeUnitOptions; trackBy: trackByOption" [value]="unit">{{ unit }}</option>
+              </select>
+            </div>
           </label>
 
           <label class="form-field">
@@ -294,6 +300,8 @@
               min="0"
               required
               [(ngModel)]="addDeliveryForm.estimatedValue"
+              (keydown)="blockNegativeKey($event)"
+              (paste)="blockNegativePaste($event)"
             />
           </label>
 
@@ -310,11 +318,27 @@
               <option *ngFor="let season of seasonOptions; trackBy: trackByOption" [value]="season">{{ season }}</option>
             </select>
           </label>
+
+          <label class="form-field">
+            <span>Session</span>
+            <select name="session" required [(ngModel)]="addDeliveryForm.session">
+              <option *ngFor="let session of availableSessionOptions; trackBy: trackByOption" [value]="session">{{ sessionLabel(session) }}</option>
+            </select>
+            <div class="field-hint" *ngIf="!editingDeliveryId && availableSessionOptions.length === 0">
+              All sessions for today have closed — try again tomorrow.
+            </div>
+          </label>
         </div>
 
         <div class="modal-actions">
           <button type="button" class="btn secondary-action-btn" (click)="closeAddDeliveryModal()">Cancel</button>
-          <button type="submit" class="btn primary-action-btn" [disabled]="deliveryForm.invalid">Save Delivery</button>
+          <button
+            type="submit"
+            class="btn primary-action-btn"
+            [disabled]="deliveryForm.invalid || (!editingDeliveryId && availableSessionOptions.length === 0)"
+          >
+            {{ editingDeliveryId ? 'Save Changes' : 'Save Delivery' }}
+          </button>
         </div>
       </form>
     </section>

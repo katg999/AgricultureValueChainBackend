@@ -50,8 +50,10 @@
       <app-button variant="ghost" size="sm" (clicked)="onSendSms()">
         <i class="ti ti-message"></i> Send SMS
       </app-button>
-      <app-button variant="danger" size="sm" (clicked)="onReject()">Reject</app-button>
-      <app-button variant="primary" size="sm" (clicked)="onApprove()">Approve farmer</app-button>
+      <ng-container *ngIf="!isBranchView">
+        <app-button variant="danger" size="sm" (clicked)="onReject()">Reject</app-button>
+        <app-button variant="primary" size="sm" (clicked)="onApprove()">Approve farmer</app-button>
+      </ng-container>
     </div>
   </div>
 

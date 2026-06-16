@@ -14,6 +14,7 @@
 .cf-subtitle { margin: 0; font-size: 14px; color: var(--muted-purple); }
 
 /* ── KPI CARDS ── */
+/* Card styling itself now lives in the shared StatCardComponent — this is just the grid wrapper. */
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -21,36 +22,71 @@
   margin-bottom: 24px;
 }
 
-.kpi-card {
-  position: relative;
-  overflow: hidden;
-  padding: 20px;
-  border-radius: 16px;
-  background: var(--surface-lowest);
-  box-shadow: 0 2px 8px rgba(32, 11, 38, 0.06);
+/* ── CONTROLS ROW ── */
+.controls-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
 }
-.kpi-card::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto;
-  height: 3px;
-}
-.kpi-card--batches::before  { background: var(--secondary); }
-.kpi-card--pending::before  { background: var(--primary); }
-.kpi-card--farmers::before  { background: #0284c7; }
-.kpi-card--net::before      { background: #15976d; }
 
-.kpi-label {
-  display: block;
-  margin-bottom: 10px;
-  font-size: 13px;
-  color: var(--muted-purple);
+/* ── VIEW TOGGLE ── */
+.view-toggle {
+  display: flex;
+  gap: 2px;
+  background: var(--surface-highest);
+  border-radius: 10px;
+  padding: 3px;
 }
-.kpi-value {
-  margin: 0;
-  font-size: 22px;
-  font-weight: 700;
+
+.view-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted-purple);
+  font-family: var(--font-human);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+.view-btn:hover { color: var(--secondary); }
+.view-btn--active {
+  background: var(--surface-lowest);
   color: var(--secondary);
+  box-shadow: 0 1px 4px rgba(32, 11, 38, 0.08);
+}
+
+/* ── STATUS PILLS (summary view) ── */
+.status-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.status-pill--pending   { background: rgba(242, 93, 39, 0.10);  color: var(--primary); }
+.status-pill--processed { background: rgba(2, 132, 199, 0.10);  color: #0284c7; }
+.status-pill--settled   { background: rgba(21, 151, 109, 0.10); color: #15976d; }
+
+.branch-dot {
+  color: var(--primary);
+  font-size: 10px;
+  margin-right: 8px;
 }
 
 /* ── SEASON TABS ── */
@@ -58,7 +94,6 @@
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  margin-bottom: 20px;
 }
 .season-tab {
   height: 38px;

@@ -1,0 +1,48 @@
+<div class="sessions-page">
+
+  <app-page-header
+    title="Sessions Management"
+    subtitle="Set the start and end time of each delivery session. These hours apply cooperative-wide — every branch uses the same windows."
+    [breadcrumb]="['Configuration', 'Sessions Management']">
+  </app-page-header>
+
+  <form *ngIf="form" [formGroup]="form" class="sessions-form" (ngSubmit)="save()">
+    <div class="table-card">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Session</th>
+              <th>Start time</th>
+              <th>End time</th>
+              <th>Preview</th>
+            </tr>
+          </thead>
+          <tbody formArrayName="windows">
+            <tr *ngFor="let row of rows; let i = index" [formGroupName]="i">
+              <td class="fw-600">{{ row.get('label')?.value }}</td>
+              <td>
+                <select formControlName="startHour">
+                  <option *ngFor="let h of hourOptions" [value]="h.value">{{ h.label }}</option>
+                </select>
+              </td>
+              <td>
+                <select formControlName="endHour">
+                  <option *ngFor="let h of hourOptions" [value]="h.value">{{ h.label }}</option>
+                </select>
+              </td>
+              <td class="mono preview-cell">{{ previewRange(row) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <app-button variant="secondary" type="button" (clicked)="cancel()">Cancel</app-button>
+      <app-button variant="ghost" type="button" (clicked)="resetToDefaults()">Reset to defaults</app-button>
+      <app-button variant="primary" type="submit">Save changes</app-button>
+    </div>
+  </form>
+
+</div>

@@ -35,7 +35,7 @@
         <h1 class="afd-title">Add Farmer Delivery</h1>
         <p class="afd-subtitle">Entries can be saved with or without a delivery batch.</p>
       </div>
-      <button class="btn-primary" (click)="onSubmit()" [disabled]="isSaving">
+      <button class="btn-primary" (click)="onSubmit()" [disabled]="isSaving || sessionOptions.length === 0">
         <span class="spinner" *ngIf="isSaving" aria-hidden="true"></span>
         <svg *ngIf="!isSaving" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
@@ -45,6 +45,12 @@
         {{ isSaving ? 'Saving…' : 'Save Delivery' }}
       </button>
     </div>
+
+    <app-alert
+      variant="warning"
+      message="All sessions for today have closed — new deliveries can be recorded again tomorrow."
+      *ngIf="sessionOptions.length === 0">
+    </app-alert>
 
     <form [formGroup]="deliveryForm" (ngSubmit)="onSubmit()" novalidate>
 
@@ -150,7 +156,7 @@
           Delivery details
         </div>
 
-        <div class="field-row-3 spaced-row">
+        <div class="field-row-4 spaced-row">
           <div class="field-group" [class.has-error]="isFieldInvalid('branch')">
             <label for="branch">Branch <span class="required">*</span></label>
             <select id="branch" formControlName="branch">
@@ -166,6 +172,14 @@
               <option *ngFor="let s of seasonOptions" [value]="s">{{ s }}</option>
             </select>
             <div class="field-error" *ngIf="isFieldInvalid('season')">Please select a season.</div>
+          </div>
+          <div class="field-group" [class.has-error]="isFieldInvalid('session')">
+            <label for="session">Session <span class="required">*</span></label>
+            <select id="session" formControlName="session">
+              <option value="">Select session…</option>
+              <option *ngFor="let s of sessionOptions" [value]="s">{{ sessionLabel(s) }}</option>
+            </select>
+            <div class="field-error" *ngIf="isFieldInvalid('session')">Please select a session.</div>
           </div>
           <div class="field-group">
             <label for="batch">Delivery batch</label>

@@ -66,6 +66,16 @@ export const COOPERATIVE_ROUTES: Routes = [
         .then(m => m.GradeFormComponent),
   },
 
+  // ── Sessions Management ──────────────────────────────────────────────────────
+  {
+    path: 'sessions',
+    canActivate: [permissionGuard],
+    data: { permissions: ['configuration.sessions.view', 'configuration.sessions.edit'] },
+    loadComponent: () =>
+      import('./configuration/sessions/sessions-config.component')
+        .then(m => m.SessionsConfigComponent),
+  },
+
   // ── Pricing ─────────────────────────────────────────────────────────────────
   {
     path: 'edit-prices',
@@ -161,6 +171,22 @@ export const COOPERATIVE_ROUTES: Routes = [
         .then(m => m.CooperativeFinanceComponent),
   },
   { path: 'finance', redirectTo: 'finance/batch-processing', pathMatch: 'full' },
+
+  // Read-only, cooperative-wide view of PaymentBatchService's batches (the system
+  // branch staff create/process under /branch/finance/*) — separate from the
+  // BatchRecord-based Batch Overview page above, which is a different data model.
+  {
+    path: 'finance/payment-batches',
+    loadComponent: () =>
+      import('./finance/payment-batches/payment-batches.component')
+        .then(m => m.CooperativePaymentBatchesComponent),
+  },
+  {
+    path: 'finance/payment-batches/:id/farmers',
+    loadComponent: () =>
+      import('./finance/payment-batches/payment-batch-farmers/payment-batch-farmers.component')
+        .then(m => m.CooperativePaymentBatchFarmersComponent),
+  },
 
   {
     path: 'inventory',

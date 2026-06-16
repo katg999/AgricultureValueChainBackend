@@ -29,6 +29,14 @@ export const BRANCH_FARMERS_ROUTES: Routes = [
         .then(m => m.BranchFarmerRegisterComponent)
   },
 
+  // Read-only farmer profile (branch staff view — no approve/reject)
+  {
+    path: 'profile/:id',
+    loadComponent: () =>
+      import('../../cooperative/farmers/farmer-approval/farmer-approval.component')
+        .then(m => m.FarmerApprovalComponent)
+  },
+
   // Legacy dotted paths kept for existing bookmarks.
   { path: 'branch.farmer-list', redirectTo: 'list', pathMatch: 'full' },
   { path: 'branch.farmer-register', redirectTo: 'register', pathMatch: 'full' },

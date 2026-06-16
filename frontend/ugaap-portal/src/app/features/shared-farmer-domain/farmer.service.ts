@@ -10,11 +10,12 @@
 import { Injectable } from '@angular/core';
 import {
   HttpClient,
+  HttpErrorResponse,
   HttpParams,
 } from '@angular/common/http';
 
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { catchError, map, tap } from 'rxjs/operators';
+import { catchError, map, startWith, take, tap, timeout } from 'rxjs/operators';
 
 import { API_ENDPOINTS } from '../../core/constants/api-endpoints';
 import { SessionService } from '../../core/services/session.service';
@@ -103,6 +104,8 @@ export class FarmerService {
    * Returns farmers registered under the current branch.
    */
   listForBranch(branchId = this.session.branchId()): Observable<FarmerListItem[]> {
+    const mockSnapshot = this._farmersForBranch(this.farmersSubject.value, branchId);
+
     const params = branchId
       ? new HttpParams().set('branchId', branchId)
       : undefined;
@@ -111,8 +114,12 @@ export class FarmerService {
       API_ENDPOINTS.BRANCH.FARMERS,
       params ? { params } : undefined,
     ).pipe(
+      // Enforce branch isolation on whatever the backend returns — guards against
+      // backend bugs that return cross-branch data on this endpoint.
+      map(farmers => this._farmersForBranch(farmers, branchId)),
       tap(farmers => this._mergeFarmers(farmers)),
-      catchError(() => of(this._farmersForBranch(this.farmersSubject.value, branchId))),
+      catchError(() => of(mockSnapshot)),
+      startWith(mockSnapshot),
     );
   }
 
@@ -144,8 +151,12 @@ export class FarmerService {
       ? API_ENDPOINTS.BRANCH.FARMER_BY_ID(id)
       : API_ENDPOINTS.COOPERATIVE.FARMER_BY_ID(id);
 
+    const mockProfile = buildMockFarmerProfile(id);
     return this.http.get<FarmerProfile>(url).pipe(
-      catchError(() => of(buildMockFarmerProfile(id))),
+      timeout(5000),
+      catchError(() => of(mockProfile)),
+      startWith(mockProfile),
+      take(1),
     );
   }
 
@@ -223,8 +234,12 @@ export class FarmerService {
       API_ENDPOINTS.BRANCH.FARMERS,
       payload,
     ).pipe(
+      timeout(15000),
       tap(profile => this._upsertFarmer(this._listItemFromProfile(profile, payload))),
-      catchError(() => of(this._createMockFarmer(payload))),
+      catchError((err) => {
+        if (err instanceof HttpErrorResponse && err.status > 0) throw err;
+        return of(this._createMockFarmer(payload));
+      }),
     );
 }
 
@@ -239,16 +254,13 @@ export class FarmerService {
       API_ENDPOINTS.BRANCH.FARMER_BY_ID(id),
       form,
     ).pipe(
+      timeout(15000),
       tap(profile => this._upsertFarmer(this._listItemFromProfile(profile, form))),
-      catchError(() => {
+      catchError((err) => {
+        if (err instanceof HttpErrorResponse && err.status > 0) throw err;
         const item = this.farmersSubject.value.find(f => f.id === id);
         if (item) {
-          const updated: FarmerListItem = {
-            ...item,
-            name: form.fullName,
-            primaryCommodity: this._primaryCommodity(form),
-          };
-          this._upsertFarmer(updated);
+          this._upsertFarmer({ ...item, name: form.fullName, primaryCommodity: this._primaryCommodity(form) });
         }
         return of(buildMockFarmerProfile(id));
       }),
@@ -347,12 +359,7 @@ export class FarmerService {
   }
 
   private _primaryCommodity(form?: FarmerRegistrationForm): string {
-    if (!form?.production) return 'Coffee';
-    if (form.production.coffee) return 'Coffee';
-    if (form.production.maize) return 'Maize';
-    if (form.production.cocoa) return 'Cocoa';
-    if (form.production.vanilla) return 'Vanilla';
-    return 'Mixed';
+    return form?.production?.commodity?.trim() || 'Mixed';
   }
 
   private _upsertFarmer(farmer: FarmerListItem): void {

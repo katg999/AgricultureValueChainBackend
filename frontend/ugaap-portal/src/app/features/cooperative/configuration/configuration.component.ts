@@ -25,5 +25,5 @@ export class ConfigurationComponent {
   openRolesUsers():   void { this.router.navigate(['/cooperative/users']); }
   openRoles():        void { this.router.navigate(['/cooperative/roles']); }
   openNotifications():void { alert('Notification preferences — coming soon.'); }
-  openSessions():     void { alert('Sessions Management — coming soon.'); }
+  openSessions():     void { this.router.navigate(['/cooperative/sessions']); }
 }

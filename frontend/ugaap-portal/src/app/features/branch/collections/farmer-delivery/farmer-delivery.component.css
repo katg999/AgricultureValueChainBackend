@@ -209,6 +209,12 @@
   gap: 18px;
 }
 
+.field-row-4 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+
 .manual-fields {
   display: flex;
   flex-direction: column;
@@ -541,7 +547,8 @@ button:disabled {
 @media (max-width: 900px) {
 
   .field-row-2,
-  .field-row-3 {
+  .field-row-3,
+  .field-row-4 {
     grid-template-columns: 1fr;
   }
 

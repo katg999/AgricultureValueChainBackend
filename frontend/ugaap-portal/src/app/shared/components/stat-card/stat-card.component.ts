@@ -8,7 +8,7 @@
 // • icon field accepts an icon NAME string (e.g. 'users', 'box', 'wallet')
 //   mapped to inline SVG via iconMap — not an emoji.
 
-import { Component, Input, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
@@ -280,8 +280,12 @@ export class StatCardComponent implements OnInit, OnDestroy {
     if (this.rafId !== undefined) cancelAnimationFrame(this.rafId);
   }
 
+  @Output() cardClicked = new EventEmitter<void>();
+
   handleClick(): void {
-    // Navigation handled by parent via routerLink or route input
+    if (this.data.clickable) {
+      this.cardClicked.emit();
+    }
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────

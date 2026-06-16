@@ -3,6 +3,8 @@
 // TypeScript uses these to catch mistakes — if you try to put a number where a string
 // is expected, it'll tell you before the app even runs.
 
+import { DeliverySession } from '../../collections/branch.delivery.model';
+
 // BatchStatus = the lifecycle of a batch. It starts as Draft, moves forward or gets rejected.
 // Using a union type (with |) means the value can ONLY be one of these exact strings — nothing else.
 export type BatchStatus = 'Draft' | 'Pending Approval' | 'Approved' | 'Rejected' | 'Disbursed';
@@ -14,12 +16,22 @@ export type PaymentMethod = 'Mobile Money' | 'Bank Transfer' | 'Cash';
 // hasBankDetails is the key flag — false means we can't pay them, so they get excluded.
 // bankAccount / bankCode are needed to generate the bank payment file.
 // email and address are optional — not all farmers will have them.
+// session = which delivery window (within deliveryDate) this farmer's payout traces back to —
+// used to group a batch's farmers as Day -> Session for processing. Optional: a real backend
+// response missing it should just leave a farmer ungrouped, not break the page.
+// branchId = which branch this farmer belongs to (BR-MBL, etc.) — branch payment batches are
+// scoped to the logged-in branch only, this is what that scoping filters on. Kept REQUIRED
+// (unlike session) on purpose: this is an access boundary, not just a display field — if a
+// backend response ever omitted it, we want records to fail closed (filtered out) rather than
+// silently become visible to every branch.
 export interface FarmerRecord {
   farmerId: string;
   fullName: string;
   commodity: string;
   branch: string;
+  branchId: string;
   deliveryDate: string;
+  session?: DeliverySession;
   paymentMethod: PaymentMethod;
   netPayable: number;
   hasBankDetails: boolean;
@@ -32,17 +44,18 @@ export interface FarmerRecord {
 // BatchFilterCriteria mirrors the batch-create form exactly.
 // When we call form.getRawValue(), TypeScript needs to know what shape the result is —
 // that's why we cast it to this interface in the component.
+// No 'branch' field — a branch user can only ever create a batch for their own branch,
+// so it's derived from the session rather than picked in the form.
 export interface BatchFilterCriteria {
   batchName: string;
   season: string;
   openingDate: string;
   closingDate: string;
   commodityFilter: string;
-  branch: string;
 }
 
 // PaymentBatch = a saved batch record with extra server-generated fields (id, status, totals).
-// BatchFilterCriteria is basically PaymentBatch without those extra fields.
+// branch/branchId are added by the service from the creator's session, not part of BatchFilterCriteria.
 export interface PaymentBatch {
   id: string;
   batchName: string;
@@ -51,8 +64,26 @@ export interface PaymentBatch {
   closingDate: string;
   commodityFilter: string;
   branch: string;
+  branchId: string;
   status: BatchStatus;
   totalAmount: number;
   farmerCount: number;
   createdAt: Date;
+}
+
+// One session's worth of farmers within a day, inside a batch.
+// session is null for farmers with no recorded session (e.g. a backend response that
+// hasn't added this field yet) — kept visible in its own bucket rather than dropped silently.
+export interface SessionGroup {
+  session: DeliverySession | null;
+  farmers: FarmerRecord[];
+  subtotal: number;
+}
+
+// One day's worth of sessions within a batch — used by both the branch and cooperative
+// "view batch farmers" pages so they group identically (see PaymentBatchService.groupFarmersByDayAndSession).
+export interface DayGroup {
+  day: string;
+  sessions: SessionGroup[];
+  subtotal: number;
 }

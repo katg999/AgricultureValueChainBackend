@@ -57,36 +57,12 @@
 
 /* KPI CARDS */
 
-.kpi-grid {
+.stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
   margin-bottom: 24px;
-}
-
-.kpi-card {
-  background: var(--surface-lowest);
-  padding: 20px;
-  border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(32, 11, 38, 0.06);
-}
-
-.kpi-label {
-  display: block;
-  font-size: 13px;
-  color: var(--muted-purple);
-  margin-bottom: 12px;
-}
-
-.kpi-card h2 {
-  font-size: 24px;
-  color: var(--secondary);
-  margin-bottom: 6px;
-}
-
-.kpi-card small {
-  color: var(--muted-purple);
-  font-size: 12px;
+  align-items: stretch;
 }
 
 /* SEASON TABS */
@@ -217,6 +193,29 @@
 table {
   width: 100%;
   border-collapse: collapse;
+}
+
+/* PAGINATION */
+
+.pagination-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  border-top: 1px solid #f0edf2;
+  flex-wrap: wrap;
+}
+
+.pagination-info {
+  color: var(--muted-purple);
+  font-size: 13px;
+}
+
+.pagination-controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 thead {
@@ -453,6 +452,11 @@ tbody tr:hover {
   font-weight: 600;
 }
 
+.field-hint {
+  font-size: 12px;
+  color: var(--muted-purple);
+}
+
 .form-field input,
 .form-field select {
   height: 44px;
@@ -463,12 +467,41 @@ tbody tr:hover {
   color: #2b2b2b;
   font-size: 14px;
   outline: none;
+  box-sizing: border-box;
 }
 
 .form-field input:focus,
 .form-field select:focus {
   border-color: var(--primary);
   background: #ffffff;
+}
+
+/* Extra right padding keeps the native spinner clear of the rounded corner —
+   at the base 14px the up/down arrows sit flush against it and get clipped. */
+.form-field input[type='number'] {
+  padding-right: 30px;
+}
+
+.form-field input[type='number']::-webkit-inner-spin-button,
+.form-field input[type='number']::-webkit-outer-spin-button {
+  margin-left: 8px;
+  opacity: 1;
+}
+
+.input-with-unit {
+  display: flex;
+  gap: 8px;
+}
+
+.input-with-unit input {
+  flex: 1;
+  min-width: 0;
+}
+
+.input-with-unit .unit-select {
+  width: 88px;
+  flex-shrink: 0;
+  padding: 0 8px;
 }
 
 .modal-actions {
@@ -501,6 +534,12 @@ tbody tr:hover {
 
 /* RESPONSIVE */
 
+@media (max-width: 900px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 768px) {
 
   .delivery-page {
@@ -519,4 +558,10 @@ tbody tr:hover {
     grid-template-columns: 1fr;
   }
 
+}
+
+@media (max-width: 520px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
 }

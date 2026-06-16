@@ -108,7 +108,7 @@ const COOPERATIVE_ADMIN_CONFIG: DashboardConfig = {
     // cooperatives-list → onboarding → maker-checker (all under /cooperatives/*)
     { label: 'Organisation Setup', icon: 'building', route: '/cooperatives',          permissionModule: 'organisation' },
 
-    // Configuration is a collapsible parent — clicking it reveals grade setup and pricing
+    // Configuration is a collapsible parent — clicking it reveals grade setup and pricing and sessions
     {
       label: 'Configuration',
       icon:  'settings',
@@ -117,6 +117,7 @@ const COOPERATIVE_ADMIN_CONFIG: DashboardConfig = {
       children: [
         { label: 'Grade Config', icon: '', route: '/cooperative/grade-config', permissions: ['configuration.grades.view'] },
         { label: 'Edit Prices',  icon: '', route: '/cooperative/edit-prices',  permissions: ['configuration.prices.view', 'configuration.prices.edit'] },
+        { label: 'Sessions',     icon: '', route: '/cooperative/sessions',     permissions: ['configuration.sessions.view', 'configuration.sessions.edit'] },
       ],
     },
 
@@ -139,38 +140,23 @@ const COOPERATIVE_ADMIN_CONFIG: DashboardConfig = {
       ],
     },
 
+    // Finance — Batch Overview is the older BatchRecord-based reporting summary;
+    // Payment Batches is the read-only, cooperative-wide view of PaymentBatchService's
+    // batches (the same system branch staff create/process under /branch/finance/*).
+    {
+      label: 'Finance',
+      icon:  'finance',
+      route: '/cooperative/finance',
+      permissionModule: 'finance',
+      children: [
+        { label: 'Batch Overview',   icon: '', route: '/cooperative/finance/batch-processing', permissions: ['finance.view'] },
+        { label: 'Payment Batches',  icon: '', route: '/cooperative/finance/payment-batches',   permissions: ['finance.view'] },
+      ],
+    },
 
     { label: 'User Management', icon: 'users',      route: '/cooperative/users',    permissionModule: 'users' },
     { label: 'Roles',           icon: 'roles',      route: '/cooperative/roles',    permissionModule: 'roles' },
-// =======
-//     { label: 'User Management', icon: 'users',      route: '/cooperative/users'    },
-//     { label: 'Roles',           icon: 'roles',      route: '/cooperative/roles'    },
-    
-//     {label:'Farmers',         icon:'farmers',     route:'/cooperative/farmers' },
-
-//     {label:'Branches',         icon:'branch',     route:'/cooperative/branches'               },
-
-
-//     { label: 'Finance',         icon: 'finance',    route: '/cooperative/finance'  },
-//     // Inventory is a collapsible parent — clicking it reveals current stock, issue stock and stock disbursed
-//     {
-//       label: 'Inventory',
-//       icon:  'inventory',
-//       route: '/cooperative/inventory',
-//       children: [
-//         { label: 'Current Stock',   icon: '', route: '/cooperative/inventory/current-stock' },
-//         { label: 'Issue Stock',     icon: '', route: '/cooperative/inventory/issue-stock' },
-//         { label: 'Stock-disbursed', icon: '', route: '/cooperative/inventory/stock-disbursed' },
-//       ],
-//     },
-
-//     { label: 'User Management', icon: 'users',      route: '/cooperative/users'                  },
-// >>>>>>> 82790e03fd252287ef071e22636f2f57993c20ce
-
   ],
-
-  
-
 };
 
 // Branch staff — handles daily field operations.
