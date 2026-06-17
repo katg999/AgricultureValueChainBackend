@@ -28,145 +28,89 @@
     <span class="redirect-label">Redirecting to Branch Deliveries…</span>
   </div>
 
-  <!-- Form -->
-  <div class="afd-form-wrap" *ngIf="!submitted">
-    <div class="afd-header">
-      <div>
-        <h1 class="afd-title">Add Farmer Delivery</h1>
-        <p class="afd-subtitle">Entries can be saved with or without a delivery batch.</p>
-      </div>
-      <button class="btn-primary" (click)="onSubmit()" [disabled]="isSaving || sessionOptions.length === 0">
-        <span class="spinner" *ngIf="isSaving" aria-hidden="true"></span>
-        <svg *ngIf="!isSaving" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
-          <polyline points="17 21 17 13 7 13 7 21"/>
-          <polyline points="7 3 7 8 15 8"/>
-        </svg>
-        {{ isSaving ? 'Saving…' : 'Save Delivery' }}
-      </button>
-    </div>
+  <!-- Modal -->
+  <div class="afd-modal-backdrop" *ngIf="!submitted">
+    <div class="afd-modal">
 
-    <app-alert
-      variant="warning"
-      message="All sessions for today have closed — new deliveries can be recorded again tomorrow."
-      *ngIf="sessionOptions.length === 0">
-    </app-alert>
-
-    <form [formGroup]="deliveryForm" (ngSubmit)="onSubmit()" novalidate>
-
-      <!-- ── Farmer Section ── -->
-      <div class="afd-card">
-        <div class="card-section-label">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
-          </svg>
-          Farmer details
+      <!-- Modal Header -->
+      <div class="afd-modal-header">
+        <div>
+          <h1 class="afd-title">Add Farmer Delivery</h1>
+          <p class="afd-subtitle">Create a delivery first, then manage the farmers attached to it.</p>
         </div>
-
-        <!-- Mode toggle -->
-        <div class="mode-toggle" role="group" aria-label="Farmer entry mode">
-          <button type="button"
-            [class.active]="farmerMode === 'search'"
-            (click)="setFarmerMode('search')">
-            Search existing
-          </button>
-          <button type="button"
-            [class.active]="farmerMode === 'manual'"
-            (click)="setFarmerMode('manual')">
-            Manual entry
-          </button>
-        </div>
-
-        <!-- Search mode -->
-        <div *ngIf="farmerMode === 'search'">
-          <div class="field-group" [class.has-error]="isFieldInvalid('farmerSearch')">
-            <label for="farmer-search">Farmer name or ID <span class="required">*</span></label>
-            <div class="search-wrap">
-              <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-              </svg>
-              <input
-                id="farmer-search"
-                type="text"
-                formControlName="farmerSearch"
-                placeholder="Search by name or ID…"
-                autocomplete="off"
-                (input)="onFarmerSearch($event)"
-                (blur)="onSearchBlur()" />
-              <div class="search-dropdown" *ngIf="showDropdown && filteredFarmers.length">
-                <div
-                  class="dropdown-item"
-                  *ngFor="let f of filteredFarmers"
-                  (mousedown)="selectFarmer(f)">
-                  <div class="farmer-avatar">{{ getInitials(f.name) }}</div>
-                  <div class="farmer-info">
-                    <span class="farmer-name">{{ f.name }}</span>
-                    <span class="farmer-meta">{{ f.phone }}</span>
-                  </div>
-                  <span class="farmer-id-badge">{{ f.id }}</span>
-                </div>
-              </div>
-            </div>
-            <div class="field-error" *ngIf="isFieldInvalid('farmerSearch')">Please select a farmer from the list.</div>
-          </div>
-
-          <!-- Selected farmer chip -->
-          <div class="selected-farmer-chip" *ngIf="selectedFarmer">
-            <div class="farmer-avatar large">{{ getInitials(selectedFarmer.name) }}</div>
-            <div class="farmer-chip-info">
-              <span class="farmer-name">{{ selectedFarmer.name }}</span>
-              <span class="farmer-meta">{{ selectedFarmer.id }} · {{ selectedFarmer.phone }}</span>
-            </div>
-            <button type="button" class="chip-clear" (click)="clearFarmer()" aria-label="Remove selected farmer">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <!-- Manual mode -->
-        <div *ngIf="farmerMode === 'manual'" class="manual-fields">
-          <div class="field-row-2">
-            <div class="field-group" [class.has-error]="isFieldInvalid('farmerName')">
-              <label for="farmer-name">Full name <span class="required">*</span></label>
-              <input id="farmer-name" type="text" formControlName="farmerName" placeholder="e.g. Akello Grace" />
-              <div class="field-error" *ngIf="isFieldInvalid('farmerName')">Full name is required.</div>
-            </div>
-            <div class="field-group">
-              <label for="farmer-id">Farmer ID</label>
-              <input id="farmer-id" type="text" formControlName="farmerId" placeholder="e.g. UG-F-00401" />
-              <div class="field-hint">Leave blank to auto-generate.</div>
-            </div>
-          </div>
-          <div class="field-group" [class.has-error]="isFieldInvalid('manualPhone')">
-            <label for="manual-phone">Phone number <span class="required">*</span></label>
-            <input id="manual-phone" type="tel" formControlName="manualPhone" placeholder="e.g. 0712345678" />
-            <div class="field-error" *ngIf="isFieldInvalid('manualPhone')">Phone number is required.</div>
-          </div>
-        </div>
+        <button class="btn-close" type="button" (click)="goToBranchDeliveries()" aria-label="Close">
+          X
+        </button>
       </div>
 
-      <!-- ── Delivery Section ── -->
-      <div class="afd-card">
-        <div class="card-section-label">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
-          </svg>
-          Delivery details
-        </div>
+      <!-- Modal Body -->
+      <form [formGroup]="deliveryForm" (ngSubmit)="onSubmit()" novalidate>
 
-        <div class="field-row-4 spaced-row">
+        <app-alert
+          variant="warning"
+          message="All sessions for today have closed — new deliveries can be recorded again tomorrow."
+          *ngIf="sessionOptions.length === 0">
+        </app-alert>
+
+        <!-- Row 1: Branch | Commodity -->
+        <div class="afd-field-row">
           <div class="field-group" [class.has-error]="isFieldInvalid('branch')">
-            <label for="branch">Branch <span class="required">*</span></label>
-            <select id="branch" formControlName="branch">
-              <option value="">Select branch…</option>
-              <option *ngFor="let b of branches" [value]="b">{{ b }}</option>
-            </select>
+            <label for="branch">Branch</label>
+            <input id="branch" type="text" formControlName="branch" readonly />
             <div class="field-error" *ngIf="isFieldInvalid('branch')">Please select a branch.</div>
           </div>
+          <div class="field-group" [class.has-error]="isFieldInvalid('commodity')">
+            <label for="commodity">Commodity</label>
+            <select id="commodity" formControlName="commodity">
+              <option value="">Select commodity…</option>
+              <option *ngFor="let c of commodities" [value]="c">{{ c }}</option>
+            </select>
+            <div class="field-error" *ngIf="isFieldInvalid('commodity')">Please select a commodity.</div>
+          </div>
+        </div>
+
+        <!-- Row 2: Farmer Name | Volume -->
+        <div class="afd-field-row">
+          <div class="field-group" [class.has-error]="isFieldInvalid('farmerName')">
+            <label for="farmer-name">Farmer Name</label>
+            <input id="farmer-name" type="text" formControlName="farmerName" placeholder="e.g. John Tumwesigye" />
+            <div class="field-error" *ngIf="isFieldInvalid('farmerName')">Full name is required.</div>
+          </div>
+          <div class="field-group" [class.has-error]="isFieldInvalid('volume')">
+            <label for="volume">Volume</label>
+            <div class="input-with-unit">
+              <input id="volume" type="number" formControlName="volume" placeholder="0" min="0" (input)="calcEstValue()" />
+              <select title="volume-unit" formControlName="volumeUnit">
+                <option value="KG">KG</option>
+                <option value="MT">MT</option>
+              </select>
+            </div>
+            <div class="field-error" *ngIf="isFieldInvalid('volume')">Volume is required.</div>
+          </div>
+        </div>
+
+        <!-- Row 3: Estimated Value | Status -->
+        <div class="afd-field-row">
+          <div class="field-group">
+            <label for="est-value">Estimated Value (UGX)</label>
+            <input id="est-value" type="number" formControlName="estimatedValue" placeholder="0" readonly />
+          </div>
+          <div class="field-group" [class.has-error]="isFieldInvalid('status')">
+            <label for="status">Status</label>
+            <select id="status" formControlName="status">
+              <option value="">Select status…</option>
+              <option value="Pending">Pending</option>
+              <option value="Approved">Approved</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+            <div class="field-error" *ngIf="isFieldInvalid('status')">Please select a status.</div>
+          </div>
+        </div>
+
+        <!-- Row 4: Season | Session -->
+        <div class="afd-field-row">
           <div class="field-group" [class.has-error]="isFieldInvalid('season')">
-            <label for="season">Season <span class="required">*</span></label>
+            <label for="season">Season</label>
             <select id="season" formControlName="season">
               <option value="">Select season…</option>
               <option *ngFor="let s of seasonOptions" [value]="s">{{ s }}</option>
@@ -174,76 +118,26 @@
             <div class="field-error" *ngIf="isFieldInvalid('season')">Please select a season.</div>
           </div>
           <div class="field-group" [class.has-error]="isFieldInvalid('session')">
-            <label for="session">Session <span class="required">*</span></label>
+            <label for="session" title="session">Session</label>
             <select id="session" formControlName="session">
               <option value="">Select session…</option>
               <option *ngFor="let s of sessionOptions" [value]="s">{{ sessionLabel(s) }}</option>
             </select>
             <div class="field-error" *ngIf="isFieldInvalid('session')">Please select a session.</div>
           </div>
-          <div class="field-group">
-            <label for="batch">Delivery batch</label>
-            <input id="batch" type="text" formControlName="batch" placeholder="e.g. BATCH-2026-05" />
-            <div class="field-hint">Optional — save without batch.</div>
-          </div>
         </div>
 
-        <div class="field-row-2 spaced-row">
-          <div class="field-group" [class.has-error]="isFieldInvalid('commodity')">
-            <label for="commodity">Commodity <span class="required">*</span></label>
-            <select id="commodity" formControlName="commodity">
-              <option value="">Select commodity…</option>
-              <option *ngFor="let c of commodities" [value]="c">{{ c }}</option>
-            </select>
-            <div class="field-error" *ngIf="isFieldInvalid('commodity')">Please select a commodity.</div>
-          </div>
-          <div class="field-group" [class.has-error]="isFieldInvalid('phone')" *ngIf="farmerMode === 'search'">
-            <label for="phone">Phone number <span class="required">*</span></label>
-            <input id="phone" type="tel" formControlName="phone" placeholder="e.g. 0712345678" />
-            <div class="field-error" *ngIf="isFieldInvalid('phone')">Phone number is required.</div>
-          </div>
+        <!-- Modal Footer -->
+        <div class="afd-modal-footer">
+          <button type="button" class="btn-cancel" (click)="goToBranchDeliveries()">Cancel</button>
+          <button type="submit" class="btn-primary" [disabled]="isSaving || sessionOptions.length === 0">
+            <span class="spinner" *ngIf="isSaving" aria-hidden="true"></span>
+            {{ isSaving ? 'Saving…' : 'Save Delivery' }}
+          </button>
         </div>
 
-        <div class="field-row-3 spaced-row">
-          <div class="field-group" [class.has-error]="isFieldInvalid('volume')">
-            <label for="volume">Volume (KG) <span class="required">*</span></label>
-            <input id="volume" type="number" formControlName="volume" placeholder="0" min="0" (input)="calcEstValue()" />
-            <div class="field-error" *ngIf="isFieldInvalid('volume')">Volume is required.</div>
-          </div>
-          <div class="field-group" [class.has-error]="isFieldInvalid('unitPrice')">
-            <label for="unit-price">Est. price / unit (UGX) <span class="required">*</span></label>
-            <input id="unit-price" type="number" formControlName="unitPrice" placeholder="0" min="0" (input)="calcEstValue()" />
-            <div class="field-error" *ngIf="isFieldInvalid('unitPrice')">Price per unit is required.</div>
-          </div>
-          <div class="field-group">
-            <label>Est. total value (UGX)</label>
-            <div class="computed-field">
-              <span class="computed-label">Auto-calculated</span>
-              <span class="computed-value">{{ estValueDisplay }}</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="field-group">
-          <label for="notes">Notes / remarks</label>
-          <textarea id="notes" formControlName="notes" rows="3" placeholder="e.g. Grade A quality, dried beans…"></textarea>
-        </div>
-      </div>
-
-      <!-- Actions -->
-      <div class="afd-actions">
-        <button type="button" class="btn-cancel" (click)="goToBranchDeliveries()">Cancel</button>
-        <button type="submit" class="btn-primary" [disabled]="isSaving">
-          <span class="spinner" *ngIf="isSaving" aria-hidden="true"></span>
-          <svg *ngIf="!isSaving" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
-            <polyline points="17 21 17 13 7 13 7 21"/>
-            <polyline points="7 3 7 8 15 8"/>
-          </svg>
-          {{ isSaving ? 'Saving…' : 'Save Delivery' }}
-        </button>
-      </div>
-
-    </form>
+      </form>
+    </div>
   </div>
+
 </div>

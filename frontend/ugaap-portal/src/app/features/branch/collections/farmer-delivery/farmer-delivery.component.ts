@@ -233,7 +233,7 @@ implements OnInit, OnDestroy {
       ],
 
       branch: [
-        '',
+        BRANCH_NAMES[this.session.branchId() ?? ''] ?? '',
         Validators.required,
       ],
 
