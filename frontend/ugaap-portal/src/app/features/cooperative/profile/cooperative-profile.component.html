@@ -3,8 +3,8 @@
   <!-- Page header -->
   <div class="page-header">
     <div>
-      <h1 class="page-title">Cooperative Profile</h1>
-      <p class="page-subtitle">Registration details, contacts and settlement account</p>
+      <h1 class="page-title">Organisation Profile</h1>
+      <p class="page-subtitle">Registration details, contacts, bank accounts and module setup</p>
     </div>
     <span class="status-pill" [class.pill-active]="profile.status === 'active'">
       {{ profile.status | uppercase }}
@@ -66,7 +66,6 @@
   <!-- BANK DETAILS -->
   <app-info-card title="BANK DETAILS">
 
-    <!-- Read view -->
     <ng-container *ngIf="!isEditingBank">
       <dl class="detail-list">
         <div class="detail-item">
@@ -92,7 +91,6 @@
           </dd>
         </div>
       </dl>
-
       <div class="card-actions">
         <app-button
           *hasPermission="'organisation.edit'"
@@ -103,65 +101,152 @@
       </div>
     </ng-container>
 
-    <!-- Edit view -->
     <form *ngIf="isEditingBank" [formGroup]="bankForm" (ngSubmit)="saveBankDetails()">
       <div class="form-grid">
-        <app-input
-          label="Bank name"
-          type="text"
-          formControlName="bankName"
-          [required]="true"
-          [error]="getBankFieldError('bankName')">
-        </app-input>
-
-        <app-input
-          label="Bank branch"
-          type="text"
-          formControlName="bankBranch">
-        </app-input>
-
-        <app-input
-          label="Account name"
-          type="text"
-          formControlName="accountName"
-          [required]="true"
-          [error]="getBankFieldError('accountName')">
-        </app-input>
-
-        <app-input
-          label="Account number"
-          type="text"
-          formControlName="accountNumber"
-          [required]="true"
-          hint="Digits only, 6–20 characters"
-          [error]="getBankFieldError('accountNumber')">
-        </app-input>
-
-        <app-input
-          label="Mobile money provider"
-          type="text"
-          formControlName="mobileMoneyProvider"
-          hint="Optional alternative payment rail">
-        </app-input>
-
-        <app-input
-          label="Mobile money number"
-          type="text"
-          formControlName="mobileMoneyNumber">
-        </app-input>
+        <app-input label="Bank name"      type="text" formControlName="bankName"      [required]="true" [error]="getBankFieldError('bankName')"></app-input>
+        <app-input label="Bank branch"    type="text" formControlName="bankBranch"></app-input>
+        <app-input label="Account name"   type="text" formControlName="accountName"   [required]="true" [error]="getBankFieldError('accountName')"></app-input>
+        <app-input label="Account number" type="text" formControlName="accountNumber" [required]="true" hint="Digits only, 6–20 characters" [error]="getBankFieldError('accountNumber')"></app-input>
+        <app-input label="Mobile money provider" type="text" formControlName="mobileMoneyProvider" hint="Optional — MTN, Airtel, etc."></app-input>
+        <app-input label="Mobile money number"   type="text" formControlName="mobileMoneyNumber"></app-input>
       </div>
-
       <div class="card-actions">
-        <app-button variant="ghost" size="md" type="button" (clicked)="cancelEditingBank()">
-          Cancel
-        </app-button>
-        <app-button
-          variant="primary" size="md" type="submit"
-          [loading]="isSaving" loadingText="Saving...">
-          Save bank details
-        </app-button>
+        <app-button variant="ghost"   size="md" type="button" (clicked)="cancelEditingBank()">Cancel</app-button>
+        <app-button variant="primary" size="md" type="submit" [loading]="isSaving" loadingText="Saving...">Save bank details</app-button>
       </div>
     </form>
 
   </app-info-card>
+
+  <!-- HOW WE OPERATE -->
+  <app-info-card title="HOW WE OPERATE">
+    <p class="modules-intro">
+      Turn on only the modules your cooperative uses. Disabled modules are hidden from
+      staff across the whole platform — you can change these at any time.
+    </p>
+
+    <form [formGroup]="modulesForm" (ngSubmit)="saveModules()">
+
+      <!-- Structure -->
+      <div class="module-group">
+        <span class="module-group-label">Structure</span>
+
+        <div class="module-row">
+          <app-toggle-switch
+            formControlName="hasBranches"
+            label="Branches"
+            description="This cooperative operates through multiple branch offices.">
+          </app-toggle-switch>
+        </div>
+
+        <div class="module-row">
+          <app-toggle-switch
+            formControlName="hasCollectionHubs"
+            label="Collection Hubs"
+            description="Produce is received at designated physical collection points.">
+          </app-toggle-switch>
+        </div>
+
+        <div class="module-row">
+          <app-toggle-switch
+            formControlName="hasFieldAgents"
+            label="Field Agents"
+            description="Agents are deployed to register farmers and support collections in the field.">
+          </app-toggle-switch>
+        </div>
+      </div>
+
+      <!-- Operations -->
+      <div class="module-group">
+        <span class="module-group-label">Operations</span>
+
+        <div class="module-row">
+          <app-toggle-switch
+            formControlName="doesGrading"
+            label="Produce Grading"
+            description="Produce quality is assessed and assigned a grade at the point of collection.">
+          </app-toggle-switch>
+        </div>
+
+        <div class="module-row">
+          <app-toggle-switch
+            formControlName="distributesInputs"
+            label="Input Distribution"
+            description="The cooperative supplies seeds, fertiliser or other inputs to farmers.">
+          </app-toggle-switch>
+        </div>
+
+        <div class="module-row">
+          <app-toggle-switch
+            formControlName="paysThroughPlatform"
+            label="Pay Farmers Through Platform"
+            description="Farmer payments are processed as batches (bank transfer or mobile money) via this system.">
+          </app-toggle-switch>
+        </div>
+      </div>
+
+      <!-- Credit -->
+      <div class="module-group">
+        <span class="module-group-label">Credit</span>
+
+        <div class="module-row">
+          <app-toggle-switch
+            formControlName="extendsCreditToFarmers"
+            label="Input Credit"
+            description="Farmers can receive inputs on credit, recovered automatically from future payments.">
+          </app-toggle-switch>
+        </div>
+
+        @if (creditEnabled) {
+          <div class="module-row module-row--nested">
+            <app-toggle-switch
+              formControlName="allowMultipleOpenCredits"
+              label="Allow Multiple Open Credits"
+              description="A farmer can hold more than one active credit at a time. Leave off to block new credit until the current one is fully settled.">
+            </app-toggle-switch>
+          </div>
+        }
+      </div>
+
+      <!-- Seasons & Membership -->
+      <div class="module-group">
+        <span class="module-group-label">Seasons &amp; Membership</span>
+
+        <div class="module-row">
+          <app-toggle-switch
+            formControlName="operatesInSeasons"
+            label="Season-based Collections"
+            description="Collections open and close on defined season dates. Reports and pricing are season-scoped.">
+          </app-toggle-switch>
+        </div>
+
+        <div class="module-row">
+          <app-toggle-switch
+            formControlName="requiresFarmerApproval"
+            label="Farmer Approval Required"
+            description="New farmer registrations must be reviewed and approved by an administrator before activation.">
+          </app-toggle-switch>
+        </div>
+
+        <div class="module-row">
+          <app-toggle-switch
+            formControlName="chargesMembershipFee"
+            label="Membership Fee"
+            description="A membership fee is charged. It can be deducted automatically from the farmer's first payment.">
+          </app-toggle-switch>
+        </div>
+      </div>
+
+      <div class="card-actions">
+        <app-button
+          *hasPermission="'organisation.edit'"
+          variant="primary" size="md" type="submit"
+          [loading]="isSavingModules" loadingText="Saving...">
+          Save module settings
+        </app-button>
+      </div>
+
+    </form>
+  </app-info-card>
+
 </div>

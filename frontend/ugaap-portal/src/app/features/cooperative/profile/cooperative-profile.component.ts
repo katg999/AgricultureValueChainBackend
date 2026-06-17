@@ -1,19 +1,15 @@
 // features/cooperative/profile/cooperative-profile.component.ts
-//
-// Cooperative profile — the organisation's own record: registration details,
-// contact person, and the bank details used for farmer payment disbursements.
-// Bank details are editable in place (agents.edit-style permission gating via
-// organisation.edit). Data is mock-seeded until the profile endpoint lands.
 
-import { Component, inject } from '@angular/core';
+import { Component, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 
-import { InfoCardComponent } from '../../../shared/components/info-card/info-card.component';
-import { InputComponent } from '../../../shared/components/input/input.component';
-import { ButtonComponent } from '../../../shared/components/button/button.component';
+import { InfoCardComponent }     from '../../../shared/components/info-card/info-card.component';
+import { InputComponent }        from '../../../shared/components/input/input.component';
+import { ButtonComponent }       from '../../../shared/components/button/button.component';
+import { ToggleSwitchComponent } from '../../../shared/components/toggle-switch/toggle-switch.component';
 import { HasPermissionDirective } from '../../../shared/directives/has-permission.directive';
-import { ToastService } from '../../../core/services/toast.service';
+import { ToastService }          from '../../../core/services/toast.service';
 import { CooperativeBankDetails } from '../../../core/services/cooperative.service';
 
 interface CooperativeProfile {
@@ -30,6 +26,24 @@ interface CooperativeProfile {
   status: 'active' | 'suspended';
 }
 
+export interface OperationalModules {
+  // Structure
+  hasBranches: boolean;
+  hasCollectionHubs: boolean;
+  hasFieldAgents: boolean;
+  // Operations
+  doesGrading: boolean;
+  distributesInputs: boolean;
+  paysThroughPlatform: boolean;
+  // Credit
+  extendsCreditToFarmers: boolean;
+  allowMultipleOpenCredits: boolean;
+  // Seasons & membership
+  operatesInSeasons: boolean;
+  requiresFarmerApproval: boolean;
+  chargesMembershipFee: boolean;
+}
+
 @Component({
   selector: 'app-cooperative-profile',
   standalone: true,
@@ -39,6 +53,7 @@ interface CooperativeProfile {
     InfoCardComponent,
     InputComponent,
     ButtonComponent,
+    ToggleSwitchComponent,
     HasPermissionDirective,
   ],
   templateUrl: './cooperative-profile.component.html',
@@ -46,10 +61,11 @@ interface CooperativeProfile {
 })
 export class CooperativeProfileComponent {
 
-  private fb = inject(FormBuilder);
+  private fb    = inject(FormBuilder);
   private toast = inject(ToastService);
 
-  // Mock data — replace with GET /cooperative profile endpoint when available
+  // ── Mock data — replace with GET /cooperative/profile ──────────────────────
+
   profile: CooperativeProfile = {
     name: 'Bugishu Cooperative Union',
     registrationNumber: 'COOP/2024/0157',
@@ -73,38 +89,66 @@ export class CooperativeProfileComponent {
     mobileMoneyNumber: '+256772889911',
   };
 
-  /** When true the bank details card switches to its edit form */
-  isEditingBank = false;
-  isSaving = false;
+  // ── Operational modules ────────────────────────────────────────────────────
 
-  bankForm = this.fb.group({
-    bankName: ['', Validators.required],
-    bankBranch: [''],
-    accountName: ['', Validators.required],
-    accountNumber: ['', [Validators.required, Validators.pattern(/^\d{6,20}$/)]],
-    mobileMoneyProvider: [''],
-    mobileMoneyNumber: [''],
+  modulesForm = this.fb.group({
+    // Structure
+    hasBranches:           [true],
+    hasCollectionHubs:     [true],
+    hasFieldAgents:        [false],
+    // Operations
+    doesGrading:           [true],
+    distributesInputs:     [false],
+    paysThroughPlatform:   [true],
+    // Credit
+    extendsCreditToFarmers:   [false],
+    allowMultipleOpenCredits: [false],
+    // Seasons & membership
+    operatesInSeasons:      [true],
+    requiresFarmerApproval: [true],
+    chargesMembershipFee:   [false],
   });
 
-  // ── Bank details editing ────────────────────────────────────────────────────
+  isSavingModules = false;
+
+  get creditEnabled(): boolean {
+    return !!this.modulesForm.get('extendsCreditToFarmers')?.value;
+  }
+
+  saveModules(): void {
+    this.isSavingModules = true;
+    // Replace with: PUT /cooperative/profile/modules
+    setTimeout(() => {
+      this.isSavingModules = false;
+      this.toast.success('Modules updated', 'Changes will take effect on next login.');
+    }, 800);
+  }
+
+  // ── Bank details ───────────────────────────────────────────────────────────
+
+  isEditingBank = false;
+  isSaving      = false;
+
+  bankForm = this.fb.group({
+    bankName:            ['', Validators.required],
+    bankBranch:          [''],
+    accountName:         ['', Validators.required],
+    accountNumber:       ['', [Validators.required, Validators.pattern(/^\d{6,20}$/)]],
+    mobileMoneyProvider: [''],
+    mobileMoneyNumber:   [''],
+  });
 
   startEditingBank(): void {
     this.bankForm.patchValue(this.bankDetails);
     this.isEditingBank = true;
   }
 
-  cancelEditingBank(): void {
-    this.isEditingBank = false;
-  }
+  cancelEditingBank(): void { this.isEditingBank = false; }
 
   saveBankDetails(): void {
-    if (this.bankForm.invalid) {
-      this.bankForm.markAllAsTouched();
-      return;
-    }
-
+    if (this.bankForm.invalid) { this.bankForm.markAllAsTouched(); return; }
     // Replace with: PUT /cooperative/profile/bank-details
-    this.bankDetails = this.bankForm.value as CooperativeBankDetails;
+    this.bankDetails  = this.bankForm.value as CooperativeBankDetails;
     this.isEditingBank = false;
     this.toast.success('Bank details updated', 'New disbursements will use the updated account.');
   }
@@ -113,12 +157,11 @@ export class CooperativeProfileComponent {
     const ctrl = this.bankForm.get(field);
     if (ctrl?.touched && ctrl?.errors) {
       if (ctrl.errors['required']) return 'This field is required';
-      if (ctrl.errors['pattern']) return 'Account number must be 6–20 digits';
+      if (ctrl.errors['pattern'])  return 'Account number must be 6–20 digits';
     }
     return '';
   }
 
-  /** Mask all but the last four digits when displaying the account number */
   get maskedAccountNumber(): string {
     const n = this.bankDetails.accountNumber;
     return n.length > 4 ? '•'.repeat(n.length - 4) + n.slice(-4) : n;

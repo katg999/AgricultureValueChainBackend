@@ -92,6 +92,47 @@
   border-top: 1px solid #E8E6ED;
 }
 
+/* ── How We Operate ─────────────────────────────────────────────────────── */
+
+.modules-intro {
+  font-size: 13px;
+  color: #6B6B7B;
+  line-height: 1.6;
+  margin: 0 0 24px;
+}
+
+.module-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 8px;
+}
+
+.module-group-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9CA3AF;
+  padding: 12px 0 8px;
+  border-bottom: 1px solid #F0EEF4;
+  margin-bottom: 4px;
+}
+
+.module-row {
+  padding: 14px 0;
+  border-bottom: 1px solid #F9F8FB;
+}
+
+.module-row--nested {
+  padding-left: 20px;
+  background: #FAFAFE;
+  border-radius: 8px;
+  border: 1px solid #EDE9F5;
+  margin: 4px 0;
+  padding: 14px 16px;
+}
+
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 
 @media (max-width: 640px) {

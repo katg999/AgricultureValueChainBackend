@@ -104,12 +104,23 @@ const PLATFORM_ADMIN_CONFIG: DashboardConfig = {
 const COOPERATIVE_ADMIN_CONFIG: DashboardConfig = {
   homeRoute: '/cooperative/dashboard',
   navItems: [
-    { label: 'Main',               icon: 'home',     route: '/cooperative/dashboard', permissionModule: 'dashboard' },
-    // Organisation Setup opens the cooperatives management section:
-    // cooperatives-list → onboarding → maker-checker (all under /cooperatives/*)
-    { label: 'Organisation Setup', icon: 'building', route: '/cooperatives',          permissionModule: 'organisation' },
+    { label: 'Main', icon: 'home', route: '/cooperative/dashboard', permissionModule: 'dashboard' },
 
-    // Configuration is a collapsible parent — clicking it reveals grade setup and pricing
+    // Organisation Setup — branches, hubs, profile, bank accounts
+    {
+      label: 'Organisation Setup',
+      icon:  'building',
+      route: '/cooperative/organisation-setup',
+      permissionModule: 'organisation',
+      children: [
+        { label: 'Branches',             icon: '', route: '/cooperative/branches',       permissions: ['branches.view']          },
+        { label: 'Collection Hubs',      icon: '', route: '/cooperative/collection-hubs', permissions: ['collection_hubs.view'] },
+        { label: 'Organisation Profile', icon: '', route: '/cooperative/profile',        permissions: ['organisation.view']      },
+        { label: 'Bank Accounts',        icon: '', route: '/cooperative/bank-accounts',  permissions: ['organisation.bank.view'] },
+      ],
+    },
+
+    // Configuration — grade rules and pricing
     {
       label: 'Configuration',
       icon:  'settings',
@@ -121,61 +132,37 @@ const COOPERATIVE_ADMIN_CONFIG: DashboardConfig = {
       ],
     },
 
-    { label: 'Collection',      icon: 'collection', route: '/cooperative/collections', permissionModule: 'collections' },
+    { label: 'Collection', icon: 'collection', route: '/cooperative/collections', permissionModule: 'collections' },
 
-
-    { label: 'Farmers',         icon: 'farmers',    route: '/cooperative/farmers',     permissionModule: 'farmers'  },
-
-    { label: 'Agents',           icon: 'agents',     route: '/cooperative/agents',           permissionModule: 'agents'          },
-
-    { label: 'Collection Hubs', icon: 'hub',        route: '/cooperative/collection-hubs',  permissionModule: 'collection_hubs' },
-
-    { label: 'Branches',        icon: 'branch',     route: '/cooperative/branches',    permissionModule: 'branches' },
-
+    // Inventory — stock tracking and issuance
     {
       label: 'Inventory',
       icon:  'inventory',
       route: '/cooperative/inventory',
       permissionModule: 'inventory',
       children: [
-        { label: 'Current Stock',   icon: '', route: '/cooperative/inventory/current-stock',   permissions: ['inventory.view'] },
-        { label: 'Issue Stock',     icon: '', route: '/cooperative/inventory/issue-stock',     permissions: ['inventory.issue'] },
+        { label: 'Current Stock',   icon: '', route: '/cooperative/inventory/current-stock',   permissions: ['inventory.view']    },
+        { label: 'Issue Stock',     icon: '', route: '/cooperative/inventory/issue-stock',     permissions: ['inventory.issue']   },
         { label: 'Stock-disbursed', icon: '', route: '/cooperative/inventory/stock-disbursed', permissions: ['inventory.disburse'] },
       ],
     },
 
-
-    { label: 'User Management', icon: 'users',      route: '/cooperative/users',    permissionModule: 'users' },
-    { label: 'Roles',           icon: 'roles',      route: '/cooperative/roles',    permissionModule: 'roles' },
-    { label: 'Profile',         icon: 'building',   route: '/cooperative/profile',  permissionModule: 'organisation' },
-// =======
-//     { label: 'User Management', icon: 'users',      route: '/cooperative/users'    },
-//     { label: 'Roles',           icon: 'roles',      route: '/cooperative/roles'    },
-    
-//     {label:'Farmers',         icon:'farmers',     route:'/cooperative/farmers' },
-
-//     {label:'Branches',         icon:'branch',     route:'/cooperative/branches'               },
-
-
-//     { label: 'Finance',         icon: 'finance',    route: '/cooperative/finance'  },
-//     // Inventory is a collapsible parent — clicking it reveals current stock, issue stock and stock disbursed
-//     {
-//       label: 'Inventory',
-//       icon:  'inventory',
-//       route: '/cooperative/inventory',
-//       children: [
-//         { label: 'Current Stock',   icon: '', route: '/cooperative/inventory/current-stock' },
-//         { label: 'Issue Stock',     icon: '', route: '/cooperative/inventory/issue-stock' },
-//         { label: 'Stock-disbursed', icon: '', route: '/cooperative/inventory/stock-disbursed' },
-//       ],
-//     },
-
-//     { label: 'User Management', icon: 'users',      route: '/cooperative/users'                  },
-// >>>>>>> 82790e03fd252287ef071e22636f2f57993c20ce
-
+    // User Management — users, roles, agents and farmers
+    {
+      label: 'User Management',
+      icon:  'users',
+      route: '/cooperative/user-management',
+      permissionModule: 'users',
+      children: [
+        { label: 'Users',   icon: '', route: '/cooperative/users',   permissions: ['users.view']   },
+        { label: 'Roles',   icon: '', route: '/cooperative/roles',   permissions: ['roles.view']   },
+        { label: 'Agents',  icon: '', route: '/cooperative/agents',  permissions: ['agents.view']  },
+        { label: 'Farmers', icon: '', route: '/cooperative/farmers', permissions: ['farmers.view'] },
+      ],
+    },
   ],
 
-  
+
 
 };
 

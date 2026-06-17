@@ -136,6 +136,77 @@
 
 .card-link-btn:hover { text-decoration: underline; }
 
+/* ── full-width row ───────────────────────────────────────── */
+.config-grid--full {
+  grid-template-columns: 1fr;
+}
+
+/* ── rule pills (payment & credit cards) ──────────────────── */
+.rule-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.rule-pill {
+  font-family: var(--font-technical);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: var(--surface-low);
+  color: #533C59;
+  border: 1px solid #E8E4EF;
+}
+
+.rule-pill--warn {
+  background: #FFF7ED;
+  color: #C2410C;
+  border-color: #FED7AA;
+}
+
+/* ── maker-checker grid ───────────────────────────────────── */
+.maker-checker-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  margin-top: 10px;
+  border: 1px solid #EDE9F5;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.mc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid #F0EEF4;
+  gap: 12px;
+}
+
+.mc-row:nth-last-child(-n+2) { border-bottom: none; }
+
+.mc-action {
+  font-size: 12px;
+  color: var(--secondary);
+}
+
+.mc-badge {
+  font-family: var(--font-technical);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+.mc-badge--on  { background: #D1FAE5; color: #065F46; }
+.mc-badge--off { background: #F3F4F6; color: #6B7280; }
+
 /* ── notification status rows ─────────────────────────────── */
 .notif-rows {
   display: flex;
