@@ -4,11 +4,10 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { BehaviorSubject, combineLatest, map, Observable, shareReplay, tap } from 'rxjs';
 
-import { BranchDelivery, BranchDeliveryFormData, DeliveryStatus, DeliverySession, Season } from '../branch.delivery.model';
+import { BranchDelivery, DeliveryStatus, DeliverySession, Season } from '../branch.delivery.model';
 import { BranchDeliveryService } from '../branch.delivery.service';
 import { SessionService } from '../../../../core/services/session.service';
 import { DeliverySessionConfigService } from '../../../../core/services/delivery-session-config.service';
-// import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
 
 @Component({
   selector: 'app-branch-deliveries',
@@ -16,7 +15,6 @@ import { DeliverySessionConfigService } from '../../../../core/services/delivery
   imports: [
     CommonModule,
     FormsModule,
-    //StatCardComponent
   ],
   templateUrl: './branch.delivery.list.component.html',
   styleUrls: ['./branch.delivery.list.component.css'],
@@ -39,24 +37,8 @@ export class BranchDeliveriesComponent implements OnInit, OnDestroy {
     return Array.from({ length: Math.ceil(this.totalCount / this.itemsPerPage) }, (_, i) => i + 1);
   }
 
-  // When editing, the existing session (even if its window has passed) stays selectable.
-  // When creating new, only sessions that haven't ended yet today are offered.
-  get availableSessionOptions(): DeliverySession[] {
-    if (this.editingDeliveryId) return this.sessionOptions;
-    return this.sessionOptions.filter(s => !this.sessionConfig.isSessionPassed(s));
-  }
-
-  statusOptions: DeliveryStatus[] = [];
-  commodityOptions: string[] = [];
-  seasonOptions: Season[] = [];
-  sessionOptions: DeliverySession[] = [];
-  volumeUnitOptions: string[] = [];
   openActionMenuId: string | null = null;
   menuPosition: { top?: number; bottom?: number; right: number } = { right: 0 };
-  showAddDeliveryModal = false;
-  addDeliveryForm!: BranchDeliveryFormData;
-  // Set while the Add/Edit modal is editing an existing row — null means "creating new".
-  editingDeliveryId: string | null = null;
 
   private readonly filterState$ = new BehaviorSubject({
     searchTerm: '',
@@ -72,13 +54,6 @@ export class BranchDeliveriesComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.statusOptions = this.svc.getStatusOptions();
-    this.commodityOptions = this.svc.getCommodityOptions();
-    this.seasonOptions = this.svc.getSeasonOptions();
-    this.sessionOptions = this.svc.getSessionOptions();
-    this.volumeUnitOptions = this.svc.getVolumeUnitOptions();
-    this.addDeliveryForm = this.createAddDeliveryForm();
-
     // getDeliveries() hydrates the BehaviorSubject; getDeliveriesForBranch pipes from it.
     this.svc.getDeliveries().subscribe();
 
@@ -141,6 +116,10 @@ export class BranchDeliveriesComponent implements OnInit, OnDestroy {
     this.applyFilter();
   }
 
+  addFarmerDelivery(): void {
+    this.router.navigate(['/branch/collections/deliveries/add']);
+  }
+
   // Routes to the farmers list, scoped to just this delivery batch's farmers.
   viewDelivery(delivery: BranchDelivery): void {
     this.openActionMenuId = null;
@@ -151,21 +130,7 @@ export class BranchDeliveriesComponent implements OnInit, OnDestroy {
 
   editDelivery(delivery: BranchDelivery): void {
     this.openActionMenuId = null;
-    this.editingDeliveryId = delivery.id;
-    this.addDeliveryForm = {
-      branchId: delivery.branchId,
-      branchName: delivery.branchName,
-      farmerCount: delivery.farmerCount,
-      farmerName: delivery.farmerName ?? '',
-      commodity: delivery.commodity,
-      volume: delivery.volume,
-      volumeUnit: delivery.volumeUnit ?? this.volumeUnitOptions[0] ?? 'KG',
-      estimatedValue: delivery.estimatedValue,
-      status: delivery.status,
-      season: delivery.season,
-      session: delivery.session ?? this.sessionOptions[0],
-    };
-    this.showAddDeliveryModal = true;
+    this.router.navigate(['/branch/collections/deliveries/edit', delivery.id]);
   }
 
   toggleActionMenu(deliveryId: string, event: MouseEvent): void {
@@ -194,57 +159,8 @@ export class BranchDeliveriesComponent implements OnInit, OnDestroy {
     this.router.navigate(['/branch/collections/farmers']);
   }
 
-  openAddDeliveryModal(): void {
-    this.openActionMenuId = null;
-    this.editingDeliveryId = null;
-    this.addDeliveryForm = this.createAddDeliveryForm();
-    this.showAddDeliveryModal = true;
-  }
-
-  closeAddDeliveryModal(): void {
-    this.showAddDeliveryModal = false;
-    this.editingDeliveryId = null;
-  }
-
-  submitAddDelivery(): void {
-    if (!this.isAddDeliveryFormValid()) return;
-
-    const payload: BranchDeliveryFormData = {
-      ...this.addDeliveryForm,
-      farmerName: this.addDeliveryForm.farmerName?.trim(),
-      volume: Number(this.addDeliveryForm.volume),
-      estimatedValue: Number(this.addDeliveryForm.estimatedValue),
-    };
-
-    const request = this.editingDeliveryId
-      ? this.svc.updateDelivery(this.editingDeliveryId, payload)
-      : this.svc.addDelivery(payload);
-
-    request.subscribe();
-    this.closeAddDeliveryModal();
-  }
-
-  // Volume/Estimated Value must stay >= 0 — min="0" only clamps the spinner
-  // arrows, so the minus key/paste needs to be blocked separately.
-  blockNegativeKey(event: KeyboardEvent): void {
-    if (event.key === '-') {
-      event.preventDefault();
-    }
-  }
-
-  blockNegativePaste(event: ClipboardEvent): void {
-    const pasted = event.clipboardData?.getData('text') ?? '';
-    if (pasted.includes('-')) {
-      event.preventDefault();
-    }
-  }
-
   trackByDeliveryId(_index: number, delivery: BranchDelivery): string {
     return delivery.id;
-  }
-
-  trackByOption(_index: number, option: string): string {
-    return option;
   }
 
   trackByIndex(index: number): number {
@@ -272,7 +188,7 @@ export class BranchDeliveriesComponent implements OnInit, OnDestroy {
     return this.sessionConfig.getLabel(id);
   }
 
-   statusIcon(status: DeliveryStatus): string {
+  statusIcon(status: DeliveryStatus): string {
     const map: Record<DeliveryStatus, string> = {
       Pending:  'ti-clock',
       Approved: 'ti-circle-check',
@@ -304,45 +220,6 @@ export class BranchDeliveriesComponent implements OnInit, OnDestroy {
   private get currentBranchName(): string {
     const user = this.session.currentUser() as { branchName?: string } | null;
     return user?.branchName ?? this.session.branchId() ?? '';
-  }
-
-  private createAddDeliveryForm(): BranchDeliveryFormData {
-    return {
-      branchId: this.session.branchId() ?? undefined,
-      branchName: this.currentBranchName,
-      // A single named farmer is recorded per quick-add; farmerCount keeps its
-      // batch-aggregate meaning for the table/KPIs and is not user-editable here.
-      farmerCount: 1,
-      farmerName: '',
-      commodity: this.commodityOptions[0] ?? 'Maize',
-      volume: 0,
-      volumeUnit: this.volumeUnitOptions[0] ?? 'KG',
-      estimatedValue: 0,
-      status: 'Pending',
-      season: 'Wet Season',
-      session: this.availableSessionOptions[0],
-    };
-  }
-
-  private isAddDeliveryFormValid(): boolean {
-    const volume = Number(this.addDeliveryForm.volume);
-    const estimatedValue = Number(this.addDeliveryForm.estimatedValue);
-
-    return Boolean(
-      this.addDeliveryForm.branchName.trim() &&
-      this.addDeliveryForm.commodity &&
-      this.addDeliveryForm.farmerName?.trim() &&
-      this.addDeliveryForm.volumeUnit &&
-      Number.isFinite(volume) &&
-      volume >= 0 &&
-      Number.isFinite(estimatedValue) &&
-      estimatedValue >= 0 &&
-      this.addDeliveryForm.status &&
-      this.addDeliveryForm.season &&
-      this.addDeliveryForm.session &&
-      // Re-checked at submit time in case the modal was left open across a session boundary.
-      (Boolean(this.editingDeliveryId) || !this.sessionConfig.isSessionPassed(this.addDeliveryForm.session))
-    );
   }
 
   private filterDeliveries(

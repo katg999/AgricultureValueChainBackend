@@ -16,62 +16,13 @@
     </div>
 
     <div class="header-actions">
-      <button class="btn primary-action-btn" (click)="openAddDeliveryModal()">
+      <button class="btn primary-action-btn" (click)="addFarmerDelivery()">
         <span class="icon-plus">+</span> Add Farmer Delivery
       </button>
     </div>
   </div>
 
 </div>
-
-  <!-- =========================================================
-       KPI CARDS
-       These values come from the getter methods in TS
-       ========================================================= -->
-  <!-- <div class="stats-grid">
-
-    <app-stat-card
-      [data]="{ label: 'TOTAL VOLUME', value: (totalVolume(filteredDeliveries) | number) ?? '0', icon: 'box' }">
-    </app-stat-card>
-
-    <app-stat-card
-      [data]="{ label: 'TOTAL VALUE', value: 'UGX ' + formatUGX(totalValue(filteredDeliveries)), icon: 'wallet' }">
-    </app-stat-card>
-
-    <app-stat-card
-      [data]="{ label: 'FARMERS', value: totalFarmers(filteredDeliveries), icon: 'farmer', clickable: true }"
-      (cardClicked)="goToFarmersList()">
-    </app-stat-card>
-
-    <app-stat-card
-      [data]="{ label: 'APPROVED', value: approvedCount(filteredDeliveries), icon: 'check' }">
-    </app-stat-card>
-
-  </div> -->
-
-  <!-- =========================================================
-       SEASON TABS
-       ========================================================= -->
-  <!-- <div class="season-tabs">
-    <button type="button"
-      class="season-tab"
-      [class.active]="selectedSeason === ''"
-      (click)="setSeasonFilter('')">
-      All Seasons
-    </button>
-    <button type="button"
-      class="season-tab wet"
-      [class.active]="selectedSeason === 'Wet Season'"
-      (click)="setSeasonFilter('Wet Season')">
-      Wet Season
-    </button>
-    <button type="button"
-      class="season-tab dry"
-      [class.active]="selectedSeason === 'Dry Season'"
-      (click)="setSeasonFilter('Dry Season')">
-      Dry Season
-    </button>
-  </div> -->
 
   <!-- =========================================================
        FILTER SECTION
@@ -230,118 +181,6 @@
       </div>
     </div>
 
-  </div>
-
-  <div class="modal-backdrop" *ngIf="showAddDeliveryModal" (click)="closeAddDeliveryModal()">
-    <section class="add-delivery-modal" (click)="$event.stopPropagation()" aria-modal="true" role="dialog">
-      <div class="modal-header">
-        <div>
-          <h2>{{ editingDeliveryId ? 'Edit Delivery' : 'Add Farmer Delivery' }}</h2>
-          <p>{{ editingDeliveryId ? 'Update this delivery\'s details.' : 'Create a delivery first, then manage the farmers attached to it.' }}</p>
-        </div>
-        <button type="button" class="modal-close-btn" aria-label="Close add delivery modal" (click)="closeAddDeliveryModal()">x</button>
-      </div>
-
-      <!-- Submits through BranchDeliveryService — addDelivery() when creating, updateDelivery() when editingDeliveryId is set. -->
-      <form class="add-delivery-form" #deliveryForm="ngForm" (ngSubmit)="submitAddDelivery()" novalidate>
-        <div class="form-grid">
-          <label class="form-field">
-            <span>Branch</span>
-            <input
-              name="branchName"
-              type="text"
-              required
-              [(ngModel)]="addDeliveryForm.branchName"
-              placeholder="Branch name"
-            />
-          </label>
-
-          <label class="form-field">
-            <span>Commodity</span>
-            <select name="commodity" required [(ngModel)]="addDeliveryForm.commodity">
-              <option *ngFor="let commodity of commodityOptions; trackBy: trackByOption" [value]="commodity">{{ commodity }}</option>
-            </select>
-          </label>
-
-          <label class="form-field">
-            <span>Farmer Name</span>
-            <input
-              name="farmerName"
-              type="text"
-              required
-              placeholder="e.g. John Tumwesigye"
-              [(ngModel)]="addDeliveryForm.farmerName"
-            />
-          </label>
-
-          <label class="form-field">
-            <span>Volume</span>
-            <div class="input-with-unit">
-              <input
-                name="volume"
-                type="number"
-                min="0"
-                required
-                [(ngModel)]="addDeliveryForm.volume"
-                (keydown)="blockNegativeKey($event)"
-                (paste)="blockNegativePaste($event)"
-              />
-              <select name="volumeUnit" required [(ngModel)]="addDeliveryForm.volumeUnit" class="unit-select">
-                <option *ngFor="let unit of volumeUnitOptions; trackBy: trackByOption" [value]="unit">{{ unit }}</option>
-              </select>
-            </div>
-          </label>
-
-          <label class="form-field">
-            <span>Estimated Value (UGX)</span>
-            <input
-              name="estimatedValue"
-              type="number"
-              min="0"
-              required
-              [(ngModel)]="addDeliveryForm.estimatedValue"
-              (keydown)="blockNegativeKey($event)"
-              (paste)="blockNegativePaste($event)"
-            />
-          </label>
-
-          <label class="form-field">
-            <span>Status</span>
-            <select name="status" required [(ngModel)]="addDeliveryForm.status">
-              <option *ngFor="let status of statusOptions; trackBy: trackByOption" [value]="status">{{ status }}</option>
-            </select>
-          </label>
-
-          <label class="form-field">
-            <span>Season</span>
-            <select name="season" required [(ngModel)]="addDeliveryForm.season">
-              <option *ngFor="let season of seasonOptions; trackBy: trackByOption" [value]="season">{{ season }}</option>
-            </select>
-          </label>
-
-          <label class="form-field">
-            <span>Session</span>
-            <select name="session" required [(ngModel)]="addDeliveryForm.session">
-              <option *ngFor="let session of availableSessionOptions; trackBy: trackByOption" [value]="session">{{ sessionLabel(session) }}</option>
-            </select>
-            <div class="field-hint" *ngIf="!editingDeliveryId && availableSessionOptions.length === 0">
-              All sessions for today have closed — try again tomorrow.
-            </div>
-          </label>
-        </div>
-
-        <div class="modal-actions">
-          <button type="button" class="btn secondary-action-btn" (click)="closeAddDeliveryModal()">Cancel</button>
-          <button
-            type="submit"
-            class="btn primary-action-btn"
-            [disabled]="deliveryForm.invalid || (!editingDeliveryId && availableSessionOptions.length === 0)"
-          >
-            {{ editingDeliveryId ? 'Save Changes' : 'Save Delivery' }}
-          </button>
-        </div>
-      </form>
-    </section>
   </div>
 
 </div>

@@ -2,21 +2,13 @@ import { Routes } from '@angular/router';
 
 export const BRANCH_COLLECTIONS_ROUTES: Routes = [
 
-  /**
-   * /branch/collections
-   */
   {
     path: '',
     redirectTo: 'deliveries',
     pathMatch: 'full',
   },
 
-  /**
-   * Branch delivery batches
-   * Example:
-   * - Kampala Central maize collection
-   * - Jinja coffee collection
-   */
+  // Branch delivery batches list
   {
     path: 'deliveries',
     loadComponent: () =>
@@ -24,10 +16,7 @@ export const BRANCH_COLLECTIONS_ROUTES: Routes = [
         .then(m => m.BranchDeliveriesComponent),
   },
 
-  /**
-   * Every farmer who has delivered at this branch — read-only list,
-   * opened by tapping the FARMERS stat card on the deliveries page.
-   */
+  // Every farmer who has delivered at this branch
   {
     path: 'farmers',
     loadComponent: () =>
@@ -35,12 +24,23 @@ export const BRANCH_COLLECTIONS_ROUTES: Routes = [
         .then(m => m.FarmerDeliveriesListComponent),
   },
 
-  /**
-   * Single branch delivery batch
-   * Shows:
-   * - aggregate totals
-   * - all farmer deliveries under this batch
-   */
+  // Add farmer delivery (full-page form, navigated to from the branch list button)
+  {
+    path: 'deliveries/add',
+    loadComponent: () =>
+      import('./farmer-delivery/farmer-delivery.component')
+        .then(m => m.AddFarmerDeliveryComponent),
+  },
+
+  // Edit farmer delivery
+  {
+    path: 'deliveries/edit/:id',
+    loadComponent: () =>
+      import('./farmer-delivery/farmer-delivery.component')
+        .then(m => m.AddFarmerDeliveryComponent),
+  },
+
+  // View farmer deliveries for a specific batch
   {
     path: 'deliveries/:id',
     loadComponent: () =>
@@ -54,49 +54,11 @@ export const BRANCH_COLLECTIONS_ROUTES: Routes = [
         .then(m => m.FarmerDeliveriesComponent),
   },
 
-  /**
-   * Farmer deliveries workspace without a preselected branch.
-   */
-  {
-    path: 'farmer-deliveries',
-    loadComponent: () =>
-      import('./farmer-delivery/farmer-delivery.component')
-        .then(m => m.FarmerDeliveriesComponent),
-  },
-  {
-    path: 'farmer-deliveries/create',
-    loadComponent: () =>
-      import('./farmer-delivery/farmer-delivery.component')
-        .then(m => m.FarmerDeliveriesComponent),
-  },
+  // Legacy paths used by the branch dashboard — redirect to canonical routes
+  { path: 'farmer-deliveries/create', redirectTo: 'deliveries/add', pathMatch: 'full' },
+  { path: 'farmer-delivery/create', redirectTo: 'deliveries/add', pathMatch: 'full' },
+  { path: 'farmer-deliveries', redirectTo: 'deliveries', pathMatch: 'full' },
 
-  /**
-   * Add farmer delivery into a branch delivery batch
-   */
-  {
-    path: 'farmer-deliveries/:id/create',
-    loadComponent: () =>
-      import('./farmer-delivery/farmer-delivery.component')
-        .then(m => m.FarmerDeliveriesComponent),
-  },
-
-  // Legacy singular aliases used by the branch dashboard.
-  { path: 'farmer-delivery/create', redirectTo: 'farmer-deliveries/create', pathMatch: 'full' },
-  { path: 'farmer-delivery/:id/create', redirectTo: 'farmer-deliveries/:id/create', pathMatch: 'full' },
-
-  /**
-   * Edit farmer delivery
-   */
-  {
-    path: 'farmer-deliveries/:id/edit',
-    loadComponent: () =>
-      import('./farmer-delivery/farmer-delivery.component')
-        .then(m => m.FarmerDeliveriesComponent),
-  },
-
-  /**
-   * Fallback
-   */
   {
     path: '**',
     redirectTo: 'deliveries',
