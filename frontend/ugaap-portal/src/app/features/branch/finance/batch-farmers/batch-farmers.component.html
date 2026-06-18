@@ -3,7 +3,7 @@
      Three sections:
        1. Page header: back button + batch metadata (name, season, date range)
        2. Summary bar: count + total payout amount
-       3. Farmer table
+       3. Farmers grouped Day -> Session -> Farmer table, for payment processing order
 -->
 
 <div class="farmers-page">
@@ -41,46 +41,59 @@
     </div>
   }
 
-  <!-- ── 3. Farmer table ─────────────────────────────────────────────────── -->
+  <!-- ── 3. Farmers grouped Day -> Session ───────────────────────────────── -->
   <!-- Unlike the other farmer pages, this one doesn't use an Observable —
-       farmers is a plain array loaded synchronously in ngOnInit from the service. -->
-  <div class="table-card">
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th>Farmer ID</th>
-            <th>Name</th>
-            <th>Commodity</th>
-            <th>Branch</th>
-            <th>Delivery Date</th>
-            <th>Payment Method</th>
-            <th class="numeric">Net Payable</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- track f.farmerId = stable identity for each row — avoids unnecessary re-renders -->
-          @for (f of farmers; track f.farmerId) {
-            <tr>
-              <td class="mono">{{ f.farmerId }}</td>
-              <td>{{ f.fullName }}</td>
-              <td>{{ f.commodity }}</td>
-              <td>{{ f.branch }}</td>
-              <td class="mono">{{ f.deliveryDate }}</td>
-              <td>{{ f.paymentMethod }}</td>
-              <td class="numeric mono">{{ formatCurrency(f.netPayable) }}</td>
-            </tr>
-          } @empty {
-            <!-- colspan="7" spans all 7 columns so the empty message is centered -->
-            <tr>
-              <td colspan="7" class="empty-state">
-                No eligible farmers for this batch (check commodity / branch filter).
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
+       dayGroups is a plain array built synchronously in ngOnInit from the service. -->
+  @for (dayGroup of dayGroups; track dayGroup.day) {
+    <div class="day-group">
+      <div class="day-group-header">
+        <h2>{{ dayGroup.day }}</h2>
+        <span class="mono">{{ formatCurrency(dayGroup.subtotal) }}</span>
+      </div>
+
+      @for (sessionGroup of dayGroup.sessions; track sessionGroup.session) {
+        <div class="table-card session-group">
+          <div class="session-group-header">
+            <h3>{{ sessionLabel(sessionGroup.session) }}</h3>
+            <span class="mono">{{ formatCurrency(sessionGroup.subtotal) }}</span>
+          </div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Farmer ID</th>
+                  <th>Name</th>
+                  <th>Commodity</th>
+                  <th>Branch</th>
+                  <th>Payment Method</th>
+                  <th class="numeric">Net Payable</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- track f.farmerId = stable identity for each row — avoids unnecessary re-renders -->
+                @for (f of sessionGroup.farmers; track f.farmerId) {
+                  <tr>
+                    <td class="mono">{{ f.farmerId }}</td>
+                    <td>{{ f.fullName }}</td>
+                    <td>{{ f.commodity }}</td>
+                    <td>{{ f.branch }}</td>
+                    <td>{{ f.paymentMethod }}</td>
+                    <td class="numeric mono">{{ formatCurrency(f.netPayable) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
     </div>
-  </div>
+  } @empty {
+    <div class="table-card">
+      <div class="empty-state">
+        No eligible farmers for this batch (check commodity / branch filter).
+      </div>
+    </div>
+  }
 
 </div>

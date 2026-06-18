@@ -1,7 +1,7 @@
 // inject() is the modern Angular way to pull in services.
 // Think of it like saying "give me the tools I need" before doing any work.
 // We declare these at the top so everything below can use them freely.
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -18,7 +18,7 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
   templateUrl: './batch-create.component.html',
   styleUrls: ['./batch-create.component.css'],
 })
-export class BatchCreateComponent {
+export class BatchCreateComponent implements OnInit {
   // inject() asks Angular's DI system for these — no constructor needed.
   // fb = FormBuilder helps us build the form without writing boilerplate.
   // batchService = where all batch logic and data live (separated from the UI on purpose).
@@ -27,10 +27,20 @@ export class BatchCreateComponent {
   private readonly batchService = inject(PaymentBatchService);
   private readonly router = inject(Router);
 
+  // matchFarmers()/createBatch() below read the farmer pool synchronously, so kick off
+  // the background fetch as early as possible — same fire-and-forget hydration every
+  // other list page does before reading its service's BehaviorSubject directly.
+  ngOnInit(): void {
+    this.batchService.getAllFarmers().subscribe();
+  }
+
   // Static dropdown options — hardcoded for now, would come from an API later.
   seasons = ['Season A 2024', 'Season B 2024', 'Season A 2025'];
   commodities = ['All Commodities', 'Coffee', 'Maize'];
-  branches = ['All Branches', 'Mbale Branch', 'Kasese Branch'];
+
+  // A branch can only ever create a batch for itself — shown read-only for context,
+  // not a choice. batchService derives the actual branchId from the session, not this.
+  readonly branchName = this.batchService.getOwnBranchName();
 
   // signal() is Angular's reactive variable — when you call .set() on it,
   // every part of the template that reads it automatically re-renders.
@@ -48,7 +58,6 @@ export class BatchCreateComponent {
     openingDate:     ['', Validators.required],
     closingDate:     ['', Validators.required],
     commodityFilter: ['All Commodities', Validators.required],
-    branch:          ['All Branches', Validators.required],
   });
 
   // A getter is just a computed value — recalculates every time the template reads it.

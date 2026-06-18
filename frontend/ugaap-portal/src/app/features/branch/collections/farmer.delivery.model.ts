@@ -1,7 +1,9 @@
 // A FarmerDelivery is one farmer's individual contribution inside a BranchDelivery batch.
 // branchDeliveryId links it back to the parent batch so totals can be re-calculated.
 
-import { DeliveryStatus, Season } from './branch.delivery.model';
+import { DeliveryStatus, DeliverySession, Season } from './branch.delivery.model';
+
+export type { DeliverySession };
 
 export interface FarmerDelivery {
   id: string;
@@ -16,6 +18,8 @@ export interface FarmerDelivery {
   notes: string;
   status: DeliveryStatus;
   season: Season;
+  /** Optional — a real backend response may not include this field yet; degrade gracefully. */
+  session?: DeliverySession;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -32,4 +36,5 @@ export interface FarmerDeliveryFormData {
   notes: string;
   status: DeliveryStatus;
   season: Season;
+  session: DeliverySession;
 }

@@ -20,6 +20,8 @@ import {
 
 import { ActivatedRoute, Router } from '@angular/router';
 import { SessionService } from '../../../../core/services/session.service';
+import { DeliverySessionConfigService } from '../../../../core/services/delivery-session-config.service';
+import { AlertComponent } from '../../../../shared/components/alert/alert.component';
 
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -27,8 +29,8 @@ import { takeUntil } from 'rxjs/operators';
 // DELIVERY SERVICE
 
 import { FarmerDeliveryService } from '../farmer.delivery.service';
-import { FarmerDeliveryFormData } from '../farmer.delivery.model';
-import { Season } from '../branch.delivery.model';
+import { DeliverySession, FarmerDelivery, FarmerDeliveryFormData } from '../farmer.delivery.model';
+import { ALL_DELIVERY_SESSIONS, Season } from '../branch.delivery.model';
 
 // MODELS
 
@@ -38,9 +40,26 @@ export interface Farmer {
   phone: string;
   branch: string;
   currentSeason: Season;
+  /** Optional — the farmer's last delivery may predate the session field, or come from a backend response that doesn't include it yet. */
+  currentSession?: DeliverySession;
 }
 
 export type FarmerMode = 'search' | 'manual';
+
+// Maps a FarmerDelivery's branchId to the display name shown in the Branch
+// dropdown — keeps the farmer search registry and the dropdown in sync.
+const BRANCH_NAMES: Record<string, string> = {
+  'BR-KLA': 'Kampala Central',
+  'BR-JIN': 'Jinja East',
+  'BR-MBA': 'Mbarara South',
+  'BR-FTP': 'Fort Portal West',
+  'BR-ADJ': 'Adjumani East',
+  'BR-GUL': 'Gulu North',
+  'BR-MBL': 'Mbale West',
+  'BR-KIB': 'Kiboga Central',
+  'BR-LIR': 'Lira Town',
+  'BR-MBA2': 'Mbale East',
+};
 
 // CUSTOM VALIDATORS
 
@@ -95,6 +114,7 @@ export function positiveNumberValidator(): ValidatorFn {
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    AlertComponent,
   ],
   templateUrl: './farmer-delivery.component.html',
   styleUrls: ['./farmer-delivery.component.css'],
@@ -132,13 +152,7 @@ implements OnInit, OnDestroy {
 
   // REFERENCE DATA
 
-  readonly branches = [
-    'Kampala Central',
-    'Jinja East',
-    'Mbarara South',
-    'Gulu North',
-    'Mbale West',
-  ];
+  readonly branches = Object.values(BRANCH_NAMES);
 
   readonly commodities = [
     'Maize',
@@ -151,51 +165,12 @@ implements OnInit, OnDestroy {
 
   readonly seasonOptions: Season[] = ['Wet Season', 'Dry Season'];
 
-  // MOCK FARMERS
-  private readonly farmerRegistry: Farmer[] = [
-    {
-      id: 'UG-F-00101',
-      name: 'Akello Grace',
-      phone: '0772100001',
-      branch: 'Kampala Central',
-      currentSeason: 'Wet Season',
-    },
-    {
-      id: 'UG-F-00102',
-      name: 'Okello James',
-      phone: '0754200002',
-      branch: 'Kampala Central',
-      currentSeason: 'Wet Season',
-    },
-    {
-      id: 'UG-F-00201',
-      name: 'Namukasa Fatuma',
-      phone: '0701300003',
-      branch: 'Jinja East',
-      currentSeason: 'Wet Season',
-    },
-    {
-      id: 'UG-F-00301',
-      name: 'Tukwasibwe Robert',
-      phone: '0782400004',
-      branch: 'Mbarara South',
-      currentSeason: 'Wet Season',
-    },
-    {
-      id: 'UG-F-00401',
-      name: 'Opio Samuel',
-      phone: '0753500005',
-      branch: 'Gulu North',
-      currentSeason: 'Dry Season',
-    },
-    {
-      id: 'UG-F-00501',
-      name: 'Nakato Betty',
-      phone: '0786600006',
-      branch: 'Mbale West',
-      currentSeason: 'Dry Season',
-    },
-  ];
+  // This page only ever creates new deliveries (never edits), so every session
+  // whose window has passed for today is dropped from the options outright.
+  // Hours come from the cooperative's configured session windows, not a fixed default.
+  get sessionOptions(): DeliverySession[] {
+    return ALL_DELIVERY_SESSIONS.filter(s => !this.sessionConfig.isSessionPassed(s));
+  }
 
   private readonly destroy$ = new Subject<void>();
 
@@ -206,16 +181,25 @@ implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private deliveryService: FarmerDeliveryService,
     private session: SessionService,
+    private sessionConfig: DeliverySessionConfigService,
   ) {}
 
   // LIFECYCLE
 
   ngOnInit(): void {
     this.buildForm();
-    this.allFarmers = [...this.farmerRegistry];
-    this.filteredFarmers = [...this.allFarmers];
     this.applyModeValidators();
     this.watchValueChanges();
+
+    // Farmer search draws on every farmer already seeded in FarmerDeliveryService,
+    // rather than a separate hand-maintained list — keeps the two from drifting apart.
+    this.deliveryService.getAll()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(records => {
+        this.allFarmers = this.buildFarmerRegistry(records);
+        this.filteredFarmers = [...this.allFarmers];
+        this.cdr.markForCheck();
+      });
   }
 
   ngOnDestroy(): void {
@@ -249,7 +233,7 @@ implements OnInit, OnDestroy {
       ],
 
       branch: [
-        '',
+        BRANCH_NAMES[this.session.branchId() ?? ''] ?? '',
         Validators.required,
       ],
 
@@ -282,7 +266,23 @@ implements OnInit, OnDestroy {
         'Wet Season',
         Validators.required,
       ],
+
+      session: [
+        this.sessionOptions[0],
+        Validators.required,
+      ],
     });
+  }
+
+  private buildFarmerRegistry(records: FarmerDelivery[]): Farmer[] {
+    return records.map(r => ({
+      id: r.farmerId,
+      name: r.farmerName,
+      phone: r.phone,
+      branch: BRANCH_NAMES[r.branchId ?? ''] ?? '',
+      currentSeason: r.season,
+      currentSession: r.session,
+    }));
   }
 
   setFarmerMode(mode: FarmerMode): void {
@@ -373,10 +373,18 @@ implements OnInit, OnDestroy {
 
     this.showDropdown = false;
 
+    // The farmer's last recorded session may be missing (older/partial record) or no
+    // longer open today — fall back to whatever's still available in either case.
+    const session = farmer.currentSession && this.sessionOptions.includes(farmer.currentSession)
+      ? farmer.currentSession
+      : this.sessionOptions[0];
+
     this.deliveryForm.patchValue({
       farmerSearch: `${farmer.name} (${farmer.id})`,
       phone: farmer.phone,
       branch: farmer.branch,
+      season: farmer.currentSeason,
+      session,
     });
 
     this.cdr.markForCheck();
@@ -473,6 +481,7 @@ implements OnInit, OnDestroy {
       notes: v.notes || '',
       status: 'Pending',
       season: v.season,
+      session: v.session,
     };
   }
 
@@ -541,6 +550,10 @@ implements OnInit, OnDestroy {
     const seq = String(Date.now()).slice(-5);
 
     return `UG-F-${seq}`;
+  }
+
+  sessionLabel(id: DeliverySession | undefined): string {
+    return this.sessionConfig.getLabel(id);
   }
 
   isFieldInvalid(controlName: string): boolean {

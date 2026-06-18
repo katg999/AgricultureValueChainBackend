@@ -77,12 +77,8 @@
     </div>
 
     <div class="field">
-      <label for="branch">Branch / Collection Center</label>
-      <select id="branch" formControlName="branch">
-        @for (b of branches; track b) {
-          <option [value]="b">{{ b }}</option>
-        }
-      </select>
+      <label>Branch / Collection Center</label>
+      <div class="static-field-value">{{ branchName }}</div>
     </div>
 
     <!-- app-button's (clicked) output only fires when the button isn't disabled or loading.

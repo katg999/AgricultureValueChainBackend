@@ -134,6 +134,10 @@ export class FarmerApprovalComponent implements OnInit {
   loading = false;
   error: string | null = null;
 
+  get isBranchView(): boolean {
+    return this.router.url.startsWith('/branch');
+  }
+
   constructor(
     private router:        Router,
     private route:         ActivatedRoute,

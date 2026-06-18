@@ -144,13 +144,14 @@ const BRANCHES: BranchOption[] = [
 ];
 
 const FARMERS: FarmerOption[] = [
-  { id: 'UG-F-01001', name: 'Amina Nakato',    phone: '+256 701 234 567', branchId: 'BR-KLA', branchName: 'Kampala Central', availableCredit: 1500000 },
-  { id: 'UG-F-01002', name: 'Moses Okello',    phone: '+256 772 456 103', branchId: 'BR-GUL', branchName: 'Gulu Branch',     availableCredit:  900000 },
-  { id: 'UG-F-01003', name: 'Sarah Namutebi',  phone: '+256 755 761 450', branchId: 'BR-JIN', branchName: 'Jinja Branch',    availableCredit: 2100000 },
-  { id: 'UG-F-01004', name: 'Peter Mugisha',   phone: '+256 704 445 901', branchId: 'BR-MBA', branchName: 'Mbarara Branch',  availableCredit: 1200000 },
-  // Mbale West farmers — visible to the dev mock branch user (BR-MBL)
-  { id: 'UG-F-01005', name: 'Oryem Patrick',   phone: '+256 782 400 501', branchId: 'BR-MBL', branchName: 'Mbale West',      availableCredit:  750000 },
-  { id: 'UG-F-01006', name: 'Opio Geoffrey',   phone: '+256 772 100 502', branchId: 'BR-MBL', branchName: 'Mbale West',      availableCredit:  600000 },
+  { id: 'UG-F-01001', name: 'Amina Nakato',   phone: '+256 701 234 567', branchId: 'BR-KLA', branchName: 'Kampala Central', availableCredit: 1500000 },
+  { id: 'UG-F-01002', name: 'Moses Okello',   phone: '+256 772 456 103', branchId: 'BR-GUL', branchName: 'Gulu Branch',     availableCredit:  900000 },
+  { id: 'UG-F-01003', name: 'Sarah Namutebi', phone: '+256 755 761 450', branchId: 'BR-JIN', branchName: 'Jinja Branch',    availableCredit: 2100000 },
+  { id: 'UG-F-01004', name: 'Peter Mugisha',  phone: '+256 704 445 901', branchId: 'BR-MBA', branchName: 'Mbarara Branch',  availableCredit: 1200000 },
+  // Mbale West — names match MOCK_FARMER_LIST for the dev mock session (BR-MBL)
+  { id: 'UG-F-01005', name: 'Grace Atim',     phone: '+256 782 400 501', branchId: 'BR-MBL', branchName: 'Mbale West',      availableCredit:  750000 },
+  { id: 'UG-F-01007', name: 'Dennis Ojok',    phone: '+256 772 100 502', branchId: 'BR-MBL', branchName: 'Mbale West',      availableCredit:  950000 },
+  { id: 'UG-F-01008', name: 'Rose Atukunda',  phone: '+256 703 900 103', branchId: 'BR-MBL', branchName: 'Mbale West',      availableCredit: 1100000 },
 ];
 
 const INITIAL_STOCK: StockItem[] = [
@@ -177,12 +178,13 @@ const INITIAL_STOCK_REQUESTS: StockRequest[] = [
 ];
 
 const INITIAL_FARMER_ALLOCATIONS: FarmerAllocation[] = [
-  { id: 'AL-1001', stockItemId: 'STK-001', farmerId: 'UG-F-01001', farmerName: 'Amina Nakato',  branchId: 'BR-KLA', branchName: 'Kampala Central', itemName: 'NPK Fertilizer',       itemType: 'FERTILIZER', quantity:  4, unit: 'Bags', totalValue: 720000, issueDate: '2026-05-21', outstanding:      0, status: 'settled' },
-  { id: 'AL-1002', stockItemId: 'STK-002', farmerId: 'UG-F-01002', farmerName: 'Moses Okello',  branchId: 'BR-GUL', branchName: 'Gulu Branch',     itemName: 'Maize Seeds (Longe 5)', itemType: 'SEEDS',      quantity: 30, unit: 'Kgs',  totalValue: 450000, issueDate: '2026-05-22', outstanding: 150000, status: 'partial' },
-  { id: 'AL-1003', stockItemId: 'STK-003', farmerId: 'UG-F-01003', farmerName: 'Sarah Namutebi',branchId: 'BR-JIN', branchName: 'Jinja Branch',    itemName: 'Spray Pumps (20L)',     itemType: 'EQUIPMENT',  quantity:  1, unit: 'Units',totalValue: 130000, issueDate: '2026-05-23', outstanding: 130000, status: 'overdue' },
-  // Mbale West — visible to dev mock branch user (BR-MBL)
-  { id: 'AL-1004', stockItemId: 'STK-002', farmerId: 'UG-F-01005', farmerName: 'Oryem Patrick', branchId: 'BR-MBL', branchName: 'Mbale West',      itemName: 'Maize Seeds (Longe 5)', itemType: 'SEEDS',      quantity: 25, unit: 'Kgs',  totalValue: 375000, issueDate: '2026-05-22', outstanding: 375000, status: 'partial' },
-  { id: 'AL-1005', stockItemId: 'STK-001', farmerId: 'UG-F-01006', farmerName: 'Opio Geoffrey', branchId: 'BR-MBL', branchName: 'Mbale West',      itemName: 'NPK Fertilizer',       itemType: 'FERTILIZER', quantity:  3, unit: 'Bags', totalValue: 540000, issueDate: '2026-05-23', outstanding:      0, status: 'settled' },
+  { id: 'AL-1001', stockItemId: 'STK-001', farmerId: 'UG-F-01001', farmerName: 'Amina Nakato',   branchId: 'BR-KLA', branchName: 'Kampala Central', itemName: 'NPK Fertilizer',        itemType: 'FERTILIZER', quantity:  4, unit: 'Bags',  totalValue:  720000, issueDate: '2026-05-21', outstanding:       0, status: 'settled' },
+  { id: 'AL-1002', stockItemId: 'STK-002', farmerId: 'UG-F-01002', farmerName: 'Moses Okello',   branchId: 'BR-GUL', branchName: 'Gulu Branch',     itemName: 'Maize Seeds (Longe 5)', itemType: 'SEEDS',      quantity: 30, unit: 'Kgs',   totalValue:  450000, issueDate: '2026-05-22', outstanding:  150000, status: 'partial' },
+  { id: 'AL-1003', stockItemId: 'STK-003', farmerId: 'UG-F-01003', farmerName: 'Sarah Namutebi', branchId: 'BR-JIN', branchName: 'Jinja Branch',    itemName: 'Spray Pumps (20L)',     itemType: 'EQUIPMENT',  quantity:  1, unit: 'Units', totalValue:  130000, issueDate: '2026-05-23', outstanding:  130000, status: 'overdue' },
+  // Mbale West — names match MOCK_FARMER_LIST; visible to dev mock branch user (BR-MBL)
+  { id: 'AL-1004', stockItemId: 'STK-002', farmerId: 'UG-F-01005', farmerName: 'Grace Atim',     branchId: 'BR-MBL', branchName: 'Mbale West',      itemName: 'Maize Seeds (Longe 5)', itemType: 'SEEDS',      quantity: 25, unit: 'Kgs',   totalValue:  375000, issueDate: '2026-05-22', outstanding:  375000, status: 'partial' },
+  { id: 'AL-1005', stockItemId: 'STK-001', farmerId: 'UG-F-01007', farmerName: 'Dennis Ojok',    branchId: 'BR-MBL', branchName: 'Mbale West',      itemName: 'NPK Fertilizer',        itemType: 'FERTILIZER', quantity:  5, unit: 'Bags',  totalValue:  900000, issueDate: '2026-05-24', outstanding:  450000, status: 'partial' },
+  { id: 'AL-1006', stockItemId: 'STK-002', farmerId: 'UG-F-01008', farmerName: 'Rose Atukunda',  branchId: 'BR-MBL', branchName: 'Mbale West',      itemName: 'Maize Seeds (Longe 5)', itemType: 'SEEDS',      quantity: 20, unit: 'Kgs',   totalValue:  300000, issueDate: '2026-05-25', outstanding:  300000, status: 'overdue' },
 ];
 
 @Injectable({ providedIn: 'root' })
@@ -262,10 +264,12 @@ export class InventoryService {
   }
 
   listFarmerAllocations(): Observable<FarmerAllocation[]> {
+    const snapshot = this.filterFarmerAllocationsForBranch();
     return this.http.get<FarmerAllocation[]>(`${API_ENDPOINTS.BRANCH.INVENTORY}/farmer-allocations`).pipe(
       timeout(8000),
       tap(rows => this.farmerAllocationSubject.next(rows)),
-      catchError(() => of(this.filterFarmerAllocationsForBranch())),
+      catchError(() => of(snapshot)),
+      startWith(snapshot),
     );
   }
 

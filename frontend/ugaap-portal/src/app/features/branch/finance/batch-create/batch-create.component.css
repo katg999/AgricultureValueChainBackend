@@ -63,6 +63,18 @@ select:focus {
   background-color: #ffffff;
 }
 
+/* Read-only equivalent of <select> — shows the branch locked by the session, not a choice */
+.static-field-value {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border, #e5e5e5);
+  background-color: var(--surface-low, #f4f4f4);
+  font-size: 14px;
+  color: var(--secondary, #200B26);
+}
+
 .form-actions {
   display: flex;
   justify-content: flex-end;

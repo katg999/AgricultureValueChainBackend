@@ -3,7 +3,7 @@
      Two sections:
        1. Page header with a back button
        2. Search input
-       3. Farmer table with a bank-details status badge per row
+       3. Farmer table
 -->
 
 <div class="farmers-page">
@@ -53,7 +53,6 @@
               <th>Delivery Date</th>
               <th>Payment Method</th>
               <th class="numeric">Net Payable</th>
-              <th>Bank Details</th>
             </tr>
           </thead>
           <tbody>
@@ -69,19 +68,11 @@
                 <td class="mono">{{ f.deliveryDate }}</td>
                 <td>{{ f.paymentMethod }}</td>
                 <td class="numeric mono">{{ formatCurrency(f.netPayable) }}</td>
-                <td>
-                  <!-- [ngClass] picks a CSS class based on whether hasBankDetails is true.
-                       badge-ok = green; badge-missing = red — defined in the stylesheet.
-                       The ternary (? :) works the same as in TypeScript/JavaScript. -->
-                  <span class="status-badge" [ngClass]="f.hasBankDetails ? 'badge-ok' : 'badge-missing'">
-                    {{ f.hasBankDetails ? 'Complete' : 'Missing' }}
-                  </span>
-                </td>
               </tr>
             } @empty {
               <!-- @empty renders when the @for list is empty — no separate condition needed -->
               <tr>
-                <td colspan="8" class="empty-state">No farmers match the search.</td>
+                <td colspan="7" class="empty-state">No farmers match the search.</td>
               </tr>
             }
           </tbody>
