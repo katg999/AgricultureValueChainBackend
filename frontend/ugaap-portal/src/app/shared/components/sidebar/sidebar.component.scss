@@ -275,6 +275,17 @@
   gap: 10px;
   flex: 1;
   min-width: 0;
+  // Rendered as a link to /profile — keep the chip's original look
+  text-decoration: none;
+  color: inherit;
+  border-radius: 8px;
+  padding: 4px;
+  margin: -4px;
+  transition: background 0.15s;
+
+  &:hover {
+    background: rgba(242, 93, 39, 0.08);
+  }
 }
 
 .user-avatar {

@@ -50,6 +50,8 @@ export class CooperativeDashboardComponent implements OnInit {
 
   // ── KPI stat cards ────────────────────────────────────────────────────────
 
+  // Thresholds are hardcoded for now — the shape matches what the backend
+  // will eventually supply per stat. Tapping a card opens its route.
   stats: StatCardData[] = [
     {
       label:   'Active agents',
@@ -57,7 +59,9 @@ export class CooperativeDashboardComponent implements OnInit {
       icon:    'users',
       trend:   '+12% from last season',
       trendUp: true,
-      status:  'active',
+      // Agent base shrinks → degrade: ≤2,000 warning, ≤1,000 critical
+      thresholds: { warning: 2000, critical: 1000, direction: 'below' },
+      route:   '/cooperative/agents',
     },
     {
       label:   'Total deliveries',
@@ -65,6 +69,7 @@ export class CooperativeDashboardComponent implements OnInit {
       icon:    'box',
       trend:   '+12% from last season',
       trendUp: true,
+      route:   '/cooperative/collections',
     },
     {
       label:   'Input Disbursed',
@@ -72,14 +77,15 @@ export class CooperativeDashboardComponent implements OnInit {
       icon:    'wallet',
       trend:   'UGX',
       trendUp: true,
+      route:   '/cooperative/inventory/stock-disbursed',
     },
     {
-      label:     'Outstanding',
-      value:     '120,000,000',
-      icon:      'clipboard',
-      status:    'critical',
-      clickable: true,
-      route:     '/cooperative/dashboard',
+      label:      'Outstanding',
+      value:      '120,000,000',
+      icon:       'clipboard',
+      // Outstanding balance grows → degrade: ≥50M warning, ≥100M critical
+      thresholds: { warning: 50_000_000, critical: 100_000_000, direction: 'above' },
+      route:      '/cooperative/inventory/stock-disbursed',
     },
   ];
 

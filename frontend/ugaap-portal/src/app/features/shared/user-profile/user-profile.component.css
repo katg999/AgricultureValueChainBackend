@@ -1,0 +1,120 @@
+.page-container {
+  padding: 32px 16px;
+  background: var(--surface-low);
+  min-height: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── Identity header ─────────────────────────────────────────────────────── */
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.profile-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-size: 26px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.page-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--secondary);
+  margin: 0 0 4px;
+}
+
+.page-subtitle {
+  font-size: 14px;
+  color: #6B6B7B;
+  margin: 0;
+}
+
+/* ── Detail lists ────────────────────────────────────────────────────────── */
+
+.detail-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px 24px;
+  margin: 0;
+}
+
+.detail-item dt {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #6B6B7B;
+  margin-bottom: 4px;
+}
+
+.detail-item dd {
+  margin: 0;
+  font-size: 14px;
+  color: var(--secondary);
+}
+
+.mono {
+  font-family: var(--font-technical);
+  font-size: 13px;
+}
+
+.card-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #E8E6ED;
+}
+
+/* ── Permission summary ──────────────────────────────────────────────────── */
+
+.full-access-note {
+  font-size: 14px;
+  color: #6B6B7B;
+  margin: 0;
+}
+
+.permission-groups {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px 24px;
+}
+
+.group-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--secondary);
+  margin: 0 0 6px;
+}
+
+.group-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  color: #6B6B7B;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .detail-list,
+  .permission-groups { grid-template-columns: 1fr; }
+}

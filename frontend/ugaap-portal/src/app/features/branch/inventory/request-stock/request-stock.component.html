@@ -16,19 +16,21 @@
 
     <div class="stats-grid">
       <app-stat-card
-        [data]="{ label: 'TOTAL REQUESTS', value: (totalRequests | number) ?? '', icon: 'clipboard' }">
+        [data]="{ label: 'TOTAL REQUESTS', value: (totalRequests | number) ?? '', icon: 'clipboard', clickable: true }">
       </app-stat-card>
 
       <app-stat-card
-        [data]="{ label: 'PENDING REVIEW', value: (pendingCount | number) ?? '', icon: 'alert', status: 'warning' }">
+        [data]="{ label: 'PENDING REVIEW', value: (pendingCount | number) ?? '', icon: 'clock',
+          thresholds: { warning: 1, direction: 'above' }, clickable: true }">
       </app-stat-card>
 
       <app-stat-card
-        [data]="{ label: 'REJECTED', value: (rejectedCount | number) ?? '', icon: 'alert', status: 'critical' }">
+        [data]="{ label: 'REJECTED', value: (rejectedCount | number) ?? '', icon: 'alert',
+          thresholds: { warning: 1, critical: 1, direction: 'above' }, clickable: true }">
       </app-stat-card>
 
       <app-stat-card
-        [data]="{ label: 'FULFILLED', value: (fulfilledCount | number) ?? '', icon: 'check' }">
+        [data]="{ label: 'FULFILLED', value: (fulfilledCount | number) ?? '', icon: 'check', clickable: true }">
       </app-stat-card>
     </div>
 

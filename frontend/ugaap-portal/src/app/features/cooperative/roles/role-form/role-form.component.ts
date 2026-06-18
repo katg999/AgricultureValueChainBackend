@@ -2,10 +2,11 @@
 //
 // Create / edit a cooperative role, and provision the first user for it.
 //
-// Permissions are picked through the shared <app-permission-tabs> component:
-// one tab per service (Farmers, Inventory, …) showing every granular action
-// available under it. The selected ids drive the sidebar + guards at login
-// time, so a role with nothing under "farmers" never sees the Farmers menu.
+// Layout follows the shared <app-form-wizard> shell (the farmer-register
+// design): role details → user details → permissions. Permissions are picked
+// through <app-permission-tabs>: one tab per service (Farmers, Inventory, …)
+// showing every granular action available under it. The selected ids drive
+// the sidebar + guards at login time.
 //
 // Save flow (three chained calls):
 //   1. POST /access/roles                  → create the role
@@ -20,9 +21,9 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { HttpClient } from '@angular/common/http';
 
 import { API_ENDPOINTS } from '../../../../core/constants/api-endpoints';
+import { FormWizardComponent, WizardStep } from '../../../../shared/components/form-wizard/form-wizard.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
-import { InfoCardComponent } from '../../../../shared/components/info-card/info-card.component';
 import { PermissionTabsComponent } from '../../../../shared/components/permission-tabs/permission-tabs.component';
 import { ToastService } from '../../../../core/services/toast.service';
 
@@ -35,6 +36,13 @@ export interface GeneratedCredentials {
   temporaryPassword: string;
 }
 
+/** Form controls validated before leaving each step */
+const STEP_FIELDS: string[][] = [
+  ['name', 'description', 'tenantId'],
+  ['fullName', 'email', 'phone'],
+  [],   // permissions step is validated by selection count on save
+];
+
 @Component({
   selector: 'app-role-form',
   standalone: true,
@@ -42,9 +50,9 @@ export interface GeneratedCredentials {
     CommonModule,
     RouterModule,
     ReactiveFormsModule,
+    FormWizardComponent,
     InputComponent,
     ButtonComponent,
-    InfoCardComponent,
     PermissionTabsComponent,
   ],
   templateUrl: './role-form.component.html',
@@ -56,6 +64,13 @@ export class RoleFormComponent implements OnInit {
   roleForm!: FormGroup;
   isLoading = false;
   errorMessage = '';
+
+  readonly steps: WizardStep[] = [
+    { label: 'Role details' },
+    { label: 'User details' },
+    { label: 'Permissions' },
+  ];
+  currentStep = 0;
 
   /** Permission ids granted to this role — two-way bound to the tab picker */
   readonly selectedPermissions = signal<string[]>([]);
@@ -96,6 +111,40 @@ export class RoleFormComponent implements OnInit {
     if (this.isEditMode) {
       // this.loadRoleData();
     }
+  }
+
+  // ── Step navigation ───────────────────────────────────────────────────────
+
+  /** Moving forward validates the current step's controls first */
+  nextStep(): void {
+    if (!this.validateStep(this.currentStep)) return;
+    this.currentStep = Math.min(this.currentStep + 1, this.steps.length - 1);
+  }
+
+  prevStep(): void {
+    this.currentStep = Math.max(this.currentStep - 1, 0);
+  }
+
+  /** Sidebar clicks: backward always allowed, forward gated by validation */
+  goToStep(index: number): void {
+    if (index <= this.currentStep) {
+      this.currentStep = index;
+      return;
+    }
+    if (this.validateStep(this.currentStep)) {
+      this.currentStep = index;
+    }
+  }
+
+  private validateStep(step: number): boolean {
+    const fields = STEP_FIELDS[step] ?? [];
+    let valid = true;
+    for (const field of fields) {
+      const ctrl = this.roleForm.get(field);
+      ctrl?.markAsTouched();
+      if (ctrl?.invalid) valid = false;
+    }
+    return valid;
   }
 
   get selectedPermissionsCount(): number {
@@ -244,8 +293,10 @@ export class RoleFormComponent implements OnInit {
       configuration: 'ACCESS_MANAGEMENT',
       collections: 'INVENTORY',
       farmers: 'MEMBERSHIP',
+      agents: 'MEMBERSHIP',
       branches: 'BRANCHES',
       inventory: 'INVENTORY',
+      finance: 'INVENTORY',
       users: 'MEMBERSHIP',
       roles: 'ACCESS_MANAGEMENT',
       reports: 'REPORTING',
@@ -263,6 +314,7 @@ export class RoleFormComponent implements OnInit {
       record: 'CREATE',
       onboard: 'CREATE',
       receive: 'CREATE',
+      request: 'CREATE',
       issue: 'CREATE',
       generate: 'CREATE',
       build: 'CREATE',
@@ -272,6 +324,7 @@ export class RoleFormComponent implements OnInit {
       assign: 'EDIT',
       submit: 'EDIT',
       grade: 'EDIT',
+      process: 'EDIT',
       reset_password: 'EDIT',
       approve: 'APPROVE',
       reject: 'APPROVE',

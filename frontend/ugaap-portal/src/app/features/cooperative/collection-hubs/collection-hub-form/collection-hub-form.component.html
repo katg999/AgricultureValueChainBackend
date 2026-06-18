@@ -1,0 +1,209 @@
+<!--
+  Collection Hub Form
+  Layout: page title → stepper → step card → actions
+  Mirrors the branch-onboarding layout exactly.
+-->
+
+<div class="onboarding-shell">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">{{ pageTitle }}</h1>
+      <p class="page-subtitle">{{ pageSubtitle }}</p>
+    </div>
+    <span class="step-counter">Step {{ currentStep + 1 }} of {{ steps.length }}</span>
+  </div>
+
+  <!-- STEPPER -->
+  <div class="onboarding-stepper">
+    <app-stepper [steps]="steps" [currentStep]="currentStep"></app-stepper>
+  </div>
+
+  <!-- STEP CONTENT -->
+  <div class="onboarding-content">
+
+    <!-- ── STEP 0: DETAILS ──────────────────────────────────── -->
+    <div *ngIf="currentStep === 0">
+      <div class="form-card">
+        <h2 class="card-title">Hub Details</h2>
+        <p class="card-subtitle">The name and physical location of this collection point</p>
+
+        <app-input
+          label="Hub Name"
+          type="text"
+          placeholder="e.g. Hoima Market Hub"
+          [(ngModel)]="form.name"
+          name="name"
+          [required]="true"
+          hint="A clear name that farmers and staff will recognise"
+          [error]="touched['name'] && form.name.trim().length < 3 ? 'Minimum 3 characters required' : ''">
+        </app-input>
+
+        <app-input
+          label="Physical Location"
+          type="text"
+          placeholder="e.g. Hoima Trading Centre, Plot 14"
+          [(ngModel)]="form.location"
+          name="location"
+          [required]="true"
+          hint="Street address, plot number or landmark"
+          [error]="touched['location'] && form.location.trim().length < 3 ? 'Minimum 3 characters required' : ''">
+        </app-input>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-ghost" (click)="cancel()">Cancel</button>
+        <app-button variant="primary" size="lg" (clicked)="nextStep()">Continue</app-button>
+      </div>
+    </div>
+
+    <!-- ── STEP 1: ASSIGNMENT ───────────────────────────────── -->
+    <div *ngIf="currentStep === 1">
+      <div class="form-card">
+        <h2 class="card-title">Assignment</h2>
+        <p class="card-subtitle">Which district and branch this hub belongs to</p>
+
+        <div class="input-group">
+          <label class="input-label">District <span class="required">*</span></label>
+          <select
+            class="form-select"
+            [(ngModel)]="form.district"
+            name="district"
+            [class.has-error]="touched['district'] && !form.district">
+            <option value="">— Select district —</option>
+            <option *ngFor="let d of districts" [value]="d">{{ d }}</option>
+          </select>
+          <span class="error-text" *ngIf="touched['district'] && !form.district">
+            Please select a district
+          </span>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">Linked Branch <span class="required">*</span></label>
+          <select
+            class="form-select"
+            [(ngModel)]="form.branchId"
+            name="branchId"
+            [class.has-error]="touched['branchId'] && !form.branchId">
+            <option value="">— Select branch —</option>
+            <option *ngFor="let b of branches" [value]="b.id">{{ b.name }}</option>
+          </select>
+          <span class="error-text" *ngIf="touched['branchId'] && !form.branchId">
+            Please select a branch
+          </span>
+          <span class="field-hint" *ngIf="form.branchId">
+            The branch responsible for managing this hub.
+          </span>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="prevStep()">Back</button>
+        <app-button variant="primary" size="lg" (clicked)="nextStep()">Continue</app-button>
+      </div>
+    </div>
+
+    <!-- ── STEP 2: CAPACITY ─────────────────────────────────── -->
+    <div *ngIf="currentStep === 2">
+      <div class="form-card">
+        <h2 class="card-title">Capacity &amp; Commodities</h2>
+        <p class="card-subtitle">How much the hub can store and what it handles</p>
+
+        <app-input
+          label="Storage Capacity (MT)"
+          type="number"
+          placeholder="e.g. 50"
+          [(ngModel)]="form.capacity"
+          name="capacity"
+          [required]="true"
+          hint="Maximum metric tonnes of produce this hub can hold"
+          [error]="touched['capacity'] && form.capacity < 1 ? 'Capacity must be at least 1 MT' : ''">
+        </app-input>
+
+        <div class="input-group">
+          <label class="input-label">Commodities Handled <span class="required">*</span></label>
+          <div class="checkbox-grid">
+            <label
+              *ngFor="let c of allCommodities"
+              class="checkbox-item"
+              [class.checkbox-selected]="isCommoditySelected(c)">
+              <input
+                type="checkbox"
+                [checked]="isCommoditySelected(c)"
+                (change)="toggleCommodity(c)" />
+              {{ c }}
+            </label>
+          </div>
+          <span class="error-text" *ngIf="touched['commodities'] && form.commodities.length === 0">
+            Select at least one commodity
+          </span>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="prevStep()">Back</button>
+        <app-button variant="primary" size="lg" (clicked)="nextStep()">Review</app-button>
+      </div>
+    </div>
+
+    <!-- ── STEP 3: REVIEW ───────────────────────────────────── -->
+    <div *ngIf="currentStep === 3">
+
+      <div class="review-grid">
+        <div class="review-card">
+          <h3 class="review-card-title">Details</h3>
+          <div class="review-row">
+            <span class="review-label">Hub Name</span>
+            <span class="review-value">{{ form.name }}</span>
+          </div>
+          <div class="review-row">
+            <span class="review-label">Location</span>
+            <span class="review-value">{{ form.location }}</span>
+          </div>
+        </div>
+
+        <div class="review-card">
+          <h3 class="review-card-title">Assignment</h3>
+          <div class="review-row">
+            <span class="review-label">District</span>
+            <span class="review-value">{{ form.district }}</span>
+          </div>
+          <div class="review-row">
+            <span class="review-label">Branch</span>
+            <span class="review-value">{{ selectedBranchName }}</span>
+          </div>
+        </div>
+
+        <div class="review-card">
+          <h3 class="review-card-title">Capacity</h3>
+          <div class="review-row">
+            <span class="review-label">Storage</span>
+            <span class="review-value">{{ form.capacity }} MT</span>
+          </div>
+        </div>
+
+        <div class="review-card">
+          <h3 class="review-card-title">Commodities</h3>
+          <div class="review-row" *ngFor="let c of form.commodities">
+            <span class="review-value">{{ c }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="prevStep()">Back</button>
+        <app-button
+          variant="primary"
+          size="lg"
+          [loading]="saving"
+          loadingText="Saving…"
+          (clicked)="submit()">
+          {{ isEditMode ? 'Save Changes' : 'Create Hub' }}
+        </app-button>
+      </div>
+
+    </div>
+
+  </div><!-- /onboarding-content -->
+</div>

@@ -18,7 +18,9 @@
 import { Injectable, computed, inject } from '@angular/core';
 import { SessionService } from './session.service';
 import { ALL_PERMISSIONS_WILDCARD } from '../constants/permissions';
-import { NavItem } from './dashboard-config.service';
+// type-only import — avoids a runtime circular dependency, since
+// DashboardConfigService injects this service for nav filtering
+import type { NavItem } from './dashboard-config.service';
 
 /** Until the backend sends granular permissions, empty = see everything */
 const TREAT_EMPTY_AS_FULL_ACCESS = true;

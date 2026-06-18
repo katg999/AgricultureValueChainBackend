@@ -1,16 +1,36 @@
+// features/platform/coop-onboarding/cooperative-onboarding.component.ts
+//
+// Cooperative onboarding — sets up a new cooperative on the platform.
+//
+// Layout follows the shared <app-form-wizard> shell (the farmer-register
+// design): cooperative info → bank details → default branch → review.
+// On activation the payload (including bank details for disbursements) is
+// posted to the cooperatives endpoint, then the flow continues into
+// maker-checker account creation.
+
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Title } from '@angular/platform-browser';
 
+import { FormWizardComponent } from '../../../shared/components/form-wizard/form-wizard.component';
 // Shared components
 import { StepperComponent, Step } from '../../../shared/components/stepper/stepper.component';
-import { InputComponent } from '../../../shared/components/input/input.component';
+import { InputComponent }  from '../../../shared/components/input/input.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
-import { ModalComponent } from '../../../shared/components/modal/modal.component';
-import { AlertComponent } from '../../../shared/components/alert/alert.component';
+import { ModalComponent }  from '../../../shared/components/modal/modal.component';
+import { AlertComponent }  from '../../../shared/components/alert/alert.component';
 import { CooperativeService } from '../../../core/services/cooperative.service';
+
+/** Form controls validated before leaving each step */
+const STEP_FIELDS: string[][] = [
+  ['name', 'registrationNumber', 'address', 'country',
+   'contactPersonName', 'contactPersonPhone', 'contactPersonEmail'],
+  ['bankName', 'accountName', 'accountNumber'],
+  ['defaultBranchName'],
+  [],   // review
+];
 
 @Component({
   selector: 'app-cooperative-onboarding',
@@ -30,17 +50,16 @@ import { CooperativeService } from '../../../core/services/cooperative.service';
 })
 export class CooperativeOnboardingComponent implements OnInit {
   // ── Stepper ───────────────────────────────────────────────
-  steps: Step[] = [
-    { label: 'IDENTITY', number: '01' },
-    { label: 'ADDRESS', number: '02' },
-    { label: 'CONTACT', number: '03' },
-    { label: 'DEFAULT BRANCH', number: '04' },
-    { label: 'REVIEW', number: '05' },
+  readonly steps: Step[] = [
+    { label: 'Cooperative',    number: '01' },
+    { label: 'Bank details',   number: '02' },
+    { label: 'Default branch', number: '03' },
+    { label: 'Review',         number: '04' },
   ];
-
   currentStep = 0;
 
-  // ── Forms ─────────────────────────────────────────────────
+  isSaving = false;
+
   profileForm!: FormGroup;
 
   // Field groups per step, used for step-level validation
@@ -52,21 +71,26 @@ export class CooperativeOnboardingComponent implements OnInit {
     [],
   ];
 
+  // ── Save progress ─────────────────────────────────────────
+  saveProgress(): void {
+    this.isSaving = true;
+    // Replace with: PATCH /cooperative/onboarding/draft
+    setTimeout(() => {
+      this.isSaving = false;
+      this.router.navigate(['/platform/cooperatives']);
+    }, 600);
+  }
+
   // ── Modal ─────────────────────────────────────────────────
   showConfirmModal = false;
-
-  // ── Loading states ────────────────────────────────────────
   isLoading = false;
-  isSaving = false;
-
-  // ── Error message ─────────────────────────────────────────
-  errorMessage: string = '';
+  errorMessage = '';
 
   constructor(
     private fb: FormBuilder,
     private router: Router,
     private cooperativeService: CooperativeService,
-    private titleService: Title
+    private titleService: Title,
   ) {}
 
   ngOnInit(): void {
@@ -87,14 +111,24 @@ export class CooperativeOnboardingComponent implements OnInit {
       contactPersonName: ['', Validators.required],
       contactPersonPhone: ['', Validators.required],
       contactPersonEmail: ['', [Validators.required, Validators.email]],
-      defaultBranchName: ['', Validators.required],
-      defaultBranchLocation: [''],
+
+      // Bank details — where farmer payments are disbursed from.
+      // Bank account is required; mobile money is an optional alternative rail.
+      bankName: ['', Validators.required],
+      bankBranch: [''],
+      accountName: ['', Validators.required],
+      accountNumber: ['', [Validators.required, Validators.pattern(/^\d{6,20}$/)]],
+      mobileMoneyProvider: [''],
+      mobileMoneyNumber: [''],
     });
   }
 
-  // ── Navigation ────────────────────────────────────────────
+  // ── Step navigation ───────────────────────────────────────
 
+  /** Moving forward validates the current step's controls first */
   nextStep(): void {
+    if (!this.validateStep(this.currentStep)) return;
+    this.currentStep = Math.min(this.currentStep + 1, this.steps.length - 1);
     const fields = this.stepFields[this.currentStep];
 
     if (fields.length) {
@@ -117,12 +151,38 @@ export class CooperativeOnboardingComponent implements OnInit {
   }
 
   previousStep(): void {
-    this.currentStep--;
+    this.currentStep = Math.max(this.currentStep - 1, 0);
+  }
+
+  /** Sidebar clicks: backward always allowed, forward gated by validation */
+  goToStep(index: number): void {
+    if (index <= this.currentStep) {
+      this.currentStep = index;
+      return;
+    }
+    if (this.validateStep(this.currentStep)) {
+      this.currentStep = index;
+    }
+  }
+
+  private validateStep(step: number): boolean {
+    const fields = STEP_FIELDS[step] ?? [];
+    let valid = true;
+    for (const field of fields) {
+      const ctrl = this.profileForm.get(field);
+      ctrl?.markAsTouched();
+      if (ctrl?.invalid) valid = false;
+    }
+    return valid;
   }
 
   // ── Modal ─────────────────────────────────────────────────
 
   openConfirmModal(): void {
+    if (this.profileForm.invalid) {
+      this.profileForm.markAllAsTouched();
+      return;
+    }
     this.showConfirmModal = true;
   }
 
@@ -130,7 +190,7 @@ export class CooperativeOnboardingComponent implements OnInit {
     this.showConfirmModal = false;
   }
 
-  // ── Submit (Navigate to Maker & Checker Creation) ────────
+  // ── Submit (navigate to Maker & Checker creation) ────────
 
   activateCooperative(): void {
     if (this.profileForm.invalid) {
@@ -154,11 +214,19 @@ export class CooperativeOnboardingComponent implements OnInit {
       country: this.profileForm.value.country,
       defaultBranchName: this.profileForm.value.defaultBranchName,
       defaultBranchLocation: this.profileForm.value.defaultBranchLocation,
+
+      bankDetails: {
+        bankName: this.profileForm.value.bankName,
+        bankBranch: this.profileForm.value.bankBranch,
+        accountName: this.profileForm.value.accountName,
+        accountNumber: this.profileForm.value.accountNumber,
+        mobileMoneyProvider: this.profileForm.value.mobileMoneyProvider,
+        mobileMoneyNumber: this.profileForm.value.mobileMoneyNumber,
+      },
     };
 
     this.cooperativeService.createCooperative(payload).subscribe({
       next: (res) => {
-        console.log('ONBOARD RESPONSE:', res);
         this.isLoading = false;
 
         this.router.navigate(['/platform/maker-checker'], {
@@ -171,23 +239,11 @@ export class CooperativeOnboardingComponent implements OnInit {
 
       error: (err) => {
         this.isLoading = false;
-
         console.error('Create cooperative failed:', err);
-
         this.errorMessage =
           err?.error?.message ?? 'You do not have permission to create a cooperative.';
       },
     });
-  }
-
-  // ── Save progress ─────────────────────────────────────────
-
-  saveProgress(): void {
-    this.isSaving = true;
-    setTimeout(() => {
-      this.isSaving = false;
-      alert('Progress saved! (This is just a demo - no actual save)');
-    }, 1000);
   }
 
   // ── Helpers ───────────────────────────────────────────────
@@ -197,6 +253,8 @@ export class CooperativeOnboardingComponent implements OnInit {
     if (control?.touched && control?.errors) {
       if (control.errors['required']) return 'This field is required';
       if (control.errors['email']) return 'Invalid email format';
+      if (control.errors['pattern'] && fieldName === 'accountNumber')
+        return 'Account number must be 6–20 digits';
     }
     return '';
   }

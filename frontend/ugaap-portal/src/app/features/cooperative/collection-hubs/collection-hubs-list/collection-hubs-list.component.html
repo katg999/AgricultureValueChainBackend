@@ -1,0 +1,215 @@
+<div class="page-container">
+
+  <!-- Page header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Collection Hubs</h1>
+      <p class="page-subtitle">
+        {{ activeCount() }} active hub{{ activeCount() === 1 ? '' : 's' }} receiving produce across your branches
+      </p>
+    </div>
+
+    <app-button
+      *hasPermission="'collection_hubs.create'"
+      type="button"
+      variant="primary"
+      size="md"
+      iconLeft="+"
+      (clicked)="createHub()">
+      Add Hub
+    </app-button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-row">
+    <div class="search-box">
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Search by name, code, district, branch or commodity…"
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event)" />
+    </div>
+
+    <select
+      class="status-select"
+      [ngModel]="statusFilter()"
+      (ngModelChange)="statusFilter.set($event)">
+      <option value="all">All statuses</option>
+      <option value="active">Active</option>
+      <option value="inactive">Inactive</option>
+    </select>
+  </div>
+
+  <!-- Hubs table -->
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>CODE</th>
+          <th>NAME</th>
+          <th>LOCATION / DISTRICT</th>
+          <th>BRANCH</th>
+          <th>CAPACITY LOAD</th>
+          <th>COMMODITIES</th>
+          <th>STATUS</th>
+          <th>ACTIONS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let hub of filteredHubs(); trackBy: trackById">
+          <td class="mono">{{ hub.hubCode }}</td>
+          <td>
+            <button type="button" class="hub-name" (click)="viewHub(hub)">
+              {{ hub.name }}
+            </button>
+          </td>
+          <td>
+            <div>{{ hub.location }}</div>
+            <div class="district-tag">{{ hub.district }}</div>
+          </td>
+          <td>{{ hub.branchName }}</td>
+          <td>
+            <div class="load-bar-wrap">
+              <div class="load-bar-track">
+                <div
+                  class="load-bar-fill"
+                  [class]="loadClass(hub)"
+                  [style.width.%]="loadPercent(hub)">
+                </div>
+              </div>
+              <span class="load-label mono">
+                {{ hub.currentLoad }} / {{ hub.capacity }} MT
+              </span>
+            </div>
+          </td>
+          <td>
+            <div class="commodity-chips">
+              <span class="chip" *ngFor="let c of hub.commodities">{{ c }}</span>
+            </div>
+          </td>
+          <td>
+            <span class="status-pill"
+              [class.pill-active]="hub.status === 'active'"
+              [class.pill-inactive]="hub.status === 'inactive'">
+              {{ hub.status | uppercase }}
+            </span>
+          </td>
+          <td>
+            <div class="row-actions">
+              <button type="button" class="action-link" (click)="viewHub(hub)">View</button>
+              <button
+                *hasPermission="'collection_hubs.edit'"
+                type="button" class="action-link" (click)="editHub(hub)">
+                Edit
+              </button>
+              <button
+                *hasPermission="'collection_hubs.deactivate'"
+                type="button"
+                class="action-link"
+                [class.action-danger]="hub.status === 'active'"
+                (click)="toggleStatus(hub)">
+                {{ hub.status === 'active' ? 'Deactivate' : 'Reactivate' }}
+              </button>
+              <button
+                *hasPermission="'collection_hubs.delete'"
+                type="button" class="action-link action-danger"
+                (click)="confirmDelete(hub)">
+                Delete
+              </button>
+            </div>
+          </td>
+        </tr>
+
+        <tr *ngIf="filteredHubs().length === 0">
+          <td colspan="8" class="empty-row">No hubs match your filters.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Hub detail modal -->
+<app-modal
+  [isOpen]="showDetailModal"
+  [title]="selectedHub?.name ?? 'Hub'"
+  [subtitle]="selectedHub?.hubCode ?? ''"
+  size="md"
+  (closed)="closeDetail()"
+  (isOpenChange)="showDetailModal = $event">
+
+  <div body>
+    <dl class="detail-list" *ngIf="selectedHub as hub">
+      <div class="detail-item">
+        <dt>Branch</dt>
+        <dd>{{ hub.branchName }}</dd>
+      </div>
+      <div class="detail-item">
+        <dt>Location</dt>
+        <dd>{{ hub.location }}</dd>
+      </div>
+      <div class="detail-item">
+        <dt>District</dt>
+        <dd>{{ hub.district }}</dd>
+      </div>
+      <div class="detail-item">
+        <dt>Capacity</dt>
+        <dd class="mono">{{ hub.capacity }} MT</dd>
+      </div>
+      <div class="detail-item">
+        <dt>Current Load</dt>
+        <dd class="mono">{{ hub.currentLoad }} MT ({{ loadPercent(hub) }}%)</dd>
+      </div>
+      <div class="detail-item">
+        <dt>Commodities</dt>
+        <dd>{{ hub.commodities.join(', ') }}</dd>
+      </div>
+      <div class="detail-item">
+        <dt>Created</dt>
+        <dd class="mono">{{ hub.createdAt }}</dd>
+      </div>
+      <div class="detail-item">
+        <dt>Status</dt>
+        <dd>
+          <span class="status-pill"
+            [class.pill-active]="hub.status === 'active'"
+            [class.pill-inactive]="hub.status === 'inactive'">
+            {{ hub.status | uppercase }}
+          </span>
+        </dd>
+      </div>
+    </dl>
+  </div>
+
+  <div footer>
+    <app-button variant="ghost" size="md" type="button" (clicked)="closeDetail()">Close</app-button>
+    <app-button
+      *hasPermission="'collection_hubs.edit'"
+      variant="primary" size="md" type="button"
+      (clicked)="closeDetail(); editHub(selectedHub!)">
+      Edit hub
+    </app-button>
+  </div>
+</app-modal>
+
+<!-- Delete confirm modal -->
+<app-modal
+  [isOpen]="showDeleteModal"
+  title="Delete Hub"
+  [subtitle]="hubToDelete?.hubCode ?? ''"
+  size="sm"
+  (closed)="closeDeleteModal()"
+  (isOpenChange)="showDeleteModal = $event">
+
+  <div body>
+    <p class="confirm-text">
+      Permanently delete <strong>{{ hubToDelete?.name }}</strong>?
+      This cannot be undone.
+    </p>
+  </div>
+
+  <div footer>
+    <app-button variant="ghost" size="md" type="button" (clicked)="closeDeleteModal()">Cancel</app-button>
+    <app-button variant="danger" size="md" type="button" (clicked)="executeDelete()">Delete</app-button>
+  </div>
+</app-modal>

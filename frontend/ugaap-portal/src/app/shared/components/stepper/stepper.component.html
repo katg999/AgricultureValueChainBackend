@@ -1,24 +1,44 @@
-<!-- 
-  Stepper Component Template
-  
-  Multi-step progress indicator
+<!--
+  Stepper Component
+  Layout: for each step — circle node (with connecting line stretching to next
+  circle) + label below.
+  The line sits in the SAME flex row as the circle so it is always centred
+  on the circle vertically — no absolute-positioning hacks needed.
 -->
 
 <div class="stepper">
-  <div class="stepper-steps">
-    <div 
-      *ngFor="let step of steps; let i = index"
-      class="step"
+  <div class="stepper-track">
+
+    <div
+      *ngFor="let step of steps; let i = index; let last = last"
+      class="step-wrapper"
       [class]="getStepClass(i)">
-      
-      <!-- Step number and label -->
-      <div class="step-content">
-        <div class="step-number">{{ step.number }}.</div>
-        <div class="step-label">{{ step.label }}</div>
+
+      <!-- Circle + connecting line in one horizontal row -->
+      <div class="step-node">
+
+        <div class="step-circle" [attr.aria-label]="step.label">
+          <!-- Checkmark for completed steps -->
+          <svg *ngIf="isCompleted(i)"
+               width="14" height="14" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor"
+               stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <!-- Number for active / upcoming steps -->
+          <span *ngIf="!isCompleted(i)">{{ step.number }}</span>
+        </div>
+
+        <!-- Line stretches to fill space between this circle and the next.
+             Absent on the last step so there is no trailing line. -->
+        <div class="step-line" *ngIf="!last"></div>
+
       </div>
 
-      <!-- Progress bar (not shown after last step) -->
-      <div class="step-bar" *ngIf="i < steps.length + 1"></div>
+      <!-- Label sits directly below the circle -->
+      <div class="step-label">{{ step.label }}</div>
+
     </div>
+
   </div>
 </div>

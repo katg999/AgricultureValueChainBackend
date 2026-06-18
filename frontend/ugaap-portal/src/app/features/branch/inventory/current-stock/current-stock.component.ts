@@ -166,6 +166,11 @@ export class CurrentStockComponent implements OnInit {
     return parts.join(' and ') + '. Review and restock immediately.';
   }
 
+  /** Route for low/out-of-stock cards — branch only; cooperative admins add stock directly */
+  get lowItemRoute(): string | undefined {
+    return this.isCooperativeScope ? undefined : '/branch/inventory/request-stock';
+  }
+
   private recomputeSummary(): void {
     const low = this.allItems.filter(item => item.stockStatus === 'low').length;
     const outOfStock = this.allItems.filter(item => item.stockStatus === 'out').length;
