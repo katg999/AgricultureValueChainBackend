@@ -113,14 +113,15 @@ const COOPERATIVE_ADMIN_CONFIG: DashboardConfig = {
       route: '/cooperative/organisation-setup',
       permissionModule: 'organisation',
       children: [
+        { label: 'Organisation Profile', icon: '', route: '/cooperative/profile',        permissions: ['organisation.view']      },
         { label: 'Branches',             icon: '', route: '/cooperative/branches',       permissions: ['branches.view']          },
         { label: 'Collection Hubs',      icon: '', route: '/cooperative/collection-hubs', permissions: ['collection_hubs.view'] },
-        { label: 'Organisation Profile', icon: '', route: '/cooperative/profile',        permissions: ['organisation.view']      },
         { label: 'Bank Accounts',        icon: '', route: '/cooperative/bank-accounts',  permissions: ['organisation.bank.view'] },
       ],
     },
 
     // Configuration — grade rules and pricing
+    // Configuration is a collapsible parent — clicking it reveals grade setup and pricing and sessions
     {
       label: 'Configuration',
       icon:  'settings',
@@ -129,6 +130,7 @@ const COOPERATIVE_ADMIN_CONFIG: DashboardConfig = {
       children: [
         { label: 'Grade Config', icon: '', route: '/cooperative/grade-config', permissions: ['configuration.grades.view'] },
         { label: 'Edit Prices',  icon: '', route: '/cooperative/edit-prices',  permissions: ['configuration.prices.view', 'configuration.prices.edit'] },
+        { label: 'Sessions',     icon: '', route: '/cooperative/sessions',     permissions: ['configuration.sessions.view', 'configuration.sessions.edit'] },
       ],
     },
 
@@ -160,10 +162,22 @@ const COOPERATIVE_ADMIN_CONFIG: DashboardConfig = {
         { label: 'Farmers', icon: '', route: '/cooperative/farmers', permissions: ['farmers.view'] },
       ],
     },
+  
+
+
+
+    // Finance — payment batches and batch overview
+    {
+      label: 'Finance',
+      icon:  'finance',
+      route: '/cooperative/finance',
+      permissionModule: 'finance',
+      children: [
+        { label: 'Batch Overview',  icon: '', route: '/cooperative/finance/batch-processing', permissions: ['finance.view'] },
+        { label: 'Payment Batches', icon: '', route: '/cooperative/finance/payment-batches',  permissions: ['finance.view'] },
+      ],
+    },
   ],
-
-
-
 };
 
 // Branch staff — handles daily field operations.

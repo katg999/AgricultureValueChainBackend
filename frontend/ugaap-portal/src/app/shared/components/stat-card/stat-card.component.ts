@@ -12,7 +12,7 @@
 // • icon field accepts an icon NAME string (e.g. 'users', 'box', 'wallet')
 //   mapped to inline SVG via iconMap — not an emoji.
 
-import { Component, Input, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 

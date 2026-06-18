@@ -14,10 +14,13 @@ import { RouterModule, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Title } from '@angular/platform-browser';
 
-import { FormWizardComponent, WizardStep } from '../../../shared/components/form-wizard/form-wizard.component';
-import { InputComponent } from '../../../shared/components/input/input.component';
+import { FormWizardComponent } from '../../../shared/components/form-wizard/form-wizard.component';
+// Shared components
+import { StepperComponent, Step } from '../../../shared/components/stepper/stepper.component';
+import { InputComponent }  from '../../../shared/components/input/input.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
-import { ModalComponent } from '../../../shared/components/modal/modal.component';
+import { ModalComponent }  from '../../../shared/components/modal/modal.component';
+import { AlertComponent }  from '../../../shared/components/alert/alert.component';
 import { CooperativeService } from '../../../core/services/cooperative.service';
 
 /** Form controls validated before leaving each step */
@@ -36,25 +39,49 @@ const STEP_FIELDS: string[][] = [
     CommonModule,
     RouterModule,
     ReactiveFormsModule,
-    FormWizardComponent,
+    StepperComponent,
     InputComponent,
     ButtonComponent,
     ModalComponent,
+    AlertComponent,
   ],
   templateUrl: './cooperative-onboarding.component.html',
   styleUrls: ['./cooperative-onboarding.component.css'],
 })
 export class CooperativeOnboardingComponent implements OnInit {
-
-  readonly steps: WizardStep[] = [
-    { label: 'Cooperative' },
-    { label: 'Bank details' },
-    { label: 'Default branch' },
-    { label: 'Review' },
+  // ── Stepper ───────────────────────────────────────────────
+  readonly steps: Step[] = [
+    { label: 'Cooperative',    number: '01' },
+    { label: 'Bank details',   number: '02' },
+    { label: 'Default branch', number: '03' },
+    { label: 'Review',         number: '04' },
   ];
   currentStep = 0;
 
+  isSaving = false;
+
   profileForm!: FormGroup;
+
+  // Field groups per step, used for step-level validation
+  private stepFields: string[][] = [
+    ['name', 'registrationNumber'],
+    ['address', 'country', 'poBox', 'websiteUrl'],
+    ['contactPersonName', 'contactPersonPhone', 'contactPersonEmail'],
+    ['defaultBranchName', 'defaultBranchLocation'],
+    [],
+  ];
+
+  // ── Save progress ─────────────────────────────────────────
+  saveProgress(): void {
+    this.isSaving = true;
+    // Replace with: PATCH /cooperative/onboarding/draft
+    setTimeout(() => {
+      this.isSaving = false;
+      this.router.navigate(['/platform/cooperatives']);
+    }, 600);
+  }
+
+  // ── Modal ─────────────────────────────────────────────────
   showConfirmModal = false;
   isLoading = false;
   errorMessage = '';
@@ -78,11 +105,9 @@ export class CooperativeOnboardingComponent implements OnInit {
       name: ['', Validators.required],
       registrationNumber: ['', Validators.required],
       address: ['', Validators.required],
-      defaultBranchName: ['', Validators.required],
-      defaultBranchLocation: [''],
+      country: ['', Validators.required],
       poBox: [''],
       websiteUrl: [''],
-      country: ['', Validators.required],
       contactPersonName: ['', Validators.required],
       contactPersonPhone: ['', Validators.required],
       contactPersonEmail: ['', [Validators.required, Validators.email]],
@@ -104,6 +129,25 @@ export class CooperativeOnboardingComponent implements OnInit {
   nextStep(): void {
     if (!this.validateStep(this.currentStep)) return;
     this.currentStep = Math.min(this.currentStep + 1, this.steps.length - 1);
+    const fields = this.stepFields[this.currentStep];
+
+    if (fields.length) {
+      let stepValid = true;
+
+      for (const field of fields) {
+        const control = this.profileForm.get(field);
+        if (control && control.invalid) {
+          control.markAsTouched();
+          stepValid = false;
+        }
+      }
+
+      if (!stepValid) {
+        return;
+      }
+    }
+
+    this.currentStep++;
   }
 
   previousStep(): void {

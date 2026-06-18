@@ -133,29 +133,29 @@ export class SetNewPasswordComponent implements OnInit {
     // Extra client-side safety check for password match
     if (newPassword !== confirmPassword) return;
 
-    // Read the reset context tokens that were stored by previous screens
-    const resetToken = this.session.getResetToken()!;
-    const otpCode    = this.session.getResetOtpCode()!;
+    // // Read the reset context tokens that were stored by previous screens
+    // const resetToken = this.session.getResetToken()!;
+    // const otpCode    = this.session.getResetOtpCode()!;
 
-    this.isLoading    = true;
-    this.errorMessage = '';
+    // this.isLoading    = true;
+    // this.errorMessage = '';
 
-    this.authService
-      .resetPassword({ resetToken, otpCode, newPassword, confirmPassword })
-      .subscribe({
-        next: () => {
-          this.isLoading = false;
+    // this.authService
+    //   .resetPassword({ resetToken, otpCode, newPassword, confirmPassword })
+    //   .subscribe({
+    //     next: () => {
+    //       this.isLoading = false;
 
           // Clean up all temporary reset data from sessionStorage
           this.session.clearResetContext();
 
           // Return to login — force the user to authenticate with the new password
           this.router.navigate(['/auth/login']);
-        },
-        error: (err) => {
-          this.isLoading    = false;
-          this.errorMessage = err?.error?.message ?? 'Password reset failed. Please try again.';
-        },
-      });
+      //   },
+      //   error: (err) => {
+      //     this.isLoading    = false;
+      //     this.errorMessage = err?.error?.message ?? 'Password reset failed. Please try again.';
+      //   },
+      // });
   }
 }

@@ -21,12 +21,15 @@ export class ConfigurationComponent {
 
   private router = inject(Router);
 
+
   openGrading():       void { this.router.navigate(['/cooperative/grade-config']); }
   openRolesUsers():    void { this.router.navigate(['/cooperative/users']); }
   openRoles():         void { this.router.navigate(['/cooperative/roles']); }
   openNotifications(): void { alert('Notification preferences — coming soon.'); }
-  openSessions():      void { alert('Sessions Management — coming soon.'); }
+  
   openPaymentRules():  void { alert('Payment Rules — coming soon.'); }
   openCreditRules():   void { alert('Credit Rules — coming soon.'); }
+  openSessions():     void { this.router.navigate(['/cooperative/sessions']); }
   openMakerChecker():  void { alert('Maker-Checker Approvals — coming soon.'); }
+
 }

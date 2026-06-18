@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 
 import { BadgeComponent } from '../../../../shared/components/badge/badge';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
@@ -85,6 +85,7 @@ export class StockDisbursedComponent implements OnInit {
 
   constructor(
     private readonly router: Router,
+    private readonly route: ActivatedRoute,
     private readonly inventoryService: InventoryService,
   ) {}
 
@@ -157,6 +158,11 @@ export class StockDisbursedComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    const farmerParam = this.route.snapshot.queryParamMap.get('farmer');
+    if (farmerParam) {
+      this.searchQuery = farmerParam;
+    }
+
     // Both paths map to the same Allocation shape so the template doesn't care which.
     if (this.isCooperativeScope) {
       this.inventoryService.listBranchDisbursementsForRole$().subscribe(rows => {

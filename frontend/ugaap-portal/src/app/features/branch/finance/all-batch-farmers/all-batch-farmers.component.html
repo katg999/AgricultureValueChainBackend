@@ -1,131 +1,84 @@
-<section class="abf-page">
+<!-- all-batch-farmers.component.html
+     Shows every farmer in the system — across all batches — in a searchable table.
+     Two sections:
+       1. Page header with a back button
+       2. Search input
+       3. Farmer table
+-->
 
-  <!-- Page header -->
-  <div class="abf-header">
-    <div>
-      <h1 class="abf-title">Batch Farmers</h1>
-      <p class="abf-subtitle">All farmers across every batch — grouped by batch. Click a batch name to manage its farmers.</p>
+<div class="farmers-page">
+
+  <!-- ── 1. Page header ──────────────────────────────────────────────────── -->
+  <div class="page-header">
+    <div class="header-content-wrapper">
+      <div>
+        <!-- (click)="goBack()" calls router.navigate(['/branch/finance/batch-processing']) -->
+        <button class="back-btn" type="button" (click)="goBack()">← Back to Batches</button>
+        <h1>All Batch Farmers</h1>
+        <p>Every farmer registered across all payment batches.</p>
+      </div>
     </div>
   </div>
 
-  <!-- KPI cards -->
-  <div class="kpi-grid">
-    <div class="kpi-card kpi-card--farmers">
-      <span class="kpi-label">Total Farmers</span>
-      <h2 class="kpi-value">{{ totalCount }}</h2>
-    </div>
-    <div class="kpi-card kpi-card--gross">
-      <span class="kpi-label">Total Gross</span>
-      <h2 class="kpi-value mono">UGX {{ formatUGX(totalGross) }}</h2>
-    </div>
-    <div class="kpi-card kpi-card--deductions">
-      <span class="kpi-label">Total Deductions</span>
-      <h2 class="kpi-value mono">UGX {{ formatUGX(totalDeductions) }}</h2>
-    </div>
-    <div class="kpi-card kpi-card--net">
-      <span class="kpi-label">Net Payable</span>
-      <h2 class="kpi-value mono">UGX {{ formatUGX(totalNet) }}</h2>
+  <!-- ── 2. Search input ─────────────────────────────────────────────────── -->
+  <!-- [(ngModel)]="searchTerm" = two-way binding: this input mirrors the searchTerm property.
+       (input) fires on every keystroke → applySearch() pushes the new value to search$
+       → the combineLatest in ngOnInit recalculates filteredFarmers$ automatically. -->
+  <div class="filter-card">
+    <div class="filter-group">
+      <label>Search</label>
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (input)="applySearch()"
+        placeholder="Search by farmer ID, name, commodity or branch…"
+      />
     </div>
   </div>
 
-  <!-- Season tabs -->
-  <div class="season-tabs">
-    <button type="button" class="season-tab"     [class.active]="selectedSeason === ''"           (click)="setSeasonFilter('')">All Seasons</button>
-    <button type="button" class="season-tab wet" [class.active]="selectedSeason === 'Wet Season'" (click)="setSeasonFilter('Wet Season')">Wet Season</button>
-    <button type="button" class="season-tab dry" [class.active]="selectedSeason === 'Dry Season'" (click)="setSeasonFilter('Dry Season')">Dry Season</button>
-  </div>
-
-  <!-- Table -->
-  <div class="table-section">
-    <div class="table-wrapper">
-      <table class="abf-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Farmer Name</th>
-            <th>Farmer ID</th>
-            <th>Commodity</th>
-            <th class="col-numeric">Gross (UGX)</th>
-            <th class="col-numeric">Deductions (UGX)</th>
-            <th class="col-numeric">Net Payable (UGX)</th>
-            <th>Payment</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-
-          <ng-container *ngFor="let group of groups; trackBy: trackByBatchId">
-
-            <!-- Batch group header row — each td aligns with its column -->
-            <tr class="batch-group-row">
-              <!-- # -->
-              <td class="batch-group-cell batch-group-cell--num"></td>
-              <!-- Farmer Name → batch name link -->
-              <td class="batch-group-cell" colspan="2">
-                <button type="button" class="batch-name-link" [title]="group.batch.batchName" (click)="goToBatch(group.batch)">
-                  {{ group.batch.batchName }}
-                </button>
-              </td>
-              <!-- Commodity → season badge -->
-              <td class="batch-group-cell">
-                <span class="season-badge" [ngClass]="seasonClass(group.batch.season)">{{ group.batch.season }}</span>
-              </td>
-              <!-- Gross -->
-              <td class="batch-group-cell col-numeric batch-group-cell--gross mono">
-                {{ formatUGX(group.batch.grossAmount) }}
-              </td>
-              <!-- Deductions -->
-              <td class="batch-group-cell col-numeric batch-group-cell--deduction mono">
-                {{ formatUGX(group.batch.deductions) }}
-              </td>
-              <!-- Net Payable -->
-              <td class="batch-group-cell col-numeric batch-group-cell--net mono">
-                {{ formatUGX(group.batch.netPayable) }}
-              </td>
-              <!-- Payment → farmer count -->
-              <td class="batch-group-cell">
-                <span class="farmer-count">{{ group.farmers.length }} farmer{{ group.farmers.length !== 1 ? 's' : '' }}</span>
-              </td>
-              <!-- Status -->
-              <td class="batch-group-cell">
-                <span class="status-badge" [class]="'status-badge status-badge--' + group.batch.status">{{ group.batch.status }}</span>
-              </td>
+  <!-- ── 3. Farmer table ─────────────────────────────────────────────────── -->
+  <!-- filteredFarmers$ is an Observable<FarmerRecord[]>.
+       '| async' subscribes and unwraps it into the local variable 'farmers'.
+       Every time search$ emits a new value, filteredFarmers$ recalculates and the table re-renders. -->
+  @if (filteredFarmers$ | async; as farmers) {
+    <div class="table-card">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Farmer ID</th>
+              <th>Name</th>
+              <th>Commodity</th>
+              <th>Branch</th>
+              <th>Delivery Date</th>
+              <th>Payment Method</th>
+              <th class="numeric">Net Payable</th>
             </tr>
-
-            <!-- Farmer rows for this batch -->
-            <tr *ngFor="let farmer of group.farmers; let i = index; trackBy: trackByFarmerId" class="farmer-row">
-              <td class="col-num mono">{{ i + 1 }}</td>
-              <td class="cell-name" [title]="farmer.farmerName">{{ farmer.farmerName }}</td>
-              <td class="mono cell-id">{{ farmer.farmerId }}</td>
-              <td><span class="commodity-tag">{{ farmer.commodity }}</span></td>
-              <td class="mono col-numeric">{{ formatUGX(farmer.grossAmount) }}</td>
-              <td class="mono col-numeric cell-deduction">{{ formatUGX(farmer.deductions) }}</td>
-              <td class="mono col-numeric cell-net">{{ formatUGX(farmer.netPayable) }}</td>
-              <td>
-                <span *ngIf="farmer.payment" class="pay-badge" [ngClass]="paymentBadgeClass(farmer)">
-                  {{ paymentLabel(farmer) }}
-                </span>
-                <span *ngIf="!farmer.payment" class="cell-id">—</span>
-              </td>
-              <td>
-                <span class="status-badge" [class]="'status-badge status-badge--' + farmer.status">
-                  {{ farmer.status }}
-                </span>
-              </td>
-            </tr>
-
-          </ng-container>
-
-          <!-- Empty state -->
-          <tr *ngIf="groups.length === 0">
-            <td colspan="9" class="empty-state">
-              No batch farmers found{{ selectedSeason ? ' for ' + selectedSeason : '' }}.
-            </td>
-          </tr>
-
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            <!-- track f.farmerId = Angular reuses DOM rows by ID instead of rebuilding them
+                 on every search keypress. Makes the table feel instant. -->
+            @for (f of farmers; track f.farmerId) {
+              <tr>
+                <!-- mono = IBM Plex Mono — codes and dates are easier to read in monospace -->
+                <td class="mono">{{ f.farmerId }}</td>
+                <td>{{ f.fullName }}</td>
+                <td>{{ f.commodity }}</td>
+                <td>{{ f.branch }}</td>
+                <td class="mono">{{ f.deliveryDate }}</td>
+                <td>{{ f.paymentMethod }}</td>
+                <td class="numeric mono">{{ formatCurrency(f.netPayable) }}</td>
+              </tr>
+            } @empty {
+              <!-- @empty renders when the @for list is empty — no separate condition needed -->
+              <tr>
+                <td colspan="7" class="empty-state">No farmers match the search.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
     </div>
-  </div>
+  }
 
-</section>
+</div>

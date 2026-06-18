@@ -9,6 +9,10 @@
 //   3. Response includes a resetToken — stored in SessionService for later use
 //   4. The email/phone is also stored (so the reset-otp screen can resend if needed)
 //   5. Navigate to /auth/reset-otp
+//
+// ⚠️ TEMP: API call to AuthService.forgotPassword() is commented out below.
+//    A stub resetToken is stored instead, and navigation happens immediately
+//    on submit. Re-enable the real call once backend integration is ready.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { Component, OnInit } from '@angular/core';
@@ -49,7 +53,6 @@ export class ForgotPasswordComponent implements OnInit {
 
   /** Form with a single emailOrPhone field */
   forgotForm!: FormGroup;
-
   isLoading    = false;
   errorMessage = '';
 
@@ -79,31 +82,39 @@ export class ForgotPasswordComponent implements OnInit {
   // ── Form submission ─────────────────────────────────────────────────────────
 
   onSubmit(): void {
-   if (this.forgotForm.invalid) {
+    if (this.forgotForm.invalid) {
       this.forgotForm.markAllAsTouched();
       return;
-  }
+    }
 
-    this.isLoading    = true;
     this.errorMessage = '';
 
     const { emailOrPhone } = this.forgotForm.value;
 
-    this.authService.forgotPassword({ emailOrPhone }).subscribe({
-      next: (res) => {
-        this.isLoading = false;
+    // ── TEMP: stubbed flow (no API call) ──────────────────────────────────────
+    this.session.setResetToken('stub-reset-token');
+    this.session.setResetEmail(emailOrPhone);
 
-        // Persist context needed by the next two screens
-        this.session.setResetToken(res.resetToken);
-        this.session.setResetEmail(emailOrPhone);
+    this.router.navigate(['/auth/reset-otp']);
 
-        // Move to OTP verification step
-        this.router.navigate(['/auth/reset-otp']);
-      },
-      error: (err) => {
-        this.isLoading    = false;
-        this.errorMessage = err?.error?.message ?? 'Could not send reset code. Please try again.';
-      },
-    });
+    // ── ORIGINAL FLOW (commented out) ───────────────────────────────────────
+    // this.isLoading = true;
+    //
+    // this.authService.forgotPassword({ emailOrPhone }).subscribe({
+    //   next: (res) => {
+    //     this.isLoading = false;
+    //
+    //     // Persist context needed by the next two screens
+    //     this.session.setResetToken(res.resetToken);
+    //     this.session.setResetEmail(emailOrPhone);
+    //
+    //     // Move to OTP verification step
+    //     this.router.navigate(['/auth/reset-otp']);
+    //   },
+    //   error: (err) => {
+    //     this.isLoading    = false;
+    //     this.errorMessage = err?.error?.message ?? 'Could not send reset code. Please try again.';
+    //   },
+    // });
   }
 }

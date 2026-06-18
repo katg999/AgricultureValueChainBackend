@@ -71,6 +71,29 @@ export const MOCK_FARMER_LIST: FarmerListItem[] = [
     status: 'Suspended',
     stage: 'Financed',
   },
+  // Mbale West — match dev mock session (BR-MBL)
+  {
+    id: 'UG-F-01007',
+    name: 'Dennis Ojok',
+    branchId: 'BR-MBL',
+    branch: 'Mbale West',
+    primaryCommodity: 'Maize',
+    creditLimit: '950,000',
+    balance: '430,000',
+    status: 'Active',
+    stage: 'Financed',
+  },
+  {
+    id: 'UG-F-01008',
+    name: 'Rose Atukunda',
+    branchId: 'BR-MBL',
+    branch: 'Mbale West',
+    primaryCommodity: 'Coffee',
+    creditLimit: '1,100,000',
+    balance: '0',
+    status: 'Pending',
+    stage: 'Registered',
+  },
 ];
 
 export function buildMockFarmerProfile(

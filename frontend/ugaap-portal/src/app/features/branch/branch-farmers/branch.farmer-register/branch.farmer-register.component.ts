@@ -25,9 +25,7 @@ interface WizardStep {
 })
 export class BranchFarmerRegisterComponent implements OnInit {
 
-  // ─────────────────────────────────────────
   // WIZARD STEPS
-  // ─────────────────────────────────────────
   readonly steps: WizardStep[] = [
     { label: 'Personal details' },
     { label: 'Farm specifications' },
@@ -37,9 +35,7 @@ export class BranchFarmerRegisterComponent implements OnInit {
 
   currentStep = 0;
 
-  // ─────────────────────────────────────────
   // FIELD OPTIONS
-  // ─────────────────────────────────────────
   readonly genderOptions        = ['Female', 'Male', 'Other', 'Prefer not to say'];
   readonly irrigationOptions    = ['Rain-fed', 'Irrigation', 'Both'];
   readonly locationOptions      = [
@@ -82,8 +78,8 @@ export class BranchFarmerRegisterComponent implements OnInit {
     irrigationSource:  'Rain-fed',
     landOwnershipType: 'Owned',
     production: {
-      coffee: false, maize: false, cocoa: false, vanilla: false,
-      cattle: 0, goats: 0, poultry: 0,
+      commodity: '',
+      livestock: '',
     },
     cooperativeGroup: '',
     assignedBranch:   '',
@@ -386,13 +382,8 @@ export class BranchFarmerRegisterComponent implements OnInit {
       irrigationSource:  profile.farm.irrigationSource,
       landOwnershipType: profile.farm.landOwnershipType,
       production: {
-        coffee:  profile.farm.primaryCrops.includes('Coffee'),
-        maize:   profile.farm.primaryCrops.includes('Maize'),
-        cocoa:   profile.farm.primaryCrops.includes('Cocoa'),
-        vanilla: profile.farm.primaryCrops.includes('Vanilla'),
-        cattle:  profile.farm.livestock.includes('Cattle')  ? 1 : 0,
-        goats:   profile.farm.livestock.includes('Goats')   ? 1 : 0,
-        poultry: profile.farm.livestock.includes('Poultry') ? 1 : 0,
+        commodity: profile.farm.primaryCrops[0] ?? '',
+        livestock: profile.farm.livestock.join(', '),
       },
       cooperativeGroup: profile.groupCredit.cooperativeGroup,
       assignedBranch:   profile.registration.assignedBranch,

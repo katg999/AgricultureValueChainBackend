@@ -1,0 +1,87 @@
+<div class="farmers-page" *ngIf="farmerDeliveries$ | async">
+
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <span class="link" (click)="goToBranchDeliveries()">Branch Deliveries</span>
+    <span class="sep">›</span>
+    <ng-container *ngIf="batchDelivery">
+      <span class="link" (click)="clearBatchFilter()">Farmers</span>
+      <span class="sep">›</span>
+      <span class="current">{{ batchDelivery.id }}</span>
+    </ng-container>
+    <span class="current" *ngIf="!batchDelivery">Farmers</span>
+  </nav>
+
+  <div class="page-header">
+    <div>
+      <h1>Farmers</h1>
+      <p *ngIf="batchDelivery">
+        Farmers who delivered in {{ batchDelivery.id }} — {{ batchDelivery.branchName }}, {{ batchDelivery.commodity }}.
+      </p>
+      <p *ngIf="!batchDelivery">Every farmer who has delivered commodities at this branch.</p>
+    </div>
+    <button type="button" class="clear-filter-btn" *ngIf="batchDelivery" (click)="clearBatchFilter()">
+      View all farmers
+    </button>
+  </div>
+
+  <div class="table-card" *ngIf="paginatedFarmerDeliveries$ | async as paginatedFarmerDeliveries">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Farmer ID</th>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Commodity</th>
+            <th>Volume</th>
+            <th>Estimated Value</th>
+            <th>Season</th>
+            <th>Session</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let farmer of paginatedFarmerDeliveries; trackBy: trackByFarmerDeliveryId">
+            <td class="mono">{{ farmer.farmerId }}</td>
+            <td class="fw-600">{{ farmer.farmerName }}</td>
+            <td>{{ farmer.phone }}</td>
+            <td>{{ farmer.commodity }}</td>
+            <td>{{ farmer.volume | number }} KG</td>
+            <td>UGX {{ formatUGX(farmer.estimatedValue) }}</td>
+            <td>{{ farmer.season }}</td>
+            <td>{{ sessionLabel(farmer.session) }}</td>
+            <td>
+              <span class="status-badge" [ngClass]="statusClass(farmer.status)">
+                {{ farmer.status }}
+              </span>
+            </td>
+          </tr>
+
+          <tr *ngIf="paginatedFarmerDeliveries.length === 0">
+            <td colspan="9" class="empty-state">
+              {{ batchDelivery ? 'No farmers have delivered in this batch yet.' : 'No farmer deliveries recorded yet.' }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pagination-section" *ngIf="totalCount > itemsPerPage">
+      <span class="pagination-info">Showing {{ startIndex }}–{{ endIndex }} of {{ totalCount }}</span>
+      <div class="pagination-controls">
+        <button type="button" class="btn secondary-action-btn" (click)="prevPage()" [disabled]="currentPage === 1">Previous</button>
+        <button
+          *ngFor="let page of pagesArray; trackBy: trackByIndex"
+          type="button"
+          class="btn"
+          [class.primary-action-btn]="page === currentPage"
+          [class.secondary-action-btn]="page !== currentPage"
+          (click)="goToPage(page)">{{ page }}</button>
+        <button type="button" class="btn secondary-action-btn" (click)="nextPage()" [disabled]="endIndex >= totalCount">Next</button>
+      </div>
+    </div>
+  </div>
+
+</div>

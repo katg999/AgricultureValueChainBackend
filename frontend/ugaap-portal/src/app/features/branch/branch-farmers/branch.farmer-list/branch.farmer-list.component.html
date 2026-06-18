@@ -2,10 +2,7 @@
   <div class="top-header">
     <div class="header-content">
       <h1>Farmers</h1>
-      <p class="subtitle">
-        Total registered farmers:
-        <span class="highlight-count">{{ farmers.length }}</span>
-      </p>
+      <p class="subtitle">Branch farmer records</p>
     </div>
 
     <div class="header-actions">
@@ -15,98 +12,48 @@
     </div>
   </div>
 
-  <!-- ✅ summary-cards-grid MOVED HERE (was duplicated and broken above) -->
   <div class="summary-cards-grid">
-    <div class="summary-card">
-      <app-stat-card
-        [data]="{
-          label: 'New Registrations',
-          value: newRegistrations(farmers),
-          icon: 'users',
-          trend: '+8.5%',
-          trendUp: true,
-          route: '/branch/farmers/register'
-        }"
-      >
-      </app-stat-card>
-    </div>
+    <app-stat-card
+      [data]="{
+        label: 'Registered Farmers',
+        value: farmers.length,
+        icon: 'farmer',
+        trend: '+8.5%',
+        trendUp: true,
+      }"
+    >
+    </app-stat-card>
 
-    <div class="summary-card">
-      <app-stat-card
-        [data]="{
-          label: 'Portfolio At Risk',
-          value: 'UGX ' + portfolioAtRisk(farmers),
-          icon: 'alert',
-          trend: '-5.2%',
-          trendUp: false,
-          status: 'warning',
-          route: '/branch/finance/batch-processing'
-        }"
-      >
-      </app-stat-card>
-    </div>
+    <app-stat-card
+      [data]="{
+        label: 'Portfolio At Risk',
+        value: 'UGX ' + portfolioAtRisk(farmers),
+        icon: 'wallet',
+        trend: '-5.2%',
+        trendUp: false,
+        status: 'warning',
+      }"
+    >
+    </app-stat-card>
 
-    <div class="summary-card">
-      <span class="summary-card-title">COLLECTION PROGRESS</span>
-      <div class="summary-card-value-row stack-layout">
-        <span class="summary-card-main-val">{{ collectionProgress }}%</span>
-        <div class="progress-bar-container">
-          <div class="progress-bar-fill" [style.width.%]="collectionProgress"></div>
-        </div>
-      </div>
-    </div>
+    <app-stat-card
+      [data]="{
+        label: 'Collection Progress',
+        value: collectionProgress + '%',
+        icon: 'chart',
+      }"
+    >
+    </app-stat-card>
   </div>
 
-  <div class="filters-section">
-    <div class="search-wrapper">
-      <app-input
-        label="Search"
-        placeholder="Search by name, ID, branch or commodity"
-        type="text"
-        [(ngModel)]="searchQuery"
-        (ngModelChange)="applyFilter()"
-      >
-      </app-input>
-    </div>
-
-    <div class="select-wrapper">
-      <select title="select-branch" [(ngModel)]="selectedBranch" (ngModelChange)="applyFilter()">
-        <option *ngFor="let branch of branches(farmers); trackBy: trackByOption" [value]="branch">
-          Branch: {{ branch }}
-        </option>
-      </select>
-    </div>
-
-    <div class="select-wrapper">
-      <select title="select-status" [(ngModel)]="selectedStatus" (ngModelChange)="applyFilter()">
-        <option *ngFor="let status of statuses; trackBy: trackByOption" [value]="status">
-          Status: {{ status }}
-        </option>
-      </select>
-    </div>
-
-    <div class="select-wrapper">
-      <select
-        title="select-commodity"
-        [(ngModel)]="selectedCommodity"
-        (ngModelChange)="applyFilter()"
-      >
-        <option
-          *ngFor="let commodity of commodities(farmers); trackBy: trackByOption"
-          [value]="commodity"
-        >
-          Commodity: {{ commodity }}
-        </option>
-      </select>
-    </div>
-
-    <div class="select-wrapper">
-      <select title="select-stage" [(ngModel)]="selectedStage" (ngModelChange)="applyFilter()">
-        <option *ngFor="let stage of stages; trackBy: trackByOption" [value]="stage">
-          {{ stage }}
-        </option>
-      </select>
-    </div>
+  <div class="search-bar-row">
+    <app-input
+      label=""
+      placeholder="Search farmers by name, ID, branch, commodity, status or stage…"
+      type="text"
+      [(ngModel)]="searchQuery"
+      (ngModelChange)="applyFilter()"
+    ></app-input>
   </div>
 
   <div class="table-wrapper" *ngIf="filteredFarmers$ | async as filteredFarmers">

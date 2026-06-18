@@ -1,0 +1,92 @@
+<!-- payment-batches.component.html
+     Read-only, cooperative-wide list of PaymentBatch records, grouped by branch.
+     Sections: page header, status tabs, search, branch-grouped table.
+-->
+
+<div class="pb-page">
+
+  <div class="pb-header">
+    <h1 class="pb-title">Payment Batches</h1>
+    <p class="pb-subtitle">Every branch's payment batches, aggregated across the cooperative. Read-only — status changes happen on the branch side.</p>
+  </div>
+
+  <div class="kpi-grid" *ngIf="filteredBatches$ | async as kpiBatches">
+    <app-stat-card [data]="{ label: 'Total Batches', value: kpiBatches.length, icon: 'clipboard' }"></app-stat-card>
+    <app-stat-card [data]="{ label: 'Pending Approval', value: pendingApprovalCount(kpiBatches), icon: 'clock', status: 'warning' }" [delay]="80"></app-stat-card>
+    <app-stat-card [data]="{ label: 'Total Farmers', value: totalFarmers(kpiBatches), icon: 'farmer' }" [delay]="160"></app-stat-card>
+    <app-stat-card [data]="{ label: 'Total Amount', value: formatCurrency(totalAmount(kpiBatches)), icon: 'wallet' }" [delay]="240"></app-stat-card>
+  </div>
+
+  <div class="status-tabs">
+    <button type="button" class="status-tab" [class.active]="selectedStatus === ''" (click)="setStatusFilter('')">All</button>
+    <button type="button" *ngFor="let status of statusOptions" class="status-tab" [class.active]="selectedStatus === status" (click)="setStatusFilter(status)">
+      {{ status }}
+    </button>
+  </div>
+
+  <div class="filter-card">
+    <div class="filter-group">
+      <label>Search</label>
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (input)="applyFilter()"
+        placeholder="Search by batch name, ID, branch, season or commodity..."
+      />
+    </div>
+  </div>
+
+  <div class="table-section" *ngIf="filteredBatches$ | async as filteredBatches">
+    <div class="table-wrapper">
+      <table class="pb-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Batch ID</th>
+            <th>Batch Name</th>
+            <th>Season</th>
+            <th>Commodity</th>
+            <th class="col-numeric">Farmers</th>
+            <th class="col-numeric">Total Amount (UGX)</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let group of groupByBranch(filteredBatches); trackBy: trackByBranchId">
+            <tr class="branch-group-row">
+              <td class="branch-group-cell" colspan="9">
+                <span class="branch-icon">&#9679;</span>
+                <span class="branch-name">{{ group.branchName }}</span>
+                <span class="branch-count">{{ group.batches.length }} batch{{ group.batches.length !== 1 ? 'es' : '' }}</span>
+                <span class="branch-count">&middot; {{ totalFarmers(group.batches) }} farmers</span>
+                <span class="branch-count">&middot; {{ formatCurrency(totalAmount(group.batches)) }}</span>
+              </td>
+            </tr>
+
+            <tr *ngFor="let batch of group.batches; let i = index; trackBy: trackByBatchId" class="batch-row">
+              <td class="col-num mono">{{ i + 1 }}</td>
+              <td class="mono">{{ batch.id }}</td>
+              <td class="cell-name" [title]="batch.batchName">{{ batch.batchName }}</td>
+              <td>{{ batch.season }}</td>
+              <td>{{ batch.commodityFilter }}</td>
+              <td class="col-numeric mono">{{ batch.farmerCount }}</td>
+              <td class="col-numeric mono">{{ formatCurrency(batch.totalAmount) }}</td>
+              <td>
+                <span class="status-badge" [ngClass]="statusClass(batch.status)">{{ batch.status }}</span>
+              </td>
+              <td>
+                <button type="button" class="link-btn" (click)="viewFarmers(batch)">View Farmers</button>
+              </td>
+            </tr>
+          </ng-container>
+
+          <tr *ngIf="filteredBatches.length === 0">
+            <td colspan="9" class="empty-state">No batches match the selected filters.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>

@@ -89,6 +89,8 @@ export const PERMISSION_CATALOG: PermissionService[] = [
       { id: 'configuration.grades.delete', label: 'Delete grades',      description: 'Remove produce grades' },
       { id: 'configuration.prices.view',   label: 'View prices',        description: 'See current price settings' },
       { id: 'configuration.prices.edit',   label: 'Edit prices',        description: 'Update produce prices' },
+      { id: 'configuration.sessions.view', label: 'View session hours', description: 'See configured delivery session windows' },
+      { id: 'configuration.sessions.edit', label: 'Edit session hours', description: 'Change delivery session start/end times' },
     ],
   },
 

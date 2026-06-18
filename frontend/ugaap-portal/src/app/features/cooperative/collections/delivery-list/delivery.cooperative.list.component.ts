@@ -3,8 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BehaviorSubject, combineLatest, map, Observable, shareReplay, Subject, takeUntil, tap } from 'rxjs';
-import { BranchDelivery, BranchDeliveryFormData, DeliveryStatus, Season } from '../../../branch/collections/branch.delivery.model';
+import { BranchDelivery, BranchDeliveryFormData, DeliverySession, DeliveryStatus, Season } from '../../../branch/collections/branch.delivery.model';
 import { BranchDeliveryService } from '../../../branch/collections/branch.delivery.service';
+import { DeliverySessionConfigService } from '../../../../core/services/delivery-session-config.service';
 
 @Component({
   selector: 'app-cooperative-deliveries',
@@ -52,6 +53,7 @@ export class CooperativeDeliveriesComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private router: Router,
     private route: ActivatedRoute,
+    private sessionConfig: DeliverySessionConfigService,
   ) {}
 
   ngOnInit(): void {
@@ -242,6 +244,10 @@ export class CooperativeDeliveriesComponent implements OnInit, OnDestroy {
     return season === 'Wet Season' ? 'season-wet' : 'season-dry';
   }
 
+  sessionLabel(id: DeliverySession | undefined): string {
+    return this.sessionConfig.getLabel(id);
+  }
+
   private buildEditForm(delivery: BranchDelivery): void {
     this.form = this.fb.group({
       branchId: [delivery.branchId],
@@ -267,7 +273,9 @@ export class CooperativeDeliveriesComponent implements OnInit, OnDestroy {
         d.branchName.toLowerCase().includes(term) ||
         d.id.toLowerCase().includes(term) ||
         d.commodity.toLowerCase().includes(term) ||
-        d.status.toLowerCase().includes(term);
+        d.status.toLowerCase().includes(term) ||
+        d.season.toLowerCase().includes(term) ||
+        (d.session ? this.sessionLabel(d.session).toLowerCase().includes(term) : false);
 
       const matchSeason = !filter.selectedSeason || d.season === filter.selectedSeason;
 

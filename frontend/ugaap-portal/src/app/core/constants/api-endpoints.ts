@@ -57,6 +57,10 @@ export const API_ENDPOINTS = {
     COLLECTIONS: `${BASE}/cooperative/collections`,
     COLLECTION_BY_ID: (id: string) => `${BASE}/cooperative/collections/${id}`,
 
+    // Payment batches — read-only, aggregated across every branch (see PaymentBatchService)
+    PAYMENT_BATCHES: `${BASE}/cooperative/payment-batches`,
+    PAYMENT_FARMERS: `${BASE}/cooperative/payment-farmers`,
+
     // Inventory & Users
     INVENTORY: `${BASE}/cooperative/inventory`,
     USERS: `${BASE}/cooperative/users`,
@@ -73,6 +77,8 @@ export const API_ENDPOINTS = {
     COLLECTION_HUB_BY_ID: (id: string) => `${BASE}/cooperative/collection-hubs/${id}`,
     COLLECTION_HUB_ACTIVATE: (id: string) => `${BASE}/cooperative/collection-hubs/${id}/activate`,
     COLLECTION_HUB_DEACTIVATE: (id: string) => `${BASE}/cooperative/collection-hubs/${id}/deactivate`,
+    // Delivery session-hours config (morning/midday/afternoon windows) — cooperative-wide
+    SESSION_CONFIG: `${BASE}/cooperative/session-config`,
   },
 
   // ── Branches ────────────────────────────────────────────────────────────────
@@ -102,6 +108,14 @@ export const API_ENDPOINTS = {
 
     // Inventory at this branch
     INVENTORY: `${BASE}/branch/inventory`,
+
+    // Payment batches
+    BATCHES: `${BASE}/branch/batches`,
+    BATCH_BY_ID: (id: string) => `${BASE}/branch/batches/${id}`,
+
+    // Farmers eligible for payment batches at this branch (separate pool from FARMER_DELIVERIES —
+    // see PaymentBatchService for why these two farmer domains aren't merged yet)
+    PAYMENT_FARMERS: `${BASE}/branch/payment-farmers`,
   },
 
   USERS: `${BASE}/api/v1/access/users`,

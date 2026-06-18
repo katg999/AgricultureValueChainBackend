@@ -46,13 +46,8 @@ export interface FarmerPaymentMethod {
 
 /** What the farmer-register form collects */
 export interface ProductionDetails {
-  coffee:   boolean;
-  maize:    boolean;
-  cocoa:    boolean;
-  vanilla:  boolean;
-  cattle:   number;
-  goats:    number;
-  poultry:  number;
+  commodity: string;
+  livestock: string;
 }
 
 export interface FarmerRegistrationForm {
