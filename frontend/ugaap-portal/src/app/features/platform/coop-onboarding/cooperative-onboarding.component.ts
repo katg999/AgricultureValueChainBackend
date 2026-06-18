@@ -51,10 +51,11 @@ const STEP_FIELDS: string[][] = [
 export class CooperativeOnboardingComponent implements OnInit {
   // ── Stepper ───────────────────────────────────────────────
   readonly steps: Step[] = [
-    { label: 'Cooperative',    number: '01' },
-    { label: 'Bank details',   number: '02' },
-    { label: 'Default branch', number: '03' },
-    { label: 'Review',         number: '04' },
+    { label: 'Identity',  number: '01' },
+    { label: 'Address',   number: '02' },
+    { label: 'Contact',   number: '03' },
+    { label: 'Branch',    number: '04' },
+    { label: 'Review',    number: '05' },
   ];
   currentStep = 0;
 
@@ -112,42 +113,33 @@ export class CooperativeOnboardingComponent implements OnInit {
       contactPersonPhone: ['', Validators.required],
       contactPersonEmail: ['', [Validators.required, Validators.email]],
 
-      // Bank details — where farmer payments are disbursed from.
-      // Bank account is required; mobile money is an optional alternative rail.
-      bankName: ['', Validators.required],
-      bankBranch: [''],
-      accountName: ['', Validators.required],
-      accountNumber: ['', [Validators.required, Validators.pattern(/^\d{6,20}$/)]],
+      // Default branch — created automatically on activation
+      defaultBranchName:     ['', Validators.required],
+      defaultBranchLocation: [''],
+
+      // Bank details — where farmer payments are disbursed from
+      bankName:            ['', Validators.required],
+      bankBranch:          [''],
+      accountName:         ['', Validators.required],
+      accountNumber:       ['', [Validators.required, Validators.pattern(/^\d{6,20}$/)]],
       mobileMoneyProvider: [''],
-      mobileMoneyNumber: [''],
+      mobileMoneyNumber:   [''],
     });
   }
 
   // ── Step navigation ───────────────────────────────────────
 
-  /** Moving forward validates the current step's controls first */
+  /** Validate current step's fields then advance one step */
   nextStep(): void {
-    if (!this.validateStep(this.currentStep)) return;
-    this.currentStep = Math.min(this.currentStep + 1, this.steps.length - 1);
-    const fields = this.stepFields[this.currentStep];
-
-    if (fields.length) {
-      let stepValid = true;
-
-      for (const field of fields) {
-        const control = this.profileForm.get(field);
-        if (control && control.invalid) {
-          control.markAsTouched();
-          stepValid = false;
-        }
-      }
-
-      if (!stepValid) {
-        return;
-      }
+    const fields = this.stepFields[this.currentStep] ?? [];
+    let valid = true;
+    for (const field of fields) {
+      const ctrl = this.profileForm.get(field);
+      ctrl?.markAsTouched();
+      if (ctrl?.invalid) valid = false;
     }
-
-    this.currentStep++;
+    if (!valid) return;
+    this.currentStep = Math.min(this.currentStep + 1, this.steps.length - 1);
   }
 
   previousStep(): void {
