@@ -5,6 +5,36 @@ import { catchError, startWith, tap, timeout } from 'rxjs/operators';
 import { API_ENDPOINTS } from '../../../core/constants/api-endpoints';
 import { FarmerDelivery, FarmerDeliveryFormData } from './farmer.delivery.model';
 import { BranchDeliveryService } from './branch.delivery.service';
+// Replaced CommodityPricingService with the new unified pricing service that
+// supports both flat and grade-based pricing modes.
+import { CooperativePricingService } from '../../../core/services/cooperative-pricing.service';
+
+// Input loan recovery amounts for specific farmers (populated via Issue Input).
+// Keyed by delivery ID — only farmers who received inputs have an entry.
+const INPUT_LOAN_DEDUCTIONS: Record<string, number> = {
+  'FD-001':  75_000,   // Akello Grace — maize seed loan
+  'FD-023':  60_000,   // Nsubuga Edward — maize fertilizer
+  'FD-004': 180_000,   // Namukasa Fatuma — coffee seedlings
+  'FD-026': 120_000,   // Mukisa Ronald — coffee fertilizer
+  'FD-007':  50_000,   // Asiimwe Doreen — beans seed loan
+  'FD-013': 200_000,   // Drani Moses — sesame seeds
+  'FD-032': 100_000,   // Acaye Simon — sesame fertilizer
+  'FD-015':  90_000,   // Oryem Patrick — sunflower seeds
+  'FD-034':  80_000,   // Nambozo Sarah — sunflower inputs
+  'FD-017': 500_000,   // Ssemakula John — vanilla cuttings
+  'FD-043': 250_000,   // Namugga Sylvia — vanilla inputs
+  'FD-021': 150_000,   // Wafula Emmanuel — coffee fertilizer
+  'FD-050': 210_000,   // Masaba Richard — coffee seedlings
+  'FD-051': 150_000,   // Nabirye Christine — coffee inputs
+  'FD-053':  70_000,   // Gimbo Patrick — maize seed loan
+  'FD-055':  85_000,   // Khaukha Moses — maize fertilizer
+  'FD-057':  55_000,   // Mafabi Joel — beans seed loan
+  'FD-060': 110_000,   // Nambafu Esther — sesame seeds
+  'FD-073':  55_000,   // Sikuku Peter — millet seed loan
+  'FD-076': 140_000,   // Namono Alice — coffee seedlings
+  'FD-078': 100_000,   // Khamoya Susan — coffee inputs
+  'FD-080':  85_000,   // Nambuya Christine — maize fertilizer
+};
 
 @Injectable({ providedIn: 'root' })
 export class FarmerDeliveryService {
@@ -147,24 +177,135 @@ export class FarmerDeliveryService {
     { id: 'FD-075', branchDeliveryId: 'BD-018', branchId: 'BR-MBL', farmerId: 'UG-F-00532', farmerName: 'Wandera Eric',      phone: '0701500532', commodity: 'Millet',   volume: 210, estimatedValue:   462_000, notes: '',             status: 'Approved', season: 'Dry Season', session: 'afternoon', createdAt: new Date('2025-09-19'), updatedAt: new Date('2025-09-19') },
 
     // BD-019 (Mbale West, Coffee, Wet Season)
-    { id: 'FD-076', branchDeliveryId: 'BD-019', branchId: 'BR-MBL', farmerId: 'UG-F-00533', farmerName: 'Namono Alice',      phone: '0782500533', commodity: 'Coffee',   volume: 220, estimatedValue: 1_320_000, notes: '',             status: 'Approved', season: 'Wet Season', session: 'morning', createdAt: new Date('2025-10-03'), updatedAt: new Date('2025-10-03') },
-    { id: 'FD-077', branchDeliveryId: 'BD-019', branchId: 'BR-MBL', farmerId: 'UG-F-00534', farmerName: 'Mugeni Robert',     phone: '0772500534', commodity: 'Coffee',   volume: 190, estimatedValue: 1_140_000, notes: '',             status: 'Approved', season: 'Wet Season', session: 'midday', createdAt: new Date('2025-10-03'), updatedAt: new Date('2025-10-03') },
-    { id: 'FD-078', branchDeliveryId: 'BD-019', branchId: 'BR-MBL', farmerId: 'UG-F-00535', farmerName: 'Khamoya Susan',     phone: '0754500535', commodity: 'Coffee',   volume: 165, estimatedValue:   990_000, notes: 'Arabica AA',    status: 'Approved', season: 'Wet Season', session: 'afternoon', createdAt: new Date('2025-10-03'), updatedAt: new Date('2025-10-03') },
-    { id: 'FD-079', branchDeliveryId: 'BD-019', branchId: 'BR-MBL', farmerId: 'UG-F-00536', farmerName: 'Wanyenze Daniel',   phone: '0701500536', commodity: 'Coffee',   volume: 200, estimatedValue: 1_200_000, notes: '',             status: 'Approved', season: 'Wet Season', session: 'morning', createdAt: new Date('2025-10-03'), updatedAt: new Date('2025-10-03') },
+    // These newer records carry a grade — demonstrates what happens when the cooperative
+    // enables grade mode. unitPrice is the Coffee × Grade A/B/C price at BR-MBL.
+    { id: 'FD-076', branchDeliveryId: 'BD-019', branchId: 'BR-MBL', farmerId: 'UG-F-00533', farmerName: 'Namono Alice',      phone: '0782500533', commodity: 'Coffee',   volume: 220, unitPrice: 7_800, estimatedValue: 1_716_000, grade: 'A', gradeName: 'Premium',   notes: '',          status: 'Approved', season: 'Wet Season', session: 'morning', createdAt: new Date('2025-10-03'), updatedAt: new Date('2025-10-03') },
+    { id: 'FD-077', branchDeliveryId: 'BD-019', branchId: 'BR-MBL', farmerId: 'UG-F-00534', farmerName: 'Mugeni Robert',     phone: '0772500534', commodity: 'Coffee',   volume: 190, unitPrice: 6_000, estimatedValue: 1_140_000, grade: 'B', gradeName: 'Standard',  notes: '',          status: 'Approved', season: 'Wet Season', session: 'midday', createdAt: new Date('2025-10-03'), updatedAt: new Date('2025-10-03') },
+    { id: 'FD-078', branchDeliveryId: 'BD-019', branchId: 'BR-MBL', farmerId: 'UG-F-00535', farmerName: 'Khamoya Susan',     phone: '0754500535', commodity: 'Coffee',   volume: 165, unitPrice: 7_800, estimatedValue: 1_287_000, grade: 'A', gradeName: 'Premium',   notes: 'Arabica AA', status: 'Approved', season: 'Wet Season', session: 'afternoon', createdAt: new Date('2025-10-03'), updatedAt: new Date('2025-10-03') },
+    { id: 'FD-079', branchDeliveryId: 'BD-019', branchId: 'BR-MBL', farmerId: 'UG-F-00536', farmerName: 'Wanyenze Daniel',   phone: '0701500536', commodity: 'Coffee',   volume: 200, unitPrice: 4_200, estimatedValue:   840_000, grade: 'C', gradeName: 'Low Grade', notes: '',          status: 'Approved', season: 'Wet Season', session: 'morning', createdAt: new Date('2025-10-03'), updatedAt: new Date('2025-10-03') },
 
     // BD-020 (Mbale West, Maize, Dry Season)
-    { id: 'FD-080', branchDeliveryId: 'BD-020', branchId: 'BR-MBL', farmerId: 'UG-F-00537', farmerName: 'Nambuya Christine', phone: '0782500537', commodity: 'Maize',    volume: 280, estimatedValue:   700_000, notes: '',             status: 'Pending',  season: 'Dry Season', session: 'midday', createdAt: new Date('2025-10-17'), updatedAt: new Date('2025-10-17') },
-    { id: 'FD-081', branchDeliveryId: 'BD-020', branchId: 'BR-MBL', farmerId: 'UG-F-00538', farmerName: 'Wabwire Henry',     phone: '0772500538', commodity: 'Maize',    volume: 245, estimatedValue:   612_500, notes: '',             status: 'Pending',  season: 'Dry Season', session: 'afternoon', createdAt: new Date('2025-10-17'), updatedAt: new Date('2025-10-17') },
-    { id: 'FD-082', branchDeliveryId: 'BD-020', branchId: 'BR-MBL', farmerId: 'UG-F-00539', farmerName: 'Nakirya Patricia',  phone: '0754500539', commodity: 'Maize',    volume: 300, estimatedValue:   750_000, notes: '',             status: 'Pending',  season: 'Dry Season', session: 'morning', createdAt: new Date('2025-10-17'), updatedAt: new Date('2025-10-17') },
+    { id: 'FD-080', branchDeliveryId: 'BD-020', branchId: 'BR-MBL', farmerId: 'UG-F-00537', farmerName: 'Nambuya Christine', phone: '0782500537', commodity: 'Maize',    volume: 280, unitPrice: 2_500, estimatedValue:   700_000, grade: 'B', gradeName: 'Standard',  notes: '',          status: 'Pending',  season: 'Dry Season', session: 'midday', createdAt: new Date('2025-10-17'), updatedAt: new Date('2025-10-17') },
+    { id: 'FD-081', branchDeliveryId: 'BD-020', branchId: 'BR-MBL', farmerId: 'UG-F-00538', farmerName: 'Wabwire Henry',     phone: '0772500538', commodity: 'Maize',    volume: 245, unitPrice: 3_250, estimatedValue:   796_250, grade: 'A', gradeName: 'Premium',   notes: '',          status: 'Pending',  season: 'Dry Season', session: 'afternoon', createdAt: new Date('2025-10-17'), updatedAt: new Date('2025-10-17') },
+    { id: 'FD-082', branchDeliveryId: 'BD-020', branchId: 'BR-MBL', farmerId: 'UG-F-00539', farmerName: 'Nakirya Patricia',  phone: '0754500539', commodity: 'Maize',    volume: 300, unitPrice: 1_750, estimatedValue:   525_000, grade: 'C', gradeName: 'Low Grade', notes: '',          status: 'Pending',  season: 'Dry Season', session: 'morning', createdAt: new Date('2025-10-17'), updatedAt: new Date('2025-10-17') },
+
+    // ── Farmer records for the new cross-branch batches (BD-021..BD-038) ────────
+    // These allow "View Farmers" to show real data when the cooperative admin
+    // drills into any of the newly added batches.  3 farmers per batch.
+
+    // BD-021 (Kampala Central, Beans, Dry Season, Approved)
+    { id: 'FD-083', branchDeliveryId: 'BD-021', branchId: 'BR-KLA',  farmerId: 'UG-F-00107', farmerName: 'Nakamanya Rose',     phone: '0772500107', commodity: 'Beans',    volume: 380, estimatedValue:   950_000, notes: 'Well sorted',   status: 'Approved', season: 'Dry Season',  session: 'afternoon', createdAt: new Date('2025-06-04'), updatedAt: new Date('2025-06-04') },
+    { id: 'FD-084', branchDeliveryId: 'BD-021', branchId: 'BR-KLA',  farmerId: 'UG-F-00108', farmerName: 'Kigozi Samuel',      phone: '0754500108', commodity: 'Beans',    volume: 290, estimatedValue:   725_000, notes: '',              status: 'Approved', season: 'Dry Season',  session: 'afternoon', createdAt: new Date('2025-06-04'), updatedAt: new Date('2025-06-04') },
+    { id: 'FD-085', branchDeliveryId: 'BD-021', branchId: 'BR-KLA',  farmerId: 'UG-F-00109', farmerName: 'Nankya Aisha',       phone: '0701500109', commodity: 'Beans',    volume: 310, estimatedValue:   775_000, notes: 'Grade A',       status: 'Approved', season: 'Dry Season',  session: 'afternoon', createdAt: new Date('2025-06-04'), updatedAt: new Date('2025-06-04') },
+
+    // BD-022 (Kampala Central, Coffee, Dry Season, Pending)
+    { id: 'FD-086', branchDeliveryId: 'BD-022', branchId: 'BR-KLA',  farmerId: 'UG-F-00110', farmerName: 'Ssebuggwawo Dan',    phone: '0782500110', commodity: 'Coffee',   volume: 160, estimatedValue:   960_000, notes: 'Dried beans',   status: 'Pending',  season: 'Dry Season',  session: 'morning',   createdAt: new Date('2025-07-14'), updatedAt: new Date('2025-07-14') },
+    { id: 'FD-087', branchDeliveryId: 'BD-022', branchId: 'BR-KLA',  farmerId: 'UG-F-00111', farmerName: 'Nakitto Grace',      phone: '0772500111', commodity: 'Coffee',   volume: 190, estimatedValue: 1_140_000, notes: '',              status: 'Pending',  season: 'Dry Season',  session: 'morning',   createdAt: new Date('2025-07-14'), updatedAt: new Date('2025-07-14') },
+    { id: 'FD-088', branchDeliveryId: 'BD-022', branchId: 'BR-KLA',  farmerId: 'UG-F-00112', farmerName: 'Kizito Peter',       phone: '0754500112', commodity: 'Coffee',   volume: 140, estimatedValue:   840_000, notes: 'Arabica AA',    status: 'Pending',  season: 'Dry Season',  session: 'morning',   createdAt: new Date('2025-07-14'), updatedAt: new Date('2025-07-14') },
+
+    // BD-023 (Jinja East, Maize, Dry Season, Approved)
+    { id: 'FD-089', branchDeliveryId: 'BD-023', branchId: 'BR-JIN',  farmerId: 'UG-F-00206', farmerName: 'Mugisha Tom',        phone: '0701500206', commodity: 'Maize',    volume: 320, estimatedValue:   800_000, notes: '',              status: 'Approved', season: 'Dry Season',  session: 'midday',    createdAt: new Date('2025-06-11'), updatedAt: new Date('2025-06-11') },
+    { id: 'FD-090', branchDeliveryId: 'BD-023', branchId: 'BR-JIN',  farmerId: 'UG-F-00207', farmerName: 'Nakirija Sarah',     phone: '0782500207', commodity: 'Maize',    volume: 280, estimatedValue:   700_000, notes: 'Well dried',    status: 'Approved', season: 'Dry Season',  session: 'midday',    createdAt: new Date('2025-06-11'), updatedAt: new Date('2025-06-11') },
+    { id: 'FD-091', branchDeliveryId: 'BD-023', branchId: 'BR-JIN',  farmerId: 'UG-F-00208', farmerName: 'Kato Henry',         phone: '0772500208', commodity: 'Maize',    volume: 350, estimatedValue:   875_000, notes: '',              status: 'Approved', season: 'Dry Season',  session: 'midday',    createdAt: new Date('2025-06-11'), updatedAt: new Date('2025-06-11') },
+
+    // BD-024 (Jinja East, Tea, Wet Season, Pending)
+    { id: 'FD-092', branchDeliveryId: 'BD-024', branchId: 'BR-JIN',  farmerId: 'UG-F-00209', farmerName: 'Nalubega Christine', phone: '0754500209', commodity: 'Tea',      volume: 200, estimatedValue:   500_000, notes: 'Fresh leaf',    status: 'Pending',  season: 'Wet Season',  session: 'afternoon', createdAt: new Date('2025-08-01'), updatedAt: new Date('2025-08-01') },
+    { id: 'FD-093', branchDeliveryId: 'BD-024', branchId: 'BR-JIN',  farmerId: 'UG-F-00210', farmerName: 'Ssenyonga Mark',     phone: '0701500210', commodity: 'Tea',      volume: 250, estimatedValue:   625_000, notes: '',              status: 'Pending',  season: 'Wet Season',  session: 'afternoon', createdAt: new Date('2025-08-01'), updatedAt: new Date('2025-08-01') },
+    { id: 'FD-094', branchDeliveryId: 'BD-024', branchId: 'BR-JIN',  farmerId: 'UG-F-00211', farmerName: 'Namirembe Ruth',     phone: '0782500211', commodity: 'Tea',      volume: 180, estimatedValue:   450_000, notes: 'Slightly wilted', status: 'Pending', season: 'Wet Season', session: 'afternoon', createdAt: new Date('2025-08-01'), updatedAt: new Date('2025-08-01') },
+
+    // BD-025 (Mbarara South, Maize, Dry Season, Approved)
+    { id: 'FD-095', branchDeliveryId: 'BD-025', branchId: 'BR-MBA',  farmerId: 'UG-F-00306', farmerName: 'Tumwebaze Annet',    phone: '0772500306', commodity: 'Maize',    volume: 390, estimatedValue:   975_000, notes: '',              status: 'Approved', season: 'Dry Season',  session: 'morning',   createdAt: new Date('2025-06-18'), updatedAt: new Date('2025-06-18') },
+    { id: 'FD-096', branchDeliveryId: 'BD-025', branchId: 'BR-MBA',  farmerId: 'UG-F-00307', farmerName: 'Kanyeihamba David',  phone: '0754500307', commodity: 'Maize',    volume: 420, estimatedValue: 1_050_000, notes: 'Grade A',       status: 'Approved', season: 'Dry Season',  session: 'morning',   createdAt: new Date('2025-06-18'), updatedAt: new Date('2025-06-18') },
+    { id: 'FD-097', branchDeliveryId: 'BD-025', branchId: 'BR-MBA',  farmerId: 'UG-F-00308', farmerName: 'Birungi Margaret',   phone: '0701500308', commodity: 'Maize',    volume: 360, estimatedValue:   900_000, notes: '',              status: 'Approved', season: 'Dry Season',  session: 'morning',   createdAt: new Date('2025-06-18'), updatedAt: new Date('2025-06-18') },
+
+    // BD-026 (Mbarara South, Coffee, Wet Season, Rejected)
+    { id: 'FD-098', branchDeliveryId: 'BD-026', branchId: 'BR-MBA',  farmerId: 'UG-F-00309', farmerName: 'Rwabutungi Sam',     phone: '0782500309', commodity: 'Coffee',   volume: 140, estimatedValue:   840_000, notes: 'Too wet',       status: 'Rejected', season: 'Wet Season',  session: 'afternoon', createdAt: new Date('2025-08-12'), updatedAt: new Date('2025-08-12') },
+    { id: 'FD-099', branchDeliveryId: 'BD-026', branchId: 'BR-MBA',  farmerId: 'UG-F-00310', farmerName: 'Katungye Alice',     phone: '0772500310', commodity: 'Coffee',   volume: 110, estimatedValue:   660_000, notes: 'Re-dry needed', status: 'Rejected', season: 'Wet Season',  session: 'afternoon', createdAt: new Date('2025-08-12'), updatedAt: new Date('2025-08-12') },
+    { id: 'FD-100', branchDeliveryId: 'BD-026', branchId: 'BR-MBA',  farmerId: 'UG-F-00311', farmerName: 'Turyamureeba James', phone: '0754500311', commodity: 'Coffee',   volume: 120, estimatedValue:   720_000, notes: '',              status: 'Rejected', season: 'Wet Season',  session: 'afternoon', createdAt: new Date('2025-08-12'), updatedAt: new Date('2025-08-12') },
+
+    // BD-027 (Gulu North, Maize, Wet Season, Approved)
+    { id: 'FD-101', branchDeliveryId: 'BD-027', branchId: 'BR-GUL',  farmerId: 'UG-F-00405', farmerName: 'Olara Simon',        phone: '0701500405', commodity: 'Maize',    volume: 310, estimatedValue:   775_000, notes: '',              status: 'Approved', season: 'Wet Season',  session: 'morning',   createdAt: new Date('2025-06-25'), updatedAt: new Date('2025-06-25') },
+    { id: 'FD-102', branchDeliveryId: 'BD-027', branchId: 'BR-GUL',  farmerId: 'UG-F-00406', farmerName: 'Arach Betty',        phone: '0782500406', commodity: 'Maize',    volume: 290, estimatedValue:   725_000, notes: '',              status: 'Approved', season: 'Wet Season',  session: 'morning',   createdAt: new Date('2025-06-25'), updatedAt: new Date('2025-06-25') },
+    { id: 'FD-103', branchDeliveryId: 'BD-027', branchId: 'BR-GUL',  farmerId: 'UG-F-00407', farmerName: 'Oryem Joseph',       phone: '0772500407', commodity: 'Maize',    volume: 340, estimatedValue:   850_000, notes: 'Well dried',    status: 'Approved', season: 'Wet Season',  session: 'morning',   createdAt: new Date('2025-06-25'), updatedAt: new Date('2025-06-25') },
+
+    // BD-028 (Gulu North, Sunflower, Dry Season, Pending)
+    { id: 'FD-104', branchDeliveryId: 'BD-028', branchId: 'BR-GUL',  farmerId: 'UG-F-00408', farmerName: 'Aber Christine',     phone: '0754500408', commodity: 'Sunflower', volume: 130, estimatedValue:   260_000, notes: '',             status: 'Pending',  season: 'Dry Season',  session: 'midday',    createdAt: new Date('2025-09-08'), updatedAt: new Date('2025-09-08') },
+    { id: 'FD-105', branchDeliveryId: 'BD-028', branchId: 'BR-GUL',  farmerId: 'UG-F-00409', farmerName: 'Okello David',       phone: '0701500409', commodity: 'Sunflower', volume: 150, estimatedValue:   300_000, notes: 'Slight debris', status: 'Pending',  season: 'Dry Season',  session: 'midday',    createdAt: new Date('2025-09-08'), updatedAt: new Date('2025-09-08') },
+    { id: 'FD-106', branchDeliveryId: 'BD-028', branchId: 'BR-GUL',  farmerId: 'UG-F-00410', farmerName: 'Lalam Grace',        phone: '0782500410', commodity: 'Sunflower', volume: 120, estimatedValue:   240_000, notes: '',             status: 'Pending',  season: 'Dry Season',  session: 'midday',    createdAt: new Date('2025-09-08'), updatedAt: new Date('2025-09-08') },
+
+    // BD-029 (Fort Portal West, Maize, Dry Season, Approved)
+    { id: 'FD-107', branchDeliveryId: 'BD-029', branchId: 'BR-FTP',  farmerId: 'UG-F-00606', farmerName: 'Kabasomi Prossy',    phone: '0772500606', commodity: 'Maize',    volume: 400, estimatedValue: 1_000_000, notes: '',              status: 'Approved', season: 'Dry Season',  session: 'afternoon', createdAt: new Date('2025-07-02'), updatedAt: new Date('2025-07-02') },
+    { id: 'FD-108', branchDeliveryId: 'BD-029', branchId: 'BR-FTP',  farmerId: 'UG-F-00607', farmerName: 'Bwambale John',      phone: '0754500607', commodity: 'Maize',    volume: 350, estimatedValue:   875_000, notes: 'Grade A',       status: 'Approved', season: 'Dry Season',  session: 'afternoon', createdAt: new Date('2025-07-02'), updatedAt: new Date('2025-07-02') },
+    { id: 'FD-109', branchDeliveryId: 'BD-029', branchId: 'BR-FTP',  farmerId: 'UG-F-00608', farmerName: 'Muhindo Agnes',      phone: '0701500608', commodity: 'Maize',    volume: 380, estimatedValue:   950_000, notes: '',              status: 'Approved', season: 'Dry Season',  session: 'afternoon', createdAt: new Date('2025-07-02'), updatedAt: new Date('2025-07-02') },
+
+    // BD-030 (Fort Portal West, Coffee, Wet Season, Pending)
+    { id: 'FD-110', branchDeliveryId: 'BD-030', branchId: 'BR-FTP',  farmerId: 'UG-F-00609', farmerName: 'Nyakato Margret',    phone: '0782500609', commodity: 'Coffee',   volume: 190, estimatedValue: 1_140_000, notes: '',              status: 'Pending',  season: 'Wet Season',  session: 'morning',   createdAt: new Date('2025-09-15'), updatedAt: new Date('2025-09-15') },
+    { id: 'FD-111', branchDeliveryId: 'BD-030', branchId: 'BR-FTP',  farmerId: 'UG-F-00610', farmerName: 'Tibihika Patrick',   phone: '0772500610', commodity: 'Coffee',   volume: 210, estimatedValue: 1_260_000, notes: 'Arabica AA',    status: 'Pending',  season: 'Wet Season',  session: 'morning',   createdAt: new Date('2025-09-15'), updatedAt: new Date('2025-09-15') },
+    { id: 'FD-112', branchDeliveryId: 'BD-030', branchId: 'BR-FTP',  farmerId: 'UG-F-00611', farmerName: 'Kabugho Lydia',      phone: '0754500611', commodity: 'Coffee',   volume: 170, estimatedValue: 1_020_000, notes: '',              status: 'Pending',  season: 'Wet Season',  session: 'morning',   createdAt: new Date('2025-09-15'), updatedAt: new Date('2025-09-15') },
+
+    // BD-031 (Adjumani East, Sesame, Dry Season, Approved)
+    { id: 'FD-113', branchDeliveryId: 'BD-031', branchId: 'BR-ADJ',  farmerId: 'UG-F-00705', farmerName: 'Otema Richard',      phone: '0701500705', commodity: 'Sesame',   volume: 180, estimatedValue: 1_080_000, notes: 'Clean grain',   status: 'Approved', season: 'Dry Season',  session: 'midday',    createdAt: new Date('2025-07-09'), updatedAt: new Date('2025-07-09') },
+    { id: 'FD-114', branchDeliveryId: 'BD-031', branchId: 'BR-ADJ',  farmerId: 'UG-F-00706', farmerName: 'Akello Rebecca',     phone: '0782500706', commodity: 'Sesame',   volume: 160, estimatedValue:   960_000, notes: '',              status: 'Approved', season: 'Dry Season',  session: 'midday',    createdAt: new Date('2025-07-09'), updatedAt: new Date('2025-07-09') },
+    { id: 'FD-115', branchDeliveryId: 'BD-031', branchId: 'BR-ADJ',  farmerId: 'UG-F-00707', farmerName: 'Ochen Samuel',       phone: '0772500707', commodity: 'Sesame',   volume: 200, estimatedValue: 1_200_000, notes: '',              status: 'Approved', season: 'Dry Season',  session: 'midday',    createdAt: new Date('2025-07-09'), updatedAt: new Date('2025-07-09') },
+
+    // BD-032 (Adjumani East, Beans, Wet Season, Pending)
+    { id: 'FD-116', branchDeliveryId: 'BD-032', branchId: 'BR-ADJ',  farmerId: 'UG-F-00708', farmerName: 'Adong Harriet',      phone: '0754500708', commodity: 'Beans',    volume: 210, estimatedValue:   525_000, notes: '',              status: 'Pending',  season: 'Wet Season',  session: 'afternoon', createdAt: new Date('2025-10-02'), updatedAt: new Date('2025-10-02') },
+    { id: 'FD-117', branchDeliveryId: 'BD-032', branchId: 'BR-ADJ',  farmerId: 'UG-F-00709', farmerName: 'Omara Godfrey',      phone: '0701500709', commodity: 'Beans',    volume: 190, estimatedValue:   475_000, notes: 'Mixed grade',   status: 'Pending',  season: 'Wet Season',  session: 'afternoon', createdAt: new Date('2025-10-02'), updatedAt: new Date('2025-10-02') },
+    { id: 'FD-118', branchDeliveryId: 'BD-032', branchId: 'BR-ADJ',  farmerId: 'UG-F-00710', farmerName: 'Atto Susan',         phone: '0782500710', commodity: 'Beans',    volume: 175, estimatedValue:   437_500, notes: '',              status: 'Pending',  season: 'Wet Season',  session: 'afternoon', createdAt: new Date('2025-10-02'), updatedAt: new Date('2025-10-02') },
+
+    // BD-033 (Kiboga Central, Maize, Wet Season, Approved)
+    { id: 'FD-119', branchDeliveryId: 'BD-033', branchId: 'BR-KIB',  farmerId: 'UG-F-00805', farmerName: 'Kizito Florence',    phone: '0772500805', commodity: 'Maize',    volume: 450, estimatedValue: 1_125_000, notes: '',              status: 'Approved', season: 'Wet Season',  session: 'morning',   createdAt: new Date('2025-07-16'), updatedAt: new Date('2025-07-16') },
+    { id: 'FD-120', branchDeliveryId: 'BD-033', branchId: 'BR-KIB',  farmerId: 'UG-F-00806', farmerName: 'Ssegawa Dan',        phone: '0754500806', commodity: 'Maize',    volume: 410, estimatedValue: 1_025_000, notes: 'Grade A',       status: 'Approved', season: 'Wet Season',  session: 'morning',   createdAt: new Date('2025-07-16'), updatedAt: new Date('2025-07-16') },
+    { id: 'FD-121', branchDeliveryId: 'BD-033', branchId: 'BR-KIB',  farmerId: 'UG-F-00807', farmerName: 'Nalule Joan',        phone: '0701500807', commodity: 'Maize',    volume: 430, estimatedValue: 1_075_000, notes: '',              status: 'Approved', season: 'Wet Season',  session: 'morning',   createdAt: new Date('2025-07-16'), updatedAt: new Date('2025-07-16') },
+
+    // BD-034 (Kiboga Central, Beans, Dry Season, Pending)
+    { id: 'FD-122', branchDeliveryId: 'BD-034', branchId: 'BR-KIB',  farmerId: 'UG-F-00808', farmerName: 'Bukenya Charles',    phone: '0782500808', commodity: 'Beans',    volume: 260, estimatedValue:   650_000, notes: '',              status: 'Pending',  season: 'Dry Season',  session: 'midday',    createdAt: new Date('2025-09-22'), updatedAt: new Date('2025-09-22') },
+    { id: 'FD-123', branchDeliveryId: 'BD-034', branchId: 'BR-KIB',  farmerId: 'UG-F-00809', farmerName: 'Namaswa Rose',       phone: '0772500809', commodity: 'Beans',    volume: 240, estimatedValue:   600_000, notes: '',              status: 'Pending',  season: 'Dry Season',  session: 'midday',    createdAt: new Date('2025-09-22'), updatedAt: new Date('2025-09-22') },
+    { id: 'FD-124', branchDeliveryId: 'BD-034', branchId: 'BR-KIB',  farmerId: 'UG-F-00810', farmerName: 'Ssali Emmanuel',     phone: '0754500810', commodity: 'Beans',    volume: 220, estimatedValue:   550_000, notes: 'Well sorted',   status: 'Pending',  season: 'Dry Season',  session: 'midday',    createdAt: new Date('2025-09-22'), updatedAt: new Date('2025-09-22') },
+
+    // BD-035 (Lira Town, Millet, Wet Season, Approved)
+    { id: 'FD-125', branchDeliveryId: 'BD-035', branchId: 'BR-LIR',  farmerId: 'UG-F-00906', farmerName: 'Alal Monica',        phone: '0701500906', commodity: 'Millet',   volume: 290, estimatedValue:   638_000, notes: '',              status: 'Approved', season: 'Wet Season',  session: 'afternoon', createdAt: new Date('2025-07-23'), updatedAt: new Date('2025-07-23') },
+    { id: 'FD-126', branchDeliveryId: 'BD-035', branchId: 'BR-LIR',  farmerId: 'UG-F-00907', farmerName: 'Omara William',      phone: '0782500907', commodity: 'Millet',   volume: 270, estimatedValue:   594_000, notes: '',              status: 'Approved', season: 'Wet Season',  session: 'afternoon', createdAt: new Date('2025-07-23'), updatedAt: new Date('2025-07-23') },
+    { id: 'FD-127', branchDeliveryId: 'BD-035', branchId: 'BR-LIR',  farmerId: 'UG-F-00908', farmerName: 'Akello Agnes',       phone: '0772500908', commodity: 'Millet',   volume: 310, estimatedValue:   682_000, notes: 'Clean grain',   status: 'Approved', season: 'Wet Season',  session: 'afternoon', createdAt: new Date('2025-07-23'), updatedAt: new Date('2025-07-23') },
+
+    // BD-036 (Lira Town, Maize, Dry Season, Pending)
+    { id: 'FD-128', branchDeliveryId: 'BD-036', branchId: 'BR-LIR',  farmerId: 'UG-F-00909', farmerName: 'Opio Kenneth',       phone: '0754500909', commodity: 'Maize',    volume: 340, estimatedValue:   850_000, notes: '',              status: 'Pending',  season: 'Dry Season',  session: 'morning',   createdAt: new Date('2025-10-09'), updatedAt: new Date('2025-10-09') },
+    { id: 'FD-129', branchDeliveryId: 'BD-036', branchId: 'BR-LIR',  farmerId: 'UG-F-00910', farmerName: 'Adongo Irene',       phone: '0701500910', commodity: 'Maize',    volume: 310, estimatedValue:   775_000, notes: '',              status: 'Pending',  season: 'Dry Season',  session: 'morning',   createdAt: new Date('2025-10-09'), updatedAt: new Date('2025-10-09') },
+    { id: 'FD-130', branchDeliveryId: 'BD-036', branchId: 'BR-LIR',  farmerId: 'UG-F-00911', farmerName: 'Olweny Patrick',     phone: '0782500911', commodity: 'Maize',    volume: 290, estimatedValue:   725_000, notes: 'Grade B',       status: 'Pending',  season: 'Dry Season',  session: 'morning',   createdAt: new Date('2025-10-09'), updatedAt: new Date('2025-10-09') },
+
+    // BD-037 (Mbale East, Maize, Wet Season, Approved)
+    { id: 'FD-131', branchDeliveryId: 'BD-037', branchId: 'BR-MBA2', farmerId: 'UG-F-01006', farmerName: 'Nabirye Grace',      phone: '0772501006', commodity: 'Maize',    volume: 390, estimatedValue:   975_000, notes: '',              status: 'Approved', season: 'Wet Season',  session: 'midday',    createdAt: new Date('2025-07-30'), updatedAt: new Date('2025-07-30') },
+    { id: 'FD-132', branchDeliveryId: 'BD-037', branchId: 'BR-MBA2', farmerId: 'UG-F-01007', farmerName: 'Wafula George',      phone: '0754501007', commodity: 'Maize',    volume: 360, estimatedValue:   900_000, notes: 'Grade A',       status: 'Approved', season: 'Wet Season',  session: 'midday',    createdAt: new Date('2025-07-30'), updatedAt: new Date('2025-07-30') },
+    { id: 'FD-133', branchDeliveryId: 'BD-037', branchId: 'BR-MBA2', farmerId: 'UG-F-01008', farmerName: 'Nakibuuka Aisha',    phone: '0701501008', commodity: 'Maize',    volume: 370, estimatedValue:   925_000, notes: '',              status: 'Approved', season: 'Wet Season',  session: 'midday',    createdAt: new Date('2025-07-30'), updatedAt: new Date('2025-07-30') },
+
+    // BD-038 (Mbale East, Beans, Dry Season, Pending)
+    { id: 'FD-134', branchDeliveryId: 'BD-038', branchId: 'BR-MBA2', farmerId: 'UG-F-01009', farmerName: 'Mudiba Tom',         phone: '0782501009', commodity: 'Beans',    volume: 310, estimatedValue:   775_000, notes: '',              status: 'Pending',  season: 'Dry Season',  session: 'afternoon', createdAt: new Date('2025-10-24'), updatedAt: new Date('2025-10-24') },
+    { id: 'FD-135', branchDeliveryId: 'BD-038', branchId: 'BR-MBA2', farmerId: 'UG-F-01010', farmerName: 'Namukhula Christine',phone: '0772501010', commodity: 'Beans',    volume: 280, estimatedValue:   700_000, notes: '',              status: 'Pending',  season: 'Dry Season',  session: 'afternoon', createdAt: new Date('2025-10-24'), updatedAt: new Date('2025-10-24') },
+    { id: 'FD-136', branchDeliveryId: 'BD-038', branchId: 'BR-MBA2', farmerId: 'UG-F-01011', farmerName: 'Wekesa Joseph',      phone: '0754501011', commodity: 'Beans',    volume: 290, estimatedValue:   725_000, notes: 'Well sorted',   status: 'Pending',  season: 'Dry Season',  session: 'afternoon', createdAt: new Date('2025-10-24'), updatedAt: new Date('2025-10-24') },
   ];
 
-  private readonly farmers$ = new BehaviorSubject<FarmerDelivery[]>([...this.seed]);
-  private counter = 82;
+  private readonly farmers$: BehaviorSubject<FarmerDelivery[]>;
+  // Start after the last seed record (FD-136) so new programmatic adds never collide.
+  private counter = 136;
 
   constructor(
     private readonly http: HttpClient,
     private readonly branchSvc: BranchDeliveryService,
-  ) {}
+    private readonly pricing: CooperativePricingService,
+  ) {
+    const enriched = this.seed.map(d => {
+      // If the seed record already has a unit price (e.g. grade-based records in BD-019/BD-020),
+      // keep it as-is. Otherwise fall back to the cooperative's current flat price.
+      const unitPrice = d.unitPrice ?? this.pricing.getUnitPrice(d.branchId ?? '', d.commodity);
+      return {
+        ...d,
+        unitPrice,
+        estimatedValue: unitPrice > 0 ? d.volume * unitPrice : d.estimatedValue,
+        inputLoanDeduction: INPUT_LOAN_DEDUCTIONS[d.id],
+      };
+    });
+    this.farmers$ = new BehaviorSubject<FarmerDelivery[]>(enriched);
+  }
 
   getAll(): Observable<FarmerDelivery[]> {
     const snapshot = [...this.farmers$.value];
@@ -250,6 +391,8 @@ export class FarmerDeliveryService {
     this.counter++;
     const entry: FarmerDelivery = {
       ...form,
+      // grade and gradeName are optional in FarmerDeliveryFormData, so they spread through
+      // automatically — no explicit mapping needed.
       id: `FD-${String(this.counter).padStart(3, '0')}`,
       createdAt: new Date(),
       updatedAt: new Date(),

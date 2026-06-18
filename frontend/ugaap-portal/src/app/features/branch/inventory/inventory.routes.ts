@@ -13,7 +13,7 @@ export const INVENTORY_ROUTES: Routes = [
         .then(m => m.CurrentStockComponent)
   },
   {
-    path: 'issue-stock',
+    path: 'issue-input',
     loadComponent: () =>
       import('./issue-stock/issue-stock.component')
         .then(m => m.IssueStockComponent)

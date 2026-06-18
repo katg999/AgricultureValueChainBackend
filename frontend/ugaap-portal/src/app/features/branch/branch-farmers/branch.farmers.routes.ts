@@ -11,22 +11,25 @@ export const BRANCH_FARMERS_ROUTES: Routes = [
   {
     path: 'list',
     loadComponent: () =>
-      import('./branch.farmer-list/branch.farmer-list.component')
-        .then(m => m.BranchFarmerListComponent)
+      import('./branch.farmer-list/branch.farmer-list.component').then(
+        (m) => m.BranchFarmerListComponent,
+      ),
   },
 
   // Farmer Registration (new) and Edit (with :id)
   {
     path: 'register',
     loadComponent: () =>
-      import('./branch.farmer-register/branch.farmer-register.component')
-        .then(m => m.BranchFarmerRegisterComponent)
+      import('./branch.farmer-register/branch.farmer-register.component').then(
+        (m) => m.BranchFarmerRegisterComponent,
+      ),
   },
   {
     path: 'register/:id',
     loadComponent: () =>
-      import('./branch.farmer-register/branch.farmer-register.component')
-        .then(m => m.BranchFarmerRegisterComponent)
+      import('./branch.farmer-register/branch.farmer-register.component').then(
+        (m) => m.BranchFarmerRegisterComponent,
+      ),
   },
 
   // Read-only farmer profile (branch staff view — no approve/reject)
@@ -40,5 +43,4 @@ export const BRANCH_FARMERS_ROUTES: Routes = [
   // Legacy dotted paths kept for existing bookmarks.
   { path: 'branch.farmer-list', redirectTo: 'list', pathMatch: 'full' },
   { path: 'branch.farmer-register', redirectTo: 'register', pathMatch: 'full' },
-
 ];

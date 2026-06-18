@@ -2,9 +2,11 @@
 //
 // Create / edit a platform-level role.
 //
-// Permissions are picked through the shared <app-permission-tabs> component
-// (scope="platform") — one tab per service, each broken down into granular
-// actions. Selected ids are plain strings like "cooperatives.approve".
+// Layout follows the shared <app-form-wizard> shell (the farmer-register
+// design): role details → permissions. Permissions are picked through
+// <app-permission-tabs> (scope="platform") — one tab per service, each broken
+// down into granular actions. Selected ids are plain strings like
+// "cooperatives.approve".
 
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -13,11 +15,16 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { HttpClient } from '@angular/common/http';
 
 import { API_ENDPOINTS } from '../../../../core/constants/api-endpoints';
-import { LogoComponent } from '../../../../shared/components/logo/logo.component';
+import { FormWizardComponent, WizardStep } from '../../../../shared/components/form-wizard/form-wizard.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
-import { InfoCardComponent } from '../../../../shared/components/info-card/info-card.component';
 import { PermissionTabsComponent } from '../../../../shared/components/permission-tabs/permission-tabs.component';
+
+/** Form controls validated before leaving each step */
+const STEP_FIELDS: string[][] = [
+  ['name', 'description', 'tenantId'],
+  [],   // permissions step is validated by selection count on save
+];
 
 @Component({
   selector: 'app-role-form',
@@ -26,10 +33,9 @@ import { PermissionTabsComponent } from '../../../../shared/components/permissio
     CommonModule,
     RouterModule,
     ReactiveFormsModule,
-    LogoComponent,
+    FormWizardComponent,
     InputComponent,
     ButtonComponent,
-    InfoCardComponent,
     PermissionTabsComponent,
   ],
   templateUrl: './role-form.component.html',
@@ -42,19 +48,21 @@ export class RoleFormComponent implements OnInit {
   isLoading = false;
   errorMessage = '';
 
+  readonly steps: WizardStep[] = [
+    { label: 'Role details' },
+    { label: 'Permissions' },
+  ];
+  currentStep = 0;
 
   /** Permission ids granted to this role — two-way bound to the tab picker */
   readonly selectedPermissions = signal<string[]>([]);
 
   constructor(
-
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
     private http: HttpClient,
   ) {}
-
-  
 
   ngOnInit(): void {
     this.roleId = this.route.snapshot.paramMap.get('id');
@@ -81,6 +89,42 @@ export class RoleFormComponent implements OnInit {
       tenantId: ['', Validators.required],
     });
   }
+
+  // ── Step navigation ───────────────────────────────────────────────────────
+
+  /** Moving forward validates the current step's controls first */
+  nextStep(): void {
+    if (!this.validateStep(this.currentStep)) return;
+    this.currentStep = Math.min(this.currentStep + 1, this.steps.length - 1);
+  }
+
+  prevStep(): void {
+    this.currentStep = Math.max(this.currentStep - 1, 0);
+  }
+
+  /** Sidebar clicks: backward always allowed, forward gated by validation */
+  goToStep(index: number): void {
+    if (index <= this.currentStep) {
+      this.currentStep = index;
+      return;
+    }
+    if (this.validateStep(this.currentStep)) {
+      this.currentStep = index;
+    }
+  }
+
+  private validateStep(step: number): boolean {
+    const fields = STEP_FIELDS[step] ?? [];
+    let valid = true;
+    for (const field of fields) {
+      const ctrl = this.roleForm.get(field);
+      ctrl?.markAsTouched();
+      if (ctrl?.invalid) valid = false;
+    }
+    return valid;
+  }
+
+  // ── Data loading ──────────────────────────────────────────────────────────
 
   loadRoleData(): void {
     if (!this.roleId) return;
@@ -129,6 +173,8 @@ export class RoleFormComponent implements OnInit {
     return this.selectedPermissions().length;
   }
 
+  // ── Form helpers ──────────────────────────────────────────────────────────
+
   getFieldError(fieldName: string): string {
     const control = this.roleForm.get(fieldName);
     if (control?.touched && control?.errors) {
@@ -140,6 +186,8 @@ export class RoleFormComponent implements OnInit {
   cancel(): void {
     this.router.navigate(['/platform/roles']);
   }
+
+  // ── Save ──────────────────────────────────────────────────────────────────
 
   saveRole(): void {
     if (this.roleForm.invalid) {

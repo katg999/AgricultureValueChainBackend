@@ -15,9 +15,10 @@ export const API_ENDPOINTS = {
     LOGIN: `${BASE}/auth/login`,
     LOGOUT: `${BASE}/auth/logout`,
     VERIFY_OTP: `${BASE}/auth/verify-otp`,
+    VERIFY_PASSWORD_RESET_OTP: `${BASE}/auth/password-reset/verify-otp`,
     REFRESH_TOKEN: `${BASE}/auth/refresh-token`,
-    FORGOT_PASSWORD: `${BASE}/auth/forgot-password`,
-    RESET_PASSWORD: `${BASE}/auth/reset-password`,
+    FORGOT_PASSWORD: `${BASE}/auth/password-reset/request`,
+    RESET_PASSWORD: `${BASE}/auth/password-reset/set-password`,
     RESEND_OTP: `${BASE}/auth/resend-otp`,
   },
 
@@ -66,8 +67,21 @@ export const API_ENDPOINTS = {
     USERS: `${BASE}/cooperative/users`,
     USER_BY_ID: (id: string) => `${BASE}/cooperative/users/${id}`,
 
+    // Field agents
+    AGENTS: `${BASE}/cooperative/agents`,
+    AGENT_BY_ID: (id: string) => `${BASE}/cooperative/agents/${id}`,
+    AGENT_DEACTIVATE: (id: string) => `${BASE}/cooperative/agents/${id}/deactivate`,
+    AGENT_ACTIVATE: (id: string) => `${BASE}/cooperative/agents/${id}/activate`,
+
+    // Collection hubs
+    COLLECTION_HUBS: `${BASE}/cooperative/collection-hubs`,
+    COLLECTION_HUB_BY_ID: (id: string) => `${BASE}/cooperative/collection-hubs/${id}`,
+    COLLECTION_HUB_ACTIVATE: (id: string) => `${BASE}/cooperative/collection-hubs/${id}/activate`,
+    COLLECTION_HUB_DEACTIVATE: (id: string) => `${BASE}/cooperative/collection-hubs/${id}/deactivate`,
     // Delivery session-hours config (morning/midday/afternoon windows) — cooperative-wide
     SESSION_CONFIG: `${BASE}/cooperative/session-config`,
+    // Season open/close status and month-range config — cooperative-wide
+    SEASON_CONFIG: `${BASE}/cooperative/season-config`,
   },
 
   // ── Branches ────────────────────────────────────────────────────────────────

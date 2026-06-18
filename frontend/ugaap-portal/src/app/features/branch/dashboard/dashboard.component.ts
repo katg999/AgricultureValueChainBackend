@@ -37,6 +37,8 @@ export class BranchDashboardComponent implements OnInit {
 
   // ── KPI stat cards ────────────────────────────────────────────────────────
 
+  // Thresholds are hardcoded for now — the shape matches what the backend
+  // will eventually supply per stat. Tapping a card opens its route.
   stats: StatCardData[] = [
     {
       label:   "Today's Collections",
@@ -44,21 +46,25 @@ export class BranchDashboardComponent implements OnInit {
       icon:    'box',
       trend:   '+0.8 MT from yesterday',
       trendUp: true,
+      route:   '/branch/collections',
     },
     {
-      label:     'Grading Queue',
-      value:     '18',
-      icon:      'clock',
-      status:    'warning',
-      clickable: true,
-      route:     '/branch/collections',
+      label:      'Grading Queue',
+      value:      '18',
+      icon:       'clock',
+      // Queue grows → degrade: ≥10 warning, ≥25 critical
+      thresholds: { warning: 10, critical: 25, direction: 'above' },
+      route:      '/branch/collections',
     },
     {
-      label:   'Stock on Hand',
-      value:   '15.6 MT',
-      icon:    'box',
-      trend:   'Within capacity',
-      trendUp: true,
+      label:      'Stock on Hand',
+      value:      '15.6 MT',
+      icon:       'box',
+      trend:      'Within capacity',
+      trendUp:    true,
+      // Stock falls → degrade: ≤5 MT warning, ≤2 MT critical
+      thresholds: { warning: 5, critical: 2, direction: 'below' },
+      route:      '/branch/inventory/current-stock',
     },
     {
       label:   'Active Farmers',
@@ -66,6 +72,7 @@ export class BranchDashboardComponent implements OnInit {
       icon:    'farmer',
       trend:   '+3 this week',
       trendUp: true,
+      route:   '/branch/farmers',
     },
   ];
 

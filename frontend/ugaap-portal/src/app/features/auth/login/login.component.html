@@ -1,68 +1,75 @@
+
 <!-- Login Page 
  Main authentication entry point Uses reusable components:
 Logo, Alert, Input, Button-->
 <div class="auth-page">
-  <!-- Main Auth Card -->
-  <div class="auth-card">
-    <!-- UGAAP Logo (Reusable Component) -->
-    <app-logo size="md" [showSubtitle]="true"></app-logo>
+    <!-- Main Auth wrapper -->
+  <div class="auth-split-layout">
+    
+    <div class="form-side">
+      <div class="auth-wrapper">
+        <!-- UGAAP Logo (Reusable Component) -->
+      <app-logo size="md" [showSubtitle]="true"></app-logo>
+        
+      <!-- Error Alert (Reusable Component) -->
+      <app-alert variant="error" [message]="errorMessage" *ngIf="errorMessage"></app-alert>
+        
+        <!-- Login Form -->
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+          <div class="form-field">
+            <app-input 
+            label="Email Address" 
+            type="email" placeholder="name@company.com" 
+            formControlName="email" 
+            [required]="true" 
+            [error]="getEmailError()">
+          </app-input>
 
-    <!-- Error Alert (Reusable Component) -->
-    <app-alert variant="error" [message]="errorMessage" *ngIf="errorMessage">
-    </app-alert>
+          </div>
+          <div class="form-field">
+            <app-input 
+            label="Password" type="password" 
+            placeholder="••••••••" 
+            labelLinkText="Forgot password?" 
+            labelLinkRoute="/auth/forgot-password" 
+            formControlName="password" 
+            [required]="true" 
+            [error]="getPasswordError()">
+          </app-input>
 
-    <!-- Login Form -->
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-      <!-- Email Input (Reusable Component) -->
-      <div class="form-field">
-        <app-input
-          label="Email Address"
-          type="email"
-          placeholder="name@company.com"
-          formControlName="email"
-          [required]="true"
-          [error]="getEmailError()"
-        >
-        </app-input>
+          </div>
+          <app-button 
+          type="button" variant="primary" 
+          size="lg" [fullWidth]="true" 
+          [loading]="isLoading" 
+          (clicked)="onSubmit()">
+            Login
+          </app-button>
+        </form>
+          
+                <!-- USSD Hint for Farmers
+                <div class="ussd-hint">FARMERS CHECK BALANCES VIA <strong>*XXX#</strong></div>
+            </div> -->
+
+        <!-- Decorative Market Feed Cards (Background)
+        <div class="market-cards">
+          <div class="market-card market-card-left">
+            <div class="market-label">MARKET FEED</div>
+            <div class="market-value">+1.2% Maize</div>
+          </div>
+          <div class="market-card market-card-right"></div>
+        </div> -->
+
       </div>
-
-      <!-- Password Input (Reusable Component) -->
-      <div class="form-field">
-        <app-input
-          label="Password"
-          type="password"
-          placeholder="••••••••"
-          labelLinkText="Forgot password?"
-          labelLinkRoute="/auth/forgot-password"
-          formControlName="password"
-          [required]="true"
-          [error]="getPasswordError()"
-        >
-        </app-input>
-      </div>
-
-      <!-- Submit Button (Reusable Component) -->
-      <app-button
-        type="button"
-        variant="primary"
-        size="lg"
-        [fullWidth]="true"
-        [loading]="isLoading"
-        (clicked)="onSubmit()">
-        Login
-      </app-button>
-    </form>
-
-    <!-- USSD Hint for Farmers
-    <div class="ussd-hint">FARMERS CHECK BALANCES VIA <strong>*XXX#</strong></div>
-  </div> -->
-
-  <!-- Decorative Market Feed Cards (Background)
-  <div class="market-cards">
-    <div class="market-card market-card-left">
-      <div class="market-label">MARKET FEED</div>
-      <div class="market-value">+1.2% Maize</div>
     </div>
-    <div class="market-card market-card-right"></div>
-  </div> -->
+
+    <div class="banner-side">
+      <img src="image1.jpg" alt="Agricultural Scene" class="banner-image">
+      <!--<div class="banner-overlay">
+        <h2>we may need this later</h2>
+        <p>You can get the best later</p>
+      </div>-->
+    </div>
+
+  </div>
 </div>

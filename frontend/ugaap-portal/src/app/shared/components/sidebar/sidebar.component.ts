@@ -6,10 +6,11 @@
 // No external state management needed — signals handle it all.
 
 import {
-  Component, Input, signal, inject,
+  Component, Input, signal, inject, OnChanges,
 } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
 import { NgTemplateOutlet }             from '@angular/common';
+import { filter }                       from 'rxjs/operators';
 
 import { NavItem }        from '../../../core/services/dashboard-config.service';
 import { SessionService } from '../../../core/services/session.service';
@@ -23,7 +24,7 @@ import { LogoComponent }  from '../logo/logo.component';
   templateUrl: './sidebar.component.html',
   styleUrl:    './sidebar.component.scss',
 })
-export class SidebarComponent {
+export class SidebarComponent implements OnChanges {
 
   /** Role-specific nav items injected by the parent layout */
   @Input() menuItems: NavItem[] = [];
@@ -31,6 +32,7 @@ export class SidebarComponent {
   // ── Services ────────────────────────────────────────────────────────────────
   private session     = inject(SessionService);
   private authService = inject(AuthService);
+  private router      = inject(Router);
 
   /** Reactive user object for the footer chip */
   readonly user = this.session.currentUser;
@@ -43,11 +45,34 @@ export class SidebarComponent {
   /** Controls the mobile slide-in overlay */
   mobileOpen = signal(false);
 
+  constructor() {
+    // Auto-expand the parent whose child matches the current URL on every navigation
+    this.router.events.pipe(filter(e => e instanceof NavigationEnd)).subscribe(() => {
+      this.expandActiveParent();
+    });
+  }
+
+  ngOnChanges(): void {
+    this.expandActiveParent();
+  }
+
+  /** Expand the parent group that contains the current active child route */
+  private expandActiveParent(): void {
+    const url = this.router.url;
+    for (const item of this.menuItems) {
+      if (item.children?.some(c => url.startsWith(c.route))) {
+        this.expandedRoute.set(item.route);
+        return;
+      }
+    }
+  }
+
   // ── Submenu helpers ─────────────────────────────────────────────────────────
 
-  /** Open or close a submenu — clicking the already-open one collapses it */
-  toggleSubmenu(route: string): void {
-    this.expandedRoute.update(current => current === route ? null : route);
+  /** Navigate to the parent route AND toggle the submenu open/closed */
+  toggleSubmenu(item: NavItem): void {
+    this.router.navigate([item.route]);
+    this.expandedRoute.update(current => current === item.route ? null : item.route);
   }
 
   isExpanded(route: string): boolean {

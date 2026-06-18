@@ -1,10 +1,5 @@
-/**
- * Cooperative Onboarding — sits inside the admin layout (sidebar visible).
- * Content centered at a balanced width, no overlay.
- * Matches Branch Onboarding conventions.
- */
+/* ── SHELL ──────────────────────────────────────────────────────────────── */
 
-/* ── SHELL ──────────────────────────────────────────────── */
 .onboarding-shell {
   max-width: 800px;
   margin: 0 auto;
@@ -12,7 +7,8 @@
   font-family: var(--font-human);
 }
 
-/* ── PAGE HEADER ────────────────────────────────────────── */
+/* ── PAGE HEADER ─────────────────────────────────────────────────────────── */
+
 .page-header {
   display: flex;
   align-items: flex-start;
@@ -48,12 +44,14 @@
   margin-top: 4px;
 }
 
-/* ── STEPPER ────────────────────────────────────────────── */
+/* ── STEPPER ─────────────────────────────────────────────────────────────── */
+
 .onboarding-stepper {
   margin-bottom: 28px;
 }
 
-/* ── FORM CARD ──────────────────────────────────────────── */
+/* ── FORM CARD ───────────────────────────────────────────────────────────── */
+
 .form-card {
   background: #ffffff;
   border: 1px solid #E8E6ED;
@@ -79,21 +77,20 @@
   border-bottom: 2px solid var(--primary, #F25D27);
 }
 
-/* Field spacing inside card */
 .form-card app-input,
-.form-card .input-group,
 .form-card app-alert {
   display: block;
   margin-bottom: 18px;
 }
 
 .form-card app-input:last-child,
-.form-card .input-group:last-child,
+.form-card app-alert:last-child,
 .form-card .form-row:last-child {
   margin-bottom: 0;
 }
 
-/* ── TWO-COLUMN ROW ─────────────────────────────────────── */
+/* ── TWO-COLUMN ROW ──────────────────────────────────────────────────────── */
+
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -105,7 +102,8 @@
   margin-bottom: 0;
 }
 
-/* ── FORM ACTIONS ───────────────────────────────────────── */
+/* ── FORM ACTIONS ────────────────────────────────────────────────────────── */
+
 .form-actions {
   display: flex;
   align-items: center;
@@ -149,16 +147,11 @@
   text-underline-offset: 3px;
 }
 
-.btn-ghost:hover {
-  color: var(--secondary);
-}
+.btn-ghost:hover  { color: var(--secondary); }
+.btn-ghost:disabled { opacity: 0.45; cursor: not-allowed; }
 
-.btn-ghost:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
+/* ── REVIEW GRID ─────────────────────────────────────────────────────────── */
 
-/* ── REVIEW GRID (2×2 cards) ────────────────────────────── */
 .review-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -199,28 +192,27 @@
 
 .review-label {
   font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #9B8FA8;
+  color: #9C94A8;
 }
 
 .review-value {
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 600;
   color: var(--secondary);
-  font-weight: 500;
-  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
-/* ── MODAL ACTIONS ──────────────────────────────────────── */
+/* ── MODAL ACTIONS ───────────────────────────────────────────────────────── */
+
 .modal-actions {
   display: flex;
-  gap: 12px;
   justify-content: flex-end;
-  margin-top: 24px;
+  gap: 10px;
+  margin-top: 20px;
 }
 
-/* ── RESPONSIVE ─────────────────────────────────────────── */
+/* ── RESPONSIVE ──────────────────────────────────────────────────────────── */
+
 @media (max-width: 680px) {
   .onboarding-shell {
     padding: 20px 16px 48px;

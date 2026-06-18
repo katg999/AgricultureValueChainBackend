@@ -2,27 +2,35 @@
 
   <div class="stats-grid">
     <app-stat-card
-      [data]="{ label: 'TOTAL ALLOCATIONS', value: (summary.totalAllocations | number) ?? '', icon: 'clipboard' }">
+      [data]="{ label: 'TOTAL ALLOCATIONS', value: (summary.totalAllocations | number) ?? '', icon: 'clipboard', clickable: true }">
     </app-stat-card>
 
     <app-stat-card
-      [data]="{ label: 'FULLY RECOVERED', value: (summary.fullyRecovered | number) ?? '', icon: 'check' }">
+      [data]="{ label: 'FULLY RECOVERED', value: (summary.fullyRecovered | number) ?? '', icon: 'check', clickable: true }">
     </app-stat-card>
 
     <app-stat-card
-      [data]="{ label: 'TOTAL VALUE', value: 'UGX ' + ((summary.totalValue | number:'1.0-0') ?? '0'), icon: 'wallet' }">
+      [data]="{ label: 'TOTAL VALUE', value: 'UGX ' + ((summary.totalValue | number:'1.0-0') ?? '0'), icon: 'wallet', clickable: true }">
+    </app-stat-card>
+
+    <!-- Color reacts to value; tapping focuses on the partial-recovery rows in the table -->
+    <app-stat-card
+      [data]="{
+        label: 'PARTIALLY RECOVERED', value: (summary.partiallyRecovered | number:'1.0-0') ?? '',
+        icon: 'alert', thresholds: { warning: 1, direction: 'above' }, clickable: true
+      }">
     </app-stat-card>
 
     <app-stat-card
-      [data]="{ label: 'PARTIALLY RECOVERED', value: (summary.partiallyRecovered | number:'1.0-0') ?? '', icon: 'alert', status: 'warning' }">
+      [data]="{
+        label: 'OVERDUE', value: (summary.overdue | number:'1.0-0') ?? '',
+        icon: 'alert', thresholds: { warning: 1, critical: 1, direction: 'above' },
+        route: summary.overdue > 0 ? (isCooperativeScope ? '/cooperative/finance/batch-processing' : '/branch/finance/batch-processing') : undefined
+      }">
     </app-stat-card>
 
     <app-stat-card
-      [data]="{ label: 'OVERDUE', value: (summary.overdue | number:'1.0-0') ?? '', icon: 'alert', status: 'critical' }">
-    </app-stat-card>
-
-    <app-stat-card
-      [data]="{ label: 'RECOVERY RATE', value: summary.recoveryRate + '%', icon: 'chart' }">
+      [data]="{ label: 'RECOVERY RATE', value: summary.recoveryRate + '%', icon: 'chart', clickable: true }">
     </app-stat-card>
   </div>
 

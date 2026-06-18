@@ -9,68 +9,55 @@
 /* 
    PAGE CONTAINER
     */
-
+/* 1. Main Page Settings */
+/* Page container centers the wrapper */
+/* 1. Page Background */
 .auth-page {
   min-height: 100vh;
-  background: var(--surface-low); /* Instead of #F4F4F6 */
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  padding: 32px 16px;
-  font-family: var(--font-human); /* Instead of 'Inter' */
-  position: relative;
+  align-items: center;
+  background-color: var(--surface-low);
+  padding: 20px;
 }
 
-/* 
-   AUTH CARD
-   Uses design system surface hierarchy
-    */
+/* 2. The Container Wrapper */
+.auth-split-layout {
+  display: flex;
+  width: 100%;
+  max-width: 900px; /* Limits the max width to look clean */
+  height: 90vh; /* Consistent height */
+  background: white;
+  border-radius: 20px;
+  overflow: hidden; /* This clips the image and card together */
+  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+/* 3. Form Side */
+.form-side {
+  flex: 1; /* 50% width */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+}
 
 .auth-card {
-  background: var(--surface-lowest); /* Instead of #ffffff */
-  border-radius: 16px;
-  padding: 40px 36px;
   width: 100%;
-  max-width: 420px;
-  /* Subtle shadow using secondary color */
-  box-shadow: 0 2px 16px rgba(32, 11, 38, 0.06);
+  max-width: 400px;
+}
+
+/* 4. Image Side */
+.banner-side {
+  flex: 1; /* 50% width */
   position: relative;
-  z-index: 2;
-}
-/* 
-   LOGIN MODE TABS
-   Task 2.1: Switcher for login modes
-    */
-
-.login-tabs {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 24px;
-  padding: 4px;
-  background: var(--surface-low);
-  border-radius: 8px;
 }
 
-.login-tabs button {
-  flex: 1;
-  padding: 8px 12px;
-  border: none;
-  background: transparent;
-  color: var(--secondary);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-  font-family: var(--font-human);
-}
-
-.login-tabs button.active {
-  background: var(--surface-lowest);
-  color: var(--primary);
-  box-shadow: 0 2px 8px rgba(32, 11, 38, 0.04);
+.banner-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Fills the space */
+  filter: brightness(0.85); /* Soft professional tint */
 }
 
 /* 
@@ -194,3 +181,4 @@
     font-size: 11px;
   }
 }
+

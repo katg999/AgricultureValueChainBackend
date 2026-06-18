@@ -50,7 +50,7 @@
         <button
           class="nav-item nav-item--parent"
           [class.nav-item--active-parent]="isExpanded(item.route)"
-          (click)="toggleSubmenu(item.route)"
+          (click)="toggleSubmenu(item)"
           [attr.aria-expanded]="isExpanded(item.route)"
           [attr.aria-controls]="'submenu-' + item.route"
           [title]="item.label">
@@ -132,13 +132,18 @@
   <!-- ── User footer ─────────────────────────────────────────────────────── -->
   <div class="sidebar-footer">
 
-    <div class="user-chip">
+    <!-- Links to the shared "My Profile" page -->
+    <a
+      class="user-chip"
+      routerLink="/profile"
+      title="My profile"
+      (click)="onLeafNavClick()">
       <div class="user-avatar" aria-hidden="true">{{ userInitial }}</div>
       <div class="user-meta">
         <span class="user-name">{{ user()?.fullName ?? 'User' }}</span>
         <span class="user-role">{{ user()?.role ?? '' }}</span>
       </div>
-    </div>
+    </a>
 
     <button
       class="logout-btn"
@@ -243,6 +248,27 @@
         <circle cx="9" cy="7" r="4"/>
         <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
         <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+    }
+
+    @case ('agents') {
+      <!-- single person with a check — field agents working under a branch -->
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="8.5" cy="7" r="4"/>
+        <polyline points="17 11 19 13 23 9"/>
+      </svg>
+    }
+
+    @case ('hub') {
+      <!-- map pin with a dot — a physical collection point location -->
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/>
+        <circle cx="12" cy="10" r="3"/>
       </svg>
     }
 

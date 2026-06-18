@@ -14,7 +14,16 @@ export interface FarmerDelivery {
   phone: string;
   commodity: string;
   volume: number;
+  /** UGX per KG locked in at the moment of recording — comes from CooperativePricingService. */
+  unitPrice?: number;
+  /** estimatedValue serves as the gross value: volume × unitPrice. */
   estimatedValue: number;
+  /** Input loan recovery deducted from gross to get the farmer's net payment. */
+  inputLoanDeduction?: number;
+  /** Grade code (A/B/C/R) — only populated when the cooperative has grade mode ON. */
+  grade?: string;
+  /** Human-readable grade name, e.g. 'Premium'. Derived from grade code. */
+  gradeName?: string;
   notes: string;
   status: DeliveryStatus;
   season: Season;
@@ -32,7 +41,11 @@ export interface FarmerDeliveryFormData {
   phone: string;
   commodity: string;
   volume: number;
+  unitPrice?: number;
   estimatedValue: number;
+  /** Present only when cooperative grade mode is ON. */
+  grade?: string;
+  gradeName?: string;
   notes: string;
   status: DeliveryStatus;
   season: Season;

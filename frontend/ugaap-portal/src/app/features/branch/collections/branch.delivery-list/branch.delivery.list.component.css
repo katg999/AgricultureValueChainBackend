@@ -371,6 +371,22 @@ tbody tr:hover {
   color: #dc3545;
 }
 
+.menu-panel button.menu-item--approve {
+  color: #059669;
+}
+
+.menu-panel button.menu-item--approve:hover:not(:disabled) {
+  background: #D1FAE5;
+}
+
+.menu-panel button.menu-item--reject {
+  color: #DC2626;
+}
+
+.menu-panel button.menu-item--reject:hover:not(:disabled) {
+  background: #FEE2E2;
+}
+
 .menu-panel button:disabled {
   opacity: 0.45;
   cursor: not-allowed;

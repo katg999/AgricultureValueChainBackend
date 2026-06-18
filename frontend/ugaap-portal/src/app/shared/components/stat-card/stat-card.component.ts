@@ -3,24 +3,45 @@
 // Reusable KPI card.
 // • Accepts a single [data] input and an optional [delay] (ms) for stagger.
 // • Numeric values animate from 0 → target via requestAnimationFrame.
-// • Colors (icon bg, value text, left border) track the status field.
-// • Critical cards pulse continuously to demand attention.
+// • Status colors (icon bg, value text, left border) come from either:
+//     - data.status (manual), or
+//     - data.thresholds — computed from the value at render time. Thresholds
+//       are hardcoded by callers today; the shape is ready to be fed from
+//       backend config later without touching this component.
+// • Tapping a card with a route navigates straight to that screen.
 // • icon field accepts an icon NAME string (e.g. 'users', 'box', 'wallet')
 //   mapped to inline SVG via iconMap — not an emoji.
 
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
+
+/**
+ * Value thresholds that drive the card color dynamically.
+ * direction 'above'  → status degrades as the value RISES past a limit
+ *                      (queue sizes, overdue counts).
+ * direction 'below'  → status degrades as the value FALLS past a limit
+ *                      (stock levels, recovery rates).
+ */
+export interface StatCardThresholds {
+  warning?: number;
+  critical?: number;
+  direction?: 'above' | 'below';
+}
 
 export interface StatCardData {
   label: string;
   value: string | number;
-  /** Emoji shown in the icon box */
+  /** Icon key resolved against iconMap below */
   icon: string;
   trend?: string;
   trendUp?: boolean;
+  /** Manual status — ignored when thresholds are provided */
   status?: 'active' | 'warning' | 'critical';
+  /** Computes status from the value — overrides `status` */
+  thresholds?: StatCardThresholds;
   clickable?: boolean;
+  /** Related screen — tapping the card navigates straight there */
   route?: string;
 }
 
@@ -31,17 +52,21 @@ export interface StatCardData {
   template: `
     <div
       class="stat-card"
-      [class.clickable]="data.clickable"
-      [class.status-warning]="data.status === 'warning'"
-      [class.status-critical]="data.status === 'critical'"
-      [class.status-active]="data.status === 'active'"
+      [class.clickable]="isInteractive"
+      [class.status-warning]="effectiveStatus === 'warning'"
+      [class.status-critical]="effectiveStatus === 'critical'"
+      [class.status-active]="effectiveStatus === 'active'"
       [style.--stagger]="delay + 'ms'"
-      (click)="handleClick()">
+      [attr.role]="isInteractive ? 'button' : null"
+      [attr.tabindex]="isInteractive ? 0 : null"
+      (click)="handleClick()"
+      (keydown.enter)="handleClick()"
+      (keydown.space)="$event.preventDefault(); handleClick()">
 
       <!-- Header row: icon left, status badge right.
            min-height keeps header zone the same size with or without a badge. -->
       <div class="stat-header">
-        <div class="stat-icon" [class]="'icon-' + (data.status ?? 'default')">
+        <div class="stat-icon" [class]="'icon-' + (effectiveStatus ?? 'default')">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
                stroke="currentColor" stroke-width="2"
                stroke-linecap="round" stroke-linejoin="round">
@@ -49,12 +74,12 @@ export interface StatCardData {
           </svg>
         </div>
         <span
-          *ngIf="data.status"
+          *ngIf="effectiveStatus"
           class="status-badge"
-          [class]="'badge-' + data.status">
-          {{ data.status | uppercase }}
+          [class]="'badge-' + effectiveStatus">
+          {{ effectiveStatus | uppercase }}
         </span>
-        <span *ngIf="!data.status" class="badge-placeholder" aria-hidden="true"></span>
+        <span *ngIf="!effectiveStatus" class="badge-placeholder" aria-hidden="true"></span>
       </div>
 
       <!-- Content pushed to the bottom of the flex column -->
@@ -73,6 +98,16 @@ export interface StatCardData {
             </span>
             <span class="trend-text">{{ data.trend }}</span>
           </ng-container>
+
+          <!-- Navigation affordance for cards that link somewhere -->
+          <span *ngIf="data.route" class="nav-arrow" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </span>
         </div>
       </div>
     </div>
@@ -85,6 +120,7 @@ export interface StatCardData {
     :host {
       display: block;
       height: 100%;
+      min-width: 0; /* lets the card shrink inside tight grid tracks */
     }
 
     /* ── Entrance animation (one-shot only — no looping) ──────────────────── */
@@ -97,10 +133,10 @@ export interface StatCardData {
     .stat-card {
       background: white;
       border-radius: 12px;
-      padding: 20px;
+      padding: 14px 16px;
       border: 1px solid #E5E7EB;
       border-left: 4px solid #E5E7EB;
-      min-height: 160px;
+      min-height: 110px;
       height: 100%;
       box-sizing: border-box;
       display: flex;
@@ -122,29 +158,33 @@ export interface StatCardData {
       box-shadow: 0 6px 20px rgba(242, 93, 39, 0.14);
       transform: translateY(-3px);
     }
+    .stat-card.clickable:focus-visible {
+      outline: 2px solid #F25D27;
+      outline-offset: 2px;
+    }
 
     /* ── Header row ────────────────────────────────────────────────────────── */
     .stat-header {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      min-height: 48px;
+      min-height: 36px;
     }
 
     /* ── Icon box ──────────────────────────────────────────────────────────── */
     .stat-icon {
-      width: 48px;
-      height: 48px;
+      width: 36px;
+      height: 36px;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 10px;
+      border-radius: 8px;
       flex-shrink: 0;
     }
 
     .stat-icon svg {
-      width: 24px;
-      height: 24px;
+      width: 18px;
+      height: 18px;
     }
 
     /* Icon background tinted to match status */
@@ -180,9 +220,9 @@ export interface StatCardData {
     .stat-content { margin-top: auto; }
 
     .stat-label {
-      font-size: 13px;
+      font-size: 11px;
       color: #6B7280;
-      margin-bottom: 4px;
+      margin-bottom: 2px;
       line-height: 1.4;
     }
 
@@ -193,7 +233,7 @@ export interface StatCardData {
       font-weight: 700;
       color: #200B26;
       line-height: 1;
-      height: 36px;
+      height: 28px;
       display: flex;
       align-items: flex-end;
       font-family: 'IBM Plex Mono', 'Inter', sans-serif;
@@ -215,21 +255,49 @@ export interface StatCardData {
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 13px;
-      margin-top: 8px;
-      min-height: 20px;
-      height: 20px;
+      font-size: 11px;
+      margin-top: 4px;
+      min-height: 16px;
+      height: 16px;
     }
 
     .trend-indicator { font-weight: 600; }
     .trend-up   { color: #10B981; }
     .trend-down { color: #EF4444; }
-    .trend-text { color: #6B7280; }
+    .trend-text {
+      color: #6B7280;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Arrow hints that tapping the card navigates to the related screen */
+    .nav-arrow {
+      margin-left: auto;
+      display: inline-flex;
+      color: #9CA3AF;
+      transition: transform 0.2s ease, color 0.2s ease;
+      flex-shrink: 0;
+    }
+    .stat-card.clickable:hover .nav-arrow {
+      color: #F25D27;
+      transform: translateX(2px);
+    }
+
+    /* ── Responsive ────────────────────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .stat-card { padding: 12px 14px; min-height: 90px; }
+      .stat-icon { width: 30px; height: 30px; }
+      .stat-icon svg { width: 15px; height: 15px; }
+      .stat-header { min-height: 30px; }
+    }
   `]
 })
 export class StatCardComponent implements OnInit, OnDestroy {
 
   @Input() data!: StatCardData;
+
+  private router = inject(Router);
 
   // ── SVG icon path map ────────────────────────────────────────────────────
   // icon names → SVG <path d="..."> values (24x24, stroke-based)
@@ -280,12 +348,40 @@ export class StatCardComponent implements OnInit, OnDestroy {
     if (this.rafId !== undefined) cancelAnimationFrame(this.rafId);
   }
 
-  @Output() cardClicked = new EventEmitter<void>();
+  // ── Interactivity ─────────────────────────────────────────────────────────
 
+  /** Tappable when the card links somewhere */
+  get isInteractive(): boolean {
+    return !!this.data.route || !!this.data.clickable;
+  }
+
+  /** Tap takes the user straight to the related screen */
   handleClick(): void {
-    if (this.data.clickable) {
-      this.cardClicked.emit();
+    if (this.data.route) {
+      this.router.navigate([this.data.route]);
     }
+  }
+
+  // ── Status resolution ─────────────────────────────────────────────────────
+
+  /**
+   * Resolves the card status. When thresholds are present they win over the
+   * manual `status` field — the color tracks the value dynamically:
+   *   direction 'above' → value >= limit breaches it (queues, overdue counts)
+   *   direction 'below' → value <= limit breaches it (stock, recovery rates)
+   */
+  get effectiveStatus(): 'active' | 'warning' | 'critical' | undefined {
+    const t = this.data.thresholds;
+    if (!t) return this.data.status;
+
+    const value = this.toNumber(this.data.value);
+    const dir = t.direction ?? 'above';
+    const breaches = (limit?: number) =>
+      limit !== undefined && (dir === 'above' ? value >= limit : value <= limit);
+
+    if (breaches(t.critical)) return 'critical';
+    if (breaches(t.warning))  return 'warning';
+    return 'active';
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
@@ -296,10 +392,11 @@ export class StatCardComponent implements OnInit, OnDestroy {
     return /^\d{1,3}(,\d{3})*$|^\d+$/.test(String(v).trim());
   }
 
-  /** Strip commas and parse to float */
+  /** Strip commas and parse the leading number out of strings like "2.4 MT" */
   private toNumber(v: string | number): number {
     if (typeof v === 'number') return v;
-    return parseFloat(String(v).replace(/,/g, '')) || 0;
+    const match = String(v).replace(/,/g, '').match(/-?\d+(\.\d+)?/);
+    return match ? parseFloat(match[0]) : 0;
   }
 
   /**
@@ -319,14 +416,14 @@ export class StatCardComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Scales font down when the abbreviate value is still long
+   * Scales font down when the abbreviated value is still long
    * (rare edge case — with abbreviation most values stay ≤ 5 chars)
    */
   getValueFontSize(): string {
     const len = String(this.displayValue).length;
-    if (len <= 6) return '28px';
-    if (len <= 9) return '20px';
-    return '16px';
+    if (len <= 6) return '22px';
+    if (len <= 9) return '17px';
+    return '14px';
   }
 
   /**

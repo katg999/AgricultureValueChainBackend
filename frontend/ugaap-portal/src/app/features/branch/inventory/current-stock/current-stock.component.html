@@ -24,23 +24,32 @@
 
   <div class="summary-cards">
     <app-stat-card
-      [data]="{ label: 'TOTAL TYPES', value: summary.totalTypes, icon: 'box' }">
+      [data]="{ label: 'TOTAL TYPES', value: summary.totalTypes, icon: 'box', clickable: true }">
     </app-stat-card>
 
     <app-stat-card
-      [data]="{ label: 'HEALTHY', value: summary.healthy, icon: 'check' }">
+      [data]="{ label: 'HEALTHY', value: summary.healthy, icon: 'check', clickable: true }">
+    </app-stat-card>
+
+    <!-- Color reacts to value; tapping navigates to request-stock when there are low items -->
+    <app-stat-card
+      [data]="{
+        label: 'LOW', value: summary.low, icon: 'alert',
+        thresholds: { warning: 1, direction: 'above' },
+        route: summary.low > 0 ? lowItemRoute : undefined
+      }">
     </app-stat-card>
 
     <app-stat-card
-      [data]="{ label: 'LOW', value: summary.low, icon: 'alert', status: 'warning' }">
+      [data]="{
+        label: 'OUT OF STOCK', value: summary.outOfStock, icon: 'alert',
+        thresholds: { warning: 1, critical: 1, direction: 'above' },
+        route: summary.outOfStock > 0 ? lowItemRoute : undefined
+      }">
     </app-stat-card>
 
     <app-stat-card
-      [data]="{ label: 'OUT OF STOCK', value: summary.outOfStock, icon: 'alert', status: 'critical' }">
-    </app-stat-card>
-
-    <app-stat-card
-      [data]="{ label: 'TOTAL VALUE', value: (summary.totalValue | currency:'UGX':'symbol':'1.0-0') ?? '', icon: 'wallet' }">
+      [data]="{ label: 'TOTAL VALUE', value: (summary.totalValue | currency:'UGX':'symbol':'1.0-0') ?? '', icon: 'wallet', clickable: true }">
     </app-stat-card>
   </div>
 
