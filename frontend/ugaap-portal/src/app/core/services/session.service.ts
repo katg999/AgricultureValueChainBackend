@@ -192,6 +192,10 @@ export class SessionService {
     this.router.navigate(['/auth/login']);
   }
 
+  clearTempToken(): void {
+    sessionStorage.removeItem(KEYS.TEMP_TOKEN);
+  }
+
   //  Private helpers
 
   private _loadUser(): AuthUser | null {
