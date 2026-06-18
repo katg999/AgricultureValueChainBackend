@@ -51,3 +51,18 @@ export interface FarmerDeliveryFormData {
   season: Season;
   session: DeliverySession;
 }
+
+export interface SaveFarmerDeliveryPayload {
+  branch: string;
+  commodity: string;
+  farmerId: string;
+  farmerName: string;
+  quantityDelivered: number; // maps to quantity_delivered
+  unitOfMeasure: string;     // maps to unit_of_measure
+  estimatedDeliveryValue: number; // maps to estimated_delivery_value
+  totalValue: number;        // maps to total_value
+  inputValueUgx: number;     // maps to input_value_ugx (Deductions)
+  status: string;
+  season: Season;
+  session: DeliverySession;
+}
