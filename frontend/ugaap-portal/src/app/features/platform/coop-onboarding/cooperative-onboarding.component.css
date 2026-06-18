@@ -1,42 +1,5 @@
-/* Layout and field styling come from the shared <app-form-wizard> shell and
-   the global wizard form kit in styles.css. This file only styles what is
-   unique to this form: the review cards and the confirmation modal actions. */
+/* ── SHELL ──────────────────────────────────────────────────────────────── */
 
-form {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-/* ── Review cards (final step) ───────────────────────────────────────────── */
-
-.review-card {
-  border: 1px solid #E8E4EE;
-  border-radius: 10px;
-  background: #FAF9FB;
-  padding: 18px 20px;
-}
-
-.review-card-title {
-  font-size: 12px;
-  font-weight: 700;
-  color: #6B6277;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin: 0 0 14px;
-}
-
-.review-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px 24px;
-/**
- * Cooperative Onboarding — sits inside the admin layout (sidebar visible).
- * Content centered at a balanced width, no overlay.
- * Matches Branch Onboarding conventions.
- */
-
-/* ── SHELL ──────────────────────────────────────────────── */
 .onboarding-shell {
   max-width: 800px;
   margin: 0 auto;
@@ -44,7 +7,8 @@ form {
   font-family: var(--font-human);
 }
 
-/* ── PAGE HEADER ────────────────────────────────────────── */
+/* ── PAGE HEADER ─────────────────────────────────────────────────────────── */
+
 .page-header {
   display: flex;
   align-items: flex-start;
@@ -80,12 +44,14 @@ form {
   margin-top: 4px;
 }
 
-/* ── STEPPER ────────────────────────────────────────────── */
+/* ── STEPPER ─────────────────────────────────────────────────────────────── */
+
 .onboarding-stepper {
   margin-bottom: 28px;
 }
 
-/* ── FORM CARD ──────────────────────────────────────────── */
+/* ── FORM CARD ───────────────────────────────────────────────────────────── */
+
 .form-card {
   background: #ffffff;
   border: 1px solid #E8E6ED;
@@ -111,21 +77,20 @@ form {
   border-bottom: 2px solid var(--primary, #F25D27);
 }
 
-/* Field spacing inside card */
 .form-card app-input,
-.form-card .input-group,
 .form-card app-alert {
   display: block;
   margin-bottom: 18px;
 }
 
 .form-card app-input:last-child,
-.form-card .input-group:last-child,
+.form-card app-alert:last-child,
 .form-card .form-row:last-child {
   margin-bottom: 0;
 }
 
-/* ── TWO-COLUMN ROW ─────────────────────────────────────── */
+/* ── TWO-COLUMN ROW ──────────────────────────────────────────────────────── */
+
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -137,7 +102,8 @@ form {
   margin-bottom: 0;
 }
 
-/* ── FORM ACTIONS ───────────────────────────────────────── */
+/* ── FORM ACTIONS ────────────────────────────────────────────────────────── */
+
 .form-actions {
   display: flex;
   align-items: center;
@@ -147,8 +113,6 @@ form {
 
 .form-actions-right {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
   align-items: center;
   gap: 12px;
 }
@@ -183,16 +147,11 @@ form {
   text-underline-offset: 3px;
 }
 
-.btn-ghost:hover {
-  color: var(--secondary);
-}
+.btn-ghost:hover  { color: var(--secondary); }
+.btn-ghost:disabled { opacity: 0.45; cursor: not-allowed; }
 
-.btn-ghost:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
+/* ── REVIEW GRID ─────────────────────────────────────────────────────────── */
 
-/* ── REVIEW GRID (2×2 cards) ────────────────────────────── */
 .review-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -243,22 +202,8 @@ form {
   overflow-wrap: anywhere;
 }
 
-/* ── Confirmation modal actions ──────────────────────────────────────────── */
+/* ── MODAL ACTIONS ───────────────────────────────────────────────────────── */
 
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #9B8FA8;
-}
-
-.review-value {
-  font-size: 14px;
-  color: var(--secondary);
-  font-weight: 500;
-  word-break: break-word;
-}
-
-/* ── MODAL ACTIONS ──────────────────────────────────────── */
 .modal-actions {
   display: flex;
   justify-content: flex-end;
@@ -266,29 +211,8 @@ form {
   margin-top: 20px;
 }
 
-.btn-secondary {
-  background: none;
-  border: 1px solid #E8E4EE;
-  border-radius: 8px;
-  padding: 9px 18px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--secondary);
-  cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
-}
+/* ── RESPONSIVE ──────────────────────────────────────────────────────────── */
 
-.btn-secondary:hover {
-  border-color: var(--primary);
-  color: var(--primary);
-}
-
-/* ── Responsive ──────────────────────────────────────────────────────────── */
-
-@media (max-width: 720px) {
-  .review-grid { grid-template-columns: 1fr; }
-}
-/* ── RESPONSIVE ─────────────────────────────────────────── */
 @media (max-width: 680px) {
   .onboarding-shell {
     padding: 20px 16px 48px;
