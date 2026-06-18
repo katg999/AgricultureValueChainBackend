@@ -235,8 +235,14 @@ export const COOPERATIVE_ROUTES: Routes = [
         .then(m => m.REPORTS_ROUTES),
   },
 
+  // ── Bank accounts (placeholder — redirects to profile where bank details live) ──
+  { path: 'bank-accounts', redirectTo: 'profile', pathMatch: 'full' },
+
+  // ── Hub redirects — parent nav items that have no dedicated hub page yet ────
+  { path: 'organisation-setup', redirectTo: 'profile',  pathMatch: 'full' },
+  { path: 'user-management',    redirectTo: 'users',    pathMatch: 'full' },
+
   // ── Legacy redirects ────────────────────────────────────────────────────────
-  // Old route aliases kept so bookmarks and external links don't 404
-  { path: 'grading',  redirectTo: 'grade-config', pathMatch: 'full' },
-  { path: 'pricing',  redirectTo: 'edit-prices',  pathMatch: 'full' },
+  { path: 'grading', redirectTo: 'grade-config', pathMatch: 'full' },
+  { path: 'pricing', redirectTo: 'edit-prices',  pathMatch: 'full' },
 ];

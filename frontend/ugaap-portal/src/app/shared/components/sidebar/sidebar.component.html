@@ -50,7 +50,7 @@
         <button
           class="nav-item nav-item--parent"
           [class.nav-item--active-parent]="isExpanded(item.route)"
-          (click)="toggleSubmenu(item.route)"
+          (click)="toggleSubmenu(item)"
           [attr.aria-expanded]="isExpanded(item.route)"
           [attr.aria-controls]="'submenu-' + item.route"
           [title]="item.label">
