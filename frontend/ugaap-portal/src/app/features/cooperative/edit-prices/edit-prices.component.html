@@ -1,17 +1,17 @@
 <!-- edit-prices.component.html -->
 <div class="page">
 
-  <!-- ── Page heading ─────────────────────────────────────────── -->
+  <!-- ── Page heading ──────────────────────────────────────────────────── -->
   <div class="page-header">
     <div>
-      <h1 class="page-title">Edit Branch Prices</h1>
+      <h1 class="page-title">Cooperative Pricing</h1>
       <p class="page-subtitle">
-        Select a branch, then update the price per grade for that branch.
-        Changes apply immediately to new deliveries recorded at that branch.
+        Configure how commodity prices are assigned to farmer deliveries.
+        Changes take effect on the next delivery recorded.
       </p>
     </div>
     <button class="btn-back" (click)="router.navigate(['/cooperative/grade-config'])">
-      ← Back to Grading
+      &larr; Back to Grading
     </button>
   </div>
 
@@ -19,19 +19,178 @@
     <div class="error-bar">{{ error() }}</div>
   }
 
-  <!-- ── Branch selector ──────────────────────────────────────── -->
+  <!-- ── Grade mode toggle ──────────────────────────────────────────────── -->
+  <!-- This single switch controls the entire cooperative's pricing mode.
+       All branches are affected — think carefully before switching. -->
+  <div class="section-card">
+    <div class="toggle-row">
+      <div>
+        <h2 class="sec-title">Grade-Based Pricing</h2>
+        <p class="toggle-desc">
+          <strong>OFF</strong> — one flat price per commodity for the whole cooperative.<br>
+          <strong>ON</strong> &nbsp;— prices vary by commodity, grade, and branch (richer, more accurate).
+        </p>
+      </div>
+      <label class="toggle-switch" title="Toggle grade-based pricing">
+        <input
+          type="checkbox"
+          [checked]="useGrades"
+          (change)="toggleGrades()"
+          aria-label="Enable grade-based pricing" />
+        <span class="toggle-track">
+          <span class="toggle-thumb"></span>
+        </span>
+      </label>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       MODE: FLAT COMMODITY PRICES  (shown when grade mode is OFF)
+       ══════════════════════════════════════════════════════════════════════ -->
+
+  @if (!useGrades && canViewCommodityPrices) {
   <div class="section-card">
     <div class="section-heading">
       <span class="sec-icon sec-icon--orange">
+        <!-- UGX coin icon -->
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+          stroke="#F25D27" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="1" x2="12" y2="23"/>
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+      </span>
+      <h2 class="sec-title">Flat Commodity Prices</h2>
+    </div>
+    <!-- Branch selector: pick a branch to set its own flat prices, or leave as
+         "All branches" to edit the cooperative-wide default. -->
+    <div class="flat-branch-picker">
+      <label class="field-label">Assign prices to</label>
+      <div class="select-wrap">
+        <select class="branch-select"
+          [ngModel]="selectedFlatBranch()"
+          (ngModelChange)="onFlatBranchChange($event)">
+          <option value="">All branches (cooperative default)</option>
+          @for (b of branches(); track b.id) {
+            <option [value]="b.id">{{ b.name }}</option>
+          }
+        </select>
+        <svg class="select-chevron" width="14" height="14" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </div>
+      <!-- Context hint beneath the dropdown -->
+      @if (selectedFlatBranch()) {
+        <p class="flat-context-hint flat-context-hint--branch">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          Editing prices for this branch only. Other branches keep their own prices or the cooperative default.
+        </p>
+      } @else {
+        <p class="flat-context-hint">
+          These prices apply to all branches that have no branch-specific override set.
+        </p>
+      }
+    </div>
+
+    <div class="commodity-grid">
+
+      @for (row of flatPrices(); track row.commodity) {
+        <div class="commodity-card">
+          <div class="cc-header">
+            <span class="cc-name">{{ row.commodity }}</span>
+            @if (canEditCommodityPrices) {
+              <button type="button" class="remove-commodity-btn"
+                title="Remove {{ row.commodity }}"
+                (click)="removeCommodity(row.commodity)">&times;</button>
+            }
+          </div>
+          <div class="cc-divider"></div>
+          @if (canEditCommodityPrices) {
+            <input type="number" class="price-input cc-input"
+              [(ngModel)]="row.pricePerKg" min="0" step="50" />
+          } @else {
+            <span class="cc-price-display">{{ row.pricePerKg | number:'1.0-0' }}</span>
+          }
+          <span class="cc-unit">UGX / KG</span>
+        </div>
+      }
+
+      <!-- Dashed "add" card — only for users who can edit -->
+      @if (canEditCommodityPrices) {
+        @if (!showAddForm) {
+          <button type="button" class="commodity-card commodity-card--add"
+            (click)="showAddForm = true">
+            <span class="cc-add-icon">+</span>
+            <span class="cc-add-label">Add commodity</span>
+          </button>
+        } @else {
+          <div class="commodity-card commodity-card--add-open">
+            <input type="text" class="price-input cc-input"
+              [(ngModel)]="newCommodityName"
+              placeholder="Name…"
+              (input)="addCommodityError = ''"
+              (keyup.enter)="addCommodity()" />
+            <input type="number" class="price-input cc-input"
+              [(ngModel)]="newCommodityPrice"
+              placeholder="Price / KG"
+              min="0" step="50"
+              (keyup.enter)="addCommodity()" />
+            <div class="cc-add-actions">
+              <button type="button" class="add-commodity-btn" (click)="addCommodity()">Add</button>
+              <button type="button" class="cc-cancel-btn"
+                (click)="showAddForm = false; addCommodityError = ''">✕</button>
+            </div>
+            @if (addCommodityError) {
+              <p class="add-commodity-error">{{ addCommodityError }}</p>
+            }
+          </div>
+        }
+      }
+
+    </div>
+
+    @if (canEditCommodityPrices) {
+      <div class="page-actions" style="margin-top:16px;padding:0;">
+        <app-button
+          variant="primary"
+          [loading]="savingFlat()"
+          loadingText="Saving..."
+          (clicked)="saveFlatPrices()">
+          Save Flat Prices
+        </app-button>
+      </div>
+    }
+  </div>
+  } <!-- end flat mode section -->
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       MODE: PER-BRANCH, PER-COMMODITY, PER-GRADE PRICES  (grade mode ON)
+       ══════════════════════════════════════════════════════════════════════ -->
+
+  @if (useGrades) {
+  <div class="section-card">
+    <div class="section-heading">
+      <span class="sec-icon sec-icon--orange">
+        <!-- Branch building icon -->
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
           stroke="#F25D27" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="2" y="7" width="20" height="14" rx="2"/>
           <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
         </svg>
       </span>
-      <h2 class="sec-title">Select Branch</h2>
+      <h2 class="sec-title">Grade &amp; Commodity Prices by Branch</h2>
     </div>
+    <p style="font-size:0.8rem;color:#666;margin:0 0 12px;">
+      Select a branch, then set the price for each commodity &times; grade combination.
+      Branch staff see these prices auto-filled when recording a delivery.
+    </p>
 
+    <!-- Branch selector -->
     <div class="branch-picker">
       <label class="field-label">Branch</label>
       <div class="select-wrap">
@@ -39,9 +198,9 @@
           class="branch-select"
           [ngModel]="selectedBranch()"
           (ngModelChange)="onBranchChange($event)">
-          <option value="">Choose a branch to edit prices…</option>
+          <option value="">Choose a branch…</option>
           @for (b of branches(); track b.id) {
-            <option [value]="b.id">{{ b.name }} — {{ b.region }}</option>
+            <option [value]="b.id">{{ b.name }} &mdash; {{ b.region }}</option>
           }
         </select>
         <svg class="select-chevron" width="14" height="14" viewBox="0 0 24 24"
@@ -52,47 +211,55 @@
       </div>
     </div>
 
-    <!-- Price table — shown once a branch is selected -->
+    <!-- Loading state while fetching branch prices -->
     @if (selectedBranch() && gradePrices().length === 0) {
-      <div class="state-msg">Loading prices…</div>
+      <div class="state-msg">Loading prices for this branch…</div>
     }
 
+    <!-- Grade × commodity price table -->
     @if (gradePrices().length > 0) {
+
+      <!-- Commodity filter: lets the cooperative admin focus on one crop at a time
+           instead of scrolling through all 44 rows (11 commodities × 4 grades). -->
+      <div class="filter-row">
+        <label class="field-label" style="margin:0;">Filter by commodity</label>
+        <div class="select-wrap" style="max-width:220px;">
+          <select class="branch-select" [(ngModel)]="gradeCommodityFilter">
+            <option value="">All commodities</option>
+            @for (c of uniqueCommodities(); track c) {
+              <option [value]="c">{{ c }}</option>
+            }
+          </select>
+          <svg class="select-chevron" width="14" height="14" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </div>
+      </div>
+
       <table class="price-table">
         <thead>
           <tr>
+            <th>COMMODITY</th>
             <th>GRADE</th>
             <th>CODE</th>
-            <th>CURRENT PRICE (UGX/KG)</th>
-            <th>NEW PRICE (UGX/KG)</th>
-            <th>CHANGE</th>
+            <th>PRICE (UGX/KG)</th>
           </tr>
         </thead>
         <tbody>
-          @for (row of gradePrices(); track row.id) {
-            <tr [class.row--changed]="row.newPrice !== row.currentPrice">
-              <td class="grade-name">{{ row.name }}</td>
-              <td><span class="code-pill">{{ row.code }}</span></td>
-              <td class="current-price">{{ row.currentPrice | number:'1.0-0' }}</td>
+          @for (row of filteredGradePrices(); track row.id) {
+            <tr>
+              <td class="grade-name">{{ row.commodity }}</td>
+              <td>{{ row.gradeName }}</td>
+              <td><span class="code-pill">{{ row.gradeCode }}</span></td>
               <td>
                 <input
                   type="number"
                   class="price-input"
-                  [(ngModel)]="row.newPrice"
+                  [(ngModel)]="row.pricePerKg"
                   min="0"
                   step="50" />
-              </td>
-              <td>
-                @if (row.newPrice !== row.currentPrice) {
-                  <span class="change-badge"
-                    [class.change-badge--up]="row.newPrice > row.currentPrice"
-                    [class.change-badge--down]="row.newPrice < row.currentPrice">
-                    {{ row.newPrice > row.currentPrice ? '▲' : '▼' }}
-                    {{ ((row.newPrice - row.currentPrice) / row.currentPrice * 100) | number:'1.1-1' }}%
-                  </span>
-                } @else {
-                  <span class="no-change">—</span>
-                }
               </td>
             </tr>
           }
@@ -112,15 +279,15 @@
           <button class="qa-btn qa-btn--outline" (click)="increaseAllByPercent()">
             Increase All by %
           </button>
-          <button class="qa-btn" (click)="resetToCurrent()">
-            Reset to Current
+          <button class="qa-btn" (click)="resetGradePrices()">
+            Reset to Saved
           </button>
         </div>
       </div>
     }
   </div>
 
-  <!-- ── Page actions ─────────────────────────────────────────── -->
+  <!-- Save / cancel row — only shown once a branch has been selected and prices loaded. -->
   @if (gradePrices().length > 0) {
     <div class="page-actions">
       <button class="btn-cancel" (click)="router.navigate(['/cooperative/grade-config'])">
@@ -129,11 +296,12 @@
       <app-button
         variant="primary"
         [loading]="saving()"
-        loadingText="Saving…"
-        (clicked)="saveChanges()">
-        Save Prices
+        loadingText="Saving..."
+        (clicked)="saveGradePrices()">
+        Save Grade Prices
       </app-button>
     </div>
   }
+  } <!-- end grade mode section -->
 
 </div>

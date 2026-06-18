@@ -139,7 +139,7 @@ export class IssueStockComponent implements OnInit {
   }
 
   get pageTitle(): string {
-    return this.isCooperativeScope ? 'Issue Stock to Branch' : 'Issue Stock to Farmer';
+    return this.isCooperativeScope ? 'Issue Stock to Branch' : 'Issue Input to Farmer';
   }
 
   get pageSubtitle(): string {

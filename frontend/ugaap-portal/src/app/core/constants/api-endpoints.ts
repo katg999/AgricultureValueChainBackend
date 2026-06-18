@@ -80,6 +80,8 @@ export const API_ENDPOINTS = {
     COLLECTION_HUB_DEACTIVATE: (id: string) => `${BASE}/cooperative/collection-hubs/${id}/deactivate`,
     // Delivery session-hours config (morning/midday/afternoon windows) — cooperative-wide
     SESSION_CONFIG: `${BASE}/cooperative/session-config`,
+    // Season open/close status and month-range config — cooperative-wide
+    SEASON_CONFIG: `${BASE}/cooperative/season-config`,
   },
 
   // ── Branches ────────────────────────────────────────────────────────────────

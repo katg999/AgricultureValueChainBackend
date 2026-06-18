@@ -9,7 +9,7 @@
     </div>
   </div>
 
-  <div class="kpi-grid">
+  <!-- <div class="kpi-grid">
     <div class="kpi-card">
       <span class="kpi-label">Total Branches</span>
       <h2>{{ filteredDeliveries.length }}</h2>
@@ -35,7 +35,7 @@
       <h2>{{ approvedCount(filteredDeliveries) }}</h2>
       <small>Approved deliveries</small>
     </div>
-  </div>
+  </div> -->
 
   <div class="season-tabs">
     <button type="button" class="season-tab" [class.active]="selectedSeason === ''" (click)="setSeasonFilter('')">
@@ -101,10 +101,9 @@
                   (click)="toggleActionMenu(d, $event)">
                   <span></span><span></span><span></span>
                 </button>
+                <!-- Cooperative role is view-only — navigate into the farmer list to see delivery detail. -->
                 <div class="menu-panel" *ngIf="openActionMenuId === d.id">
-                  <button type="button" (click)="openEdit(d)">Edit delivery</button>
-                  <button type="button" (click)="approveDelivery(d)" [disabled]="d.status === 'Approved'">Approve</button>
-                  <button type="button" class="danger" (click)="rejectDelivery(d)" [disabled]="d.status === 'Rejected'">Reject</button>
+                  <button type="button" (click)="viewFarmers(d)">View Farmers</button>
                 </div>
               </div>
             </td>
@@ -131,71 +130,3 @@
 
 </div>
 
-<!-- Edit modal — rendered on top of the list when navigated to /:id/edit -->
-<div class="modal-backdrop" *ngIf="isEditRoute" (click)="cancelEdit()">
-  <section class="add-delivery-modal" (click)="$event.stopPropagation()" aria-modal="true" role="dialog"
-           *ngIf="editingDelivery && form; else missingDelivery">
-    <div class="modal-header">
-      <div>
-        <h2>Edit Branch Delivery</h2>
-        <p>{{ editingDelivery.id }} · {{ editingDelivery.branchName }}</p>
-      </div>
-      <button type="button" class="modal-close-btn" aria-label="Close" (click)="cancelEdit()">×</button>
-    </div>
-
-    <form [formGroup]="form" (ngSubmit)="saveEdit()" class="add-delivery-form" novalidate>
-      <div class="form-grid">
-        <label class="form-field">
-          <span>Branch Name <span class="required">*</span></span>
-          <input formControlName="branchName" />
-        </label>
-        <label class="form-field">
-          <span>Farmer Count <span class="required">*</span></span>
-          <input type="number" formControlName="farmerCount" min="1" />
-        </label>
-        <label class="form-field">
-          <span>Commodity <span class="required">*</span></span>
-          <select formControlName="commodity">
-            <option *ngFor="let c of commodityOptions; trackBy: trackByOption" [value]="c">{{ c }}</option>
-          </select>
-        </label>
-        <label class="form-field">
-          <span>Volume (KG) <span class="required">*</span></span>
-          <input type="number" formControlName="volume" min="0" />
-        </label>
-        <label class="form-field">
-          <span>Est. Value (UGX) <span class="required">*</span></span>
-          <input type="number" formControlName="estimatedValue" min="0" />
-        </label>
-        <label class="form-field">
-          <span>Status <span class="required">*</span></span>
-          <select formControlName="status">
-            <option *ngFor="let s of statusOptions; trackBy: trackByOption" [value]="s">{{ s }}</option>
-          </select>
-        </label>
-        <label class="form-field">
-          <span>Season <span class="required">*</span></span>
-          <select formControlName="season">
-            <option *ngFor="let s of seasonOptions; trackBy: trackByOption" [value]="s">{{ s }}</option>
-          </select>
-        </label>
-      </div>
-      <div class="modal-actions">
-        <button type="button" class="btn secondary-action-btn" (click)="cancelEdit()">Cancel</button>
-        <button type="submit" class="btn primary-action-btn">Save Changes</button>
-      </div>
-    </form>
-  </section>
-
-  <ng-template #missingDelivery>
-    <section class="add-delivery-modal" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <div>
-          <h2>Not Found</h2>
-          <p>Delivery not found.</p>
-        </div>
-        <button type="button" class="modal-close-btn" (click)="cancelEdit()">×</button>
-      </div>
-    </section>
-  </ng-template>
-</div>

@@ -145,6 +145,11 @@ tbody tr:hover {
   color: var(--muted-purple);
 }
 
+.deduction-cell {
+  color: #dc3545;
+  font-weight: 500;
+}
+
 /* PAGINATION */
 
 .pagination-section {
