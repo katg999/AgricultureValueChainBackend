@@ -55,12 +55,8 @@ export class AuthService {
       .pipe(tap((res) => this.session.updateAccessToken(res.accessToken)));
   }
 
-  forgotPassword(payload: ForgotPasswordRequest): Observable<ForgotPasswordResponse> {
-    return this.http.post<ForgotPasswordResponse>(API_ENDPOINTS.AUTH.FORGOT_PASSWORD, payload);
-  }
-
-  resetPassword(payload: ResetPasswordRequest): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(API_ENDPOINTS.AUTH.RESET_PASSWORD, payload);
+  forgotPassword(payload: { email: string }): Observable<any> {
+    return this.http.post<any>(API_ENDPOINTS.AUTH.FORGOT_PASSWORD, payload);
   }
 
   resendOtp(tempToken: string): Observable<{ message: string }> {
@@ -75,5 +71,13 @@ export class AuthService {
     return this.http
       .post<{ message: string }>(API_ENDPOINTS.AUTH.LOGOUT, {})
       .pipe(tap(() => this.session.logout()));
+  }
+
+  verifyPasswordResetOtp(payload: { email: string; otp: string }): Observable<any> {
+    return this.http.post<any>(API_ENDPOINTS.AUTH.VERIFY_PASSWORD_RESET_OTP, payload);
+  }
+
+  resetPassword(payload: { verifiedToken: string; newPassword: string }): Observable<any> {
+    return this.http.post<any>(API_ENDPOINTS.AUTH.RESET_PASSWORD, payload);
   }
 }

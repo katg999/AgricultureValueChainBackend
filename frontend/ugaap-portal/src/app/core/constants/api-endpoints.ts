@@ -15,9 +15,10 @@ export const API_ENDPOINTS = {
     LOGIN: `${BASE}/auth/login`,
     LOGOUT: `${BASE}/auth/logout`,
     VERIFY_OTP: `${BASE}/auth/verify-otp`,
+    VERIFY_PASSWORD_RESET_OTP: `${BASE}/auth/password-reset/verify-otp`,
     REFRESH_TOKEN: `${BASE}/auth/refresh-token`,
-    FORGOT_PASSWORD: `${BASE}/auth/forgot-password`,
-    RESET_PASSWORD: `${BASE}/auth/reset-password`,
+    FORGOT_PASSWORD: `${BASE}/auth/password-reset/request`,
+    RESET_PASSWORD: `${BASE}/auth/password-reset/set-password`,
     RESEND_OTP: `${BASE}/auth/resend-otp`,
   },
 
