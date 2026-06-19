@@ -51,11 +51,11 @@ const STEP_FIELDS: string[][] = [
 export class CooperativeOnboardingComponent implements OnInit {
   // ── Stepper ───────────────────────────────────────────────
   readonly steps: Step[] = [
-    { label: 'Identity',  number: '01' },
-    { label: 'Address',   number: '02' },
-    { label: 'Contact',   number: '03' },
-    { label: 'Branch',    number: '04' },
-    { label: 'Review',    number: '05' },
+    { label: 'Identity', number: '01' },
+    { label: 'Address',  number: '02' },
+    { label: 'Branch',   number: '03' },
+    { label: 'Bank',     number: '04' },
+    { label: 'Review',   number: '05' },
   ];
   currentStep = 0;
 
@@ -66,9 +66,9 @@ export class CooperativeOnboardingComponent implements OnInit {
   // Field groups per step, used for step-level validation
   private stepFields: string[][] = [
     ['name', 'registrationNumber'],
-    ['address', 'country', 'poBox', 'websiteUrl'],
-    ['contactPersonName', 'contactPersonPhone', 'contactPersonEmail'],
-    ['defaultBranchName', 'defaultBranchLocation'],
+    ['address', 'country'],
+    ['defaultBranchName'],
+    ['accountName', 'accountNumber'],
     [],
   ];
 
@@ -109,16 +109,16 @@ export class CooperativeOnboardingComponent implements OnInit {
       country: ['', Validators.required],
       poBox: [''],
       websiteUrl: [''],
-      contactPersonName: ['', Validators.required],
-      contactPersonPhone: ['', Validators.required],
-      contactPersonEmail: ['', [Validators.required, Validators.email]],
+      contactPersonName:  [''],
+      contactPersonPhone: [''],
+      contactPersonEmail: ['', Validators.email],
 
       // Default branch — created automatically on activation
       defaultBranchName:     ['', Validators.required],
       defaultBranchLocation: [''],
 
-      // Bank details — where farmer payments are disbursed from
-      bankName:            ['', Validators.required],
+      // Bank details — fixed to Pearl Bank (formerly Post Bank Uganda)
+      bankName:            ['Pearl Bank'],
       bankBranch:          [''],
       accountName:         ['', Validators.required],
       accountNumber:       ['', [Validators.required, Validators.pattern(/^\d{6,20}$/)]],

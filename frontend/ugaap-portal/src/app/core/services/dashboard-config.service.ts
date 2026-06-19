@@ -210,7 +210,7 @@ const BRANCH_CONFIG: DashboardConfig = {
       permissionModule: 'inventory',
       children: [
         { label: 'Current Stock',   icon: '', route: '/branch/inventory/current-stock',   permissions: ['inventory.view'] },
-        { label: 'Issue Stock',     icon: '', route: '/branch/inventory/issue-stock',     permissions: ['inventory.issue'] },
+        { label: 'Issue Input',     icon: '', route: '/branch/inventory/issue-input',     permissions: ['inventory.issue'] },
         { label: 'Stock-disbursed', icon: '', route: '/branch/inventory/stock-disbursed', permissions: ['inventory.disburse'] },
         { label: 'Request Stock',   icon: '', route: '/branch/inventory/request-stock',   permissions: ['inventory.request'] },
       ],

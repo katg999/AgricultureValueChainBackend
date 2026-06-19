@@ -5,9 +5,11 @@ import { Router } from '@angular/router';
 import { BehaviorSubject, combineLatest, map, Observable, shareReplay, tap } from 'rxjs';
 
 import { BranchDelivery, DeliveryStatus, DeliverySession, Season } from '../branch.delivery.model';
+import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { BranchDeliveryService } from '../branch.delivery.service';
 import { SessionService } from '../../../../core/services/session.service';
 import { DeliverySessionConfigService } from '../../../../core/services/delivery-session-config.service';
+import { ToastService } from '../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-branch-deliveries',
@@ -15,6 +17,7 @@ import { DeliverySessionConfigService } from '../../../../core/services/delivery
   imports: [
     CommonModule,
     FormsModule,
+    EmptyStateComponent,
   ],
   templateUrl: './branch.delivery.list.component.html',
   styleUrls: ['./branch.delivery.list.component.css'],
@@ -51,6 +54,7 @@ export class BranchDeliveriesComponent implements OnInit, OnDestroy {
     private router: Router,
     private session: SessionService,
     private sessionConfig: DeliverySessionConfigService,
+    private toast: ToastService,
   ) {}
 
   ngOnInit(): void {
@@ -120,17 +124,50 @@ export class BranchDeliveriesComponent implements OnInit, OnDestroy {
     this.router.navigate(['/branch/collections/deliveries/add']);
   }
 
-  // Routes to the farmers list, scoped to just this delivery batch's farmers.
-  viewDelivery(delivery: BranchDelivery): void {
+  // Navigate to the farmer list scoped to this delivery batch.
+  viewFarmers(delivery: BranchDelivery): void {
     this.openActionMenuId = null;
     this.router.navigate(['/branch/collections/farmers'], {
       queryParams: { batch: delivery.id },
     });
   }
 
-  editDelivery(delivery: BranchDelivery): void {
+  approveDelivery(delivery: BranchDelivery): void {
     this.openActionMenuId = null;
-    this.router.navigate(['/branch/collections/deliveries/edit', delivery.id]);
+    this.svc.updateDelivery(delivery.id, {
+      branchId:       delivery.branchId,
+      branchName:     delivery.branchName,
+      farmerCount:    delivery.farmerCount,
+      commodity:      delivery.commodity,
+      volume:         delivery.volume,
+      volumeUnit:     delivery.volumeUnit,
+      estimatedValue: delivery.estimatedValue,
+      status:         'Approved',
+      season:         delivery.season,
+      session:        delivery.session,
+    }).subscribe({
+      next: () => this.toast.success('Delivery approved', `${delivery.id} has been marked as approved.`),
+      error: () => this.toast.error('Could not approve', 'Please try again.'),
+    });
+  }
+
+  rejectDelivery(delivery: BranchDelivery): void {
+    this.openActionMenuId = null;
+    this.svc.updateDelivery(delivery.id, {
+      branchId:       delivery.branchId,
+      branchName:     delivery.branchName,
+      farmerCount:    delivery.farmerCount,
+      commodity:      delivery.commodity,
+      volume:         delivery.volume,
+      volumeUnit:     delivery.volumeUnit,
+      estimatedValue: delivery.estimatedValue,
+      status:         'Rejected',
+      season:         delivery.season,
+      session:        delivery.session,
+    }).subscribe({
+      next: () => this.toast.success('Delivery rejected', `${delivery.id} has been marked as rejected.`),
+      error: () => this.toast.error('Could not reject', 'Please try again.'),
+    });
   }
 
   toggleActionMenu(deliveryId: string, event: MouseEvent): void {

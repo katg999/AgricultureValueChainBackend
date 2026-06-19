@@ -4,6 +4,8 @@
   Manage system and custom roles with permissions
 -->
 
+
+
 <div class="page">
   <div class="page-container">
     
@@ -48,15 +50,14 @@
       </app-role-card>
     </div>
 
-    <!-- Empty State -->
-    <div class="empty-state" *ngIf="filteredRoles.length === 0">
-      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-        <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-      <h3>No roles found</h3>
-      <p>Try adjusting your search query</p>
-    </div>
+    <app-empty-state
+      *ngIf="filteredRoles.length === 0"
+      icon="shield"
+      title="No roles found"
+      message="Try adjusting your search, or create a new role."
+      actionLabel="Create Role"
+      route="/platform/roles/role-form">
+    </app-empty-state>
 
   </div>
 </div>

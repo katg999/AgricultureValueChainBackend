@@ -7,6 +7,7 @@ import { StatsCardComponent } from '../../../../shared/components/stats-card/sta
 import { BadgeComponent }     from '../../../../shared/components/badge/badge';
 import { ButtonComponent }    from '../../../../shared/components/button/button.component';
 import { ToastService }       from '../../../../core/services/toast.service';
+import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 
 export interface User {
   id:           string;
@@ -25,7 +26,7 @@ type BadgeVariant = 'info' | 'active' | 'pending' | 'inactive' | 'suspended' |
 @Component({
   selector: 'app-users-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, StatsCardComponent, BadgeComponent, ButtonComponent],
+  imports: [CommonModule, RouterModule, FormsModule, StatsCardComponent, BadgeComponent, ButtonComponent, EmptyStateComponent],
   templateUrl: './users-list.component.html',
   styleUrls: ['./users-list.component.css'],
 })

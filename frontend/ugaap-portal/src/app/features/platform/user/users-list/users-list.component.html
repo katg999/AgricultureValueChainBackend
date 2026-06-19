@@ -123,7 +123,18 @@
           </tr>
         </thead>
         <tbody>
-          <tr 
+          <tr *ngIf="users.length === 0">
+            <td colspan="7">
+              <app-empty-state
+                icon="users"
+                title="No users found"
+                message="Add the first user to get started."
+                actionLabel="Add User"
+                route="/platform/users/add-user">
+              </app-empty-state>
+            </td>
+          </tr>
+          <tr
             *ngFor="let user of users"
             class="table-row"
             (click)="onRowClicked(user)">

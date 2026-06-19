@@ -117,7 +117,15 @@
         </tr>
 
         <tr *ngIf="filteredItems.length === 0">
-          <td colspan="6" class="empty-row">No stock items match your filters.</td>
+          <td colspan="6">
+            <app-empty-state
+              icon="box"
+              title="No stock items"
+              message="Add stock to start tracking your branch inventory."
+              actionLabel="Add Stock"
+              (actionClick)="addStock()">
+            </app-empty-state>
+          </td>
         </tr>
       </tbody>
     </table>

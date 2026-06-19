@@ -82,8 +82,12 @@
           </td>
         </tr>
         <tr *ngIf="paginatedFarmers.length === 0 && !loading">
-          <td colspan="7" class="no-results">
-            No farmers match the current filters.
+          <td colspan="7">
+            <app-empty-state
+              icon="farmer"
+              title="No farmers found"
+              message="Farmers registered at branches will appear here. Try adjusting your search or filters.">
+            </app-empty-state>
           </td>
         </tr>
       </tbody>
