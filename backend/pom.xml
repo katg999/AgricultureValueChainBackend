@@ -20,7 +20,6 @@
 		<module>shared</module>
 		<module>AuthenticationService</module>
 		<module>MembershipService</module>
-		<module>CollectionService</module>
 		<module>InventoryService 2</module>
 	</modules>
 
