@@ -19,39 +19,34 @@
 //   OTP is valid for 5 minutes.  A local countdown informs the user.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import {
-  Component,
-  OnInit, OnDestroy, AfterViewInit,
-  ViewChild, ElementRef,
-} from '@angular/core';
-import { CommonModule }    from '@angular/common';
+import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 
-import { AuthService }            from '../../../core/services/auth.service';
-import { SessionService }         from '../../../core/services/session.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { SessionService } from '../../../core/services/session.service';
 import { DashboardConfigService } from '../../../core/services/dashboard-config.service';
 
 // Shared UI components
 import { ButtonComponent } from '../../../shared/components/button/button.component';
-import { LogoComponent }   from '../../../shared/components/logo/logo.component';
-import { AlertComponent }  from '../../../shared/components/alert/alert.component';
+import { LogoComponent } from '../../../shared/components/logo/logo.component';
+import { AlertComponent } from '../../../shared/components/alert/alert.component';
 
 @Component({
   selector: 'app-otp-verify',
   standalone: true,
   imports: [CommonModule, RouterModule, ButtonComponent, LogoComponent, AlertComponent],
   templateUrl: './otp-verify.component.html',
-  styleUrl:    './otp-verify.component.css',
+  styleUrl: './otp-verify.component.css',
 })
 export class OtpVerifyComponent implements OnInit, AfterViewInit, OnDestroy {
-
   /** Hidden <input> that captures keystrokes — the visible boxes are decorative */
   @ViewChild('hiddenInput') hiddenInput!: ElementRef<HTMLInputElement>;
 
   /** 4-digit code as the user types */
   otpValue = '';
 
-  isLoading    = false;
+  isLoading = false;
   errorMessage = '';
 
   /** Counts down from 300 s (5 min) — OTP validity window */
@@ -61,25 +56,25 @@ export class OtpVerifyComponent implements OnInit, AfterViewInit, OnDestroy {
   resendCooldown = 0;
 
   private countdownTimer: ReturnType<typeof setInterval> | null = null;
-  private resendTimer:    ReturnType<typeof setInterval> | null = null;
+  private resendTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor(
-    private router:          Router,
-    private authService:     AuthService,
-    private session:         SessionService,
+    private router: Router,
+    private authService: AuthService,
+    private session: SessionService,
     private dashboardConfig: DashboardConfigService,
   ) {}
 
   // ── Lifecycle ───────────────────────────────────────────────────────────────
 
   ngOnInit(): void {
-    // const token = this.session.getTempToken();
-    // console.log('OTP page -token:', token);
-    // if (!token) {
-    //   console.log('No token -> redirecting');
-    //   this.router.navigate(['/auth/login']);
-    //   return;
-    // }
+    const token = this.session.getTempToken();
+    console.log('OTP page -token:', token);
+    if (!token) {
+      console.log('No token -> redirecting');
+      this.router.navigate(['/auth/login']);
+      return;
+    }
     this.startCountdown();
   }
 
@@ -124,10 +119,10 @@ export class OtpVerifyComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** Filter non-digits; auto-verify when the 4th digit is entered */
   onHiddenInput(event: Event): void {
-    const input   = event.target as HTMLInputElement;
+    const input = event.target as HTMLInputElement;
     const cleaned = input.value.replace(/\D/g, '').slice(0, 4);
     this.otpValue = cleaned;
-    input.value   = cleaned;
+    input.value = cleaned;
 
     if (this.isComplete) {
       // Short delay lets the user see the filled boxes before the spinner appears
@@ -137,8 +132,7 @@ export class OtpVerifyComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** Block non-digit key presses early */
   onHiddenKeyDown(event: KeyboardEvent): void {
-    const allowed = /^\d$/.test(event.key) ||
-      ['Backspace', 'Delete', 'Tab'].includes(event.key);
+    const allowed = /^\d$/.test(event.key) || ['Backspace', 'Delete', 'Tab'].includes(event.key);
     if (!allowed) event.preventDefault();
   }
 
@@ -164,19 +158,38 @@ export class OtpVerifyComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    this.isLoading    = true;
+    this.isLoading = true;
     this.errorMessage = '';
 
-    this.authService.verifyOtp({ tempToken, otpCode: this.otpValue }).subscribe({
-      next: () => {
+    this.authService.verifyLoginOtp({ tempToken, otp: this.otpValue }).subscribe({
+      next: (res) => {
         this.isLoading = false;
-        // Navigate to the role-appropriate home page
-        this.router.navigateByUrl(this.dashboardConfig.homeRoute());
+
+        const roles: string[] = res?.data?.roles ?? [];
+
+        if (roles.includes('PLATFORM_ADMIN')) {
+          this.router.navigateByUrl('/platform/dashboard');
+          return;
+        }
+
+        if (
+          roles.includes('COOPERATIVE_ADMIN_MAKER') ||
+          roles.includes('COOPERATIVE_ADMIN_CHECKER')
+        ) {
+          const userId = res?.data?.userId;
+          const hasCompletedSetup = localStorage.getItem(`setup_complete_${userId}`);
+          this.router.navigateByUrl(
+            hasCompletedSetup ? '/branch/farmers/list' : '/auth/first-time-login',
+          );
+          return;
+        }
+
+        // fallback
+        this.router.navigateByUrl('/platform/dashboard');
       },
       error: (err) => {
-        this.isLoading    = false;
+        this.isLoading = false;
         this.errorMessage = err?.error?.message ?? 'Invalid OTP code. Please try again.';
-        // Clear the boxes so the user can re-enter
         this.otpValue = '';
         this.hiddenInput.nativeElement.value = '';
         this.hiddenInput.nativeElement.focus();
@@ -195,8 +208,8 @@ export class OtpVerifyComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!tempToken) return;
 
     // Reset local state
-    this.timeLeft    = 300;
-    this.otpValue    = '';
+    this.timeLeft = 300;
+    this.otpValue = '';
     this.errorMessage = '';
     this.hiddenInput.nativeElement.value = '';
     this.startCountdown();
@@ -235,6 +248,6 @@ export class OtpVerifyComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private _clearTimers(): void {
     if (this.countdownTimer) clearInterval(this.countdownTimer);
-    if (this.resendTimer)    clearInterval(this.resendTimer);
+    if (this.resendTimer) clearInterval(this.resendTimer);
   }
 }
