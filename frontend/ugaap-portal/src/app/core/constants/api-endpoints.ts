@@ -14,7 +14,7 @@ export const API_ENDPOINTS = {
   AUTH: {
     LOGIN: `${BASE}/auth/login`,
     LOGOUT: `${BASE}/auth/logout`,
-    VERIFY_OTP: `${BASE}/auth/verify-otp`,
+    VERIFY_OTP: `${BASE}/auth/login/verify-otp`,
     VERIFY_PASSWORD_RESET_OTP: `${BASE}/auth/password-reset/verify-otp`,
     REFRESH_TOKEN: `${BASE}/auth/refresh-token`,
     FORGOT_PASSWORD: `${BASE}/auth/password-reset/request`,
@@ -77,7 +77,8 @@ export const API_ENDPOINTS = {
     COLLECTION_HUBS: `${BASE}/cooperative/collection-hubs`,
     COLLECTION_HUB_BY_ID: (id: string) => `${BASE}/cooperative/collection-hubs/${id}`,
     COLLECTION_HUB_ACTIVATE: (id: string) => `${BASE}/cooperative/collection-hubs/${id}/activate`,
-    COLLECTION_HUB_DEACTIVATE: (id: string) => `${BASE}/cooperative/collection-hubs/${id}/deactivate`,
+    COLLECTION_HUB_DEACTIVATE: (id: string) =>
+      `${BASE}/cooperative/collection-hubs/${id}/deactivate`,
     // Delivery session-hours config (morning/midday/afternoon windows) — cooperative-wide
     SESSION_CONFIG: `${BASE}/cooperative/session-config`,
     // Season open/close status and month-range config — cooperative-wide
