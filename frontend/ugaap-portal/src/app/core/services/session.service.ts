@@ -15,16 +15,43 @@ import { AuthUser } from '../models/auth.model';
 import { environment } from '../../../environments/environment';
 
 /** Seeded only in development when no real session exists — lets role-based filtering be demonstrated without a backend. */
-const DEV_MOCK_USER: AuthUser = {
+// const DEV_MOCK_USER: AuthUser = {
+//   id: 'DEV-BRANCH-001',
+//   fullName: 'Demo Branch Staff',
+//   email: 'branch@ugaap.dev',
+//   phone: '0700000002',
+//   role: 'branch',
+//   cooperativeId: 'COOP-001',
+//   branchId: 'BRANCH-001',
+// // ── Dev mock users — comment/uncomment the active one below ─────────────────
+
+/** Branch manager at Mbale West — use for branch delivery recording, farmer list, etc. */
+const DEV_MOCK_BRANCH_USER: AuthUser = {
   id: 'DEV-BRANCH-001',
-  fullName: 'Demo Branch Staff',
+  fullName: 'Demo Branch Manager',
   email: 'branch@ugaap.dev',
-  phone: '0700000002',
-  role: 'branch',
+  phone: '0700000001',
+  role: 'branch',           // maps to BRANCH_MANAGER_PERMISSIONS in permission.service.ts
   cooperativeId: 'COOP-001',
-  branchId: 'BRANCH-001',
+  branchId: 'BR-MBL',       // Mbale West — has the most seed delivery data
   permissions: [],
 };
+
+/** Cooperative admin — use for cooperative delivery overview, pricing config, etc. */
+const DEV_MOCK_COOP_USER: AuthUser = {
+  id: 'DEV-COOP-001',
+  fullName: 'Demo Cooperative Admin',
+  email: 'coop@ugaap.dev',
+  phone: '0700000002',
+  role: 'cooperative',      // maps to COOPERATIVE_PERMISSIONS in permission.service.ts
+  cooperativeId: 'COOP-001',
+  // no branchId — cooperative admin sees all branches, not tied to one
+  permissions: [],
+};
+
+// Switch between the two by commenting the other out.
+const DEV_MOCK_USER = DEV_MOCK_BRANCH_USER;
+// const DEV_MOCK_USER = DEV_MOCK_COOP_USER;
 
 /** Keys used in storage — centralised so there are no magic strings elsewhere */
 const KEYS = {

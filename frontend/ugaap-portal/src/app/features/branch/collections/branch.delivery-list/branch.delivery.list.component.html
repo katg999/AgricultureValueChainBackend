@@ -134,14 +134,23 @@
                   [style.right.px]="menuPosition.right">
                   <button
                     type="button"
-                    (click)="viewDelivery(delivery)">
-                    View
+                    (click)="viewFarmers(delivery)">
+                    View Farmers
                   </button>
-
+                  <!-- Approve/Reject are hidden when the delivery is already in that state -->
                   <button
                     type="button"
-                    (click)="editDelivery(delivery)">
-                    Edit
+                    class="menu-item--approve"
+                    *ngIf="delivery.status !== 'Approved'"
+                    (click)="approveDelivery(delivery)">
+                    Approve
+                  </button>
+                  <button
+                    type="button"
+                    class="menu-item--reject"
+                    *ngIf="delivery.status !== 'Rejected'"
+                    (click)="rejectDelivery(delivery)">
+                    Reject
                   </button>
                 </div>
 
