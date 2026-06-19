@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 public class OtpRequest {
+
     @Data
     public static class Request {
         @Email
@@ -17,9 +18,10 @@ public class OtpRequest {
         @Email
         @NotBlank
         private String email;
+
         @NotBlank
         private String otp;
-        @NotBlank
-        private String newPassword;
+
+
     }
 }
