@@ -4,13 +4,14 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { ActivatedRoute, Router } from '@angular/router';
 import { BehaviorSubject, combineLatest, map, Observable, shareReplay, Subject, takeUntil, tap } from 'rxjs';
 import { BranchDelivery, BranchDeliveryFormData, DeliverySession, DeliveryStatus, Season } from '../../../branch/collections/branch.delivery.model';
+import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { BranchDeliveryService } from '../../../branch/collections/branch.delivery.service';
 import { DeliverySessionConfigService } from '../../../../core/services/delivery-session-config.service';
 
 @Component({
   selector: 'app-cooperative-deliveries',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, EmptyStateComponent],
   templateUrl: './delivery.cooperative.list.component.html',
   styleUrls: ['./delivery.cooperative.list.component.css'],
 })

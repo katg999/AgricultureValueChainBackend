@@ -16,12 +16,13 @@ import { environment } from '../../../environments/environment';
 
 /** Seeded only in development when no real session exists — lets role-based filtering be demonstrated without a backend. */
 const DEV_MOCK_USER: AuthUser = {
-  id: 'DEV-COOP-001',
-  fullName: 'Demo Cooperative Admin',
-  email: 'admin@ugaap.dev',
-  phone: '0700000001',
-  role: 'cooperative_admin',
+  id: 'DEV-BRANCH-001',
+  fullName: 'Demo Branch Staff',
+  email: 'branch@ugaap.dev',
+  phone: '0700000002',
+  role: 'branch',
   cooperativeId: 'COOP-001',
+  branchId: 'BRANCH-001',
   permissions: [],
 };
 

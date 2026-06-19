@@ -6,13 +6,14 @@ import { BehaviorSubject, combineLatest, map, Observable, Subject, takeUntil, ta
 
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
+import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { FarmerListItem, FarmerService } from '../../../shared-farmer-domain/farmer.service';
 import { ToastService } from '../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-farmer-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, InputComponent, ButtonComponent],
+  imports: [CommonModule, FormsModule, InputComponent, ButtonComponent, EmptyStateComponent],
   templateUrl: './farmer-list.component.html',
   styleUrl: './farmer-list.component.css',
 })

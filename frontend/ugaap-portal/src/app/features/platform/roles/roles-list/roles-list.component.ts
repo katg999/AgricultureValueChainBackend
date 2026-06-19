@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 // Shared components
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { RoleCardComponent, RoleCardData } from '../../../../shared/components/role-card/role-card.component';
+import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 
 /**
  * Roles List Component
@@ -34,7 +35,8 @@ import { RoleCardComponent, RoleCardData } from '../../../../shared/components/r
     RouterModule,
     FormsModule,
     ButtonComponent,
-    RoleCardComponent
+    RoleCardComponent,
+    EmptyStateComponent
   ],
   templateUrl: './roles-list.component.html',
   styleUrls: ['./roles-list.component.css']

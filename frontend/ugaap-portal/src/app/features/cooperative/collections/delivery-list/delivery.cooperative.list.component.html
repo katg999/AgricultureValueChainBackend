@@ -73,7 +73,13 @@
         </thead>
         <tbody>
           <tr *ngIf="paginatedDeliveries.length === 0">
-            <td colspan="8" class="empty-state">No branch deliveries found matching the criteria.</td>
+            <td colspan="8">
+              <app-empty-state
+                icon="truck"
+                title="No deliveries found"
+                message="Branch deliveries will appear here once recorded.">
+              </app-empty-state>
+            </td>
           </tr>
           <tr *ngFor="let d of paginatedDeliveries; trackBy: trackByDeliveryId">
             <td>

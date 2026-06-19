@@ -151,11 +151,15 @@
 
           </tr>
 
-          <!-- Empty State -->
           <tr *ngIf="paginatedDeliveries.length === 0">
-
-            <td colspan="8" class="empty-state">
-              No deliveries found.
+            <td colspan="8">
+              <app-empty-state
+                icon="truck"
+                title="No deliveries yet"
+                message="Record the first farmer delivery to get started."
+                actionLabel="Add Delivery"
+                route="/branch/collections/deliveries/add">
+              </app-empty-state>
             </td>
 
           </tr>

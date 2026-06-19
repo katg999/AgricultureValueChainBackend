@@ -35,14 +35,14 @@
       </app-role-card>
     </div>
 
-    <div class="empty-state" *ngIf="filteredRoles.length === 0">
-      <svg width="56" height="56" viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
-        <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-      <h3>No roles found</h3>
-      <p>Try adjusting your search, or create a new role.</p>
-    </div>
+    <app-empty-state
+      *ngIf="filteredRoles.length === 0"
+      icon="shield"
+      title="No roles found"
+      message="Try adjusting your search, or create a new role."
+      actionLabel="Create Role"
+      route="/cooperative/roles/create">
+    </app-empty-state>
 
   </div>
 </div>

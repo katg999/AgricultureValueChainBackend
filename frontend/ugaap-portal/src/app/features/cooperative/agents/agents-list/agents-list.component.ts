@@ -12,6 +12,7 @@ import { FormsModule } from '@angular/forms';
 
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
+import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { HasPermissionDirective } from '../../../../shared/directives/has-permission.directive';
 import { ToastService } from '../../../../core/services/toast.service';
 import { Agent, AgentStatus, AgentsService } from '../agents.service';
@@ -21,7 +22,7 @@ type StatusFilter = 'all' | AgentStatus;
 @Component({
   selector: 'app-agents-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonComponent, ModalComponent, HasPermissionDirective],
+  imports: [CommonModule, FormsModule, ButtonComponent, ModalComponent, HasPermissionDirective, EmptyStateComponent],
   templateUrl: './agents-list.component.html',
   styleUrls: ['./agents-list.component.css'],
 })

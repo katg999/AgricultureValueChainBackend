@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { AlertComponent } from '../../../../shared/components/alert/alert.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
+import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
 import {
   InventoryScope,
@@ -31,6 +32,7 @@ const THRESHOLD_MULTIPLIER = 4;
     AlertComponent,
     ButtonComponent,
     StatCardComponent,
+    EmptyStateComponent,
   ],
   templateUrl: './current-stock.component.html',
   styleUrls: ['./current-stock.component.css'],

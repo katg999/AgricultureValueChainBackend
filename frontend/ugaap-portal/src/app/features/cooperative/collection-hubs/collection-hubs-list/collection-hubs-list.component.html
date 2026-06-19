@@ -122,7 +122,15 @@
         </tr>
 
         <tr *ngIf="filteredHubs().length === 0">
-          <td colspan="8" class="empty-row">No hubs match your filters.</td>
+          <td colspan="8">
+            <app-empty-state
+              icon="building"
+              title="No collection hubs"
+              message="Add a hub to start tracking produce intake across your branches."
+              actionLabel="Add Hub"
+              route="/cooperative/collection-hubs/new">
+            </app-empty-state>
+          </td>
         </tr>
       </tbody>
     </table>
