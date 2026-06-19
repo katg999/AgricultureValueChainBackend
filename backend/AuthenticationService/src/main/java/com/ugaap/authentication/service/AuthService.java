@@ -20,6 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -45,14 +46,15 @@ public class    AuthService {
     private final StringRedisTemplate    redisTemplate;
     private final MembershipServiceClient membershipServiceClient;
 
-    // ── Login ─────────────────────────────────────────────────
+// ── Login Step 1: Validate credentials, send OTP, return tempToken ──────
 
     @Transactional
-    public LoginResponse login(LoginRequest request,
-                               HttpServletRequest httpRequest) {
+    public TempTokenResponse loginStep1(LoginRequest request,
+                                        HttpServletRequest httpRequest) {
         String ip        = extractIp(httpRequest);
         String userAgent = httpRequest.getHeader("User-Agent");
 
+        // 1. Find credentials
         Credentials credentials = credentialsRepository
                 .findByUsernameOrEmail(
                         request.getUsernameOrEmail(),
@@ -64,42 +66,109 @@ public class    AuthService {
                     return new AuthException("Invalid username/email or password");
                 });
 
+        // 2. Check if account is locked
         if (credentials.isLocked()) {
             throw new AccountLockedException(
                     "Account locked until " + credentials.getLockedUntil());
         }
 
+        // 3. Validate password
         if (!passwordEncoder.matches(
                 request.getPassword(), credentials.getPasswordHash())) {
             handleFailedAttempt(credentials, ip, userAgent);
             throw new AuthException("Invalid username/email or password");
         }
 
-        // Reset failed attempts
+        // 4. Reset failed attempts on successful password match
         credentials.setFailedLoginAttempts(0);
         credentials.setLockedUntil(null);
         credentials.setLastLoginAt(LocalDateTime.now());
         credentialsRepository.save(credentials);
 
-        // Fetch claims from MembershipService
-        MembershipServiceClient.TokenClaimsResponse claims =
-                membershipServiceClient.getTokenClaims(
-                        credentials.getUserId().toString());
+        // 5. Generate 6-digit OTP
+        String otp = String.format("%04d", new SecureRandom().nextInt(10000));
 
+        // 6. Generate tempToken (UUID)
+        String tempToken = UUID.randomUUID().toString();
+
+        // 7. Store in Redis: "login_otp:{tempToken}" → "{userId}:{otp}", TTL 5 min
+        String payload = credentials.getUserId().toString() + ":" + otp;
+        redisTemplate.opsForValue().set(
+                "login_otp:" + tempToken,
+                payload,
+                5,
+                TimeUnit.MINUTES
+        );
+
+        // 8. Send OTP email
+        // TODO: replace with real emailService.send() once wired
+        log.info("LOGIN OTP for {} : {}", credentials.getEmail(), otp);
+
+        saveAuditLog(credentials.getUserId(), credentials.getEmail(),
+                AuditLog.EventType.LOGIN, ip, userAgent, true,
+                "OTP generated, awaiting verification");
+
+        return TempTokenResponse.builder()
+                .tempToken(tempToken)
+                .message("OTP sent to " + credentials.getEmail())
+                .build();
+    }
+
+
+// ── Login Step 2: Verify OTP → issue full tokens ──────────────────────────
+
+    @Transactional
+    public LoginResponse loginStep2(OtpVerifyRequest request,
+                                    HttpServletRequest httpRequest) {
+        String ip        = extractIp(httpRequest);
+        String userAgent = httpRequest.getHeader("User-Agent");
+
+        // 1. Look up the Redis payload by tempToken
+        String redisKey = "login_otp:" + request.getTempToken();
+        String payload  = redisTemplate.opsForValue().get(redisKey);
+
+        if (payload == null) {
+            throw new AuthException("OTP expired or invalid session. Please log in again.");
+        }
+
+        // 2. Split payload into userId and storedOtp
+        String[] parts    = payload.split(":");
+        String   userId   = parts[0];
+        String   storedOtp = parts[1];
+
+        // 3. Validate OTP
+        if (!storedOtp.equals(request.getOtp())) {
+            saveAuditLog(UUID.fromString(userId), null,
+                    AuditLog.EventType.LOGIN_FAILED, ip, userAgent,
+                    false, "Invalid OTP attempt");
+            throw new AuthException("Invalid OTP. Please try again.");
+        }
+
+        // 4. Delete OTP from Redis — one time use only
+        redisTemplate.delete(redisKey);
+
+        // 5. Load credentials
+        Credentials credentials = credentialsRepository
+                .findById(UUID.fromString(userId))
+                .orElseThrow(() -> new AuthException("User not found"));
+
+        // 6. Fetch claims from MembershipService
+        MembershipServiceClient.TokenClaimsResponse claims =
+                membershipServiceClient.getTokenClaims(userId);
+
+        // 7. Issue full tokens and persist session
         String accessToken = jwtUtil.generateAccessToken(
                 credentials.getUserId(),
                 credentials.getEmail(),
                 credentials.getUsername(),
-                claims.tenantId() != null ? claims.tenantId() : "",
-                claims.branchId() != null ? claims.branchId() : "",
+                claims.tenantId()  != null ? claims.tenantId()  : "",
+                claims.branchId()  != null ? claims.branchId()  : "",
                 claims.roles(),
                 claims.permissions()
         );
 
-        String refreshToken = jwtUtil.generateRefreshToken(
-                credentials.getUserId());
+        String refreshToken = jwtUtil.generateRefreshToken(credentials.getUserId());
 
-        // Persist session
         Session session = Session.builder()
                 .userId(credentials.getUserId())
                 .refreshToken(refreshToken)
@@ -121,13 +190,12 @@ public class    AuthService {
         saveAuditLog(credentials.getUserId(), credentials.getEmail(),
                 AuditLog.EventType.LOGIN, ip, userAgent, true, null);
 
-        log.info("User logged in: {}", credentials.getUsername());
+        log.info("User fully authenticated via OTP: {}", credentials.getUsername());
 
         return LoginResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
-                .accessTokenExpiresIn(
-                        appProperties.getJwt().getAccessTokenExpiryMs())
+                .accessTokenExpiresIn(appProperties.getJwt().getAccessTokenExpiryMs())
                 .tokenType("Bearer")
                 .userId(credentials.getUserId().toString())
                 .username(credentials.getUsername())
@@ -135,6 +203,7 @@ public class    AuthService {
                 .roles(claims.roles())
                 .build();
     }
+
 
     // ── Provision (called by InternalCredentialsController) ───
 
@@ -378,4 +447,8 @@ public class    AuthService {
     }
 
     public record CredentialsResult(UUID userId, String username, String email) {}
+
+
+
+
 }

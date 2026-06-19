@@ -29,35 +29,36 @@ const DEV_MOCK_USER: AuthUser = {
 /** Keys used in storage — centralised so there are no magic strings elsewhere */
 const KEYS = {
   // Persisted across refreshes
-  ACCESS_TOKEN:   'ugaap_access_token',
-  REFRESH_TOKEN:  'ugaap_refresh_token',
-  USER:           'ugaap_user',
+  ACCESS_TOKEN: 'ugaap_access_token',
+  REFRESH_TOKEN: 'ugaap_refresh_token',
+  USER: 'ugaap_user',
 
   // Session-only (tab lifetime)
-  TEMP_TOKEN:     'ugaap_temp_token',    // Returned after login, used for OTP verify
-  RESET_TOKEN:    'ugaap_reset_token',   // Returned after forgot-password request
-  RESET_OTP:      'ugaap_reset_otp',     // OTP entered in reset-otp screen
-  RESET_EMAIL:    'ugaap_reset_email',   // Email/phone used for forgot-password (for resend)
+  TEMP_TOKEN: 'ugaap_temp_token', // Returned after login, used for OTP verify
+  RESET_TOKEN: 'ugaap_reset_token', // Returned after forgot-password request
+  RESET_OTP: 'ugaap_reset_otp', // OTP entered in reset-otp screen
+  RESET_EMAIL: 'ugaap_reset_email', // Email/phone used for forgot-password (for resend)
 } as const;
 
 @Injectable({ providedIn: 'root' })
 export class SessionService {
-
   // ── Reactive state (Angular signals) ────────────────────────────────────────
 
   /** Currently authenticated user — null when logged out */
-  private _user         = signal<AuthUser | null>(this._loadUser());
+  private _user = signal<AuthUser | null>(this._loadUser());
 
   /** Active JWT access token — null when logged out */
-  private _accessToken  = signal<string | null>(localStorage.getItem(KEYS.ACCESS_TOKEN));
+  private _accessToken = signal<string | null>(
+    localStorage.getItem(KEYS.ACCESS_TOKEN) ?? (environment.production ? null : 'dev-mock-token'),
+  );
 
   // Read-only projections exposed to consumers
-  readonly currentUser    = this._user.asReadonly();
-  readonly isLoggedIn     = computed(() => !!this._accessToken() && !!this._user());
-  readonly userRole       = computed(() => this._user()?.role ?? null);
-  readonly cooperativeId  = computed(() => this._user()?.cooperativeId ?? null);
-  readonly branchId       = computed(() => this._user()?.branchId ?? null);
-  readonly permissions    = computed(() => this._user()?.permissions ?? []);
+  readonly currentUser = this._user.asReadonly();
+  readonly isLoggedIn = computed(() => !!this._accessToken() && !!this._user());
+  readonly userRole = computed(() => this._user()?.role ?? null);
+  readonly cooperativeId = computed(() => this._user()?.cooperativeId ?? null);
+  readonly branchId = computed(() => this._user()?.branchId ?? null);
+  readonly permissions = computed(() => this._user()?.permissions ?? []);
 
   constructor(private router: Router) {}
 
@@ -68,9 +69,9 @@ export class SessionService {
    * Called by AuthService.verifyOtp() via the tap() operator.
    */
   setSession(accessToken: string, refreshToken: string, user: AuthUser): void {
-    localStorage.setItem(KEYS.ACCESS_TOKEN,  accessToken);
+    localStorage.setItem(KEYS.ACCESS_TOKEN, accessToken);
     localStorage.setItem(KEYS.REFRESH_TOKEN, refreshToken);
-    localStorage.setItem(KEYS.USER,          JSON.stringify(user));
+    localStorage.setItem(KEYS.USER, JSON.stringify(user));
     this._accessToken.set(accessToken);
     this._user.set(user);
   }
@@ -87,10 +88,10 @@ export class SessionService {
     return sessionStorage.getItem(KEYS.TEMP_TOKEN);
   }
 
-  // Token accessors 
+  // Token accessors
 
   getAccessToken(): string | null {
-    return localStorage.getItem(KEYS.ACCESS_TOKEN);
+    return this._accessToken(); // signal-based
   }
 
   getRefreshToken(): string | null {
@@ -148,27 +149,28 @@ export class SessionService {
     sessionStorage.removeItem(KEYS.RESET_EMAIL);
   }
 
-  //  Permission helpers 
+  //  Permission helpers
 
   /** True if the current user has the given permission string */
   hasPermission(permission: string): boolean {
     return this.permissions().includes(permission);
   }
 
-  //  Token validity 
+  //  Token validity
 
   /**
    * Decode the JWT payload and check the expiry claim.
    * Returns true if token is missing or expired.
    */
   isTokenExpired(): boolean {
-    const token = this.getAccessToken();
+    const token = this._accessToken(); // signal-based
     if (!token) return true;
+    if (token === 'dev-mock-token') return false;
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       return Date.now() >= payload.exp * 1000;
     } catch {
-      return true;           // Treat malformed tokens as expired
+      return true;
     }
   }
 
@@ -191,7 +193,11 @@ export class SessionService {
     this.router.navigate(['/auth/login']);
   }
 
-  //  Private helpers 
+  clearTempToken(): void {
+    sessionStorage.removeItem(KEYS.TEMP_TOKEN);
+  }
+
+  //  Private helpers
 
   private _loadUser(): AuthUser | null {
     try {
@@ -201,7 +207,7 @@ export class SessionService {
       // filtering (batch visibility, etc.) is demonstrable without a real login.
       return environment.production ? null : DEV_MOCK_USER;
     } catch {
-      return null;   // Corrupted storage — start fresh
+      return null; // Corrupted storage — start fresh
     }
   }
 }

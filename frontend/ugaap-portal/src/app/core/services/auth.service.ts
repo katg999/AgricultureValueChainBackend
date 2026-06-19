@@ -40,10 +40,21 @@ export class AuthService {
     );
   }
 
-  verifyOtp(payload: OtpVerifyRequest): Observable<OtpVerifyResponse> {
-    return this.http.post<OtpVerifyResponse>(API_ENDPOINTS.AUTH.VERIFY_OTP, payload).pipe(
+  verifyLoginOtp(payload: { tempToken: string; otp: string }): Observable<any> {
+    return this.http.post<any>(API_ENDPOINTS.AUTH.VERIFY_OTP, payload).pipe(
       tap((res) => {
-        this.session.setSession(res.accessToken, res.refreshToken, res.user);
+        const data = res?.data;
+        if (data?.accessToken) {
+          this.session.clearTempToken();
+          this.session.setSession(data.accessToken, data.refreshToken, {
+            id: data.userId,
+            fullName: data.username,
+            email: data.email,
+            phone: '',
+            role: data.roles?.[0] ?? '',
+            permissions: [],
+          });
+        }
       }),
     );
   }
@@ -55,12 +66,8 @@ export class AuthService {
       .pipe(tap((res) => this.session.updateAccessToken(res.accessToken)));
   }
 
-  forgotPassword(payload: ForgotPasswordRequest): Observable<ForgotPasswordResponse> {
-    return this.http.post<ForgotPasswordResponse>(API_ENDPOINTS.AUTH.FORGOT_PASSWORD, payload);
-  }
-
-  resetPassword(payload: ResetPasswordRequest): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(API_ENDPOINTS.AUTH.RESET_PASSWORD, payload);
+  forgotPassword(payload: { email: string }): Observable<any> {
+    return this.http.post<any>(API_ENDPOINTS.AUTH.FORGOT_PASSWORD, payload);
   }
 
   resendOtp(tempToken: string): Observable<{ message: string }> {
@@ -75,5 +82,13 @@ export class AuthService {
     return this.http
       .post<{ message: string }>(API_ENDPOINTS.AUTH.LOGOUT, {})
       .pipe(tap(() => this.session.logout()));
+  }
+
+  verifyPasswordResetOtp(payload: { email: string; otp: string }): Observable<any> {
+    return this.http.post<any>(API_ENDPOINTS.AUTH.VERIFY_PASSWORD_RESET_OTP, payload);
+  }
+
+  resetPassword(payload: { verifiedToken: string; newPassword: string }): Observable<any> {
+    return this.http.post<any>(API_ENDPOINTS.AUTH.RESET_PASSWORD, payload);
   }
 }

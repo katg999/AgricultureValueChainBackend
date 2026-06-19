@@ -17,9 +17,10 @@ export interface LoginResponse {
     email: string;
   };
 }
+
 export interface OtpVerifyRequest {
   tempToken: string;
-  otpCode: string;
+  otp: string;
 }
 
 export interface OtpVerifyResponse {
@@ -40,19 +41,16 @@ export interface AuthUser {
 }
 
 export interface ForgotPasswordRequest {
-  emailOrPhone: string;
+  email: string;
 }
 
 export interface ForgotPasswordResponse {
   message: string;
-  resetToken: string;
 }
 
 export interface ResetPasswordRequest {
-  resetToken: string;
-  otpCode: string;
+  verifiedToken: string;
   newPassword: string;
-  confirmPassword: string;
 }
 
 export interface SignupRequest {
