@@ -69,6 +69,7 @@ export const API_ENDPOINTS = {
     AGENT_DEACTIVATE: (id: string) => `${BASE}/api/v1/cooperatives/agents/${id}/deactivate`,
     AGENT_ACTIVATE: (id: string) => `${BASE}/api/v1/cooperatives/agents/${id}/activate`,
 
+<<<<<<< HEAD
     COLLECTION_HUBS: `${BASE}/api/v1/cooperatives/collection-hubs`,
     COLLECTION_HUB_BY_ID: (id: string) => `${BASE}/api/v1/cooperatives/collection-hubs/${id}`,
     COLLECTION_HUB_ACTIVATE: (id: string) => `${BASE}/api/v1/cooperatives/collection-hubs/${id}/activate`,
@@ -76,6 +77,18 @@ export const API_ENDPOINTS = {
     
     SESSION_CONFIG: `${BASE}/api/v1/cooperatives/session-config`,
     SEASON_CONFIG: `${BASE}/api/v1/cooperatives/season-config`,
+=======
+    // Collection hubs
+    COLLECTION_HUBS: `${BASE}/cooperative/collection-hubs`,
+    COLLECTION_HUB_BY_ID: (id: string) => `${BASE}/cooperative/collection-hubs/${id}`,
+    COLLECTION_HUB_ACTIVATE: (id: string) => `${BASE}/cooperative/collection-hubs/${id}/activate`,
+    COLLECTION_HUB_DEACTIVATE: (id: string) =>
+      `${BASE}/cooperative/collection-hubs/${id}/deactivate`,
+    // Delivery session-hours config (morning/midday/afternoon windows) — cooperative-wide
+    SESSION_CONFIG: `${BASE}/cooperative/session-config`,
+    // Season open/close status and month-range config — cooperative-wide
+    SEASON_CONFIG: `${BASE}/cooperative/season-config`,
+>>>>>>> 8cab534137d8d7693f1c5ae17167721a6e2594e1
   },
 
   // ── Branches Infrastructure ──────────────────────────────────────────────────

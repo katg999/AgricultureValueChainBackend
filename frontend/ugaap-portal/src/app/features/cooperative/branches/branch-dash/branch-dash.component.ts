@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { StatsCardComponent } from '../../../../shared/components/stats-card/stats-card.component';
+import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { ToastService }      from '../../../../core/services/toast.service';
 
 // Branch model (must include id for pagination and menu)
@@ -34,7 +35,8 @@ interface ActivityItem {
     FormsModule,
     RouterModule,
     ButtonComponent,
-    StatsCardComponent
+    StatsCardComponent,
+    EmptyStateComponent
   ],
 })
 export class BranchDashboardComponent implements OnInit {

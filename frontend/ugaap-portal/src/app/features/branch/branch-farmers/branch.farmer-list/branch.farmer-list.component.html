@@ -72,6 +72,17 @@
       </thead>
 
       <tbody>
+        <tr *ngIf="filteredFarmers.length === 0">
+          <td colspan="8">
+            <app-empty-state
+              icon="farmer"
+              title="No farmers yet"
+              message="Register the first farmer for this branch to get started."
+              actionLabel="Register Farmer"
+              route="/branch/farmers/register">
+            </app-empty-state>
+          </td>
+        </tr>
         <tr *ngFor="let farmer of filteredFarmers; trackBy: trackByFarmerId">
           <td class="farmer-id">{{ farmer.id }}</td>
           <td class="farmer-name">{{ farmer.name }}</td>

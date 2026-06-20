@@ -130,7 +130,15 @@
             </td>
           </tr>
           <tr *ngIf="paginatedBranches.length === 0">
-            <td colspan="6" class="empty-row">No branches found</td>
+            <td colspan="6">
+              <app-empty-state
+                icon="building"
+                title="No branches yet"
+                message="Register a branch to start managing your collection network."
+                actionLabel="Register Branch"
+                route="/cooperative/branches/onboarding">
+              </app-empty-state>
+            </td>
           </tr>
         </tbody>
       </table>
