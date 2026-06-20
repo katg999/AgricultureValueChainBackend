@@ -290,11 +290,6 @@ export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
       ? this.pricingService.getUnitPrice(branchId, commodity, this.useGrades ? gradeCode : undefined)
       : 0;
 
-
-    const price = commodity
-      ? this.pricingService.getUnitPrice(branchId, commodity, this.useGrades ? gradeCode : undefined)
-      : 0;
-
     // patchValue on a disabled control requires {emitEvent: false} to avoid loops.
     this.deliveryForm.patchValue({ unitPrice: price || null }, { emitEvent: false });
     this.calcEstValue();
@@ -479,29 +474,7 @@ export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
         next: () => this.onSaveSuccess(payload),
         error: (err: unknown) => this.onSaveError(err),
       });
-  if (this.deliveryForm.invalid || this.isFormBlocked) {
-    this.deliveryForm.markAllAsTouched();
-    return;
   }
-
-  this.isSaving = true;
-  this.errorMessage = '';
-  this.cdr.markForCheck();
-
-  const payload = this.createPayload();
-
-  this.deliveryService.saveDelivery(payload)
-    .pipe(takeUntil(this.destroy$))
-    .subscribe({
-      next: (response) => {
-        // Triggers the beautiful success window animation state you built
-        this.onSaveSuccess(payload);
-      },
-      error: (err) => {
-        this.onSaveError(err);
-      }
-    });
-}
 
   private buildPayload(): FarmerDeliveryFormData {
     const v        = this.deliveryForm.getRawValue(); // getRawValue includes disabled controls
