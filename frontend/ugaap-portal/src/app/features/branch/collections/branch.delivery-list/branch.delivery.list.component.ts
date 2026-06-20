@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { BehaviorSubject, combineLatest, map, Observable, shareReplay, tap } from 'rxjs';
 
 import { BranchDelivery, DeliveryStatus, DeliverySession, Season } from '../branch.delivery.model';
+import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { BranchDeliveryService } from '../branch.delivery.service';
 import { SessionService } from '../../../../core/services/session.service';
 import { DeliverySessionConfigService } from '../../../../core/services/delivery-session-config.service';
@@ -16,6 +17,7 @@ import { ToastService } from '../../../../core/services/toast.service';
   imports: [
     CommonModule,
     FormsModule,
+    EmptyStateComponent,
   ],
   templateUrl: './branch.delivery.list.component.html',
   styleUrls: ['./branch.delivery.list.component.css'],

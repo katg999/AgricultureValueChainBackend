@@ -14,6 +14,7 @@ import { BehaviorSubject, combineLatest, map, Observable, shareReplay } from 'rx
 import { PaymentBatchService } from '../../../branch/finance/services/payment-batch.service';
 import { BatchStatus, PaymentBatch } from '../../../branch/finance/models/batch.models';
 import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
+import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 
 export interface BranchBatchGroup {
   branchId: string;
@@ -24,7 +25,7 @@ export interface BranchBatchGroup {
 @Component({
   selector: 'app-cooperative-payment-batches',
   standalone: true,
-  imports: [CommonModule, FormsModule, StatCardComponent],
+  imports: [CommonModule, FormsModule, StatCardComponent, EmptyStateComponent],
   templateUrl: './payment-batches.component.html',
   styleUrl: './payment-batches.component.css',
 })

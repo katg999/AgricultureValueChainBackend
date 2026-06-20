@@ -95,7 +95,15 @@
         </tr>
 
         <tr *ngIf="filteredAgents().length === 0">
-          <td colspan="8" class="empty-row">No agents match your filters.</td>
+          <td colspan="8">
+            <app-empty-state
+              icon="farmer"
+              title="No agents found"
+              message="Register an agent to assign them to branches and manage farmer collections."
+              actionLabel="Register Agent"
+              route="/cooperative/agents/register">
+            </app-empty-state>
+          </td>
         </tr>
       </tbody>
     </table>

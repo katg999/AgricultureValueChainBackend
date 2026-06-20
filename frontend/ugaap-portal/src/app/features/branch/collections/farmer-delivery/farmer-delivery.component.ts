@@ -27,7 +27,7 @@ import { DeliverySessionConfigService } from '../../../../core/services/delivery
 import { SeasonConfigService } from '../../../../core/services/season-config.service';
 import { AlertComponent } from '../../../../shared/components/alert/alert.component';
 import { FarmerDeliveryService } from '../farmer.delivery.service';
-import { DeliverySession, FarmerDelivery, FarmerDeliveryFormData } from '../farmer.delivery.model';
+import { DeliverySession, FarmerDelivery, FarmerDeliveryFormData, SaveFarmerDeliveryPayload } from '../farmer.delivery.model';
 import { ALL_DELIVERY_SESSIONS, Season } from '../branch.delivery.model';
 import { CooperativePricingService, GradeOption } from '../../../../core/services/cooperative-pricing.service';
 
@@ -290,6 +290,11 @@ export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
       ? this.pricingService.getUnitPrice(branchId, commodity, this.useGrades ? gradeCode : undefined)
       : 0;
 
+
+    const price = commodity
+      ? this.pricingService.getUnitPrice(branchId, commodity, this.useGrades ? gradeCode : undefined)
+      : 0;
+
     // patchValue on a disabled control requires {emitEvent: false} to avoid loops.
     this.deliveryForm.patchValue({ unitPrice: price || null }, { emitEvent: false });
     this.calcEstValue();
@@ -368,7 +373,73 @@ export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
   }
 
   // ── Submit ─────────────────────────────────────────────────────────────────
+  private createPayload(): SaveFarmerDeliveryPayload {
+  // getRawValue() is required here — .value skips disabled controls (estimatedValue, unitPrice)
+  const v = this.deliveryForm.getRawValue();
 
+  const grossValue = parseFloat(v.estimatedValue) || 0;
+  const deductionValue = 0; // no deduction field on this form yet; reserved for future input-loan recovery
+  const finalNetValue = grossValue - deductionValue;
+
+  return {
+    branch: BRANCH_NAMES[this.session.branchId() ?? ''] ?? '',
+    commodity: v.commodity || '',
+    farmerId: this.selectedFarmer?.id ?? '',
+    farmerName: this.selectedFarmer?.name ?? '',
+    quantityDelivered: parseFloat(v.volume) || 0,
+    unitOfMeasure: v.volumeUnit || 'Kg', // form control is named volumeUnit, not unitOfMeasure
+    estimatedDeliveryValue: grossValue,
+    totalValue: finalNetValue,
+    inputValueUgx: deductionValue,
+    status: 'Pending',
+    season: v.season || '',
+    session: v.session || '',
+  };
+}
+
+  // ── Submit ─────────────────────────────────────────────────────────────────
+
+  // onSubmit(): void {
+  //   this.formSubmitAttempted = true;
+
+  //   // Hard-block: cooperative admin must open a season before any delivery can be saved.
+  //   if (this.isSeasonBlocked) {
+  //     this.errorMessage = 'No season is currently open. A cooperative admin must open a season before deliveries can be recorded.';
+  //     this.cdr.markForCheck();
+  //     return;
+  //   }
+
+  //   // Hard-block: all sessions for today have closed.
+  //   if (this.isSessionBlocked) {
+  //     this.errorMessage = 'All sessions for today have closed. New deliveries can be recorded again tomorrow.';
+  //     this.cdr.markForCheck();
+  //     return;
+  //   }
+
+  //   // A farmer must be selected from the dropdown — typing alone isn't enough.
+  //   if (!this.selectedFarmer) {
+  //     this.deliveryForm.get('farmerSearch')?.setErrors({ farmerRequired: true });
+  //   }
+
+  //   if (this.deliveryForm.invalid) {
+  //     this.deliveryForm.markAllAsTouched();
+  //     return;
+  //   }
+
+  //   this.isSaving = true;
+  //   this.errorMessage = '';
+  //   this.cdr.markForCheck();
+
+  //   const payload = this.buildPayload();
+
+  //   this.deliveryService.add(payload)
+  //     .pipe(takeUntil(this.destroy$))
+  //     .subscribe({
+  //       next: () => this.onSaveSuccess(payload),
+  //       error: (err: unknown) => this.onSaveError(err),
+  //     });
+  // }
+  
   onSubmit(): void {
     this.formSubmitAttempted = true;
 
@@ -408,7 +479,29 @@ export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
         next: () => this.onSaveSuccess(payload),
         error: (err: unknown) => this.onSaveError(err),
       });
+  if (this.deliveryForm.invalid || this.isFormBlocked) {
+    this.deliveryForm.markAllAsTouched();
+    return;
   }
+
+  this.isSaving = true;
+  this.errorMessage = '';
+  this.cdr.markForCheck();
+
+  const payload = this.createPayload();
+
+  this.deliveryService.saveDelivery(payload)
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (response) => {
+        // Triggers the beautiful success window animation state you built
+        this.onSaveSuccess(payload);
+      },
+      error: (err) => {
+        this.onSaveError(err);
+      }
+    });
+}
 
   private buildPayload(): FarmerDeliveryFormData {
     const v        = this.deliveryForm.getRawValue(); // getRawValue includes disabled controls

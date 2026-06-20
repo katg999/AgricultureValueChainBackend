@@ -69,12 +69,12 @@
             <tr *ngFor="let row of seasonRows; let i = index" [formGroupName]="i">
               <td class="fw-600">{{ row.get('label')?.value }}</td>
               <td>
-                <select formControlName="startMonth">
+                <select  title="start month" formControlName="startMonth">
                   <option *ngFor="let m of monthOptions" [value]="m.value">{{ m.label }}</option>
                 </select>
               </td>
               <td>
-                <select formControlName="endMonth">
+                <select title="end month" formControlName="endMonth">
                   <option *ngFor="let m of monthOptions" [value]="m.value">{{ m.label }}</option>
                 </select>
               </td>
@@ -93,7 +93,7 @@
 
   <!-- ── Session Hours ───────────────────────────────────────────────────── -->
 
-  <div class="section-heading" style="margin-top: 36px;">Session Hours</div>
+  <div class="section-heading">Session Hours</div>
 
   <form *ngIf="form" [formGroup]="form" class="sessions-form" (ngSubmit)="save()">
     <div class="table-card">
@@ -111,12 +111,12 @@
             <tr *ngFor="let row of rows; let i = index" [formGroupName]="i">
               <td class="fw-600">{{ row.get('label')?.value }}</td>
               <td>
-                <select formControlName="startHour">
+                <select title="start hour" formControlName="startHour">
                   <option *ngFor="let h of hourOptions" [value]="h.value">{{ h.label }}</option>
                 </select>
               </td>
               <td>
-                <select formControlName="endHour">
+                <select title="end hour" formControlName="endHour">
                   <option *ngFor="let h of hourOptions" [value]="h.value">{{ h.label }}</option>
                 </select>
               </td>

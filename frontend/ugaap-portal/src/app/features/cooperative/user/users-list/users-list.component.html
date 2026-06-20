@@ -44,6 +44,17 @@
           </tr>
         </thead>
         <tbody>
+          <tr *ngIf="users.length === 0">
+            <td colspan="7">
+              <app-empty-state
+                icon="users"
+                title="No users found"
+                message="Add a user to start managing your cooperative team."
+                actionLabel="Add User"
+                route="/cooperative/users/add-user">
+              </app-empty-state>
+            </td>
+          </tr>
           <tr *ngFor="let user of users" class="table-row" (click)="onRowClicked(user)">
             <td>
               <div class="user-cell">

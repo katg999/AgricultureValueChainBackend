@@ -15,6 +15,16 @@ import { AuthUser } from '../models/auth.model';
 import { environment } from '../../../environments/environment';
 
 // ── Dev mock users — comment/uncomment the active one below ─────────────────
+/** Seeded only in development when no real session exists — lets role-based filtering be demonstrated without a backend. */
+// const DEV_MOCK_USER: AuthUser = {
+//   id: 'DEV-BRANCH-001',
+//   fullName: 'Demo Branch Staff',
+//   email: 'branch@ugaap.dev',
+//   phone: '0700000002',
+//   role: 'branch',
+//   cooperativeId: 'COOP-001',
+//   branchId: 'BRANCH-001',
+// // ── Dev mock users — comment/uncomment the active one below ─────────────────
 
 /** Branch manager at Mbale West — use for branch delivery recording, farmer list, etc. */
 const DEV_MOCK_BRANCH_USER: AuthUser = {

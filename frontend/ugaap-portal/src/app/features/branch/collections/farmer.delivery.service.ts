@@ -289,9 +289,10 @@ export class FarmerDeliveryService {
   private counter = 136;
 
   constructor(
-    private readonly http: HttpClient,
+    //private readonly http: HttpClient,
     private readonly branchSvc: BranchDeliveryService,
     private readonly pricing: CooperativePricingService,
+    private http:HttpClient
   ) {
     const enriched = this.seed.map(d => {
       // If the seed record already has a unit price (e.g. grade-based records in BD-019/BD-020),
@@ -437,4 +438,10 @@ export class FarmerDeliveryService {
       season: branch.season,
     }).subscribe(); // fire-and-forget — catchError in updateDelivery means this can't throw
   }
+  // Points directly to your Spring Cloud API Gateway route path
+   saveDelivery(payload: SaveFarmerDeliveryPayload): Observable<any> {
+      return this.http.post<any>(this.baseUrl, payload);
+    }
+
 }
+
