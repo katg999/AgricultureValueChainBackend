@@ -13,7 +13,7 @@ import { DeliverySessionConfigService } from '../../../../core/services/delivery
 @Component({
   selector: 'app-cooperative-deliveries',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, EmptyStateComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './delivery.cooperative.list.component.html',
   styleUrls: ['./delivery.cooperative.list.component.css'],
 })
