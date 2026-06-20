@@ -8,7 +8,6 @@ import { BranchDeliveryService } from './branch.delivery.service';
 // Replaced CommodityPricingService with the new unified pricing service that
 // supports both flat and grade-based pricing modes.
 import { CooperativePricingService } from '../../../core/services/cooperative-pricing.service';
-import { SaveFarmerDeliveryPayload } from './farmer.delivery.model';
 
 // Input loan recovery amounts for specific farmers (populated via Issue Input).
 // Keyed by delivery ID — only farmers who received inputs have an entry.
@@ -288,7 +287,6 @@ export class FarmerDeliveryService {
   private readonly farmers$: BehaviorSubject<FarmerDelivery[]>;
   // Start after the last seed record (FD-136) so new programmatic adds never collide.
   private counter = 136;
-  private baseUrl = '/api/v1/deliveries'; 
 
   constructor(
     //private readonly http: HttpClient,
