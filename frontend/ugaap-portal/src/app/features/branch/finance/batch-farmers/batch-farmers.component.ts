@@ -11,11 +11,12 @@ import { PaymentBatchService } from '../services/payment-batch.service';
 import { DayGroup, FarmerRecord, PaymentBatch } from '../models/batch.models';
 import { DeliverySession } from '../../collections/branch.delivery.model';
 import { DeliverySessionConfigService } from '../../../../core/services/delivery-session-config.service';
+import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 
 @Component({
   selector: 'app-batch-farmers',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, EmptyStateComponent],
   templateUrl: './batch-farmers.component.html',
   styleUrls: ['./batch-farmers.component.css'],
 })

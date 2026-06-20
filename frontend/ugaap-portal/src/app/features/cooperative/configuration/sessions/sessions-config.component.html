@@ -2,8 +2,7 @@
 
   <app-page-header
     title="Sessions Management"
-    subtitle="Set the start and end time of each delivery session. These hours apply cooperative-wide, every branch uses the same windows."
-    [breadcrumb]="['Configuration', 'Sessions Management']">
+    subtitle="Set the start and end time of each delivery session. These hours apply cooperative-wide, every branch uses the same windows.">
   </app-page-header>
 
   <form *ngIf="form" [formGroup]="form" class="sessions-form" (ngSubmit)="save()">

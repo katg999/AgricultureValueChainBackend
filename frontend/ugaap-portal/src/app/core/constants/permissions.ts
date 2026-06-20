@@ -57,7 +57,7 @@ export interface PermissionService {
 export const PERMISSION_CATALOG: PermissionService[] = [
 
   {
-    key: 'dashboard', name: 'Dashboard', icon: 'home',
+    key: 'dashboard', name: 'Dashboard', icon: 'dashboard',
     scopes: ['platform', 'cooperative', 'branch'],
     permissions: [
       { id: 'dashboard.view',    label: 'View dashboard',        description: 'See the landing dashboard with KPI cards' },

@@ -10,6 +10,7 @@ export const BRANCH_FARMERS_ROUTES: Routes = [
   // Farmer Management (view + edit)
   {
     path: 'list',
+    data: { title: 'Farmers' },
     loadComponent: () =>
       import('./branch.farmer-list/branch.farmer-list.component').then(
         (m) => m.BranchFarmerListComponent,
@@ -19,6 +20,7 @@ export const BRANCH_FARMERS_ROUTES: Routes = [
   // Farmer Registration (new) and Edit (with :id)
   {
     path: 'register',
+    data: { title: 'Register Farmer' },
     loadComponent: () =>
       import('./branch.farmer-register/branch.farmer-register.component').then(
         (m) => m.BranchFarmerRegisterComponent,
@@ -26,6 +28,7 @@ export const BRANCH_FARMERS_ROUTES: Routes = [
   },
   {
     path: 'register/:id',
+    data: { title: 'Edit Farmer' },
     loadComponent: () =>
       import('./branch.farmer-register/branch.farmer-register.component').then(
         (m) => m.BranchFarmerRegisterComponent,
@@ -35,6 +38,7 @@ export const BRANCH_FARMERS_ROUTES: Routes = [
   // Read-only farmer profile (branch staff view — no approve/reject)
   {
     path: 'profile/:id',
+    data: { title: 'Farmer Profile' },
     loadComponent: () =>
       import('../../cooperative/farmers/farmer-approval/farmer-approval.component')
         .then(m => m.FarmerApprovalComponent)

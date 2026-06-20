@@ -14,6 +14,13 @@ export const ROLES_ROUTES: Routes = [
         .then(m => m.RoleFormComponent),
   },
   {
+    path: ':id',
+    data: { title: 'Role Detail' },
+    loadComponent: () =>
+      import('./role-detail/role-detail.component')
+        .then(m => m.RoleDetailComponent),
+  },
+  {
     path: ':id/edit',
     loadComponent: () =>
       import('./role-form/role-form.component')

@@ -6,8 +6,9 @@ import { Router } from '@angular/router';
 
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { StatsCardComponent } from '../../../../shared/components/stats-card/stats-card.component';
-import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { ToastService }      from '../../../../core/services/toast.service';
+import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
+import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
 
 // Branch model (must include id for pagination and menu)
 interface Branch {
@@ -36,7 +37,8 @@ interface ActivityItem {
     RouterModule,
     ButtonComponent,
     StatsCardComponent,
-    EmptyStateComponent
+    DataTableComponent,
+    CellDirective,
   ],
 })
 export class BranchDashboardComponent implements OnInit {
@@ -47,6 +49,15 @@ export class BranchDashboardComponent implements OnInit {
   // ---------- Filter state ----------
   searchQuery = '';
   selectedStatus: '' | 'ACTIVE' | 'PENDING' = '';
+
+  cols: TableColumn[] = [
+    { key: 'name',     header: 'Branch Name', class: 'fw-600' },
+    { key: 'location', header: 'Location',    class: 'text-muted' },
+    { key: 'farmers',  header: 'Farmers' },
+    { key: 'centres',  header: 'Centres' },
+    { key: 'status',   header: 'Status' },
+    { key: 'actions',  header: 'Action', width: '60px' },
+  ];
 
   // ---------- Pagination state ----------
   currentPage = 1;

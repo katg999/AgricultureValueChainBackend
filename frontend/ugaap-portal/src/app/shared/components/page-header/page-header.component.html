@@ -1,17 +1,7 @@
 <div class="page-header">
 
-    <div class="breadcrumb" *ngIf="breadcrumb.length > 0">
-      <span
-        *ngFor="let crumb of breadcrumb; let last = last"
-        class="crumb">
-        {{ crumb }}
-        <span class="crumb-sep" *ngIf="!last">/</span>
-      </span>
-    </div>
-  
-    <div class="header-row">
+  <div class="header-row">
       <div class="header-left">
-        <h1 class="page-title">{{ title }}</h1>
         <p class="page-subtitle" *ngIf="subtitle">{{ subtitle }}</p>
       </div>
       <div class="header-right">

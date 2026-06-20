@@ -82,52 +82,28 @@
     </div>
   </div>
 
-  <div class="table-wrapper">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>ITEM NAME</th>
-          <th>CATEGORY</th>
-          <th>QUANTITY</th>
-          <th>UNIT</th>
-          <th>MIN. THRESHOLD</th>
-          <th>ENTRY DATE</th>
-        </tr>
-      </thead>
+  <app-data-table
+    [columns]="cols"
+    [rows]="filteredItems"
+    [paginate]="true"
+    emptyIcon="box"
+    emptyTitle="No stock items"
+    emptyMessage="Add stock to start tracking your branch inventory."
+    emptyActionLabel="Add Stock"
+    [emptyRoute]="addStockRoute">
 
-      <tbody>
-        <tr *ngFor="let item of filteredItems" [class.row-out]="item.stockStatus === 'out'">
-          <td class="item-name">{{ item.name }}</td>
-          <td>
-            <span class="category-badge" [ngClass]="item.categoryClass">
-              {{ item.category }}
-            </span>
-          </td>
-          <td
-            class="quantity-cell"
-            [ngClass]="{
-              'qty-orange': item.stockStatus === 'low',
-              'qty-red': item.stockStatus === 'out'
-            }">
-            {{ item.quantity | number }}
-          </td>
-          <td>{{ item.unit }}</td>
-          <td class="threshold-cell">{{ item.minThreshold | number }}</td>
-          <td class="date-cell">{{ item.updatedAt }}</td>
-        </tr>
+    <ng-template appCell="category" let-row>
+      <span class="category-badge" [ngClass]="$any(row).categoryClass">
+        {{ $any(row).category }}
+      </span>
+    </ng-template>
 
-        <tr *ngIf="filteredItems.length === 0">
-          <td colspan="6">
-            <app-empty-state
-              icon="box"
-              title="No stock items"
-              message="Add stock to start tracking your branch inventory."
-              actionLabel="Add Stock"
-              (actionClick)="addStock()">
-            </app-empty-state>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+    <ng-template appCell="quantity" let-row>
+      <span [ngClass]="{
+        'qty-orange': $any(row).stockStatus === 'low',
+        'qty-red':    $any(row).stockStatus === 'out'
+      }">{{ $any(row).quantity | number }}</span>
+    </ng-template>
+
+  </app-data-table>
 </div>

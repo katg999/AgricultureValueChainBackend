@@ -44,9 +44,12 @@ export class EditPricesComponent implements OnInit {
   error          = signal<string | null>(null);
 
   private readonly mockBranches: Branch[] = [
-    { id: 'b1', name: 'Kasese Main Branch',   region: 'Western Region', gradeCount: 2 },
-    { id: 'b2', name: 'Kasese North Branch',  region: 'Western Region', gradeCount: 1 },
-    { id: 'b3', name: 'Mbarara Central',      region: 'Western Region', gradeCount: 1 },
+    { id: 'BR-KLA', name: 'Kampala Central Branch', region: 'Central Region',  gradeCount: 4 },
+    { id: 'BR-JIN', name: 'Jinja Branch',            region: 'Eastern Region',  gradeCount: 4 },
+    { id: 'BR-MBA', name: 'Mbarara Branch',          region: 'Western Region',  gradeCount: 4 },
+    { id: 'BR-FTP', name: 'Fort Portal Branch',      region: 'Western Region',  gradeCount: 4 },
+    { id: 'BR-ADJ', name: 'Adjumani Branch',         region: 'Northern Region', gradeCount: 4 },
+    { id: 'BR-GUL', name: 'Gulu Branch',             region: 'Northern Region', gradeCount: 4 },
   ];
 
   private readonly mockPrices: GradePrice[] = [
@@ -66,9 +69,11 @@ export class EditPricesComponent implements OnInit {
   }
 
   loadBranches(): void {
+    // Seed immediately so the dropdown is never empty while the request is in flight.
+    this.branches.set(this.mockBranches);
     this.http.get<Branch[]>(API_ENDPOINTS.COOPERATIVE.BRANCHES).subscribe({
-      next:  data => this.branches.set(data),
-      error: ()   => this.branches.set(this.mockBranches),
+      next: data => this.branches.set(data),
+      // On error keep the mock data already shown — no extra assignment needed.
     });
   }
 

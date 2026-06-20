@@ -1,6 +1,6 @@
 // features/cooperative/profile/cooperative-profile.component.ts
 
-import { Component, inject, computed } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 
@@ -11,6 +11,7 @@ import { ToggleSwitchComponent } from '../../../shared/components/toggle-switch/
 import { HasPermissionDirective } from '../../../shared/directives/has-permission.directive';
 import { ToastService }          from '../../../core/services/toast.service';
 import { CooperativeBankDetails } from '../../../core/services/cooperative.service';
+import { CooperativePricingService } from '../../../core/services/cooperative-pricing.service';
 
 interface CooperativeProfile {
   name: string;
@@ -59,10 +60,11 @@ export interface OperationalModules {
   templateUrl: './cooperative-profile.component.html',
   styleUrls: ['./cooperative-profile.component.css'],
 })
-export class CooperativeProfileComponent {
+export class CooperativeProfileComponent implements OnInit {
 
-  private fb    = inject(FormBuilder);
-  private toast = inject(ToastService);
+  private fb         = inject(FormBuilder);
+  private toast      = inject(ToastService);
+  private pricingSvc = inject(CooperativePricingService);
 
   // ── Mock data — replace with GET /cooperative/profile ──────────────────────
 
@@ -96,8 +98,8 @@ export class CooperativeProfileComponent {
     hasBranches:           [true],
     hasCollectionHubs:     [true],
     hasFieldAgents:        [false],
-    // Operations
-    doesGrading:           [true],
+    // Operations — doesGrading is seeded from CooperativePricingService in ngOnInit
+    doesGrading:           [false],
     distributesInputs:     [false],
     paysThroughPlatform:   [true],
     // Credit
@@ -111,12 +113,19 @@ export class CooperativeProfileComponent {
 
   isSavingModules = false;
 
+  ngOnInit(): void {
+    // Sync doesGrading from the pricing service so profile reflects the live state.
+    this.modulesForm.patchValue({ doesGrading: this.pricingSvc.useGrades });
+  }
+
   get creditEnabled(): boolean {
     return !!this.modulesForm.get('extendsCreditToFarmers')?.value;
   }
 
   saveModules(): void {
     this.isSavingModules = true;
+    // Push doesGrading into CooperativePricingService so edit-prices stays in sync.
+    this.pricingSvc.setUseGrades(!!this.modulesForm.get('doesGrading')?.value);
     // Replace with: PUT /cooperative/profile/modules
     setTimeout(() => {
       this.isSavingModules = false;

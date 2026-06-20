@@ -13,8 +13,7 @@
        Anything placed inside its tags goes into the <ng-content> slot (top-right area). -->
   <app-page-header
     title="Batch details"
-    subtitle="Define filters to preview and create a farmer payment batch."
-    [breadcrumb]="['Finance', 'Batch details']">
+    subtitle="Define filters to preview and create a farmer payment batch.">
   </app-page-header>
 
   <!-- ── 2. The form ─────────────────────────────────────────────────────── -->
@@ -159,7 +158,13 @@
               </tr>
             } @empty {
               <tr>
-                <td colspan="7" class="empty-state">No farmers match the selected criteria.</td>
+                <td colspan="7">
+                  <app-empty-state
+                    icon="farmer"
+                    title="No farmers matched"
+                    message="No farmers match the selected commodity, branch, and date range. Adjust the filters and preview again.">
+                  </app-empty-state>
+                </td>
               </tr>
             }
           </tbody>

@@ -16,7 +16,7 @@
 import {
   Component, OnInit, inject, signal, computed, DestroyRef,
 } from '@angular/core';
-import { Router, NavigationEnd, RouterOutlet } from '@angular/router';
+import { Router, NavigationEnd, RouterOutlet, ActivatedRouteSnapshot } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -49,6 +49,10 @@ export class AdminLayoutComponent implements OnInit {
   /** Logged-in user — drives topbar name and avatar */
   readonly user = this.session.currentUser;
 
+  /** Current page title and subtitle — populated from route data on every NavigationEnd */
+  readonly pageTitle    = signal('');
+  readonly pageSubtitle = signal('');
+
   /**
    * Area-level nav items for the current URL prefix (unfiltered).
    * Updated whenever the URL prefix changes; starts empty and is
@@ -70,8 +74,11 @@ export class AdminLayoutComponent implements OnInit {
   // ── Lifecycle ────────────────────────────────────────────────────────────────
 
   ngOnInit(): void {
-    // Set the correct menu for wherever the user lands first
+    // Set the correct menu and page title for wherever the user lands first
     this.syncMenuToUrl(this.router.url);
+    const root = this.router.routerState.snapshot.root;
+    this.pageTitle.set(this.extractRouteData(root, 'title'));
+    this.pageSubtitle.set(this.extractRouteData(root, 'subtitle'));
 
     // Re-sync whenever navigation completes (catches cross-prefix jumps)
     this.router.events.pipe(
@@ -79,6 +86,9 @@ export class AdminLayoutComponent implements OnInit {
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(e => {
       this.syncMenuToUrl(e.urlAfterRedirects);
+      const root = this.router.routerState.snapshot.root;
+      this.pageTitle.set(this.extractRouteData(root, 'title'));
+      this.pageSubtitle.set(this.extractRouteData(root, 'subtitle'));
     });
   }
 
@@ -107,6 +117,22 @@ export class AdminLayoutComponent implements OnInit {
 
     // Shared routes — use the session role as tiebreaker
     return this.dashboardConfig.levelForRole(this.session.userRole());
+  }
+
+  // ── Private helpers ─────────────────────────────────────────────────────────
+
+  /**
+   * Walk the activated route snapshot from root to the deepest child.
+   * The LAST value found for `key` wins, so child routes override parent defaults.
+   */
+  private extractRouteData(route: ActivatedRouteSnapshot, key: string): string {
+    let value = '';
+    let current: ActivatedRouteSnapshot | null = route;
+    while (current) {
+      if (current.data[key]) value = current.data[key] as string;
+      current = current.firstChild;
+    }
+    return value;
   }
 
   // ── Actions ─────────────────────────────────────────────────────────────────

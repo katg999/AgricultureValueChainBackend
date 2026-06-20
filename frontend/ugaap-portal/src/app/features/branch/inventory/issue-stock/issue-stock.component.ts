@@ -6,6 +6,8 @@ import { Router, RouterModule } from '@angular/router';
 import { ToastService } from '../../../../core/services/toast.service';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
+import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
+import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
 import {
   BranchDisbursement,
   BranchOption,
@@ -57,6 +59,8 @@ interface RecentIssuance {
     RouterModule,
     ButtonComponent,
     InputComponent,
+    DataTableComponent,
+    CellDirective,
   ],
   templateUrl: './issue-stock.component.html',
   styleUrl: './issue-stock.component.css',
@@ -91,6 +95,16 @@ export class IssueStockComponent implements OnInit {
   editForm: { quantity: string; value: string } = { quantity: '', value: '' };
 
   recentIssuances: RecentIssuance[] = [];
+
+  issuanceCols: TableColumn[] = [
+    { key: 'recipient',   header: '' },
+    { key: 'item',        header: 'Item Name',   class: 'item-name-cell' },
+    { key: 'itemCategory',header: 'Category' },
+    { key: 'quantity',    header: 'Quantity' },
+    { key: 'value',       header: 'Value' },
+    { key: 'issuedAt',    header: 'Date Issued', class: 'recent-row-date' },
+    { key: 'actions',     header: '',            width: '48px' },
+  ];
 
   constructor(
     private readonly router: Router,

@@ -8,6 +8,8 @@ import { ModalComponent } from '../../../../shared/components/modal/modal.compon
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
+import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
+import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
 import {
   BranchDisbursement,
   FarmerAllocation,
@@ -57,6 +59,8 @@ interface Summary {
     InputComponent,
     ModalComponent,
     StatCardComponent,
+    DataTableComponent,
+    CellDirective,
   ],
   templateUrl: './stock-disbursed.component.html',
   styleUrl: './stock-disbursed.component.css',
@@ -109,6 +113,25 @@ export class StockDisbursedComponent implements OnInit {
 
   get destinationLabel(): string {
     return this.isCooperativeScope ? 'BRANCH' : 'FARMER NAME';
+  }
+
+  get cols(): TableColumn[] {
+    const base: TableColumn[] = [
+      { key: 'destinationName', header: this.destinationLabel },
+    ];
+    if (!this.isCooperativeScope) {
+      base.push({ key: 'branch', header: 'BRANCH' });
+    }
+    return [
+      ...base,
+      { key: 'itemName',       header: 'ITEM NAME',       class: 'item-name-cell' },
+      { key: 'quantity',       header: 'QUANTITY' },
+      { key: 'totalValue',     header: 'TOTAL VALUE',      class: 'value-cell' },
+      { key: 'issueDate',      header: 'ISSUE DATE' },
+      { key: 'status',         header: 'STATUS' },
+      { key: 'allocationDate', header: 'ALLOCATION DATE' },
+      { key: 'actions',        header: 'ACTION',           width: '60px' },
+    ];
   }
 
   get summary(): Summary {

@@ -5,7 +5,8 @@ import { Router } from '@angular/router';
 import { BehaviorSubject, combineLatest, map, Observable, shareReplay, tap } from 'rxjs';
 
 import { BranchDelivery, DeliveryStatus, DeliverySession, Season } from '../branch.delivery.model';
-import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
+import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
+import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
 import { BranchDeliveryService } from '../branch.delivery.service';
 import { SessionService } from '../../../../core/services/session.service';
 import { DeliverySessionConfigService } from '../../../../core/services/delivery-session-config.service';
@@ -16,12 +17,25 @@ import { DeliverySessionConfigService } from '../../../../core/services/delivery
   imports: [
     CommonModule,
     FormsModule,
-    EmptyStateComponent,
+    DataTableComponent,
+    CellDirective,
   ],
   templateUrl: './branch.delivery.list.component.html',
   styleUrls: ['./branch.delivery.list.component.css'],
 })
 export class BranchDeliveriesComponent implements OnInit, OnDestroy {
+
+  readonly deliveryCols: TableColumn[] = [
+    { key: 'id',             header: 'Delivery ID',        class: 'mono' },
+    { key: 'branchName',     header: 'Branch' },
+    { key: 'season',         header: 'Season' },
+    { key: 'commodity',      header: 'Commodity' },
+    { key: 'volume',         header: 'Volume' },
+    { key: 'estimatedValue', header: 'Estimated Value' },
+    { key: 'status',         header: 'Status' },
+    { key: 'actions',        header: 'Actions' },
+  ];
+
   deliveries$!: Observable<BranchDelivery[]>;
   filteredDeliveries$!: Observable<BranchDelivery[]>;
   paginatedDeliveries$!: Observable<BranchDelivery[]>;

@@ -2,13 +2,6 @@
 
   <!-- Page header -->
   <div class="page-header">
-    <div>
-      <h1 class="page-title">Collection Hubs</h1>
-      <p class="page-subtitle">
-        {{ activeCount() }} active hub{{ activeCount() === 1 ? '' : 's' }} receiving produce across your branches
-      </p>
-    </div>
-
     <app-button
       *hasPermission="'collection_hubs.create'"
       type="button"
@@ -42,99 +35,83 @@
   </div>
 
   <!-- Hubs table -->
-  <div class="table-wrapper">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>CODE</th>
-          <th>NAME</th>
-          <th>LOCATION / DISTRICT</th>
-          <th>BRANCH</th>
-          <th>CAPACITY LOAD</th>
-          <th>COMMODITIES</th>
-          <th>STATUS</th>
-          <th>ACTIONS</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let hub of filteredHubs(); trackBy: trackById">
-          <td class="mono">{{ hub.hubCode }}</td>
-          <td>
-            <button type="button" class="hub-name" (click)="viewHub(hub)">
-              {{ hub.name }}
-            </button>
-          </td>
-          <td>
-            <div>{{ hub.location }}</div>
-            <div class="district-tag">{{ hub.district }}</div>
-          </td>
-          <td>{{ hub.branchName }}</td>
-          <td>
-            <div class="load-bar-wrap">
-              <div class="load-bar-track">
-                <div
-                  class="load-bar-fill"
-                  [class]="loadClass(hub)"
-                  [style.width.%]="loadPercent(hub)">
-                </div>
-              </div>
-              <span class="load-label mono">
-                {{ hub.currentLoad }} / {{ hub.capacity }} MT
-              </span>
-            </div>
-          </td>
-          <td>
-            <div class="commodity-chips">
-              <span class="chip" *ngFor="let c of hub.commodities">{{ c }}</span>
-            </div>
-          </td>
-          <td>
-            <span class="status-pill"
-              [class.pill-active]="hub.status === 'active'"
-              [class.pill-inactive]="hub.status === 'inactive'">
-              {{ hub.status | uppercase }}
-            </span>
-          </td>
-          <td>
-            <div class="row-actions">
-              <button type="button" class="action-link" (click)="viewHub(hub)">View</button>
-              <button
-                *hasPermission="'collection_hubs.edit'"
-                type="button" class="action-link" (click)="editHub(hub)">
-                Edit
-              </button>
-              <button
-                *hasPermission="'collection_hubs.deactivate'"
-                type="button"
-                class="action-link"
-                [class.action-danger]="hub.status === 'active'"
-                (click)="toggleStatus(hub)">
-                {{ hub.status === 'active' ? 'Deactivate' : 'Reactivate' }}
-              </button>
-              <button
-                *hasPermission="'collection_hubs.delete'"
-                type="button" class="action-link action-danger"
-                (click)="confirmDelete(hub)">
-                Delete
-              </button>
-            </div>
-          </td>
-        </tr>
+  <app-data-table
+    [columns]="cols"
+    [rows]="filteredHubs()"
+    [paginate]="true"
+    emptyIcon="building"
+    emptyTitle="No collection hubs"
+    emptyMessage="Add a hub to start tracking produce intake across your branches."
+    emptyActionLabel="Add Hub"
+    emptyRoute="/cooperative/collection-hubs/new">
 
-        <tr *ngIf="filteredHubs().length === 0">
-          <td colspan="8">
-            <app-empty-state
-              icon="building"
-              title="No collection hubs"
-              message="Add a hub to start tracking produce intake across your branches."
-              actionLabel="Add Hub"
-              route="/cooperative/collection-hubs/new">
-            </app-empty-state>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+    <ng-template appCell="name" let-row>
+      <button type="button" class="hub-name" (click)="viewHub($any(row))">
+        {{ $any(row).name }}
+      </button>
+    </ng-template>
+
+    <ng-template appCell="location" let-row>
+      <div>{{ $any(row).location }}</div>
+      <div class="district-tag">{{ $any(row).district }}</div>
+    </ng-template>
+
+    <ng-template appCell="capacity" let-row>
+      <div class="load-bar-wrap">
+        <div class="load-bar-track">
+          <div
+            class="load-bar-fill"
+            [class]="loadClass($any(row))"
+            [style.width.%]="loadPercent($any(row))">
+          </div>
+        </div>
+        <span class="load-label mono">
+          {{ $any(row).currentLoad }} / {{ $any(row).capacity }} MT
+        </span>
+      </div>
+    </ng-template>
+
+    <ng-template appCell="commodities" let-row>
+      <div class="commodity-chips">
+        <span class="chip" *ngFor="let c of $any(row).commodities">{{ c }}</span>
+      </div>
+    </ng-template>
+
+    <ng-template appCell="status" let-row>
+      <span class="status-pill"
+        [class.pill-active]="$any(row).status === 'active'"
+        [class.pill-inactive]="$any(row).status === 'inactive'">
+        {{ $any(row).status | uppercase }}
+      </span>
+    </ng-template>
+
+    <ng-template appCell="actions" let-row>
+      <div class="row-actions">
+        <button type="button" class="action-link" (click)="viewHub($any(row))">View</button>
+        <button
+          *hasPermission="'collection_hubs.edit'"
+          type="button" class="action-link" (click)="editHub($any(row))">
+          Edit
+        </button>
+        <button
+          *hasPermission="'collection_hubs.deactivate'"
+          type="button"
+          class="action-link"
+          [class.action-danger]="$any(row).status === 'active'"
+          (click)="toggleStatus($any(row))">
+          {{ $any(row).status === 'active' ? 'Deactivate' : 'Reactivate' }}
+        </button>
+        <button
+          *hasPermission="'collection_hubs.delete'"
+          type="button" class="action-link action-danger"
+          (click)="confirmDelete($any(row))">
+          Delete
+        </button>
+      </div>
+    </ng-template>
+
+  </app-data-table>
+
 </div>
 
 <!-- Hub detail modal -->

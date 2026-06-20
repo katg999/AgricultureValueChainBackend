@@ -1,20 +1,7 @@
 <div class="farmers-page" *ngIf="farmerDeliveries$ | async">
 
-  <!-- Breadcrumb -->
-  <nav class="breadcrumb" aria-label="Breadcrumb">
-    <span class="link" (click)="goToBranchDeliveries()">Branch Deliveries</span>
-    <span class="sep">›</span>
-    <ng-container *ngIf="batchDelivery">
-      <span class="link" (click)="clearBatchFilter()">Farmers</span>
-      <span class="sep">›</span>
-      <span class="current">{{ batchDelivery.id }}</span>
-    </ng-container>
-    <span class="current" *ngIf="!batchDelivery">Farmers</span>
-  </nav>
-
-  <div class="page-header">
+<div class="page-header">
     <div>
-      <h1>Farmers</h1>
       <p *ngIf="batchDelivery">
         Farmers who delivered in {{ batchDelivery.id }} — {{ batchDelivery.branchName }}, {{ batchDelivery.commodity }}.
       </p>
@@ -60,8 +47,12 @@
           </tr>
 
           <tr *ngIf="paginatedFarmerDeliveries.length === 0">
-            <td colspan="9" class="empty-state">
-              {{ batchDelivery ? 'No farmers have delivered in this batch yet.' : 'No farmer deliveries recorded yet.' }}
+            <td colspan="9">
+              <app-empty-state
+                icon="farmer"
+                [title]="batchDelivery ? 'No deliveries in this batch' : 'No farmer deliveries yet'"
+                [message]="batchDelivery ? 'No farmers have delivered in this batch yet.' : 'Farmer deliveries recorded at this branch will appear here.'">
+              </app-empty-state>
             </td>
           </tr>
         </tbody>

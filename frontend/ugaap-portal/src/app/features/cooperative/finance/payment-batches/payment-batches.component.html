@@ -6,7 +6,6 @@
 <div class="pb-page">
 
   <div class="pb-header">
-    <h1 class="pb-title">Payment Batches</h1>
     <p class="pb-subtitle">Every branch's payment batches, aggregated across the cooperative. Read-only — status changes happen on the branch side.</p>
   </div>
 
@@ -82,7 +81,7 @@
           </ng-container>
 
           <tr *ngIf="filteredBatches.length === 0">
-            <td colspan="9">
+            <td colspan="9" class="empty-cell">
               <app-empty-state
                 icon="wallet"
                 title="No payment batches"

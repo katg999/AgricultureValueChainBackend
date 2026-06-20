@@ -7,7 +7,8 @@ import { StatsCardComponent } from '../../../../shared/components/stats-card/sta
 import { BadgeComponent }     from '../../../../shared/components/badge/badge';
 import { ButtonComponent }    from '../../../../shared/components/button/button.component';
 import { ToastService }       from '../../../../core/services/toast.service';
-import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
+import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
+import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
 
 export interface User {
   id:           string;
@@ -26,7 +27,7 @@ type BadgeVariant = 'info' | 'active' | 'pending' | 'inactive' | 'suspended' |
 @Component({
   selector: 'app-users-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, StatsCardComponent, BadgeComponent, ButtonComponent, EmptyStateComponent],
+  imports: [CommonModule, RouterModule, FormsModule, StatsCardComponent, BadgeComponent, ButtonComponent, DataTableComponent, CellDirective],
   templateUrl: './users-list.component.html',
   styleUrls: ['./users-list.component.css'],
 })
@@ -44,6 +45,16 @@ export class UsersListComponent implements OnInit {
 
   readonly roleOptions        = ['All Roles', 'MANAGER', 'COOPERATIVE ADMIN', 'LOGISTICS MANAGER', 'ACCOUNTANT'];
   readonly cooperationOptions = ['All Cooperations', 'UGAAP Central', 'Kasese Coffee Coop', 'Mubende Warehouse Central'];
+
+  cols: TableColumn[] = [
+    { key: 'name',         header: 'NAME' },
+    { key: 'email',        header: 'EMAIL',        class: 'text-muted' },
+    { key: 'phone',        header: 'PHONE NUMBER', class: 'text-muted' },
+    { key: 'role',         header: 'ROLE' },
+    { key: 'organization', header: 'ORGANISATION' },
+    { key: 'lastLogin',    header: 'LAST LOGIN',   class: 'text-muted' },
+    { key: 'actions',      header: 'ACTIONS' },
+  ];
 
   users: User[] = [
     { id: '1', name: 'Sarah Namubiru',   email: 's.namubiru@ugaap.co.ug',  phone: '+256 701 445 678', role: 'COOPERATIVE ADMIN', organization: 'UGAAP Central',            lastLogin: '2 mins ago' },

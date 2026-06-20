@@ -7,8 +7,9 @@ import { FormsModule } from '@angular/forms';
 
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
-import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { HasPermissionDirective } from '../../../../shared/directives/has-permission.directive';
+import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
+import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
 import { ToastService } from '../../../../core/services/toast.service';
 import { CollectionHub, HubStatus, CollectionHubsService } from '../collection-hubs.service';
 
@@ -17,7 +18,7 @@ type StatusFilter = 'all' | HubStatus;
 @Component({
   selector: 'app-collection-hubs-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonComponent, ModalComponent, HasPermissionDirective, EmptyStateComponent],
+  imports: [CommonModule, FormsModule, ButtonComponent, ModalComponent, HasPermissionDirective, DataTableComponent, CellDirective],
   templateUrl: './collection-hubs-list.component.html',
   styleUrls: ['./collection-hubs-list.component.css'],
 })
@@ -45,6 +46,17 @@ export class CollectionHubsListComponent {
   });
 
   readonly activeCount = computed(() => this.hubs().filter(h => h.status === 'active').length);
+
+  cols: TableColumn[] = [
+    { key: 'hubCode',     header: 'CODE',               class: 'mono' },
+    { key: 'name',        header: 'NAME' },
+    { key: 'location',    header: 'LOCATION / DISTRICT' },
+    { key: 'branchName',  header: 'BRANCH' },
+    { key: 'capacity',    header: 'CAPACITY LOAD' },
+    { key: 'commodities', header: 'COMMODITIES' },
+    { key: 'status',      header: 'STATUS' },
+    { key: 'actions',     header: 'ACTIONS' },
+  ];
 
   // ── Detail modal ─────────────────────────────────────────────────────────────
   showDetailModal = false;

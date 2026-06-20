@@ -1,0 +1,73 @@
+<div class="table-card" *ngIf="rows.length > 0">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th
+          *ngFor="let col of columns"
+          [class]="col.class ?? ''"
+          [style.width]="col.width ?? null"
+          [style.textAlign]="col.align ?? 'left'">
+          {{ col.header }}
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr
+        *ngFor="let row of displayedRows"
+        [class.row-clickable]="clickable"
+        (click)="onRowClick(row)">
+        <td
+          *ngFor="let col of columns"
+          [class]="col.class ?? ''"
+          [style.textAlign]="col.align ?? 'left'">
+          <ng-container *ngIf="tpl(col.key) as t; else defaultCell">
+            <ng-container [ngTemplateOutlet]="t" [ngTemplateOutletContext]="{ $implicit: row }"></ng-container>
+          </ng-container>
+          <ng-template #defaultCell>{{ cellValue(row, col.key) }}</ng-template>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="pagination-bar" *ngIf="paginate">
+    <div class="pagination-meta">
+      <span class="pagination-info">Showing {{ startIndex }}–{{ endIndex }} of {{ totalRows }}</span>
+      <label class="page-size-label">
+        Rows per page
+        <select class="page-size-select" [(ngModel)]="selectedPageSize" (ngModelChange)="onPageSizeChange()">
+          <option *ngFor="let opt of pageSizeOptions" [value]="opt">{{ opt }}</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="pagination-controls">
+      <button class="page-btn" [disabled]="currentPage === 1" (click)="prevPage()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+
+      <ng-container *ngFor="let page of pagesArray">
+        <span *ngIf="page === -1" class="page-ellipsis">…</span>
+        <button
+          *ngIf="page !== -1"
+          class="page-btn"
+          [class.page-btn-active]="page === currentPage"
+          (click)="goToPage(page)">
+          {{ page }}
+        </button>
+      </ng-container>
+
+      <button class="page-btn" [disabled]="currentPage === totalPages" (click)="nextPage()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<app-empty-state
+  *ngIf="rows.length === 0"
+  [icon]="emptyIcon"
+  [title]="emptyTitle"
+  [message]="emptyMessage"
+  [actionLabel]="emptyActionLabel ?? ''"
+  [route]="emptyRoute ?? ''">
+</app-empty-state>

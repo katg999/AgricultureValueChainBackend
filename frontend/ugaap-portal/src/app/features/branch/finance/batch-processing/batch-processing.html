@@ -14,7 +14,6 @@
   <div class="page-header">
     <div class="header-content-wrapper">
       <div>
-        <h1>Payment Batches</h1>
         <p>Manage and track farmer payment batches across seasons.</p>
       </div>
       <!-- (click)="goToCreateBatch()" navigates to /branch/finance/batch-create -->
@@ -58,142 +57,58 @@
   </div>
 
   <!-- ── 4. Batch table ──────────────────────────────────────────────────── -->
-  <!-- filteredBatches$ is an Observable. The '| async' pipe subscribes to it
-       automatically and assigns the latest emitted array to the local 'batches' variable.
-       When the service emits a new array (after a status update, delete, or search change),
-       Angular re-renders this section without any extra code needed. -->
-  @if (filteredBatches$ | async; as batches) {
-    <div class="table-card">
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Batch ID</th>
-              <th>Batch Name</th>
-              <th>Season</th>
-              <th>Date Range</th>
-              <th>Commodity</th>
-              <th>Branch</th>
-              <th class="numeric">Farmers</th>
-              <th class="numeric">Total Amount</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- track batch.id = Angular uses the ID to reuse existing DOM nodes.
-                 If you sort or filter, it moves rows instead of destroying+recreating them. -->
-            @for (batch of batches; track batch.id) {
-              <tr>
-                <!-- mono = IBM Plex Mono font — IDs and codes read better in monospace -->
-                <td class="mono">{{ batch.id }}</td>
+  <ng-container *ngIf="filteredBatches$ | async as batches">
+    <app-data-table
+      [columns]="batchCols"
+      [rows]="batches"
+      [paginate]="true"
+      emptyIcon="finance"
+      [emptyTitle]="(totalBatchCount$ | async) === 0 ? 'No payment batches yet' : 'No batches match'"
+      [emptyMessage]="(totalBatchCount$ | async) === 0 ? 'Create your first batch to start grouping farmer payments for disbursement.' : 'No batches match the selected filters. Try adjusting the status or search term.'"
+      emptyActionLabel="Create Batch"
+      emptyRoute="/branch/finance/batch-create">
 
-                <!-- [title]="batch.batchName" = browser tooltip on hover for long names -->
-                <td class="cell-name" [title]="batch.batchName">{{ batch.batchName }}</td>
+      <ng-template appCell="dateRange" let-row>
+        <span class="mono date-range">{{ $any(row).openingDate }} — {{ $any(row).closingDate }}</span>
+      </ng-template>
 
-                <td>{{ batch.season }}</td>
+      <ng-template appCell="totalAmount" let-row>
+        {{ formatCurrency($any(row).totalAmount) }}
+      </ng-template>
 
-                <td class="mono date-range">
-                  {{ batch.openingDate }} — {{ batch.closingDate }}
-                </td>
+      <ng-template appCell="status" let-row>
+        <span class="status-badge" [ngClass]="statusClass($any(row).status)">
+          {{ $any(row).status }}
+        </span>
+      </ng-template>
 
-                <td>{{ batch.commodityFilter }}</td>
+      <ng-template appCell="actions" let-row>
+        <div class="action-menu" (click)="$event.stopPropagation()">
+          <button
+            type="button"
+            class="kebab-btn"
+            title="Batch actions"
+            aria-label="Batch actions"
+            [attr.aria-expanded]="openActionMenuId === $any(row).id"
+            (click)="toggleActionMenu($any(row).id, $event)">
+            <span></span><span></span><span></span>
+          </button>
+          @if (openActionMenuId === $any(row).id) {
+            <div
+              class="menu-panel"
+              [style.top]="menuPosition.top !== undefined ? menuPosition.top + 'px' : 'auto'"
+              [style.bottom]="menuPosition.bottom !== undefined ? menuPosition.bottom + 'px' : 'auto'"
+              [style.right.px]="menuPosition.right">
+              <button type="button" (click)="viewFarmers($any(row))">View Farmers</button>
+              <button type="button" [disabled]="$any(row).status === 'Draft'" (click)="exportPaymentFile($any(row))">Export Payment File</button>
+              <button type="button" [disabled]="$any(row).status !== 'Draft'" (click)="submitForApproval($any(row))">Submit for Approval</button>
+              <button type="button" class="danger" [disabled]="$any(row).status !== 'Draft'" (click)="deleteBatch($any(row))">Delete</button>
+            </div>
+          }
+        </div>
+      </ng-template>
 
-                <td>{{ batch.branch }}</td>
-
-                <td class="numeric">{{ batch.farmerCount }}</td>
-
-                <td class="numeric mono">{{ formatCurrency(batch.totalAmount) }}</td>
-
-                <td>
-                  <!-- [ngClass]="statusClass(batch.status)" = calls the method in .ts
-                       which returns a class name like 'status-draft', 'status-approved', etc.
-                       Those classes are defined in batch-processing.css with different colors. -->
-                  <span class="status-badge" [ngClass]="statusClass(batch.status)">
-                    {{ batch.status }}
-                  </span>
-                </td>
-
-                <!-- ── Kebab action menu ────────────────────────────────────
-                     (click)="$event.stopPropagation()" = prevents the outer div's
-                     closeActionMenu() from firing when clicking inside this cell. -->
-                <td>
-                  <div class="action-menu" (click)="$event.stopPropagation()">
-
-                    <!-- The ⋮ kebab button: three <span> dots styled as circles in CSS.
-                         aria-expanded = tells screen readers whether the menu is open.
-                         toggleActionMenu stores the clicked button's screen position
-                         so the dropdown can be positioned absolutely below (or above) it. -->
-                    <button
-                      type="button"
-                      class="kebab-btn"
-                      title="Batch actions"
-                      aria-label="Batch actions"
-                      [attr.aria-expanded]="openActionMenuId === batch.id"
-                      (click)="toggleActionMenu(batch.id, $event)">
-                      <span></span><span></span><span></span>
-                    </button>
-
-                    <!-- The dropdown panel — only rendered when THIS row's menu is open.
-                         [style.top] / [style.bottom] = positioned using coordinates calculated
-                         in toggleActionMenu() so it never clips off the bottom of the screen. -->
-                    @if (openActionMenuId === batch.id) {
-                      <div
-                        class="menu-panel"
-                        [style.top]="menuPosition.top !== undefined ? menuPosition.top + 'px' : 'auto'"
-                        [style.bottom]="menuPosition.bottom !== undefined ? menuPosition.bottom + 'px' : 'auto'"
-                        [style.right.px]="menuPosition.right">
-
-                        <!-- "View Farmers" is always available regardless of status -->
-                        <button type="button" (click)="viewFarmers(batch)">
-                          View Farmers
-                        </button>
-
-                        <!-- Export Payment File — disabled for Draft because the batch
-                             isn't finalised yet. Available once submitted or approved. -->
-                        <button
-                          type="button"
-                          [disabled]="batch.status === 'Draft'"
-                          (click)="exportPaymentFile(batch)">
-                          Export Payment File
-                        </button>
-
-                        <!-- [disabled] = grays out the button if the batch isn't a Draft.
-                             You can only submit a Draft — once it's Pending/Approved, it's locked. -->
-                        <button
-                          type="button"
-                          [disabled]="batch.status !== 'Draft'"
-                          (click)="submitForApproval(batch)">
-                          Submit for Approval
-                        </button>
-
-                        <!-- class="danger" = red text; also only available for Drafts -->
-                        <button
-                          type="button"
-                          class="danger"
-                          [disabled]="batch.status !== 'Draft'"
-                          (click)="deleteBatch(batch)">
-                          Delete
-                        </button>
-
-                      </div>
-                    }
-                  </div>
-                </td>
-
-              </tr>
-            } @empty {
-              <!-- colspan="10" = spans all 10 columns so the message sits centered -->
-              <tr>
-                <td colspan="10" class="empty-state">
-                  No batches match the selected filters.
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    </div>
-  }
+    </app-data-table>
+  </ng-container>
 
 </div>

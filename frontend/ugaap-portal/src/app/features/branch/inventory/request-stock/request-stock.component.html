@@ -1,8 +1,7 @@
 <div class="request-stock-page">
   <app-page-header
     title="Request Stock"
-    subtitle="View and manage stock requests submitted to cooperative headquarters"
-    [breadcrumb]="['Inventory', 'Request Stock']">
+    subtitle="View and manage stock requests submitted to cooperative headquarters">
   </app-page-header>
 
   <!-- ── History section ───────────────────────────────────────────────────── -->
@@ -45,120 +44,60 @@
     </div>
 
     <div class="table-container">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th class="col-item">ITEM NAME</th>
-            <th class="col-category">CATEGORY</th>
-            <th class="col-qty">QTY</th>
-            <th class="col-urgency">URGENCY</th>
-            <th class="col-submitted">SUBMITTED</th>
-            <th class="col-delivery">DELIVERY DATE</th>
-            <th class="col-status">STATUS</th>
-            <th class="col-action">ACTIONS</th>
-          </tr>
-        </thead>
+      <app-data-table
+        [columns]="cols"
+        [rows]="filteredRequests"
+        [paginate]="true"
+        emptyIcon="clipboard"
+        emptyTitle="No stock requests"
+        emptyMessage="No requests match your search. Try a different keyword.">
 
-        <tbody>
-          <tr *ngFor="let row of visibleRequests; trackBy: trackById">
-            <td class="item-name-cell">{{ row.itemName }}</td>
+        <ng-template appCell="category" let-row>
+          <span class="category-badge" [ngClass]="$any(row).category.toLowerCase()">
+            {{ $any(row).category }}
+          </span>
+        </ng-template>
 
-            <td>
-              <span class="category-badge" [ngClass]="row.category.toLowerCase()">
-                {{ row.category }}
-              </span>
-            </td>
+        <ng-template appCell="quantity" let-row>
+          {{ $any(row).quantity }} {{ $any(row).unit }}
+        </ng-template>
 
-            <td class="qty-cell">{{ row.quantity }} {{ row.unit }}</td>
+        <ng-template appCell="urgency" let-row>
+          <app-badge [variant]="getUrgencyVariant($any(row).urgency)" [dot]="true">
+            {{ $any(row).urgency | titlecase }}
+          </app-badge>
+        </ng-template>
 
-            <td>
-              <app-badge [variant]="getUrgencyVariant(row.urgency)" [dot]="true">
-                {{ row.urgency | titlecase }}
-              </app-badge>
-            </td>
+        <ng-template appCell="preferredDeliveryDate" let-row>
+          <span *ngIf="$any(row).preferredDeliveryDate; else noDueDate">{{ $any(row).preferredDeliveryDate }}</span>
+          <ng-template #noDueDate><span class="no-date">—</span></ng-template>
+        </ng-template>
 
-            <td class="date-cell">{{ row.submittedAt }}</td>
+        <ng-template appCell="status" let-row>
+          <app-badge [variant]="getStatusVariant($any(row).status)" [dot]="true">
+            {{ $any(row).status | titlecase }}
+          </app-badge>
+        </ng-template>
 
-            <td class="date-cell">
-              <span *ngIf="row.preferredDeliveryDate; else noDueDate">{{ row.preferredDeliveryDate }}</span>
-              <ng-template #noDueDate><span class="no-date">—</span></ng-template>
-            </td>
+        <ng-template appCell="actions" let-row>
+          <div class="kebab-wrapper">
+            <button class="kebab-btn" type="button" title="More options"
+              (click)="toggleKebab($any(row).id, $event)">&#8942;</button>
+            <div class="kebab-dropdown"
+              *ngIf="openKebabId === $any(row).id"
+              [style.top]="kebabPosition.top !== undefined ? kebabPosition.top + 'px' : 'auto'"
+              [style.bottom]="kebabPosition.bottom !== undefined ? kebabPosition.bottom + 'px' : 'auto'"
+              [style.right.px]="kebabPosition.right">
+              <button class="kebab-item" type="button" (click)="onViewDetails($any(row), $event)">View details</button>
+              <button class="kebab-item kebab-item--danger" type="button"
+                *ngIf="$any(row).status === 'pending'"
+                (click)="onCancelRequest($any(row), $event)">Cancel request</button>
+            </div>
+          </div>
+        </ng-template>
 
-            <td>
-              <app-badge [variant]="getStatusVariant(row.status)" [dot]="true">
-                {{ row.status | titlecase }}
-              </app-badge>
-            </td>
+      </app-data-table>
 
-            <td class="kebab-cell">
-              <div class="kebab-wrapper">
-                <button
-                  class="kebab-btn"
-                  type="button"
-                  title="More options"
-                  (click)="toggleKebab(row.id, $event)">
-                  &#8942;
-                </button>
-                <div
-                  class="kebab-dropdown"
-                  *ngIf="openKebabId === row.id"
-                  [style.top]="kebabPosition.top !== undefined ? kebabPosition.top + 'px' : 'auto'"
-                  [style.bottom]="kebabPosition.bottom !== undefined ? kebabPosition.bottom + 'px' : 'auto'"
-                  [style.right.px]="kebabPosition.right">
-                  <button class="kebab-item" type="button" (click)="onViewDetails(row, $event)">
-                    View details
-                  </button>
-                  <button
-                    class="kebab-item kebab-item--danger"
-                    type="button"
-                    *ngIf="row.status === 'pending'"
-                    (click)="onCancelRequest(row, $event)">
-                    Cancel request
-                  </button>
-                </div>
-              </div>
-            </td>
-          </tr>
-
-          <tr *ngIf="visibleRequests.length === 0">
-            <td colspan="8" class="empty-row">No requests match your search.</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <div class="table-footer">
-        <span>Showing {{ pageStart }}–{{ pageEnd }} of {{ totalFiltered }} entries</span>
-
-        <div class="pagination">
-          <app-button
-            title="Previous page"
-            size="sm"
-            variant="ghost"
-            type="button"
-            [disabled]="currentPage === 1"
-            (clicked)="prevPage()">
-          </app-button>
-
-          <app-button
-            *ngFor="let p of visiblePages"
-            size="sm"
-            [variant]="p === currentPage ? 'primary' : 'ghost'"
-            type="button"
-            (clicked)="goToPage(p)">
-            {{ p }}
-          </app-button>
-
-          <app-button
-            title="Next page"
-            size="sm"
-            variant="ghost"
-            type="button"
-            iconLeft=">"
-            [disabled]="currentPage === totalPages"
-            (clicked)="nextPage()">
-          </app-button>
-        </div>
-      </div>
     </div>
   </div>
 </div>
