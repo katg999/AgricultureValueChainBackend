@@ -367,6 +367,7 @@ export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
+  // ── Submit ─────────────────────────────────────────────────────────────────
   private createPayload(): SaveFarmerDeliveryPayload {
   // getRawValue() is required here — .value skips disabled controls (estimatedValue, unitPrice)
   const v = this.deliveryForm.getRawValue();
@@ -435,29 +436,45 @@ export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
   // }
   
   onSubmit(): void {
-  if (this.deliveryForm.invalid || this.isFormBlocked) {
-    this.deliveryForm.markAllAsTouched();
-    return;
+    this.formSubmitAttempted = true;
+
+    // Hard-block: cooperative admin must open a season before any delivery can be saved.
+    if (this.isSeasonBlocked) {
+      this.errorMessage = 'No season is currently open. A cooperative admin must open a season before deliveries can be recorded.';
+      this.cdr.markForCheck();
+      return;
+    }
+
+    // Hard-block: all sessions for today have closed.
+    if (this.isSessionBlocked) {
+      this.errorMessage = 'All sessions for today have closed. New deliveries can be recorded again tomorrow.';
+      this.cdr.markForCheck();
+      return;
+    }
+
+    // A farmer must be selected from the dropdown — typing alone isn't enough.
+    if (!this.selectedFarmer) {
+      this.deliveryForm.get('farmerSearch')?.setErrors({ farmerRequired: true });
+    }
+
+    if (this.deliveryForm.invalid) {
+      this.deliveryForm.markAllAsTouched();
+      return;
+    }
+
+    this.isSaving = true;
+    this.errorMessage = '';
+    this.cdr.markForCheck();
+
+    const payload = this.buildPayload();
+
+    this.deliveryService.add(payload)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => this.onSaveSuccess(payload),
+        error: (err: unknown) => this.onSaveError(err),
+      });
   }
-
-  this.isSaving = true;
-  this.errorMessage = '';
-  this.cdr.markForCheck();
-
-  const payload = this.createPayload();
-
-  this.deliveryService.saveDelivery(payload)
-    .pipe(takeUntil(this.destroy$))
-    .subscribe({
-      next: (response) => {
-        // Triggers the beautiful success window animation state you built
-        this.onSaveSuccess(payload);
-      },
-      error: (err) => {
-        this.onSaveError(err);
-      }
-    });
-}
 
   private buildPayload(): FarmerDeliveryFormData {
     const v        = this.deliveryForm.getRawValue(); // getRawValue includes disabled controls
@@ -487,7 +504,7 @@ export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
 
   // ── Save success / error ────────────────────────────────────────────────────
 
-  private onSaveSuccess(payload: SaveFarmerDeliveryPayload): void {
+  private onSaveSuccess(payload: FarmerDeliveryFormData): void {
     this.isSaving  = false;
     this.submitted = true;
     this.successMessage = `Delivery for ${payload.farmerName} saved successfully`;

@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, map, of } from 'rxjs';
 import { catchError, startWith, tap, timeout } from 'rxjs/operators';
 import { API_ENDPOINTS } from '../../../core/constants/api-endpoints';
-import { FarmerDelivery, FarmerDeliveryFormData } from './farmer.delivery.model';
+import { FarmerDelivery, FarmerDeliveryFormData, SaveFarmerDeliveryPayload } from './farmer.delivery.model';
 import { BranchDeliveryService } from './branch.delivery.service';
 // Replaced CommodityPricingService with the new unified pricing service that
 // supports both flat and grade-based pricing modes.
@@ -286,6 +286,7 @@ export class FarmerDeliveryService {
   ];
 
   private readonly farmers$: BehaviorSubject<FarmerDelivery[]>;
+  private readonly baseUrl = API_ENDPOINTS.BRANCH.FARMER_DELIVERIES;
   // Start after the last seed record (FD-136) so new programmatic adds never collide.
   private counter = 136;
   private baseUrl = '/api/v1/deliveries'; 
