@@ -260,6 +260,7 @@ export class CooperativeDeliveriesComponent implements OnInit, OnDestroy {
       season: [delivery.season, Validators.required],
     });
   }
+  
 
   private filterDeliveries(
     deliveries: BranchDelivery[],
