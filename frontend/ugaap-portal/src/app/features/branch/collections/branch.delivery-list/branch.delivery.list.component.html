@@ -91,13 +91,13 @@
             [style.top]="menuPosition.top !== undefined ? menuPosition.top + 'px' : 'auto'"
             [style.bottom]="menuPosition.bottom !== undefined ? menuPosition.bottom + 'px' : 'auto'"
             [style.right.px]="menuPosition.right">
-            <button type="button" (click)="viewDelivery($any(row))">View</button>
-            <button type="button" (click)="editDelivery($any(row))">Edit</button>
+            <button type="button" (click)="viewFarmers($any(row))">View Farmers</button>
+            <button type="button" class="menu-item--approve" *ngIf="$any(row).status !== 'Approved'" (click)="approveDelivery($any(row))">Approve</button>
+            <button type="button" class="menu-item--reject" *ngIf="$any(row).status !== 'Rejected'" (click)="rejectDelivery($any(row))">Reject</button>
           </div>
         </div>
       </ng-template>
 
     </app-data-table>
-
 
 </div>

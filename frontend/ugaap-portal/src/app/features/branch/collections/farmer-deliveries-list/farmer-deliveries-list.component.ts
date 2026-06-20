@@ -10,6 +10,7 @@ import { BranchDeliveryService } from '../branch.delivery.service';
 import { SessionService } from '../../../../core/services/session.service';
 import { DeliverySessionConfigService } from '../../../../core/services/delivery-session-config.service';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
+import { CooperativePricingService } from '../../../../core/services/cooperative-pricing.service';
 
 @Component({
   selector: 'app-farmer-deliveries-list',
@@ -23,6 +24,8 @@ export class FarmerDeliveriesListComponent implements OnInit, OnDestroy {
   paginatedFarmerDeliveries$!: Observable<FarmerDelivery[]>;
   // Set when navigated here via a delivery row's "View" action — scopes the list to that batch.
   batchDelivery: BranchDelivery | null = null;
+  // 'cooperative' when drilled into from the cooperative deliveries view; affects back-link.
+  fromContext: 'cooperative' | 'branch' = 'branch';
 
   currentPage = 1;
   readonly itemsPerPage = 10;
@@ -43,10 +46,14 @@ export class FarmerDeliveriesListComponent implements OnInit, OnDestroy {
     private readonly sessionConfig: DeliverySessionConfigService,
     private readonly router: Router,
     private readonly route: ActivatedRoute,
+    // Must be public so the template can access pricingService.useGrades directly.
+    public readonly pricingService: CooperativePricingService,
   ) {}
 
   ngOnInit(): void {
     const batchId = this.route.snapshot.queryParamMap.get('batch');
+    const from    = this.route.snapshot.queryParamMap.get('from');
+    this.fromContext   = from === 'cooperative' ? 'cooperative' : 'branch';
     this.batchDelivery = batchId ? this.branchDeliveryService.getDeliveryById(batchId) ?? null : null;
 
     // getAll() hydrates the service's BehaviorSubject; allForRole$ pipes from it.
@@ -93,7 +100,10 @@ export class FarmerDeliveriesListComponent implements OnInit, OnDestroy {
   }
 
   goToBranchDeliveries(): void {
-    this.router.navigate(['/branch/collections/deliveries']);
+    const target = this.fromContext === 'cooperative'
+      ? '/cooperative/collections/delivery-list'
+      : '/branch/collections/deliveries';
+    this.router.navigate([target]);
   }
 
   clearBatchFilter(): void {
@@ -115,6 +125,10 @@ export class FarmerDeliveriesListComponent implements OnInit, OnDestroy {
 
   formatUGX(value: number): string {
     return new Intl.NumberFormat('en-UG').format(value);
+  }
+
+  netPayment(farmer: FarmerDelivery): number {
+    return (farmer.estimatedValue || 0) - (farmer.inputLoanDeduction || 0);
   }
 
   sessionLabel(id: DeliverySession | undefined): string {

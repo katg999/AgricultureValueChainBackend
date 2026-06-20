@@ -19,6 +19,15 @@ export const COOPERATIVES_COLLECTIONS_ROUTES: Routes = [
       import('./delivery-list/delivery.cooperative.list.component')
         .then(m => m.CooperativeDeliveriesComponent),
   },
+  // Farmer-level drilldown — reached via "View Farmers" on a delivery row.
+  // Uses the same FarmerDeliveriesListComponent as the branch view; the
+  // ?batch= and ?from=cooperative query params scope the data and back-link.
+  {
+    path: 'farmers',
+    loadComponent: () =>
+      import('../../../features/branch/collections/farmer-deliveries-list/farmer-deliveries-list.component')
+        .then(m => m.FarmerDeliveriesListComponent),
+  },
   {
     path: '**',
     redirectTo: 'delivery-list',

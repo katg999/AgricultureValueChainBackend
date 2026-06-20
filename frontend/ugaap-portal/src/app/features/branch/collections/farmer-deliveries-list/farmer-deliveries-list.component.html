@@ -1,6 +1,20 @@
 <div class="farmers-page" *ngIf="farmerDeliveries$ | async">
 
-<div class="page-header">
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <span class="link" (click)="goToBranchDeliveries()">
+      {{ fromContext === 'cooperative' ? 'Cooperative Deliveries' : 'Branch Deliveries' }}
+    </span>
+    <span class="sep">›</span>
+    <ng-container *ngIf="batchDelivery">
+      <span class="link" (click)="clearBatchFilter()">Farmers</span>
+      <span class="sep">›</span>
+      <span class="current">{{ batchDelivery.id }}</span>
+    </ng-container>
+    <span class="current" *ngIf="!batchDelivery">Farmers</span>
+  </nav>
+
+  <div class="page-header">
     <div>
       <p *ngIf="batchDelivery">
         Farmers who delivered in {{ batchDelivery.id }} — {{ batchDelivery.branchName }}, {{ batchDelivery.commodity }}.
@@ -21,8 +35,13 @@
             <th>Name</th>
             <th>Phone</th>
             <th>Commodity</th>
+            <!-- Grade column only appears when the cooperative has grade mode enabled. -->
+            <th *ngIf="pricingService.useGrades">Grade</th>
             <th>Volume</th>
-            <th>Estimated Value</th>
+            <th>Unit Price</th>
+            <th>Gross Value</th>
+            <th>Deduction</th>
+            <th>Net Payment</th>
             <th>Season</th>
             <th>Session</th>
             <th>Status</th>
@@ -35,8 +54,15 @@
             <td class="fw-600">{{ farmer.farmerName }}</td>
             <td>{{ farmer.phone }}</td>
             <td>{{ farmer.commodity }}</td>
+            <!-- Shows grade name (e.g. "Premium") or a dash for older ungraded records. -->
+            <td *ngIf="pricingService.useGrades">{{ farmer.gradeName || '&mdash;' }}</td>
             <td>{{ farmer.volume | number }} KG</td>
+            <td>{{ farmer.unitPrice ? (formatUGX(farmer.unitPrice) + '/KG') : '&mdash;' }}</td>
             <td>UGX {{ formatUGX(farmer.estimatedValue) }}</td>
+            <td [class.deduction-cell]="farmer.inputLoanDeduction">
+              {{ farmer.inputLoanDeduction ? ('UGX ' + formatUGX(farmer.inputLoanDeduction)) : '&mdash;' }}
+            </td>
+            <td class="fw-600">UGX {{ formatUGX(netPayment(farmer)) }}</td>
             <td>{{ farmer.season }}</td>
             <td>{{ sessionLabel(farmer.session) }}</td>
             <td>
@@ -47,7 +73,7 @@
           </tr>
 
           <tr *ngIf="paginatedFarmerDeliveries.length === 0">
-            <td colspan="9">
+            <td [attr.colspan]="pricingService.useGrades ? 13 : 12">
               <app-empty-state
                 icon="farmer"
                 [title]="batchDelivery ? 'No deliveries in this batch' : 'No farmer deliveries yet'"

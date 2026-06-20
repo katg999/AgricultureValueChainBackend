@@ -133,10 +133,10 @@ export interface StatCardData {
     .stat-card {
       background: white;
       border-radius: 12px;
-      padding: 20px;
+      padding: 14px 16px;
       border: 1px solid #E5E7EB;
       border-left: 4px solid #E5E7EB;
-      min-height: 160px;
+      min-height: 110px;
       height: 100%;
       box-sizing: border-box;
       display: flex;
@@ -168,23 +168,23 @@ export interface StatCardData {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      min-height: 48px;
+      min-height: 36px;
     }
 
     /* ── Icon box ──────────────────────────────────────────────────────────── */
     .stat-icon {
-      width: 48px;
-      height: 48px;
+      width: 36px;
+      height: 36px;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 10px;
+      border-radius: 8px;
       flex-shrink: 0;
     }
 
     .stat-icon svg {
-      width: 24px;
-      height: 24px;
+      width: 18px;
+      height: 18px;
     }
 
     /* Icon background tinted to match status */
@@ -220,9 +220,9 @@ export interface StatCardData {
     .stat-content { margin-top: auto; }
 
     .stat-label {
-      font-size: 13px;
+      font-size: 11px;
       color: #6B7280;
-      margin-bottom: 4px;
+      margin-bottom: 2px;
       line-height: 1.4;
     }
 
@@ -233,7 +233,7 @@ export interface StatCardData {
       font-weight: 700;
       color: #200B26;
       line-height: 1;
-      height: 36px;
+      height: 28px;
       display: flex;
       align-items: flex-end;
       font-family: 'IBM Plex Mono', 'Inter', sans-serif;
@@ -255,10 +255,10 @@ export interface StatCardData {
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 13px;
-      margin-top: 8px;
-      min-height: 20px;
-      height: 20px;
+      font-size: 11px;
+      margin-top: 4px;
+      min-height: 16px;
+      height: 16px;
     }
 
     .trend-indicator { font-weight: 600; }
@@ -286,10 +286,10 @@ export interface StatCardData {
 
     /* ── Responsive ────────────────────────────────────────────────────────── */
     @media (max-width: 640px) {
-      .stat-card { padding: 16px; min-height: 132px; }
-      .stat-icon { width: 40px; height: 40px; }
-      .stat-icon svg { width: 20px; height: 20px; }
-      .stat-header { min-height: 42px; }
+      .stat-card { padding: 12px 14px; min-height: 90px; }
+      .stat-icon { width: 30px; height: 30px; }
+      .stat-icon svg { width: 15px; height: 15px; }
+      .stat-header { min-height: 30px; }
     }
   `]
 })
@@ -421,9 +421,9 @@ export class StatCardComponent implements OnInit, OnDestroy {
    */
   getValueFontSize(): string {
     const len = String(this.displayValue).length;
-    if (len <= 6) return '28px';
-    if (len <= 9) return '20px';
-    return '16px';
+    if (len <= 6) return '22px';
+    if (len <= 9) return '17px';
+    return '14px';
   }
 
   /**

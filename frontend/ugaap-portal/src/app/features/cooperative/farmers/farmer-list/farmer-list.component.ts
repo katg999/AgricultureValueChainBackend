@@ -14,7 +14,7 @@ import { ToastService } from '../../../../core/services/toast.service';
 @Component({
   selector: 'app-farmer-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, InputComponent, ButtonComponent, DataTableComponent, CellDirective],
+  imports: [CommonModule, FormsModule, InputComponent, DataTableComponent, CellDirective],
   templateUrl: './farmer-list.component.html',
   styleUrl: './farmer-list.component.css',
 })

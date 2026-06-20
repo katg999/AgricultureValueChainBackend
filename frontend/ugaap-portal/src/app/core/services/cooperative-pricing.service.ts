@@ -1,11 +1,5 @@
-// core/services/cooperative-pricing.service.ts
-//
-// Single source of truth for cooperative-wide pricing state.
-// Both the edit-prices page and the cooperative profile page read/write through here
-// so the "use grades" toggle stays in sync across navigation.
-
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 
 export interface FlatCommodityPrice {
   commodity: string;
@@ -16,92 +10,122 @@ export interface GradeCommodityPrice {
   id: string;
   branchId: string;
   commodity: string;
-  gradeName: string;
   gradeCode: string;
+  gradeName: string;
   pricePerKg: number;
 }
 
-// Seed grade prices for the mock branches ─────────────────────────────────────
-const COMMODITIES = ['Coffee', 'Maize', 'Beans', 'Rice', 'Sorghum', 'Sunflower', 'Groundnuts', 'Sesame', 'Cotton', 'Millet', 'Cassava'];
-const GRADES = [
-  { name: 'Grade A', code: 'A' },
-  { name: 'Grade B', code: 'B' },
-  { name: 'Grade C', code: 'C' },
-  { name: 'Grade D', code: 'D' },
-];
-const BASE_PRICES: Record<string, number> = {
-  Coffee: 14000, Maize: 1200, Beans: 3500, Rice: 2800, Sorghum: 1000,
-  Sunflower: 2000, Groundnuts: 4000, Sesame: 6000, Cotton: 3000, Millet: 900, Cassava: 600,
-};
-const GRADE_MULTIPLIERS: Record<string, number> = { A: 1.0, B: 0.9, C: 0.75, D: 0.6 };
+export interface GradeOption {
+  code: string;
+  name: string;
+}
 
-function seedGradePrices(branchId: string): GradeCommodityPrice[] {
+export const GRADE_OPTIONS: GradeOption[] = [
+  { code: 'A', name: 'Premium'   },
+  { code: 'B', name: 'Standard'  },
+  { code: 'C', name: 'Low Grade' },
+  { code: 'R', name: 'Rejected'  },
+];
+
+const DEFAULT_FLAT_PRICES: FlatCommodityPrice[] = [
+  { commodity: 'Maize',  pricePerKg: 2_500 },
+  { commodity: 'Coffee', pricePerKg: 6_000 },
+  { commodity: 'Beans',  pricePerKg: 2_500 },
+  { commodity: 'Rice',   pricePerKg: 3_500 },
+];
+
+const GRADE_MULTIPLIERS = [
+  { code: 'A', name: 'Premium',   mult: 1.30 },
+  { code: 'B', name: 'Standard',  mult: 1.00 },
+  { code: 'C', name: 'Low Grade', mult: 0.70 },
+  { code: 'R', name: 'Rejected',  mult: 0.00 },
+];
+
+const ALL_BRANCH_IDS = [
+  'BR-KLA', 'BR-JIN', 'BR-MBA', 'BR-FTP',
+  'BR-ADJ', 'BR-GUL', 'BR-MBL', 'BR-KIB', 'BR-LIR', 'BR-MBA2',
+];
+
+function buildDefaultGradePrices(): GradeCommodityPrice[] {
+  let id = 0;
   const rows: GradeCommodityPrice[] = [];
-  for (const commodity of COMMODITIES) {
-    for (const grade of GRADES) {
-      const base = BASE_PRICES[commodity] ?? 1000;
-      rows.push({
-        id: `${branchId}-${commodity}-${grade.code}`,
-        branchId,
-        commodity,
-        gradeName: grade.name,
-        gradeCode: grade.code,
-        pricePerKg: Math.round(base * GRADE_MULTIPLIERS[grade.code] / 50) * 50,
-      });
+  for (const branchId of ALL_BRANCH_IDS) {
+    for (const flat of DEFAULT_FLAT_PRICES) {
+      for (const g of GRADE_MULTIPLIERS) {
+        rows.push({
+          id: `GP-${++id}`,
+          branchId,
+          commodity: flat.commodity,
+          gradeCode: g.code,
+          gradeName: g.name,
+          pricePerKg: Math.round(flat.pricePerKg * g.mult / 50) * 50,
+        });
+      }
     }
   }
   return rows;
 }
 
-const SEED_BRANCHES = ['BR-KLA', 'BR-JIN', 'BR-MBA', 'BR-FTP', 'BR-ADJ', 'BR-GUL', 'BR-MBL', 'BR-KIB', 'BR-LIR', 'BR-MBA2'];
-
-const DEFAULT_FLAT_PRICES: FlatCommodityPrice[] = COMMODITIES.map(c => ({
-  commodity: c,
-  pricePerKg: BASE_PRICES[c] ?? 1000,
-}));
-
 @Injectable({ providedIn: 'root' })
 export class CooperativePricingService {
 
-  // ── Grade mode toggle ───────────────────────────────────────────────────────
+  private readonly _useGrades = new BehaviorSubject<boolean>(false);
+  private readonly _flatPrices = new BehaviorSubject<FlatCommodityPrice[]>([...DEFAULT_FLAT_PRICES]);
+  private readonly _branchFlatPrices = new BehaviorSubject<Map<string, FlatCommodityPrice[]>>(new Map());
+  private readonly _gradePrices = new BehaviorSubject<GradeCommodityPrice[]>(buildDefaultGradePrices());
 
-  private _useGrades = new BehaviorSubject<boolean>(false);
+  readonly useGrades$: Observable<boolean> = this._useGrades.asObservable();
 
-  get useGrades(): boolean { return this._useGrades.value; }
+  get useGrades(): boolean          { return this._useGrades.value; }
+  get gradeOptions(): GradeOption[] { return GRADE_OPTIONS; }
 
-  setUseGrades(value: boolean): void { this._useGrades.next(value); }
-
-  // ── Flat prices ─────────────────────────────────────────────────────────────
-
-  private _defaultFlatPrices: FlatCommodityPrice[] = DEFAULT_FLAT_PRICES.map(p => ({ ...p }));
-  private _branchFlatOverrides = new Map<string, FlatCommodityPrice[]>();
+  setUseGrades(value: boolean): void {
+    this._useGrades.next(value);
+  }
 
   getFlatPrices(branchId?: string): FlatCommodityPrice[] {
-    if (branchId && this._branchFlatOverrides.has(branchId)) {
-      return this._branchFlatOverrides.get(branchId)!.map(p => ({ ...p }));
+    if (branchId) {
+      const override = this._branchFlatPrices.value.get(branchId);
+      if (override) return override.map(p => ({ ...p }));
     }
-    return this._defaultFlatPrices.map(p => ({ ...p }));
+    return [...this._flatPrices.value];
+  }
+
+  hasBranchFlatOverride(branchId: string): boolean {
+    return this._branchFlatPrices.value.has(branchId);
   }
 
   updateFlatPrices(prices: FlatCommodityPrice[], branchId?: string): void {
     if (branchId) {
-      this._branchFlatOverrides.set(branchId, prices.map(p => ({ ...p })));
+      const updated = new Map(this._branchFlatPrices.value);
+      updated.set(branchId, prices.map(p => ({ ...p })));
+      this._branchFlatPrices.next(updated);
     } else {
-      this._defaultFlatPrices = prices.map(p => ({ ...p }));
+      this._flatPrices.next(prices.map(p => ({ ...p })));
     }
   }
 
-  // ── Grade prices ────────────────────────────────────────────────────────────
-
-  private _gradePrices = new Map<string, GradeCommodityPrice[]>(
-    SEED_BRANCHES.map(id => [id, seedGradePrices(id)]),
-  );
-
   getGradePrices(branchId: string): GradeCommodityPrice[] {
-    return (this._gradePrices.get(branchId) ?? []).map(p => ({ ...p }));
+    return this._gradePrices.value.filter(p => p.branchId === branchId);
   }
 
   updateGradePrices(branchId: string, prices: GradeCommodityPrice[]): void {
-    this._gradePrices.set(branchId, prices.map(p => ({ ...p })));
+    const others = this._gradePrices.value.filter(p => p.branchId !== branchId);
+    this._gradePrices.next([...others, ...prices]);
+  }
+
+  getUnitPrice(branchId: string, commodity: string, gradeCode?: string): number {
+    if (this._useGrades.value && gradeCode) {
+      const match = this._gradePrices.value.find(
+        p => p.branchId === branchId &&
+             p.commodity.toLowerCase() === commodity.toLowerCase() &&
+             p.gradeCode === gradeCode,
+      );
+      return match?.pricePerKg ?? 0;
+    }
+    const branchOverride = this._branchFlatPrices.value.get(branchId);
+    const source = branchOverride ?? this._flatPrices.value;
+    const flat = source.find(p => p.commodity.toLowerCase() === commodity.toLowerCase());
+    return flat?.pricePerKg ?? 0;
   }
 }
