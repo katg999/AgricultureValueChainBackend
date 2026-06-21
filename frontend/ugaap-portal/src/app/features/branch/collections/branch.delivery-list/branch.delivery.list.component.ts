@@ -2,6 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { BehaviorSubject, combineLatest, map, Observable, shareReplay, tap } from 'rxjs';
 
 import { BranchDelivery, DeliveryStatus, DeliverySession, Season } from '../branch.delivery.model';
@@ -10,6 +11,7 @@ import { BranchDeliveryService } from '../branch.delivery.service';
 import { SessionService } from '../../../../core/services/session.service';
 import { DeliverySessionConfigService } from '../../../../core/services/delivery-session-config.service';
 import { ToastService } from '../../../../core/services/toast.service';
+import { EmptyState } from "../../../../shared/components/empty-state/empty-state";
 
 @Component({
   selector: 'app-branch-deliveries',
@@ -17,12 +19,13 @@ import { ToastService } from '../../../../core/services/toast.service';
   imports: [
     CommonModule,
     FormsModule,
-    EmptyStateComponent,
-  ],
+    EmptyState
+],
   templateUrl: './branch.delivery.list.component.html',
   styleUrls: ['./branch.delivery.list.component.css'],
 })
 export class BranchDeliveriesComponent implements OnInit, OnDestroy {
+  private deliveriesFetchSub!: Subscription;
   deliveries$!: Observable<BranchDelivery[]>;
   filteredDeliveries$!: Observable<BranchDelivery[]>;
   paginatedDeliveries$!: Observable<BranchDelivery[]>;
@@ -59,7 +62,10 @@ export class BranchDeliveriesComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     // getDeliveries() hydrates the BehaviorSubject; getDeliveriesForBranch pipes from it.
-    this.svc.getDeliveries().subscribe();
+    //this.svc.getDeliveries().subscribe();
+
+    // Save reference to the explicit execution stream
+    this.deliveriesFetchSub = this.svc.getDeliveries().subscribe();
 
     // shareReplay so combineLatest below doesn't re-trigger the HTTP call on each filter change.
     this.deliveries$ = this.svc
@@ -83,6 +89,11 @@ export class BranchDeliveriesComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.filterState$.complete();
     this.pageState$.complete();
+
+    if (this.deliveriesFetchSub) {
+      this.deliveriesFetchSub.unsubscribe(); // Safely kill background network stream hooks
+    }
+
   }
 
   applyFilter(): void {

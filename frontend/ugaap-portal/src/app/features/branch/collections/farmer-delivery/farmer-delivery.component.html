@@ -1,6 +1,5 @@
 <div class="afd-page">
 
-  <!-- ── Success screen ───────────────────────────────────────────────── -->
   <div class="afd-success" *ngIf="submitted">
     <div class="success-icon">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -10,16 +9,14 @@
     <h2>Delivery saved successfully</h2>
     <p>{{ successMessage }}</p>
     <div class="redirect-bar">
-      <div class="redirect-fill" [style.width.%]="redirectProgress"></div>
+      <div class="redirect-fill" [style.width.%]="100"></div>
     </div>
     <span class="redirect-label">Redirecting to Branch Deliveries…</span>
   </div>
 
-  <!-- ── Modal ────────────────────────────────────────────────────────── -->
   <div class="afd-modal-backdrop" *ngIf="!submitted">
     <div class="afd-modal">
 
-      <!-- Header -->
       <div class="afd-modal-header">
         <div>
           <h1 class="afd-title">Add Farmer Delivery</h1>
@@ -33,26 +30,26 @@
         </button>
       </div>
 
-      <!-- Form -->
       <form [formGroup]="deliveryForm" (ngSubmit)="onSubmit()" novalidate>
 
-        <!-- Season block: shown when the cooperative hasn't opened any season -->
         <app-alert
           variant="error"
-          message="No season is open — a cooperative admin must open a season before deliveries can be recorded."
+          [message]="errorMessage"
+          *ngIf="errorMessage">
+        </app-alert>
+
+        <app-alert
+          variant="error"
+          message="No active season is currently open. Recording blocked."
           *ngIf="isSeasonBlocked">
         </app-alert>
 
-        <!-- Session warning: shown when all time slots for today have passed -->
         <app-alert
           variant="warning"
           message="All sessions for today have closed — new deliveries can be recorded again tomorrow."
           *ngIf="!isSeasonBlocked && isSessionBlocked">
         </app-alert>
 
-        <!-- ── Row 1: Farmer search (full width) ──────────────────────── -->
-        <!-- The farmer must be selected from the dropdown; free typing alone
-             is not enough — this ensures farmerId is always captured. -->
         <div class="afd-field-row">
           <div class="field-group field-group--full" [class.has-error]="isFieldInvalid('farmerSearch')">
             <label for="farmer-search">Farmer</label>
@@ -66,7 +63,6 @@
                 (input)="onFarmerSearch($event)"
                 (blur)="onSearchBlur()" />
 
-              <!-- Clear button appears once a farmer is selected -->
               <button
                 *ngIf="selectedFarmer"
                 type="button"
@@ -76,7 +72,6 @@
                 &#x2715;
               </button>
 
-              <!-- Autocomplete dropdown -->
               <div class="farmer-dropdown" *ngIf="showDropdown">
                 <div
                   class="farmer-option"
@@ -85,11 +80,11 @@
                   <span class="farmer-avatar">{{ getInitials(f.name) }}</span>
                   <div class="farmer-info">
                     <span class="farmer-name">{{ f.name }}</span>
-                    <span class="farmer-meta">{{ f.id }} &middot; {{ f.branch }}</span>
+                    <span class="farmer-meta">{{ f.id }}</span>
                   </div>
                 </div>
                 <div class="farmer-no-results" *ngIf="filteredFarmers.length === 0">
-                  No registered farmers match your search.
+                  No registered farmers match your search criteria.
                 </div>
               </div>
             </div>
@@ -99,9 +94,6 @@
           </div>
         </div>
 
-        <!-- ── Row 2: Commodity | Grade ───────────────────────────────── -->
-        <!-- Grade column is only rendered when the cooperative has grade mode ON.
-             When grade mode is OFF the column disappears and validators are cleared. -->
         <div class="afd-field-row">
           <div class="field-group" [class.has-error]="isFieldInvalid('commodity')">
             <label for="commodity">Commodity</label>
@@ -128,7 +120,6 @@
           </div>
         </div>
 
-        <!-- ── Row 3: Volume | Branch ──────────────────────────────────── -->
         <div class="afd-field-row">
           <div class="field-group" [class.has-error]="isFieldInvalid('volume')">
             <label for="volume">Volume</label>
@@ -152,14 +143,10 @@
 
           <div class="field-group">
             <label for="branch">Branch</label>
-            <!-- Read-only: auto-set from the logged-in user's branch in SessionService. -->
             <input id="branch" type="text" formControlName="branch" readonly />
           </div>
         </div>
 
-        <!-- ── Row 4: Unit Price | Gross Value ────────────────────────── -->
-        <!-- Both are computed from cooperative pricing — the recorder cannot change them.
-             This prevents recording at an unauthorised price. -->
         <div class="afd-field-row">
           <div class="field-group">
             <label for="unit-price">Unit Price (UGX/KG)</label>
@@ -181,7 +168,6 @@
           </div>
         </div>
 
-        <!-- ── Footer ─────────────────────────────────────────────────── -->
         <div class="afd-modal-footer">
           <button type="button" class="btn-cancel" (click)="goToBranchDeliveries()">
             Cancel
@@ -200,3 +186,149 @@
   </div>
 
 </div>
+
+
+
+=====================================================
+
+<!-- <div class="afd-page">
+
+  <!-- Breadcrumb -->
+  <!-- <nav class="afd-breadcrumb" aria-label="Breadcrumb">
+    <span>Home</span>
+    <span class="sep">›</span>
+    <span>Collections</span>
+    <span class="sep">›</span>
+    <span class="link" (click)="goToBranchDeliveries()">Branch Deliveries</span>
+    <span class="sep">›</span>
+    <span>Farmer Deliveries</span>
+    <span class="sep">›</span>
+    <span class="current">Add Delivery</span>
+  </nav> -->
+
+  <!-- Success Screen -->
+  <!-- <div class="afd-success" *ngIf="submitted">
+    <div class="success-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 6L9 17l-5-5"/>
+      </svg>
+    </div>
+    <h2>Delivery saved successfully</h2>
+    <p>{{ successMessage }}</p>
+    <div class="redirect-bar">
+      <div class="redirect-fill" style="width:0%;"></div>
+    </div>
+    <span class="redirect-label">Redirecting to Branch Deliveries…</span>
+  </div> -->
+
+  <!-- Modal -->
+  <!-- <div class="afd-modal-backdrop" *ngIf="!submitted">
+    <div class="afd-modal"> -->
+
+      <!-- Modal Header -->
+      <!-- <div class="afd-modal-header">
+        <div>
+          <h1 class="afd-title">Add Farmer Delivery</h1>
+          <p class="afd-subtitle">Create a delivery first, then manage the farmers attached to it.</p>
+        </div>
+        <button class="btn-close" type="button" (click)="goToBranchDeliveries()" aria-label="Close">
+          X
+        </button>
+      </div> -->
+
+      <!-- Modal Body -->
+      <!-- <form [formGroup]="deliveryForm" (ngSubmit)="onSubmit()" novalidate>
+
+        <app-alert
+          variant="warning"
+          message="All sessions for today have closed — new deliveries can be recorded again tomorrow."
+          *ngIf="sessionOptions.length === 0">
+        </app-alert> -->
+
+        <!-- Row 1: Branch | Commodity -->
+        <!-- <div class="afd-field-row">
+          <div class="field-group" [class.has-error]="isFieldInvalid('branch')">
+            <label for="branch">Branch</label>
+            <input id="branch" type="text" formControlName="branch" readonly />
+            <div class="field-error" *ngIf="isFieldInvalid('branch')">Please select a branch.</div>
+          </div>
+          <div class="field-group" [class.has-error]="isFieldInvalid('commodity')">
+            <label for="commodity">Commodity</label>
+            <select id="commodity" formControlName="commodity">
+              <option value="">Select commodity…</option>
+              <option *ngFor="let c of commodities" [value]="c">{{ c }}</option>
+            </select>
+            <div class="field-error" *ngIf="isFieldInvalid('commodity')">Please select a commodity.</div>
+          </div>
+        </div> -->
+
+        <!-- Row 2: Farmer Name | Volume -->
+        <!-- <div class="afd-field-row">
+          <div class="field-group" [class.has-error]="isFieldInvalid('farmerName')">
+            <label for="farmer-name">Farmer Name</label>
+            <input id="farmer-name" type="text" formControlName="farmerName" placeholder="e.g. John Tumwesigye" />
+            <div class="field-error" *ngIf="isFieldInvalid('farmerName')">Full name is required.</div>
+          </div>
+          <div class="field-group" [class.has-error]="isFieldInvalid('volume')">
+            <label for="volume">Volume</label>
+            <div class="input-with-unit">
+              <input id="volume" type="number" formControlName="volume" placeholder="0" min="0" (input)="calcEstValue()" />
+              <select title="volume-unit" formControlName="volumeUnit">
+                <option value="KG">KG</option>
+                <option value="MT">MT</option>
+              </select>
+            </div>
+            <div class="field-error" *ngIf="isFieldInvalid('volume')">Volume is required.</div>
+          </div>
+        </div> -->
+
+        <!-- Row 3: Estimated Value | Status -->
+        <!-- <div class="afd-field-row">
+          <div class="field-group">
+            <label for="est-value">Estimated Value (UGX)</label>
+            <input id="est-value" type="number" formControlName="estimatedValue" placeholder="0" readonly />
+          </div>
+          <div class="field-group" [class.has-error]="isFieldInvalid('status')">
+            <label for="status">Status</label>
+            <select id="status" formControlName="status">
+              <option value="">Select status…</option>
+              <option value="Pending">Pending</option>
+              <option value="Approved">Approved</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+            <div class="field-error" *ngIf="isFieldInvalid('status')">Please select a status.</div>
+          </div>
+        </div> -->
+
+        <!-- Row 4: Season | Session -->
+        <!-- <div class="afd-field-row">
+          <div class="field-group" [class.has-error]="isFieldInvalid('season')">
+            <label for="season">Season</label>
+            <select id="season" formControlName="season">
+              <option value="">Select season…</option>
+              <option *ngFor="let s of seasonOptions" [value]="s">{{ s }}</option>
+            </select>
+            <div class="field-error" *ngIf="isFieldInvalid('season')">Please select a season.</div>
+          </div>
+          <div class="field-group" [class.has-error]="isFieldInvalid('session')">
+            <label for="session" title="session">Session</label>
+            <select id="session" formControlName="session">
+              <option value="">Select session…</option>
+              <option *ngFor="let s of sessionOptions" [value]="s">{{ sessionLabel(s) }}</option>
+            </select>
+            <div class="field-error" *ngIf="isFieldInvalid('session')">Please select a session.</div>
+          </div>
+        </div> -->
+
+        <!-- Modal Footer -->
+        <!-- <div class="afd-modal-footer">
+          <button type="button" class="btn-cancel" (click)="goToBranchDeliveries()">Cancel</button>
+          <button type="submit" class="btn-primary" [disabled]="isSaving || sessionOptions.length === 0">
+            <span class="spinner" *ngIf="isSaving" aria-hidden="true"></span>
+            {{ isSaving ? 'Saving…' : 'Save Delivery' }}
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div> -->
