@@ -3,7 +3,6 @@
 <div class="page-shell" *ngIf="farmers$ | async as farmers">
   <div class="top-header">
     <div class="header-content">
-      <h1>Farmers</h1>
       <p class="subtitle">
         Pending approval:
         <span class="highlight-count">{{ newRegistrations(farmers) }}</span>
@@ -23,91 +22,61 @@
     </div>
   </div>
 
-  <div class="table-wrapper" *ngIf="paginatedFarmers$ | async as paginatedFarmers">
-    <table class="farmers-table">
-      <thead>
-        <tr>
-          <th>FARMER ID</th>
-          <th>NAME</th>
-          <th>BRANCH</th>
-          <th>PRIMARY COMMODITY</th>
-          <th>BALANCE</th>
-          <th>STATUS</th>
-          <th class="text-center">ACTIONS</th>
-        </tr>
-      </thead>
+  <ng-container *ngIf="filteredFarmers$ | async as filteredFarmers">
 
-      <tbody>
-        <tr *ngFor="let farmer of paginatedFarmers; trackBy: trackByFarmerId">
-          <td class="farmer-id">{{ farmer.id }}</td>
-          <td class="farmer-name">{{ farmer.name }}</td>
-          <td>{{ farmer.branch }}</td>
-          <td>
-            <span class="commodity-tag">{{ farmer.primaryCommodity }}</span>
-          </td>
-          <td
-            class="text-bold"
-            [ngClass]="{ 'text-danger-custom': farmer.balance !== '0' && farmer.balance !== '0.00' && farmer.balance !== '--' }">
-            {{ (farmer.balance === '0' || farmer.balance === '0.00') ? '--' : farmer.balance }}
-          </td>
-          <td>
-            <span class="status-badge" [ngClass]="farmer.status.toLowerCase()">
-              {{ farmer.status }}
-            </span>
-          </td>
-          <td class="text-center actions-cell">
-            <div class="kebab-wrapper">
-              <button
-                class="kebab-btn"
-                type="button"
-                aria-label="Open actions menu"
-                (click)="toggleMenu(farmer.id, $event)">
-                &#8942;
+    <app-data-table
+      [columns]="cols"
+      [rows]="filteredFarmers"
+      [paginate]="true"
+      emptyIcon="farmer"
+      emptyTitle="No farmers found"
+      emptyMessage="Farmers registered at branches will appear here. Try adjusting your search or filters.">
+
+      <ng-template appCell="primaryCommodity" let-row>
+        <span class="commodity-tag">{{ $any(row).primaryCommodity }}</span>
+      </ng-template>
+
+      <ng-template appCell="balance" let-row>
+        <span
+          class="text-bold"
+          [ngClass]="{ 'text-danger-custom': $any(row).balance !== '0' && $any(row).balance !== '0.00' && $any(row).balance !== '--' }">
+          {{ ($any(row).balance === '0' || $any(row).balance === '0.00') ? '--' : $any(row).balance }}
+        </span>
+      </ng-template>
+
+      <ng-template appCell="status" let-row>
+        <span class="status-badge" [ngClass]="$any(row).status.toLowerCase()">
+          {{ $any(row).status }}
+        </span>
+      </ng-template>
+
+      <ng-template appCell="actions" let-row>
+        <div class="kebab-wrapper">
+          <button
+            class="kebab-btn"
+            type="button"
+            aria-label="Open actions menu"
+            (click)="toggleMenu($any(row).id, $event)">
+            &#8942;
+          </button>
+          <div class="kebab-dropdown" *ngIf="openMenuId === $any(row).id">
+            <button class="kebab-item" type="button" (click)="onReviewFarmer($any(row))">
+              Review
+            </button>
+            <ng-container *ngIf="$any(row).status === 'Pending'">
+              <button class="kebab-item approve" type="button" (click)="onApproveFarmer($any(row))">
+                Approve
               </button>
-              <div class="kebab-dropdown" *ngIf="openMenuId === farmer.id">
-                <button class="kebab-item" type="button" (click)="onReviewFarmer(farmer)">
-                  Review
-                </button>
-                <!-- Only show approve/reject for farmers still awaiting a decision. -->
-                <ng-container *ngIf="farmer.status === 'Pending'">
-                  <button class="kebab-item approve" type="button" (click)="onApproveFarmer(farmer)">
-                    Approve
-                  </button>
-                  <button class="kebab-item reject" type="button" (click)="onRejectFarmer(farmer)">
-                    Reject
-                  </button>
-                </ng-container>
-              </div>
-            </div>
-          </td>
-        </tr>
-        <tr *ngIf="paginatedFarmers.length === 0 && !loading">
-          <td colspan="7">
-            <app-empty-state
-              icon="farmer"
-              title="No farmers found"
-              message="Farmers registered at branches will appear here. Try adjusting your search or filters.">
-            </app-empty-state>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+              <button class="kebab-item reject" type="button" (click)="onRejectFarmer($any(row))">
+                Reject
+              </button>
+            </ng-container>
+          </div>
+        </div>
+      </ng-template>
 
-    <div class="pagination-section">
-      <div class="pagination-info">
-        <span>Showing {{ startIndex }} to {{ endIndex }} of {{ totalCount }} entries</span>
-      </div>
-      <div class="pagination-controls">
-        <app-button class="pagination-button" variant="secondary" size="sm" (clicked)="prevPage()" [disabled]="currentPage === 1">Previous</app-button>
-        <app-button
-          *ngFor="let page of pagesArray; trackBy: trackByIndex"
-          class="pagination-button"
-          [variant]="page === currentPage ? 'primary' : 'secondary'"
-          size="sm"
-          (clicked)="goToPage(page)">{{ page }}</app-button>
-        <app-button class="pagination-button" variant="secondary" size="sm" (clicked)="nextPage()" [disabled]="endIndex >= totalCount">Next</app-button>
-      </div>
-    </div>
-  </div>
+    </app-data-table>
+
+  </ng-container>
 
 </div>

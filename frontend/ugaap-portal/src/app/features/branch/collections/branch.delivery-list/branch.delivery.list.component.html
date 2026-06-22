@@ -9,7 +9,6 @@
 
   <div class="header-content-wrapper">
     <div>
-      <h1>Branch Deliveries</h1>
       <p>
         Review and approve commodity deliveries submitted by branches.
       </p>
@@ -41,159 +40,64 @@
   </div>
 
   <!-- DELIVERY TABLE -->
-  <div class="table-card" *ngIf="paginatedDeliveries$ | async as paginatedDeliveries">
+  <app-data-table
+      [columns]="deliveryCols"
+      [rows]="filteredDeliveries"
+      [paginate]="true"
+      emptyIcon="truck"
+      emptyTitle="No deliveries yet"
+      emptyMessage="Record the first farmer delivery to get started."
+      emptyActionLabel="Add Delivery"
+      emptyRoute="/branch/collections/deliveries/add">
 
-    <div class="table-wrapper">
+      <ng-template appCell="id" let-row>
+        <span class="mono">{{ $any(row).id }}</span>
+      </ng-template>
 
-      <table>
+      <ng-template appCell="branchName" let-row>
+        <span class="cell-branch" [title]="$any(row).branchName">{{ $any(row).branchName }}</span>
+      </ng-template>
 
-        <!-- TABLE HEAD -->
-        <thead>
-          <tr>
-            <th>Delivery ID</th>
-            <th>Branch</th>
-            <th>Season</th>
-            <th>Commodity</th>
-            <th>Volume</th>
-            <th>Estimated Value</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
+      <ng-template appCell="season" let-row>
+        <span class="season-badge" [ngClass]="seasonClass($any(row).season)">{{ $any(row).season }}</span>
+      </ng-template>
 
-        <!-- TABLE BODY -->
-        <tbody>
+      <ng-template appCell="volume" let-row>
+        {{ $any(row).volume | number }} {{ $any(row).volumeUnit || 'KG' }}
+      </ng-template>
 
-          <!-- trackBy tells Angular how to identify each row by ID so it only re-renders rows that actually changed. -->
-          <tr *ngFor="let delivery of paginatedDeliveries; trackBy: trackByDeliveryId">
+      <ng-template appCell="estimatedValue" let-row>
+        UGX {{ formatUGX($any(row).estimatedValue) }}
+      </ng-template>
 
-            <!-- ID -->
-            <td class="mono">
-              {{ delivery.id }}
-            </td>
+      <ng-template appCell="status" let-row>
+        <span class="status-badge" [ngClass]="statusClass($any(row).status)">{{ $any(row).status }}</span>
+      </ng-template>
 
-            <!-- Branch -->
-            <td class="cell-branch" [title]="delivery.branchName">
-              {{ delivery.branchName }}
-            </td>
+      <ng-template appCell="actions" let-row>
+        <div class="action-menu" (click)="$event.stopPropagation()">
+          <button
+            type="button"
+            class="kebab-btn"
+            title="Delivery actions"
+            aria-label="Delivery actions"
+            [attr.aria-expanded]="openActionMenuId === $any(row).id"
+            (click)="toggleActionMenu($any(row).id, $event)">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+          <div class="menu-panel" *ngIf="openActionMenuId === $any(row).id"
+            [style.top]="menuPosition.top !== undefined ? menuPosition.top + 'px' : 'auto'"
+            [style.bottom]="menuPosition.bottom !== undefined ? menuPosition.bottom + 'px' : 'auto'"
+            [style.right.px]="menuPosition.right">
+            <button type="button" (click)="viewFarmers($any(row))">View Farmers</button>
+            <button type="button" class="menu-item--approve" *ngIf="$any(row).status !== 'Approved'" (click)="approveDelivery($any(row))">Approve</button>
+            <button type="button" class="menu-item--reject" *ngIf="$any(row).status !== 'Rejected'" (click)="rejectDelivery($any(row))">Reject</button>
+          </div>
+        </div>
+      </ng-template>
 
-            <!-- Season -->
-            <td>
-              <span class="season-badge" [ngClass]="seasonClass(delivery.season)">
-                {{ delivery.season }}
-              </span>
-            </td>
-
-            <!-- Commodity -->
-            <td>
-              {{ delivery.commodity }}
-            </td>
-
-            <!-- Volume -->
-            <td>
-              {{ delivery.volume | number }} {{ delivery.volumeUnit || 'KG' }}
-            </td>
-
-            <!-- Value -->
-            <td>
-              UGX {{ formatUGX(delivery.estimatedValue) }}
-            </td>
-
-            <!-- Status -->
-            <td>
-              <span
-                class="status-badge"
-                [ngClass]="statusClass(delivery.status)"
-              >
-                {{ delivery.status }}
-              </span>
-            </td>
-
-            <!-- Actions -->
-            <td>
-
-              <div class="action-menu" (click)="$event.stopPropagation()">
-                <button
-                  type="button"
-                  class="kebab-btn"
-                  title="Delivery actions"
-                  aria-label="Delivery actions"
-                  [attr.aria-expanded]="openActionMenuId === delivery.id"
-                  (click)="toggleActionMenu(delivery.id, $event)"
-                >
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                </button>
-
-                <!-- position:fixed with JS-calculated coordinates so the menu
-                     escapes the overflow:hidden on .table-card. -->
-                <div class="menu-panel" *ngIf="openActionMenuId === delivery.id"
-                  [style.top]="menuPosition.top !== undefined ? menuPosition.top + 'px' : 'auto'"
-                  [style.bottom]="menuPosition.bottom !== undefined ? menuPosition.bottom + 'px' : 'auto'"
-                  [style.right.px]="menuPosition.right">
-                  <button
-                    type="button"
-                    (click)="viewFarmers(delivery)">
-                    View Farmers
-                  </button>
-                  <!-- Approve/Reject are hidden when the delivery is already in that state -->
-                  <button
-                    type="button"
-                    class="menu-item--approve"
-                    *ngIf="delivery.status !== 'Approved'"
-                    (click)="approveDelivery(delivery)">
-                    Approve
-                  </button>
-                  <button
-                    type="button"
-                    class="menu-item--reject"
-                    *ngIf="delivery.status !== 'Rejected'"
-                    (click)="rejectDelivery(delivery)">
-                    Reject
-                  </button>
-                </div>
-
-              </div>
-
-            </td>
-
-          </tr>
-
-          <tr *ngIf="paginatedDeliveries.length === 0">
-            <td colspan="8">
-              <app-empty-state
-                icon="truck"
-                title="No deliveries yet"
-                message="Record the first farmer delivery to get started."
-                actionLabel="Add Delivery"
-                route="/branch/collections/deliveries/add">
-              </app-empty-state>
-            </td>
-
-          </tr>
-
-        </tbody>
-
-      </table>
-
-    </div>
-
-    <div class="pagination-section" *ngIf="totalCount > itemsPerPage">
-      <span class="pagination-info">Showing {{ startIndex }}–{{ endIndex }} of {{ totalCount }}</span>
-      <div class="pagination-controls">
-        <button type="button" class="btn secondary-action-btn" (click)="prevPage()" [disabled]="currentPage === 1">Previous</button>
-        <button
-          *ngFor="let page of pagesArray; trackBy: trackByIndex"
-          type="button"
-          class="btn"
-          [class.primary-action-btn]="page === currentPage"
-          [class.secondary-action-btn]="page !== currentPage"
-          (click)="goToPage(page)">{{ page }}</button>
-        <button type="button" class="btn secondary-action-btn" (click)="nextPage()" [disabled]="endIndex >= totalCount">Next</button>
-      </div>
-    </div>
-
-  </div>
+    </app-data-table>
 
 </div>

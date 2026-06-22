@@ -14,7 +14,6 @@
       <div>
         <!-- (click)="goBack()" calls router.navigate(['/branch/finance/batch-processing']) -->
         <button class="back-btn" type="button" (click)="goBack()">← Back to Batches</button>
-        <h1>All Batch Farmers</h1>
         <p>Every farmer registered across all payment batches.</p>
       </div>
     </div>
@@ -37,48 +36,20 @@
   </div>
 
   <!-- ── 3. Farmer table ─────────────────────────────────────────────────── -->
-  <!-- filteredFarmers$ is an Observable<FarmerRecord[]>.
-       '| async' subscribes and unwraps it into the local variable 'farmers'.
-       Every time search$ emits a new value, filteredFarmers$ recalculates and the table re-renders. -->
-  @if (filteredFarmers$ | async; as farmers) {
-    <div class="table-card">
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Farmer ID</th>
-              <th>Name</th>
-              <th>Commodity</th>
-              <th>Branch</th>
-              <th>Delivery Date</th>
-              <th>Payment Method</th>
-              <th class="numeric">Net Payable</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- track f.farmerId = Angular reuses DOM rows by ID instead of rebuilding them
-                 on every search keypress. Makes the table feel instant. -->
-            @for (f of farmers; track f.farmerId) {
-              <tr>
-                <!-- mono = IBM Plex Mono — codes and dates are easier to read in monospace -->
-                <td class="mono">{{ f.farmerId }}</td>
-                <td>{{ f.fullName }}</td>
-                <td>{{ f.commodity }}</td>
-                <td>{{ f.branch }}</td>
-                <td class="mono">{{ f.deliveryDate }}</td>
-                <td>{{ f.paymentMethod }}</td>
-                <td class="numeric mono">{{ formatCurrency(f.netPayable) }}</td>
-              </tr>
-            } @empty {
-              <!-- @empty renders when the @for list is empty — no separate condition needed -->
-              <tr>
-                <td colspan="7" class="empty-state">No farmers match the search.</td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    </div>
-  }
+  <ng-container *ngIf="filteredFarmers$ | async as farmers">
+    <app-data-table
+      [columns]="cols"
+      [rows]="farmers"
+      [paginate]="true"
+      emptyIcon="farmer"
+      emptyTitle="No farmers found"
+      emptyMessage="No farmers match your search. Try a different name, ID, or branch.">
+
+      <ng-template appCell="netPayable" let-row>
+        {{ formatCurrency($any(row).netPayable) }}
+      </ng-template>
+
+    </app-data-table>
+  </ng-container>
 
 </div>

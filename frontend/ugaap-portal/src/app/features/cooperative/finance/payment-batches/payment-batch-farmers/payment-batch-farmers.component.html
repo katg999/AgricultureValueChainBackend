@@ -67,8 +67,11 @@
     </div>
   </div>
 
-  <div class="table-card" *ngIf="dayGroups.length === 0">
-    <div class="empty-state">No eligible farmers for this batch.</div>
-  </div>
+  <app-empty-state
+    *ngIf="dayGroups.length === 0"
+    icon="farmer"
+    title="No farmers in this batch"
+    message="No farmers matched the filters for this payment batch.">
+  </app-empty-state>
 
 </div>

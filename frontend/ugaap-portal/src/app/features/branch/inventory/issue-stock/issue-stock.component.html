@@ -178,71 +178,51 @@
       <a class="recent-card-link" [routerLink]="isCooperativeScope ? '/cooperative/inventory/stock-disbursed' : '/branch/inventory/stock-disbursed'">View All History</a>
     </div>
 
-    <div class="table-scroll-wrapper">
-      <table class="recent-table">
-        <thead>
-          <tr>
-            <th>{{ isCooperativeScope ? 'BRANCH' : 'FARMER' }}</th>
-            <th>ITEM NAME</th>
-            <th>CATEGORY</th>
-            <th>QUANTITY</th>
-            <th>VALUE</th>
-            <th>DATE ISSUED</th>
-            <th>ACTIONS</th>
-          </tr>
-        </thead>
+    <app-data-table
+      [columns]="issuanceCols"
+      [rows]="recentIssuances"
+      [paginate]="true"
+      emptyIcon="inventory"
+      emptyTitle="No recent issuances"
+      emptyMessage="Inputs issued to farmers will appear here.">
 
-        <tbody>
-          <tr *ngFor="let row of recentIssuances; trackBy: trackById">
-            <td>
-              <div class="recent-row-farmer">
-                <div class="recent-avatar" [style.background]="row.avatarColor">
-                  {{ row.initials }}
-                </div>
-                <div>
-                  <p class="recent-row-name">{{ row.farmerName }}</p>
-                  <p class="recent-row-id">ID: {{ row.farmerId }}</p>
-                </div>
-              </div>
-            </td>
+      <ng-template appCell="recipient" let-row>
+        <div class="recent-row-farmer">
+          <div class="recent-avatar" [style.background]="$any(row).avatarColor">{{ $any(row).initials }}</div>
+          <div>
+            <p class="recent-row-name">{{ $any(row).farmerName }}</p>
+            <p class="recent-row-id">ID: {{ $any(row).farmerId }}</p>
+          </div>
+        </div>
+      </ng-template>
 
-            <td class="item-name-cell">{{ row.item }}</td>
-            <td>
-              <span class="category-badge" [ngClass]="row.itemCategory.toLowerCase()">{{ row.itemCategory }}</span>
-            </td>
-            <td>{{ row.quantity }}</td>
-            <td class="recent-row-value">UGX {{ row.value | number }}</td>
-            <td class="recent-row-date">{{ row.issuedAt }}</td>
+      <ng-template appCell="itemCategory" let-row>
+        <span class="category-badge" [ngClass]="$any(row).itemCategory.toLowerCase()">{{ $any(row).itemCategory }}</span>
+      </ng-template>
 
-            <td class="actions-cell">
-              <div class="kebab-wrapper">
-                <button
-                  class="kebab-btn"
-                  title="More options"
-                  type="button"
-                  (click)="$event.stopPropagation(); toggleMenu(row.id, $event)">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-                    <circle cx="8" cy="3" r="1.5"/>
-                    <circle cx="8" cy="8" r="1.5"/>
-                    <circle cx="8" cy="13" r="1.5"/>
-                  </svg>
-                </button>
+      <ng-template appCell="value" let-row>
+        <span class="recent-row-value">UGX {{ $any(row).value | number }}</span>
+      </ng-template>
 
-                <div
-                  class="kebab-menu"
-                  *ngIf="activeMenuId === row.id"
-                  [style.top]="menuPosition.top !== undefined ? menuPosition.top + 'px' : 'auto'"
-                  [style.bottom]="menuPosition.bottom !== undefined ? menuPosition.bottom + 'px' : 'auto'"
-                  [style.right.px]="menuPosition.right">
-                  <button class="kebab-menu-item" type="button" (click)="$event.stopPropagation(); openView(row)">View</button>
-                  <button class="kebab-menu-item" type="button" (click)="$event.stopPropagation(); openEdit(row)">Edit</button>
-                </div>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+      <ng-template appCell="actions" let-row>
+        <div class="kebab-wrapper" (click)="$event.stopPropagation()">
+          <button class="kebab-btn" title="More options" type="button"
+            (click)="toggleMenu($any(row).id, $event)">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+              <circle cx="8" cy="3" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="8" cy="13" r="1.5"/>
+            </svg>
+          </button>
+          <div class="kebab-menu" *ngIf="activeMenuId === $any(row).id"
+            [style.top]="menuPosition.top !== undefined ? menuPosition.top + 'px' : 'auto'"
+            [style.bottom]="menuPosition.bottom !== undefined ? menuPosition.bottom + 'px' : 'auto'"
+            [style.right.px]="menuPosition.right">
+            <button class="kebab-menu-item" type="button" (click)="$event.stopPropagation(); openView($any(row))">View</button>
+            <button class="kebab-menu-item" type="button" (click)="$event.stopPropagation(); openEdit($any(row))">Edit</button>
+          </div>
+        </div>
+      </ng-template>
+
+    </app-data-table>
   </div>
 
   <!-- View modal -->

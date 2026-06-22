@@ -2,13 +2,6 @@
 
   <!-- Page header -->
   <div class="page-header">
-    <div>
-      <h1 class="page-title">Agents</h1>
-      <p class="page-subtitle">
-        {{ activeCount() }} active agent{{ activeCount() === 1 ? '' : 's' }} working across your branches
-      </p>
-    </div>
-
     <app-button
       *hasPermission="'agents.register'"
       type="button"
@@ -42,72 +35,56 @@
   </div>
 
   <!-- Agents table -->
-  <div class="table-wrapper">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>CODE</th>
-          <th>NAME</th>
-          <th>ROLE</th>
-          <th>BRANCH</th>
-          <th>FARMERS</th>
-          <th>COLLECTIONS</th>
-          <th>STATUS</th>
-          <th>ACTIONS</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let agent of filteredAgents(); trackBy: trackById">
-          <td class="mono">{{ agent.agentCode }}</td>
-          <td>
-            <button type="button" class="agent-name" (click)="viewAgent(agent)">
-              {{ agent.fullName }}
-            </button>
-            <div class="agent-contact">{{ agent.phone }}</div>
-          </td>
-          <td>{{ roleLabel(agent) }}</td>
-          <td>{{ agent.branchName }}</td>
-          <td class="mono">{{ agent.assignedFarmers }}</td>
-          <td class="mono">{{ agent.collectionsThisSeason }}</td>
-          <td>
-            <span class="status-pill" [class.pill-active]="agent.status === 'active'" [class.pill-inactive]="agent.status === 'inactive'">
-              {{ agent.status | uppercase }}
-            </span>
-          </td>
-          <td>
-            <div class="row-actions">
-              <button type="button" class="action-link" (click)="viewAgent(agent)">View</button>
-              <button
-                *hasPermission="'agents.edit'"
-                type="button" class="action-link" (click)="editAgent(agent)">
-                Edit
-              </button>
-              <button
-                *hasPermission="'agents.deactivate'"
-                type="button"
-                class="action-link"
-                [class.action-danger]="agent.status === 'active'"
-                (click)="toggleStatus(agent)">
-                {{ agent.status === 'active' ? 'Deactivate' : 'Reactivate' }}
-              </button>
-            </div>
-          </td>
-        </tr>
+  <app-data-table
+    [columns]="cols"
+    [rows]="filteredAgents()"
+    [paginate]="true"
+    emptyIcon="farmer"
+    emptyTitle="No agents found"
+    emptyMessage="Register an agent to assign them to branches and manage farmer collections."
+    emptyActionLabel="Register Agent"
+    emptyRoute="/cooperative/agents/register">
 
-        <tr *ngIf="filteredAgents().length === 0">
-          <td colspan="8">
-            <app-empty-state
-              icon="farmer"
-              title="No agents found"
-              message="Register an agent to assign them to branches and manage farmer collections."
-              actionLabel="Register Agent"
-              route="/cooperative/agents/register">
-            </app-empty-state>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+    <ng-template appCell="name" let-row>
+      <button type="button" class="agent-name" (click)="viewAgent($any(row))">
+        {{ $any(row).fullName }}
+      </button>
+      <div class="agent-contact">{{ $any(row).phone }}</div>
+    </ng-template>
+
+    <ng-template appCell="role" let-row>
+      {{ roleLabel($any(row)) }}
+    </ng-template>
+
+    <ng-template appCell="status" let-row>
+      <span class="status-pill"
+        [class.pill-active]="$any(row).status === 'active'"
+        [class.pill-inactive]="$any(row).status === 'inactive'">
+        {{ $any(row).status | uppercase }}
+      </span>
+    </ng-template>
+
+    <ng-template appCell="actions" let-row>
+      <div class="row-actions">
+        <button type="button" class="action-link" (click)="viewAgent($any(row))">View</button>
+        <button
+          *hasPermission="'agents.edit'"
+          type="button" class="action-link" (click)="editAgent($any(row))">
+          Edit
+        </button>
+        <button
+          *hasPermission="'agents.deactivate'"
+          type="button"
+          class="action-link"
+          [class.action-danger]="$any(row).status === 'active'"
+          (click)="toggleStatus($any(row))">
+          {{ $any(row).status === 'active' ? 'Deactivate' : 'Reactivate' }}
+        </button>
+      </div>
+    </ng-template>
+
+  </app-data-table>
+
 </div>
 
 <!-- Agent detail modal -->

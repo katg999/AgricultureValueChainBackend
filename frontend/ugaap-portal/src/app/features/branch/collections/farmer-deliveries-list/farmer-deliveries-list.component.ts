@@ -9,13 +9,13 @@ import { BranchDelivery, DeliverySession, DeliveryStatus } from '../branch.deliv
 import { BranchDeliveryService } from '../branch.delivery.service';
 import { SessionService } from '../../../../core/services/session.service';
 import { DeliverySessionConfigService } from '../../../../core/services/delivery-session-config.service';
-// Needed so the template can check useGrades to show/hide the Grade column.
+import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { CooperativePricingService } from '../../../../core/services/cooperative-pricing.service';
 
 @Component({
   selector: 'app-farmer-deliveries-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, EmptyStateComponent],
   templateUrl: './farmer-deliveries-list.component.html',
   styleUrl: './farmer-deliveries-list.component.css',
 })

@@ -17,16 +17,16 @@ export const BRANCH_ROUTES: Routes = [
   // ── Dashboard ────────────────────────────────────────────────────────────────
   {
     path: 'dashboard',
+    data: { title: 'Dashboard', subtitle: 'Your branch at a glance' },
     loadComponent: () =>
       import('./dashboard/dashboard.component')
         .then(m => m.BranchDashboardComponent),
   },
 
   // ── Collections ──────────────────────────────────────────────────────────────
-  // loadChildren loads a whole sub-router (another Routes array), not a single component.
-  // This lets collections have its own nested routes (delivery list, farmer delivery, etc.).
   {
     path: 'collections',
+    data: { title: 'Collections', subtitle: 'Delivery batches recorded at your branch' },
     loadChildren: () =>
       import('./collections/branch.collections.routes')
         .then(m => m.BRANCH_COLLECTIONS_ROUTES),
@@ -41,6 +41,7 @@ export const BRANCH_ROUTES: Routes = [
   // ── Farmers ──────────────────────────────────────────────────────────────────
   {
     path: 'farmers',
+    data: { title: 'Farmers', subtitle: 'Farmers registered at your branch' },
     loadChildren: () =>
       import('./branch-farmers/branch.farmers.routes')
         .then(m => m.BRANCH_FARMERS_ROUTES),
@@ -61,30 +62,29 @@ export const BRANCH_ROUTES: Routes = [
     pathMatch: 'full',
   },
   {
-    // Form to create a new payment batch
     path: 'finance/batch-create',
+    data: { title: 'Create Batch' },
     loadComponent: () =>
       import('./finance/batch-create/batch-create.component')
         .then(m => m.BatchCreateComponent),
   },
   {
-    // The main batch list — where you see all batches, filter by status, take actions
     path: 'finance/batch-processing',
+    data: { title: 'Payment Batches', subtitle: 'Batch farmer payments for disbursement' },
     loadComponent: () =>
       import('./finance/batch-processing/batch-processing')
         .then(m => m.BatchProcessingComponent),
   },
   {
-    // All farmers across every batch — useful for a broad overview
     path: 'finance/farmers',
+    data: { title: 'Batch Farmers' },
     loadComponent: () =>
       import('./finance/all-batch-farmers/all-batch-farmers.component')
         .then(m => m.AllBatchFarmersComponent),
   },
   {
-    // Farmers for ONE specific batch — :id is a URL parameter replaced at runtime
-    // e.g. '/branch/finance/batch/BATCH-001/farmers'
     path: 'finance/batch/:id/farmers',
+    data: { title: 'Batch Farmers' },
     loadComponent: () =>
       import('./finance/batch-farmers/batch-farmers.component')
         .then(m => m.BatchFarmersComponent),
@@ -93,6 +93,7 @@ export const BRANCH_ROUTES: Routes = [
   // ── Inventory ────────────────────────────────────────────────────────────────
   {
     path: 'inventory',
+    data: { title: 'Inventory', subtitle: 'Inputs and stock at your branch' },
     loadChildren: () =>
       import('./inventory/inventory.routes')
         .then(m => m.INVENTORY_ROUTES),
@@ -101,6 +102,7 @@ export const BRANCH_ROUTES: Routes = [
   // ── Daily Grading ────────────────────────────────────────────────────────────
   {
     path: 'daily-grading',
+    data: { title: 'Daily Grading', subtitle: 'Record graded produce for today' },
     loadComponent: () =>
       import('./daily-grading/daily-grading.component')
         .then(m => m.DailyGradingComponent),

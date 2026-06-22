@@ -7,19 +7,31 @@ import { BehaviorSubject, combineLatest, map, Observable, Subject, takeUntil } f
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
-import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
+import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
+import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
 import { FarmerListItem, FarmerService } from '../../../shared-farmer-domain/farmer.service';
 
 @Component({
   selector: 'app-branch.farmer-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonComponent, InputComponent, StatCardComponent, EmptyStateComponent],
+  imports: [CommonModule, FormsModule, ButtonComponent, InputComponent, StatCardComponent, DataTableComponent, CellDirective],
   templateUrl: './branch.farmer-list.component.html',
   styleUrl: './branch.farmer-list.component.css',
 })
 export class BranchFarmerListComponent implements OnInit, OnDestroy {
   searchQuery = '';
   openKebabId: string | null = null;
+
+  cols: TableColumn[] = [
+    { key: 'id',               header: 'FARMER ID',        class: 'farmer-id' },
+    { key: 'name',             header: 'NAME',             class: 'farmer-name' },
+    { key: 'branch',           header: 'BRANCH' },
+    { key: 'primaryCommodity', header: 'PRIMARY COMMODITY' },
+    { key: 'creditLimit',      header: 'CREDIT LIMIT' },
+    { key: 'balance',          header: 'BALANCE' },
+    { key: 'status',           header: 'STATUS' },
+    { key: 'actions',          header: '',                 width: '60px' },
+  ];
 
   readonly collectionProgress = 78;
 

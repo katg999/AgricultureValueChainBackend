@@ -10,11 +10,12 @@ import { PaymentBatchService } from '../../../../branch/finance/services/payment
 import { DayGroup, FarmerRecord, PaymentBatch } from '../../../../branch/finance/models/batch.models';
 import { DeliverySession } from '../../../../branch/collections/branch.delivery.model';
 import { DeliverySessionConfigService } from '../../../../../core/services/delivery-session-config.service';
+import { EmptyStateComponent } from '../../../../../shared/components/empty-state/empty-state.component';
 
 @Component({
   selector: 'app-cooperative-payment-batch-farmers',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, EmptyStateComponent],
   templateUrl: './payment-batch-farmers.component.html',
   styleUrl: './payment-batch-farmers.component.css',
 })

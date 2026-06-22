@@ -24,6 +24,7 @@ export const COOPERATIVE_ROUTES: Routes = [
   // ── Dashboard ───────────────────────────────────────────────────────────────
   {
     path: 'dashboard',
+    data: { title: 'Dashboard', subtitle: 'Cooperative performance at a glance' },
     loadComponent: () =>
       import('./dashboard/dashboard.component')
         .then(m => m.CooperativeDashboardComponent),
@@ -33,7 +34,7 @@ export const COOPERATIVE_ROUTES: Routes = [
   {
     path: 'profile',
     canActivate: [permissionGuard],
-    data: { permissionModule: 'organisation' },
+    data: { permissionModule: 'organisation', title: 'Cooperative Profile', subtitle: 'Registration details, contacts and bank accounts' },
     loadComponent: () =>
       import('./profile/cooperative-profile.component')
         .then(m => m.CooperativeProfileComponent),
@@ -44,7 +45,7 @@ export const COOPERATIVE_ROUTES: Routes = [
   {
     path: 'configuration',
     canActivate: [permissionGuard],
-    data: { permissionModule: 'configuration' },
+    data: { permissionModule: 'configuration', title: 'Configuration', subtitle: 'Grading standards, pricing, sessions and approval workflows' },
     loadComponent: () =>
       import('./configuration/configuration.component')
         .then(m => m.ConfigurationComponent),
@@ -54,7 +55,7 @@ export const COOPERATIVE_ROUTES: Routes = [
   {
     path: 'grade-config',
     canActivate: [permissionGuard],
-    data: { permissions: ['configuration.grades.view'] },
+    data: { permissions: ['configuration.grades.view'], title: 'Grade Configuration', subtitle: 'Define quality grades and set pricing per branch' },
     loadComponent: () =>
       import('./configuration/grade-config/grade-config.component')
         .then(m => m.GradeConfigComponent),
@@ -62,7 +63,7 @@ export const COOPERATIVE_ROUTES: Routes = [
   {
     path: 'grade-config/new',
     canActivate: [permissionGuard],
-    data: { permissions: ['configuration.grades.create'] },
+    data: { permissions: ['configuration.grades.create'], title: 'New Grade' },
     loadComponent: () =>
       import('./configuration/grade-form/grade-form.component')
         .then(m => m.GradeFormComponent),
@@ -70,7 +71,7 @@ export const COOPERATIVE_ROUTES: Routes = [
   {
     path: 'grade-config/:id/edit',
     canActivate: [permissionGuard],
-    data: { permissions: ['configuration.grades.edit'] },
+    data: { permissions: ['configuration.grades.edit'], title: 'Edit Grade' },
     loadComponent: () =>
       import('./configuration/grade-form/grade-form.component')
         .then(m => m.GradeFormComponent),
@@ -80,7 +81,7 @@ export const COOPERATIVE_ROUTES: Routes = [
   {
     path: 'sessions',
     canActivate: [permissionGuard],
-    data: { permissions: ['configuration.sessions.view', 'configuration.sessions.edit'] },
+    data: { permissions: ['configuration.sessions.view', 'configuration.sessions.edit'], title: 'Sessions' },
     loadComponent: () =>
       import('./configuration/sessions/sessions-config.component')
         .then(m => m.SessionsConfigComponent),
@@ -90,7 +91,7 @@ export const COOPERATIVE_ROUTES: Routes = [
   {
     path: 'edit-prices',
     canActivate: [permissionGuard],
-    data: { permissions: ['configuration.prices.view', 'configuration.prices.edit'] },
+    data: { permissions: ['configuration.prices.view', 'configuration.prices.edit'], title: 'Cooperative Pricing', subtitle: 'Set commodity prices per grade and branch' },
     loadComponent: () =>
       import('./edit-prices/edit-prices.component')
         .then(m => m.EditPricesComponent),
@@ -102,7 +103,7 @@ export const COOPERATIVE_ROUTES: Routes = [
   {
     path: 'farmers',
     canActivate: [permissionGuard],
-    data: { permissionModule: 'farmers' },
+    data: { permissionModule: 'farmers', title: 'Farmers', subtitle: 'All farmers registered across your branches' },
     loadComponent: () =>
       import('./farmers/farmer-list/farmer-list.component')
         .then(m => m.FarmerListComponent),
@@ -110,7 +111,7 @@ export const COOPERATIVE_ROUTES: Routes = [
   {
     path: 'farmers/approval/:id',
     canActivate: [permissionGuard],
-    data: { permissions: ['farmers.approve', 'farmers.reject'] },
+    data: { permissions: ['farmers.approve', 'farmers.reject'], title: 'Farmer Approval' },
     loadComponent: () =>
       import('./farmers/farmer-approval/farmer-approval.component')
         .then(m => m.FarmerApprovalComponent),
@@ -119,7 +120,7 @@ export const COOPERATIVE_ROUTES: Routes = [
   {
     path: 'agents',
     canActivate: [permissionGuard],
-    data: { permissionModule: 'agents' },
+    data: { permissionModule: 'agents', title: 'Field Agents', subtitle: 'Agents collecting deliveries on behalf of farmers' },
     loadChildren: () =>
       import('./agents/agents.routes')
         .then(m => m.AGENTS_ROUTES),
@@ -129,7 +130,7 @@ export const COOPERATIVE_ROUTES: Routes = [
   {
     path: 'collection-hubs',
     canActivate: [permissionGuard],
-    data: { permissionModule: 'collection_hubs' },
+    data: { permissionModule: 'collection_hubs', title: 'Collection Hubs', subtitle: 'Physical collection points across your branches' },
     loadChildren: () =>
       import('./collection-hubs/collection-hubs.routes')
         .then(m => m.COLLECTION_HUBS_ROUTES),
@@ -137,7 +138,7 @@ export const COOPERATIVE_ROUTES: Routes = [
   {
     path: 'branches',
     canActivate: [permissionGuard],
-    data: { permissionModule: 'branches' },
+    data: { permissionModule: 'branches', title: 'Branches', subtitle: 'Branch offices and their staff' },
     loadChildren: () =>
       import('./branches/branch.routes')
         .then(m => m.BRANCH_ROUTES),
@@ -145,7 +146,7 @@ export const COOPERATIVE_ROUTES: Routes = [
   {
     path: 'users',
     canActivate: [permissionGuard],
-    data: { permissionModule: 'users' },
+    data: { permissionModule: 'users', title: 'User Management', subtitle: 'Staff accounts and access across your cooperative' },
     loadChildren: () =>
       import('./user/user.routes')
         .then(m => m.USER_ROUTES),
@@ -162,7 +163,7 @@ export const COOPERATIVE_ROUTES: Routes = [
   {
     path:'collections',
     canActivate: [permissionGuard],
-    data: { permissionModule: 'collections' },
+    data: { permissionModule: 'collections', title: 'Collections', subtitle: 'All deliveries recorded across your branches' },
     loadChildren: () =>
       import('./collections/cooperative-collections.routes')
         .then(m => m.COOPERATIVES_COLLECTIONS_ROUTES),
@@ -184,6 +185,7 @@ export const COOPERATIVE_ROUTES: Routes = [
   // ── Finance ─────────────────────────────────────────────────────────────────
   {
     path: 'finance/batch-processing',
+    data: { title: 'Payment Batches', subtitle: 'Review and approve disbursement batches' },
     loadComponent: () =>
       import('./finance/cooperative-finance.component')
         .then(m => m.CooperativeFinanceComponent),
@@ -195,12 +197,14 @@ export const COOPERATIVE_ROUTES: Routes = [
   // BatchRecord-based Batch Overview page above, which is a different data model.
   {
     path: 'finance/payment-batches',
+    data: { title: 'Payment Batches' },
     loadComponent: () =>
       import('./finance/payment-batches/payment-batches.component')
         .then(m => m.CooperativePaymentBatchesComponent),
   },
   {
     path: 'finance/payment-batches/:id/farmers',
+    data: { title: 'Batch Farmers' },
     loadComponent: () =>
       import('./finance/payment-batches/payment-batch-farmers/payment-batch-farmers.component')
         .then(m => m.CooperativePaymentBatchFarmersComponent),
@@ -209,7 +213,7 @@ export const COOPERATIVE_ROUTES: Routes = [
   {
     path: 'inventory',
     canActivate: [permissionGuard],
-    data: { permissionModule: 'inventory' },
+    data: { permissionModule: 'inventory', title: 'Inventory', subtitle: 'Stock and inputs across all branches' },
     loadChildren: () =>
       import('./inventory/inventory.routes')
         .then(m => m.INVENTORY_ROUTES),
@@ -219,7 +223,7 @@ export const COOPERATIVE_ROUTES: Routes = [
   {
     path: 'roles',
     canActivate: [permissionGuard],
-    data: { permissionModule: 'roles' },
+    data: { permissionModule: 'roles', title: 'Roles & Permissions', subtitle: 'Control what each staff role can see and do' },
     loadChildren: () =>
       import('./roles/roles.routes')
         .then(m => m.ROLES_ROUTES),
@@ -229,7 +233,7 @@ export const COOPERATIVE_ROUTES: Routes = [
   {
     path: 'reports',
     canActivate: [permissionGuard],
-    data: { permissionModule: 'reports' },
+    data: { permissionModule: 'reports', title: 'Reports', subtitle: 'Analytics and exports for your cooperative' },
     loadChildren: () =>
       import('./reports/reports.routes')
         .then(m => m.REPORTS_ROUTES),

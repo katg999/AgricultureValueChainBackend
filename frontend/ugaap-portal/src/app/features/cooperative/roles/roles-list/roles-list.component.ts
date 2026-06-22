@@ -4,20 +4,29 @@ import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
-import { RoleCardComponent, RoleCardData } from '../../../../shared/components/role-card/role-card.component';
-import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
+import { RoleCardData } from '../../../../shared/components/role-card/role-card.component';
+import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
+import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
 import { ToastService } from '../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-roles-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, ButtonComponent, RoleCardComponent, EmptyStateComponent],
+  imports: [CommonModule, RouterModule, FormsModule, ButtonComponent, DataTableComponent, CellDirective],
   templateUrl: './roles-list.component.html',
   styleUrls: ['./roles-list.component.css'],
 })
 export class RolesListComponent {
 
   searchQuery = '';
+
+  cols: TableColumn[] = [
+    { key: 'name',             header: 'Role' },
+    { key: 'type',             header: 'Type' },
+    { key: 'permissionsCount', header: 'Permissions', align: 'right' },
+    { key: 'usersCount',       header: 'Users',       align: 'right' },
+    { key: 'actions',          header: '',            width: '80px' },
+  ];
 
   roles: RoleCardData[] = [
     {
@@ -111,7 +120,7 @@ export class RolesListComponent {
   }
 
   viewRole(role: RoleCardData): void {
-    this.router.navigate(['/cooperative/roles', role.id, 'edit']);
+    this.router.navigate(['/cooperative/roles', role.id]);
   }
 
   trackById(_: number, role: RoleCardData): string {

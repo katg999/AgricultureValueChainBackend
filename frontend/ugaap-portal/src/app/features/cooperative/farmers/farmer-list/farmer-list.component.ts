@@ -6,20 +6,31 @@ import { BehaviorSubject, combineLatest, map, Observable, Subject, takeUntil, ta
 
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
-import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
+import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
+import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
 import { FarmerListItem, FarmerService } from '../../../shared-farmer-domain/farmer.service';
 import { ToastService } from '../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-farmer-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, InputComponent, ButtonComponent, EmptyStateComponent],
+  imports: [CommonModule, FormsModule, InputComponent, DataTableComponent, CellDirective],
   templateUrl: './farmer-list.component.html',
   styleUrl: './farmer-list.component.css',
 })
 export class FarmerListComponent implements OnInit, OnDestroy {
   searchQuery = '';
   openMenuId: string | null = null;
+
+  cols: TableColumn[] = [
+    { key: 'id',               header: 'FARMER ID',        class: 'farmer-id' },
+    { key: 'name',             header: 'NAME',             class: 'farmer-name' },
+    { key: 'branch',           header: 'BRANCH' },
+    { key: 'primaryCommodity', header: 'PRIMARY COMMODITY' },
+    { key: 'balance',          header: 'BALANCE' },
+    { key: 'status',           header: 'STATUS' },
+    { key: 'actions',          header: 'ACTIONS',          width: '60px' },
+  ];
 
   readonly collectionProgress = 78;
 

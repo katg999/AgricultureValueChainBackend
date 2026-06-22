@@ -5,7 +5,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { AlertComponent } from '../../../../shared/components/alert/alert.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
-import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
+import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
+import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
 import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
 import {
   InventoryScope,
@@ -32,7 +33,8 @@ const THRESHOLD_MULTIPLIER = 4;
     AlertComponent,
     ButtonComponent,
     StatCardComponent,
-    EmptyStateComponent,
+    DataTableComponent,
+    CellDirective,
   ],
   templateUrl: './current-stock.component.html',
   styleUrls: ['./current-stock.component.css'],
@@ -63,6 +65,21 @@ export class CurrentStockComponent implements OnInit {
   allItems: StockItem[] = [];
 
   filteredItems: StockItem[] = [];
+
+  cols: TableColumn[] = [
+    { key: 'name',         header: 'ITEM NAME',      class: 'item-name' },
+    { key: 'category',     header: 'CATEGORY' },
+    { key: 'quantity',     header: 'QUANTITY' },
+    { key: 'unit',         header: 'UNIT' },
+    { key: 'minThreshold', header: 'MIN. THRESHOLD',  class: 'threshold-cell' },
+    { key: 'updatedAt',    header: 'ENTRY DATE',       class: 'date-cell' },
+  ];
+
+  get addStockRoute(): string {
+    return this.isCooperativeScope
+      ? '/cooperative/inventory/add-stock-item'
+      : '/branch/inventory/add-stock-item';
+  }
 
   get scope(): InventoryScope {
     return this.router.url.startsWith('/cooperative') ? 'cooperative' : 'branch';
