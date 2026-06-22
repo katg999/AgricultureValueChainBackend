@@ -1,0 +1,208 @@
+<!-- Branches & Collection Centres Component Template -->
+<div class="page">
+  <div class="page-container">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="header-content">
+        <h1 class="page-title">Branches & Collection Centres</h1>
+        <p class="page-subtitle">
+          Manage your regional operations, monitor farmer engagement, and drill down into specific collection logistics across Uganda.
+        </p>
+      </div>
+      <app-button 
+      variant="primary" 
+      size="md" 
+      (click)="RegisterBranch()">
+        + Register branch
+      </app-button>
+    </div>
+
+    <!-- Statistics Cards Grid -->
+    <div class="stats-grid">
+      <app-stats-card
+        label="Total Active Branches"
+        [value]="totalActiveBranches"
+        icon="building"
+        variant="success"
+      ></app-stats-card>
+      <app-stats-card
+        label="Total Collection Centres"
+        [value]="totalCentres"
+        icon="box"
+        variant="default"
+      ></app-stats-card>
+      <app-stats-card
+        label="Total Farmer Base"
+        [value]="totalFarmers"
+        icon="users"
+        trend="+8%"
+        trendType="positive"
+        variant="success"
+      ></app-stats-card>
+      <app-stats-card
+        label="Assigned Field Agents"
+        [value]="assignedAgents"
+        icon="farmer"
+        trend="+12 this month"
+        trendType="positive"
+        variant="default"
+      ></app-stats-card>
+    </div>
+
+    <!-- Branch Network Table with Pagination -->
+    <div class="table-container">
+      <div class="card-header-row">
+        <h2 class="card-title">Branch Network Overview</h2>
+      </div>
+
+      <!-- Filters -->
+      <div class="filter-bar">
+        <div class="filter-search">
+          <svg class="filter-search-icon" viewBox="0 0 20 20" fill="none">
+            <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.6"/>
+            <path d="M13.5 13.5L17 17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+          <input
+            type="text"
+            class="filter-input"
+            placeholder="Search branch or location..."
+            [(ngModel)]="searchQuery"
+            (input)="applyFilter()"
+          />
+        </div>
+        <div class="filter-select-wrap">
+          <select title="Status filter" class="filter-select" [(ngModel)]="selectedStatus" (change)="applyFilter()">
+            <option value="">All Statuses</option>
+            <option value="ACTIVE">Active</option>
+            <option value="PENDING">Pending</option>
+          </select>
+        </div>
+      </div>
+      <table class="branches-table">
+        <thead>
+          <tr>
+            <th>BRANCH NAME</th>
+            <th>LOCATION</th>
+            <th>FARMERS</th>
+            <th>CENTRES</th>
+            <th>STATUS</th>
+            <th>ACTION</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let branch of paginatedBranches; let i = index"
+            class="table-row"
+            (click)="onViewBranch(branch)"
+          >
+            <td class="fw-600">{{ branch.name }}</td>
+            <td class="text-muted">{{ branch.location }}</td>
+            <td>{{ branch.farmers | number }}</td>
+            <td>{{ branch.centres }}</td>
+            <td>
+              <span
+                class="badge-status"
+                [ngClass]="{
+                  'badge-active': branch.status === 'ACTIVE',
+                  'badge-pending': branch.status === 'PENDING'
+                }"
+              >
+                {{ branch.status }}
+              </span>
+            </td>
+            <td class="action-cell">
+              <div class="kebab-container" [class.open]="activeMenuId === branch.id">
+                <button
+                  class="kebab-button"
+                  (click)="toggleMenu(branch.id, $event)"
+                >
+                  ⋮
+                </button>
+                <div class="kebab-menu" *ngIf="activeMenuId === branch.id">
+                  <button class="menu-item" (click)="onViewBranch(branch, $event)">
+                    View
+                  </button>
+                  <button class="menu-item" (click)="onEditBranch(branch, $event)">
+                    Edit
+                  </button>
+                </div>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="paginatedBranches.length === 0">
+            <td colspan="6">
+              <app-empty-state
+                icon="building"
+                title="No branches yet"
+                message="Register a branch to start managing your collection network."
+                actionLabel="Register Branch"
+                route="/cooperative/branches/onboarding">
+              </app-empty-state>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Pagination Controls -->
+      <div class="pagination">
+        <span class="pagination-info">
+          Showing {{ ((currentPage - 1) * itemsPerPage) + 1 }} to
+          {{ currentPage * itemsPerPage > totalBranches ? totalBranches : currentPage * itemsPerPage }}
+          of {{ totalBranches }} branches
+        </span>
+        <div class="pagination-controls">
+          <button
+            class="page-btn"
+            [disabled]="currentPage === 1"
+            (click)="prevPage()"
+          >
+            ‹
+          </button>
+          <button
+            *ngFor="let page of pagesArray"
+            class="page-btn"
+            [class.active]="page === currentPage"
+            (click)="goToPage(page)"
+          >
+            {{ page }}
+          </button>
+          <button
+            class="page-btn"
+            [disabled]="currentPage * itemsPerPage >= totalBranches"
+            (click)="nextPage()"
+          >
+            ›
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activity Table -->
+    <div class="recent-card">
+      <div class="card-header-row">
+        <h2 class="card-title">Recent Activity</h2>
+      </div>
+      <table class="activity-table">
+        <tbody>
+          <tr *ngFor="let act of activities">
+            <td class="activity-title-cell">
+              <span class="activity-bullet-inline"></span>
+              {{ act.title }}
+            </td>
+            <td class="activity-time-cell text-muted">{{ act.time }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Interactive Map Card -->
+    <div class="map-card">
+      <div class="map-icon"></div>
+      <h3>Interactive Map</h3>
+      <p>Visualize the geographic distribution of your collection network.</p>
+      <app-button variant="secondary" size="md" (clicked)="openMapView()">
+        Open Map View
+      </app-button>
+    </div>
+  </div>
+</div>

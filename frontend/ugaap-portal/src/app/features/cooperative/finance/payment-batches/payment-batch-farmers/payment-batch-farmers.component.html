@@ -1,0 +1,74 @@
+<!-- payment-batch-farmers.component.html
+     Read-only — shows the eligible farmers for ONE batch (any branch), grouped
+     Day -> Session, the same breakdown as the branch-side BatchFarmersComponent.
+     Sections: page header (back button + batch/branch metadata), summary bar,
+     Day -> Session -> Farmer tables.
+-->
+
+<div class="farmers-page">
+
+  <div class="page-header">
+    <button class="back-btn" type="button" (click)="goBack()">← Back to Payment Batches</button>
+
+    <ng-container *ngIf="batch; else notFound">
+      <h1>{{ batch.batchName }}</h1>
+      <p>
+        {{ batch.branch }} &nbsp;&middot;&nbsp;
+        {{ batch.season }} &nbsp;&middot;&nbsp;
+        {{ batch.openingDate }} &mdash; {{ batch.closingDate }} &nbsp;&middot;&nbsp;
+        {{ batch.commodityFilter }}
+      </p>
+    </ng-container>
+    <ng-template #notFound><h1>Batch not found</h1></ng-template>
+  </div>
+
+  <div class="summary-bar" *ngIf="farmers.length > 0">
+    <span><strong>{{ farmers.length }}</strong> eligible farmers</span>
+    <span class="divider">|</span>
+    <span>Total: <strong class="mono">{{ formatCurrency(totalAmount) }}</strong></span>
+  </div>
+
+  <div class="day-group" *ngFor="let dayGroup of dayGroups">
+    <div class="day-group-header">
+      <h2>{{ dayGroup.day }}</h2>
+      <span class="mono">{{ formatCurrency(dayGroup.subtotal) }}</span>
+    </div>
+
+    <div class="table-card session-group" *ngFor="let sessionGroup of dayGroup.sessions">
+      <div class="session-group-header">
+        <h3>{{ sessionLabel(sessionGroup.session) }}</h3>
+        <span class="mono">{{ formatCurrency(sessionGroup.subtotal) }}</span>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Farmer ID</th>
+              <th>Name</th>
+              <th>Commodity</th>
+              <th>Branch</th>
+              <th>Payment Method</th>
+              <th class="numeric">Net Payable</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let f of sessionGroup.farmers; trackBy: trackById">
+              <td class="mono">{{ f.farmerId }}</td>
+              <td>{{ f.fullName }}</td>
+              <td>{{ f.commodity }}</td>
+              <td>{{ f.branch }}</td>
+              <td>{{ f.paymentMethod }}</td>
+              <td class="numeric mono">{{ formatCurrency(f.netPayable) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-card" *ngIf="dayGroups.length === 0">
+    <div class="empty-state">No eligible farmers for this batch.</div>
+  </div>
+
+</div>

@@ -1,0 +1,32 @@
+<!-- config-card.component.html -->
+<div class="config-card" [class.config-card--dark]="dark">
+
+  <!-- top row: icon left, config-id badge right -->
+  <div class="config-card__top">
+    <div class="config-card__icon" [ngClass]="'icon-bg--' + iconBg">
+      <ng-content select="[cardIcon]"></ng-content>
+    </div>
+    @if (configId) {
+      <span class="config-id-badge">CONFIG_ID: {{ configId }}</span>
+    }
+  </div>
+
+  <!-- title + optional sub-label -->
+  <div class="config-card__meta">
+    <h3 class="config-card__title">{{ title }}</h3>
+    @if (subtitle) {
+      <span class="config-card__subtitle">{{ subtitle }}</span>
+    }
+  </div>
+
+  <p class="config-card__desc">{{ description }}</p>
+
+  <!-- any extra body content (stat rows, avatars, etc.) -->
+  <ng-content></ng-content>
+
+  <!-- footer slot: buttons, links, status rows -->
+  <div class="config-card__footer">
+    <ng-content select="[cardFooter]"></ng-content>
+  </div>
+
+</div>

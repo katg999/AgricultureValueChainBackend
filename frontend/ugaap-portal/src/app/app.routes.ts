@@ -1,45 +1,75 @@
 import { Routes } from '@angular/router';
+// import { authGuard } from './core/guards/auth-guard';
+import { AdminLayoutComponent } from './layouts/admin-layout/admin-layout.component';
+import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
 
 export const routes: Routes = [
-  // Default route redirects to auth module
-  {
-    path: '',
-
-    loadChildren: () =>
-      import('./features/auth/auth.routes')
-        .then(m => m.AUTH_ROUTES)
-  },
-  // Lazy load feature modules
+  // ── Auth shell (no guard) ──────────────────────────────────────────────
   {
     path: 'auth',
-    loadChildren: () =>
-      import('./features/auth/auth.routes')
-        .then(m => m.AUTH_ROUTES as Routes)
-  },
-  {
-    path: 'inventory',
-    loadChildren: () =>
-      import('./features/inventory/inventory.routes')
-        .then(m => m.INVENTORY_ROUTES as Routes)
-  },
-  // Cooperatives management
-  {
-    path: 'cooperatives',
-    loadChildren: () =>
-      import('./features/cooperatives/cooperatives.routes')
-        .then(m => m.COOPERATIVES_ROUTES as Routes)
+    component: AuthLayoutComponent,
+    loadChildren: () => import('./features/auth/auth.routes').then((m) => m.AUTH_ROUTES),
   },
 
-  // User management
+  // Redirect bare root to auth
+  { path: '', redirectTo: 'auth', pathMatch: 'full' },
+
+  // ── Protected shell (guarded, all behind AdminLayout) ─────────────────
   {
-    path: 'users',
-    loadChildren: () =>
-      import('./features/user/user.routes')
-        .then(m => m.USER_ROUTES)
+    path: '',
+    component: AdminLayoutComponent,
+    
+    // canActivate: [authGuard],
+    children: [
+      // Platform admin — cooperative management
+      {
+        path: 'platform',
+        title: 'Platform Admin' + ' | UGAAP',
+        loadChildren: () =>
+          import('./features/platform/platform.routes').then((m) => m.PLATFORM_ROUTES),
+      },
+
+      // Cooperative admin — grading & pricing
+      {
+        path: 'cooperative',
+        title: 'Cooperative Admin' + ' | UGAAP',
+        loadChildren: () =>
+          import('./features/cooperative/cooperative.routes').then((m) => m.COOPERATIVE_ROUTES),
+      },
+
+      // Branch staff — daily grading
+      {
+        path: 'branch',
+        title: 'Branch' + ' | UGAAP',
+        loadChildren: () => import('./features/branch/branch.routes').then((m) => m.BRANCH_ROUTES),
+      },
+
+      // Cooperative organisation management (list, onboarding, maker-checker)
+      {
+        path: 'cooperatives',
+        title: 'Cooperatives' + ' | UGAAP',
+        loadChildren: () =>
+          import('./features/cooperative/cooperative.routes').then((m) => m.COOPERATIVE_ROUTES),
+      },
+
+      // Logged-in user's own profile — shared across all areas
+      {
+        path: 'profile',
+        title: 'My Profile' + ' | UGAAP',
+        loadComponent: () =>
+          import('./features/shared/user-profile/user-profile.component')
+            .then((m) => m.UserProfileComponent),
+      },
+
+      // // Inventory — shared across cooperative & branch roles
+      // {
+      //   path: 'inventory',
+      //   loadChildren: () =>
+      //     import('./features/cooperative/inventory/inventory.routes').then(m => m.INVENTORY_ROUTES),
+      // },
+    ],
   },
-  
+
+  // Catch-all
+  { path: '**', redirectTo: 'auth/login' },
 ];
-
-
-
-

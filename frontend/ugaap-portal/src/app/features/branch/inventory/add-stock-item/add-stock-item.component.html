@@ -1,0 +1,137 @@
+<div class="add-stock-item-page-wrapper">
+  <app-page-header
+    title="Add Stock Item"
+    [subtitle]="pageSubtitle"
+    [breadcrumb]="['Inventory', 'Stock Available', 'Add Stock Item']">
+  </app-page-header>
+
+  <div class="form-container">
+
+    <form [formGroup]="stockForm" (ngSubmit)="onSubmit()" class="stock-card">
+      <h3>Stock Item Details</h3>
+
+      <div class="form-grid">
+        <div class="column">
+          <div class="form-group">
+            <label for="itemName">Item name</label>
+            <app-input
+              id="itemName"
+              type="text"
+              formControlName="itemName"
+              placeholder="E.g. NPK Fertilizer">
+            </app-input>
+            <small class="helper-text">Backend can later replace this with a master catalogue lookup.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="category">Category</label>
+            <select id="category" title="Category" formControlName="category" class="form-input">
+              <option value="FERTILIZER">Fertilizer</option>
+              <option value="SEEDS">Seeds</option>
+              <option value="EQUIPMENT">Equipment</option>
+              <option value="PACKAGING">Packaging</option>
+              <option value="TOOLS">Tools</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="quantity">Quantity to add</label>
+            <div class="input-with-unit">
+              <app-input
+                id="quantity"
+                type="number"
+                formControlName="quantity"
+                placeholder="0.00">
+              </app-input>
+              <span class="unit-tag">{{ stockForm.controls.unit.value }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="column">
+          <div class="form-group">
+            <label for="unit">Unit</label>
+            <select id="unit" title="Unit" formControlName="unit" class="form-input">
+              <option value="Bags">Bags</option>
+              <option value="Kgs">Kgs</option>
+              <option value="Units">Units</option>
+              <option value="Sacks">Sacks</option>
+              <option value="Pieces">Pieces</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="unitPrice">Unit price</label>
+            <app-input
+              id="unitPrice"
+              type="number"
+              formControlName="unitPrice"
+              placeholder="0">
+            </app-input>
+          </div>
+
+          <div class="form-group">
+            <label for="receivedDate">Received date</label>
+            <app-input 
+              id="receivedDate"
+              type="date"
+              formControlName="receivedDate"
+              class="form-input">
+            </app-input>
+          </div>
+
+          <div class="form-group">
+            <label for="minThreshold">Minimum threshold</label>
+            <div class="input-with-unit">
+              <app-input
+                id="minThreshold"
+                type="number"
+                formControlName="minThreshold"
+                placeholder="0.00">
+              </app-input>
+              <span class="unit-tag">{{ stockForm.controls.unit.value }}</span>
+            </div>
+            <small class="helper-text">Alert will be triggered when stock falls below this value.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="supplierName">Supplier name</label>
+            <app-input
+              id="supplierName"
+              type="text"
+              formControlName="supplierName"
+              placeholder="Enter supplier name">
+            </app-input>
+          </div>
+
+          <div class="form-group">
+            <label for="batchReference">Batch reference</label>
+            <app-input
+              id="batchReference"
+              type="text"
+              formControlName="batchReference"
+              placeholder="E.G. BTC-2024-MAZ-001">
+            </app-input>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <app-button
+          size="md"
+          variant="secondary"
+          type="button"
+          (clicked)="onCancel()">
+          <span>Cancel</span>
+        </app-button>
+        
+        <app-button
+          variant="primary"
+          size="md"
+          type="submit">
+          <span class="icon">+</span> Add to stock
+        </app-button>
+      </div>
+    </form>
+  </div>
+</div>

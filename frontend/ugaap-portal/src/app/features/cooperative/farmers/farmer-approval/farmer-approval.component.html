@@ -1,0 +1,403 @@
+<div class="profile-shell" *ngIf="!loading && farmer; else profileState">
+  <div class="meta-bar">
+    <div class="meta-item">
+      <span class="meta-label">FARMER ID</span>
+      <span class="meta-value">{{ farmer.id }}</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">REGION</span>
+      <span class="meta-value">{{ farmer.region }}</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">TOTAL DELIVERIES</span>
+      <span class="meta-value">{{ farmer.totalDeliveries | number:'1.0-2' }} MT</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">PRIMARY CROP</span>
+      <span class="meta-value">{{ farmer.primaryCrop }}</span>
+    </div>
+  </div>
+
+  <div class="alert-banner" *ngIf="farmer.pendingReview">
+    <i class="ti ti-info-circle"></i>
+    <span>This farmer application is awaiting your review. Check all details carefully before approving. Approval activates the farmer account and notifies the branch.</span>
+  </div>
+
+  <div class="identity-card">
+    <div class="identity-left">
+      <div class="avatar-wrapper">
+        <img title="Farmer avatar" [src]="farmer.photoUrl" [alt]="farmer.fullName" class="avatar-img" />
+      </div>
+      <div class="identity-info">
+        <div class="identity-name-row">
+          <h1 class="identity-name">{{ farmer.fullName }}</h1>
+          <span class="status-badge" [class]="'status-' + farmer.status.toLowerCase()">
+            {{ farmer.status }}
+          </span>
+        </div>
+        <p class="identity-role">{{ farmer.role }}</p>
+        <div class="identity-meta">
+          <span><i class="ti ti-phone"></i> {{ farmer.phoneNumber }}</span>
+          <span><i class="ti ti-map-pin"></i> {{ farmer.village }}, {{ farmer.farmLocation }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="identity-actions">
+      <app-button variant="ghost" size="sm" (clicked)="onEditProfile()">
+        <i class="ti ti-edit"></i> Edit profile
+      </app-button>
+      <app-button variant="ghost" size="sm" (clicked)="onSendSms()">
+        <i class="ti ti-message"></i> Send SMS
+      </app-button>
+      <ng-container *ngIf="!isBranchView">
+        <app-button variant="danger" size="sm" (clicked)="onReject()">Reject</app-button>
+        <app-button variant="primary" size="sm" (clicked)="onApprove()">Approve farmer</app-button>
+      </ng-container>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <button
+      *ngFor="let tab of tabs"
+      type="button"
+      class="tab-btn"
+      [class.active]="activeTab === tab.key"
+      (click)="setTab(tab.key)">
+      {{ tab.label }}
+      <app-badge *ngIf="tab.badge" [variant]="tab.badgeVariant ?? 'info'">
+        {{ tab.badge }}
+      </app-badge>
+    </button>
+  </div>
+
+  <div class="tab-panel" [ngSwitch]="activeTab">
+    <div class="content-grid" *ngSwitchCase="'overview'">
+      <div class="left-col">
+        <div class="info-card">
+          <div class="info-card-header">
+            <h2>Personal details</h2>
+            <button class="icon-btn" type="button" title="Info">
+              <i class="ti ti-info-circle"></i>
+            </button>
+          </div>
+          <div class="info-grid">
+            <div class="info-field">
+              <span class="info-label">FULL NAME</span>
+              <span class="info-value">{{ farmer.fullName }}</span>
+            </div>
+            <div class="info-field">
+              <span class="info-label">PHONE NUMBER</span>
+              <span class="info-value">{{ farmer.phoneNumber }}</span>
+            </div>
+            <div class="info-field">
+              <span class="info-label">EMAIL ADDRESS</span>
+              <span class="info-value">{{ farmer.emailAddress }}</span>
+            </div>
+            <div class="info-field">
+              <span class="info-label">GENDER</span>
+              <span class="info-value">{{ farmer.gender }}</span>
+            </div>
+            <div class="info-field">
+              <span class="info-label">DATE OF BIRTH</span>
+              <span class="info-value">{{ farmer.dateOfBirth }}</span>
+            </div>
+            <div class="info-field">
+              <span class="info-label">PRIMARY LANGUAGE</span>
+              <span class="info-value">{{ farmer.primaryLanguage }}</span>
+            </div>
+            <div class="info-field">
+              <span class="info-label">EMERGENCY CONTACT</span>
+              <span class="info-value">{{ farmer.emergencyContact }}</span>
+            </div>
+            <div class="info-field">
+              <span class="info-label">NATIONAL ID NUMBER</span>
+              <span class="info-value nin-row">
+                {{ farmer.nationalIdNumber }}
+                <span class="verified-badge"><i class="ti ti-circle-check"></i> VERIFIED</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-card-header">
+            <h2>Farm and holding details</h2>
+            <button class="icon-btn" type="button" title="Farm details">
+              <i class="ti ti-layout-grid"></i>
+            </button>
+          </div>
+          <div class="info-grid">
+            <div class="info-field">
+              <span class="info-label">FARM LOCATION</span>
+              <span class="info-value">{{ farmer.farmLocation }}</span>
+            </div>
+            <div class="info-field">
+              <span class="info-label">VILLAGE/TOWN</span>
+              <span class="info-value">{{ farmer.village }}</span>
+            </div>
+            <div class="info-field">
+              <span class="info-label">GPS COORDINATES</span>
+              <span class="info-value gps">{{ farmer.farm.gpsCoordinates }}</span>
+            </div>
+            <div class="info-field">
+              <span class="info-label">TOTAL LAND AREA</span>
+              <span class="info-value">{{ farmer.farm.totalLandArea }} Hectares</span>
+            </div>
+            <div class="info-field full-width">
+              <span class="info-label">IRRIGATION SOURCE</span>
+              <span class="info-value">{{ farmer.farm.irrigationSource }}</span>
+            </div>
+            <div class="info-field full-width">
+              <span class="info-label">LAND OWNERSHIP TYPE</span>
+              <span class="info-value">{{ farmer.farm.landOwnershipType }}</span>
+            </div>
+          </div>
+
+          <div class="info-field spaced-field">
+            <span class="info-label">PRIMARY CROPS</span>
+            <div class="tag-row">
+              <span class="crop-tag" *ngFor="let crop of farmer.farm.primaryCrops">{{ crop }}</span>
+            </div>
+          </div>
+
+          <div class="info-field spaced-field">
+            <span class="info-label">LIVESTOCK INVENTORY</span>
+            <div class="tag-row">
+              <span class="livestock-tag" *ngFor="let item of farmer.farm.livestock">{{ item }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-card-header">
+            <h2>Registration details</h2>
+          </div>
+          <div class="info-grid">
+            <div class="info-field">
+              <span class="info-label">ASSIGNED BRANCH</span>
+              <span class="info-value">{{ farmer.registration.assignedBranch }}</span>
+            </div>
+            <div class="info-field">
+              <span class="info-label">COLLECTION CENTRE</span>
+              <span class="info-value">{{ farmer.registration.collectionCentre }}</span>
+            </div>
+            <div class="info-field">
+              <span class="info-label">DATE REGISTERED</span>
+              <span class="info-value">{{ farmer.registration.dateRegistered }}</span>
+            </div>
+            <div class="info-field">
+              <span class="info-label">REGISTERED BY</span>
+              <span class="info-value registered-by">
+                <span class="agent-avatar">{{ farmer.registration.registeredBy | slice:0:2 | uppercase }}</span>
+                {{ farmer.registration.registeredBy }}
+              </span>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+
+      <div class="right-col">
+        <div class="info-card">
+          <div class="info-card-header">
+            <h2>Onboarding progress</h2>
+          </div>
+          <div class="progress-steps">
+            <div class="progress-step" *ngFor="let step of farmer.onboardingSteps" [class]="'step-' + step.status">
+              <div class="step-icon">
+                <i class="ti" [class]="stepIcon(step.status)"></i>
+              </div>
+              <div class="step-body">
+                <p class="step-label">{{ step.label }}</p>
+                <p class="step-sub">{{ step.sub }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-card-header">
+            <h2>Group and credit</h2>
+          </div>
+          <div class="info-field">
+            <span class="info-label">COOPERATIVE GROUP</span>
+            <span class="info-value">{{ farmer.groupCredit.cooperativeGroup }}</span>
+          </div>
+          <div class="info-field spaced-field">
+            <span class="info-label">GROUP LEADER</span>
+            <span class="info-value leader-row">
+              {{ farmer.groupCredit.groupLeader }}
+              <button class="icon-btn" type="button" title="Call group leader">
+                <i class="ti ti-phone"></i>
+              </button>
+            </span>
+          </div>
+          
+          <div class="sacco-block">
+            <div class="sacco-info">
+              <span class="info-label">SACCO MEMBERSHIP</span>
+              <span class="info-value">{{ farmer.groupCredit.saccoName }}</span>
+            </div>
+            <span class="sacco-badge">ACTIVE MEMBER</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section class="tab-section-card" *ngSwitchCase="'inputs'">
+      <h2>Input allocations</h2>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ITEM</th>
+              <th>QUANTITY</th>
+              <th>VALUE</th>
+              <th>ISSUE DATE</th>
+              <th>RECOVERY STATUS</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of inputAllocations">
+              <td>{{ row.item }}</td>
+              <td>{{ row.quantity }}</td>
+              <td>UGX {{ row.value | number }}</td>
+              <td>{{ row.issueDate }}</td>
+              <td><app-badge [variant]="getBadgeVariant(row.recoveryStatus)" [dot]="true">{{ row.recoveryStatus | titlecase }}</app-badge></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="tab-section-card" *ngSwitchCase="'deliveries'">
+      <h2>Produce deliveries</h2>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>CROP</th>
+              <th>WEIGHT</th>
+              <th>COLLECTION CENTRE</th>
+              <th>DATE</th>
+              <th>GRADE</th>
+              <th>VALUE</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of deliveries">
+              <td>{{ row.crop }}</td>
+              <td>{{ row.weight }}</td>
+              <td>{{ row.collectionCentre }}</td>
+              <td>{{ row.date }}</td>
+              <td><app-badge variant="verified">{{ row.grade }}</app-badge></td>
+              <td>UGX {{ row.value | number }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="tab-section-card" *ngSwitchCase="'outstanding_balance'">
+      <h2>Outstanding balance</h2>
+      <div class="compact-summary-grid">
+        <div class="compact-summary-card">
+          <span class="info-label">PRINCIPAL</span>
+          <strong>UGX {{ balanceSummary.principal | number }}</strong>
+        </div>
+        <div class="compact-summary-card">
+          <span class="info-label">RECOVERED</span>
+          <strong>UGX {{ balanceSummary.recovered | number }}</strong>
+        </div>
+        <div class="compact-summary-card danger">
+          <span class="info-label">OUTSTANDING</span>
+          <strong>UGX {{ balanceSummary.outstanding | number }}</strong>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>DESCRIPTION</th>
+              <th>PRINCIPAL</th>
+              <th>RECOVERED</th>
+              <th>OUTSTANDING</th>
+              <th>DUE DATE</th>
+              <th>STATUS</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of balanceLines">
+              <td>{{ row.description }}</td>
+              <td>UGX {{ row.principal | number }}</td>
+              <td>UGX {{ row.recovered | number }}</td>
+              <td>UGX {{ row.outstanding | number }}</td>
+              <td>{{ row.dueDate }}</td>
+              <td><app-badge [variant]="getBadgeVariant(row.status)" [dot]="true">{{ row.status | titlecase }}</app-badge></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="tab-section-card" *ngSwitchCase="'repayments'">
+      <h2>Repayment history</h2>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>DATE</th>
+              <th>METHOD</th>
+              <th>AMOUNT</th>
+              <th>REFERENCE</th>
+              <th>STATUS</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of repayments">
+              <td>{{ row.date }}</td>
+              <td>{{ row.method }}</td>
+              <td>UGX {{ row.amount | number }}</td>
+              <td>{{ row.reference }}</td>
+              <td><app-badge [variant]="getBadgeVariant(row.status)" [dot]="true">{{ row.status | titlecase }}</app-badge></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="tab-section-card" *ngSwitchCase="'notifications'">
+      <h2>Notifications</h2>
+      <div class="notification-list">
+        <div class="notification-item" *ngFor="let note of notifications" [class.unread]="note.readState === 'Unread'">
+          <div>
+            <p>{{ note.title }}</p>
+            <span>{{ note.channel }} - {{ note.date }}</span>
+          </div>
+          <div class="notification-badges">
+            <app-badge [variant]="getBadgeVariant(note.status)">{{ note.status | titlecase }}</app-badge>
+            <app-badge [variant]="note.readState === 'Unread' ? 'info' : 'inactive'">{{ note.readState }}</app-badge>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="empty-state" *ngSwitchDefault>
+      <p>Select a farmer profile tab to review more details.</p>
+    </div>
+  </div>
+</div>
+
+<ng-template #profileState>
+  <div class="profile-shell">
+    <div class="alert-banner" *ngIf="loading">
+      <i class="ti ti-clock"></i>
+      <span>Loading farmer profile...</span>
+    </div>
+    <div class="alert-banner" *ngIf="!loading && error">
+      <i class="ti ti-alert-circle"></i>
+      <span>{{ error }}</span>
+    </div>
+  </div>
+</ng-template>

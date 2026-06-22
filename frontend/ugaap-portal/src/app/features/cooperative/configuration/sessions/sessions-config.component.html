@@ -1,0 +1,137 @@
+<div class="sessions-page">
+
+  <app-page-header
+    title="Sessions & Seasons"
+    subtitle="Control which season is accepting deliveries, configure season month ranges, and set the time windows for each daily session."
+    [breadcrumb]="['Configuration', 'Sessions & Seasons']">
+  </app-page-header>
+
+  <!-- ── Season Management ───────────────────────────────────────────────── -->
+
+  <div class="section-heading">Season Management</div>
+
+  <!-- Status card -->
+  <div class="season-status-card">
+    <div class="season-status-left">
+      <span class="season-status-label">Current Status</span>
+      <div class="season-status-row">
+        <span class="season-badge" [class.season-badge--open]="isSeasonOpen" [class.season-badge--closed]="!isSeasonOpen">
+          {{ isSeasonOpen ? 'OPEN' : 'CLOSED' }}
+        </span>
+        <span class="season-status-desc" *ngIf="isSeasonOpen">
+          {{ activeSeasonType }} is accepting deliveries
+        </span>
+        <span class="season-status-desc season-status-desc--none" *ngIf="!isSeasonOpen">
+          No season is open — deliveries are paused
+        </span>
+      </div>
+    </div>
+
+    <div class="season-toggle-group">
+      <button
+        type="button"
+        class="season-btn season-btn--wet"
+        [class.season-btn--active]="activeSeasonType === 'Wet Season'"
+        (click)="openSeason('Wet Season')">
+        Open Wet Season
+      </button>
+      <button
+        type="button"
+        class="season-btn season-btn--dry"
+        [class.season-btn--active]="activeSeasonType === 'Dry Season'"
+        (click)="openSeason('Dry Season')">
+        Open Dry Season
+      </button>
+      <button
+        type="button"
+        class="season-btn season-btn--close"
+        *ngIf="isSeasonOpen"
+        (click)="closeSeason()">
+        Close Season
+      </button>
+    </div>
+  </div>
+
+  <!-- Season month-range config -->
+  <form *ngIf="seasonForm" [formGroup]="seasonForm" (ngSubmit)="saveSeason()" class="sessions-form">
+    <div class="table-card">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Season</th>
+              <th>Start month</th>
+              <th>End month</th>
+              <th>Preview</th>
+            </tr>
+          </thead>
+          <tbody formArrayName="windows">
+            <tr *ngFor="let row of seasonRows; let i = index" [formGroupName]="i">
+              <td class="fw-600">{{ row.get('label')?.value }}</td>
+              <td>
+                <select  title="start month" formControlName="startMonth">
+                  <option *ngFor="let m of monthOptions" [value]="m.value">{{ m.label }}</option>
+                </select>
+              </td>
+              <td>
+                <select title="end month" formControlName="endMonth">
+                  <option *ngFor="let m of monthOptions" [value]="m.value">{{ m.label }}</option>
+                </select>
+              </td>
+              <td class="preview-cell mono">{{ seasonPreview(row) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <app-button variant="ghost" type="button" (clicked)="resetSeasonDefaults()">Reset defaults</app-button>
+      <app-button variant="primary" type="submit">Save season config</app-button>
+    </div>
+  </form>
+
+  <!-- ── Session Hours ───────────────────────────────────────────────────── -->
+
+  <div class="section-heading">Session Hours</div>
+
+  <form *ngIf="form" [formGroup]="form" class="sessions-form" (ngSubmit)="save()">
+    <div class="table-card">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Session</th>
+              <th>Start time</th>
+              <th>End time</th>
+              <th>Preview</th>
+            </tr>
+          </thead>
+          <tbody formArrayName="windows">
+            <tr *ngFor="let row of rows; let i = index" [formGroupName]="i">
+              <td class="fw-600">{{ row.get('label')?.value }}</td>
+              <td>
+                <select title="start hour" formControlName="startHour">
+                  <option *ngFor="let h of hourOptions" [value]="h.value">{{ h.label }}</option>
+                </select>
+              </td>
+              <td>
+                <select title="end hour" formControlName="endHour">
+                  <option *ngFor="let h of hourOptions" [value]="h.value">{{ h.label }}</option>
+                </select>
+              </td>
+              <td class="mono preview-cell">{{ previewRange(row) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <app-button variant="secondary" type="button" (clicked)="cancel()">Cancel</app-button>
+      <app-button variant="ghost" type="button" (clicked)="resetToDefaults()">Reset to defaults</app-button>
+      <app-button variant="primary" type="submit">Save session hours</app-button>
+    </div>
+  </form>
+
+</div>

@@ -1,0 +1,235 @@
+<!-- permission-tabs.component.html
+     Structure: tab strip (one tab per service) → panel for the active service.
+     Icon SVGs live in the #iconTpl template at the bottom, keyed by the
+     service's icon string — same convention as the sidebar. -->
+
+<div class="ptabs">
+
+  <!-- Service tab strip -->
+  <div class="ptabs__nav" role="tablist" aria-label="Services">
+    @for (service of services(); track service.key) {
+      <button
+        type="button"
+        role="tab"
+        class="ptabs__tab"
+        [class.ptabs__tab--active]="isActive(service)"
+        [attr.aria-selected]="isActive(service)"
+        (click)="selectTab(service.key)">
+
+        <span class="ptabs__tab-icon" aria-hidden="true">
+          <ng-container
+            [ngTemplateOutlet]="iconTpl"
+            [ngTemplateOutletContext]="{ icon: service.icon }">
+          </ng-container>
+        </span>
+
+        <span class="ptabs__tab-label">{{ service.name }}</span>
+
+        @if (countForService(service) > 0) {
+          <span class="ptabs__tab-count">
+            {{ countForService(service) }}/{{ service.permissions.length }}
+          </span>
+        }
+      </button>
+    }
+  </div>
+
+  <!-- Active service panel -->
+  @if (activeService(); as service) {
+    <div class="ptabs__panel" role="tabpanel">
+
+      <div class="ptabs__panel-header">
+        <div class="ptabs__panel-title">
+          <span class="ptabs__panel-icon" aria-hidden="true">
+            <ng-container
+              [ngTemplateOutlet]="iconTpl"
+              [ngTemplateOutletContext]="{ icon: service.icon }">
+            </ng-container>
+          </span>
+          <div>
+            <h4 class="ptabs__panel-name">{{ service.name }}</h4>
+            <p class="ptabs__panel-hint">
+              Everything this role can do under {{ service.name }}
+            </p>
+          </div>
+        </div>
+
+        <label class="pcheck pcheck--all">
+          <input
+            type="checkbox"
+            [checked]="isServiceFullySelected(service)"
+            [indeterminate]="isServicePartiallySelected(service)"
+            (change)="toggleService(service, $any($event.target).checked)">
+          <span class="pcheck__mark"></span>
+          <span class="pcheck__label">Select all</span>
+        </label>
+      </div>
+
+      <div class="ptabs__grid">
+        @for (permission of service.permissions; track permission.id) {
+          <label class="pcheck pcheck--card" [class.pcheck--checked]="isChecked(permission.id)">
+            <input
+              type="checkbox"
+              [checked]="isChecked(permission.id)"
+              (change)="toggle(permission.id, $any($event.target).checked)">
+            <span class="pcheck__mark"></span>
+            <span class="pcheck__text">
+              <span class="pcheck__label">{{ permission.label }}</span>
+              @if (permission.description) {
+                <span class="pcheck__desc">{{ permission.description }}</span>
+              }
+            </span>
+          </label>
+        }
+      </div>
+
+    </div>
+  }
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     ICON TEMPLATE
+     Keys map 1:1 to the `icon` field in core/constants/permissions.ts.
+     Add a @case here whenever a new icon key is introduced in the catalog —
+     the @default circle acts as a safe fallback.
+══════════════════════════════════════════════════════════════════════════ -->
+<ng-template #iconTpl let-icon="icon">
+  @switch (icon) {
+
+    @case ('home') {
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+    }
+
+    @case ('building') {
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="7" width="20" height="14" rx="2"/>
+        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+      </svg>
+    }
+
+    @case ('settings') {
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83
+                 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1
+                 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65
+                 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65
+                 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09
+                 A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2
+                 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0
+                 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65
+                 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65
+                 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09
+                 a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    }
+
+    @case ('deliveries') {
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <rect x="1" y="3" width="15" height="13"/>
+        <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+        <circle cx="5.5"  cy="18.5" r="2.5"/>
+        <circle cx="18.5" cy="18.5" r="2.5"/>
+      </svg>
+    }
+
+    @case ('farmers') {
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+    }
+
+    @case ('agents') {
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="8.5" cy="7" r="4"/>
+        <polyline points="17 11 19 13 23 9"/>
+      </svg>
+    }
+
+    @case ('hub') {
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/>
+        <circle cx="12" cy="10" r="3"/>
+      </svg>
+    }
+
+    @case ('branches') {
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+    }
+
+    @case ('inventory') {
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+        <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+        <line x1="12" y1="22.08" x2="12" y2="12"/>
+      </svg>
+    }
+
+    @case ('users') {
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
+    }
+
+    @case ('roles') {
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        <circle cx="12" cy="11" r="2"/>
+        <line x1="12" y1="13" x2="12" y2="16"/>
+      </svg>
+    }
+
+    @case ('reports') {
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="20" x2="18" y2="10"/>
+        <line x1="12" y1="20" x2="12" y2="4"/>
+        <line x1="6"  y1="20" x2="6"  y2="14"/>
+      </svg>
+    }
+
+    <!-- Safe fallback — a plain dot so nothing ever renders blank -->
+    @default {
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="5"/>
+      </svg>
+    }
+
+  }
+</ng-template>

@@ -1,0 +1,108 @@
+<app-form-wizard
+  [title]="isEditMode ? 'Edit role' : 'Create role'"
+  [steps]="steps"
+  [currentStep]="currentStep"
+  (stepSelected)="goToStep($event)">
+
+  <form [formGroup]="roleForm" (ngSubmit)="saveRole()">
+
+    <!-- ── STEP 0: Role details ── -->
+    <section *ngIf="currentStep === 0" class="form-panel" aria-labelledby="step0-heading">
+      <div class="panel-header">
+        <h2 id="step0-heading" class="panel-title">Role details</h2>
+        <p class="panel-sub">Name and describe what this role is for</p>
+      </div>
+
+      <div class="field-grid field-grid--2">
+        <app-input
+          label="Role name"
+          placeholder="e.g. Logistics Manager"
+          type="text"
+          [required]="true"
+          [error]="getFieldError('name')"
+          formControlName="name">
+        </app-input>
+
+        <div class="field-stack">
+          <app-input
+            label="Tenant ID"
+            placeholder="e.g. ugaap-farmers"
+            type="text"
+            [required]="true"
+            [error]="getFieldError('tenantId')"
+            formControlName="tenantId">
+          </app-input>
+          <p class="field-hint">Pre-filled when arriving from onboarding</p>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Description <span class="required-mark">*</span></label>
+        <textarea
+          class="form-input"
+          placeholder="Brief description of what this role can do..."
+          formControlName="description"
+          [class.input-error]="getFieldError('description')"
+          rows="3"></textarea>
+        <p class="field-error" *ngIf="getFieldError('description')">
+          {{ getFieldError('description') }}
+        </p>
+      </div>
+    </section>
+
+    <!-- ── STEP 1: Permissions ── -->
+    <section *ngIf="currentStep === 1" class="form-panel" aria-labelledby="step1-heading">
+      <div class="panel-header">
+        <h2 id="step1-heading" class="panel-title">Permissions</h2>
+        <p class="panel-sub">
+          {{ selectedPermissionsCount }} permission{{ selectedPermissionsCount === 1 ? '' : 's' }} selected —
+          users only see sidebar entries they hold permissions for
+        </p>
+      </div>
+
+      <app-permission-tabs
+        scope="platform"
+        [(selected)]="selectedPermissions">
+      </app-permission-tabs>
+
+      <div *ngIf="errorMessage" class="save-error" role="alert">{{ errorMessage }}</div>
+    </section>
+
+    <!-- ── Bottom nav ── -->
+    <div class="form-nav">
+      <app-button variant="ghost" size="md" type="button" (clicked)="cancel()">
+        Cancel
+      </app-button>
+
+      <div class="form-nav__right">
+        <app-button
+          *ngIf="currentStep > 0"
+          variant="ghost"
+          size="md"
+          type="button"
+          (clicked)="prevStep()">
+          ← Back
+        </app-button>
+
+        <app-button
+          *ngIf="currentStep < steps.length - 1"
+          variant="primary"
+          size="md"
+          type="button"
+          (clicked)="nextStep()">
+          Next →
+        </app-button>
+
+        <app-button
+          *ngIf="currentStep === steps.length - 1"
+          variant="primary"
+          size="md"
+          type="submit"
+          [disabled]="isLoading">
+          {{ isLoading ? 'Saving…' : (isEditMode ? 'Update role' : 'Create role') }}
+        </app-button>
+      </div>
+    </div>
+
+  </form>
+</app-form-wizard>

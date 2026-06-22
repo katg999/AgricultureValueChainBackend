@@ -1,0 +1,346 @@
+/* sidebar.component.scss
+   The :host element IS the flex child in the admin layout.
+   Desktop: fixed 220 px column with white background.
+   Mobile:  host shrinks to 0 width; the aside slides in as a fixed overlay. */
+
+// ── Host — participates in the parent flex layout ─────────────────────────────
+
+:host {
+  display: block;
+  width: 220px;
+  flex-shrink: 0;
+
+  @media (max-width: 767px) {
+    width: 0;
+    overflow: visible;   /* lets the fixed aside and backdrop escape the zero-width box */
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  HAMBURGER  (mobile only)
+// ══════════════════════════════════════════════════════════════════════════════
+
+.hamburger {
+  display: none;   /* hidden on desktop */
+
+  @media (max-width: 767px) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 11px;
+    left: 12px;
+    z-index: 300;
+    width: 36px;
+    height: 36px;
+    background: #fff;
+    border: 1px solid #EEECF1;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #6B6880;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    transition: background 0.12s, color 0.12s;
+
+    &:hover {
+      background: #FFF5F1;
+      color: #F25D27;
+      border-color: rgba(242, 93, 39, 0.3);
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  BACKDROP  (mobile overlay dimmer)
+// ══════════════════════════════════════════════════════════════════════════════
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 200;
+  backdrop-filter: blur(1px);
+  animation: fadeIn 0.2s ease;
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  SIDEBAR PANEL
+// ══════════════════════════════════════════════════════════════════════════════
+
+.sidebar {
+  width: 220px;
+  height: 100vh;
+  background: #ffffff;
+  border-right: 1px solid #EEECF1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  // ── Mobile: fixed overlay, slides in from the left ────────────────────────
+  @media (max-width: 767px) {
+    position: fixed;
+    top: 0;
+    left: -240px;     /* starts off-screen */
+    z-index: 250;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+    transition: left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &.sidebar--open {
+      left: 0;        /* slides into view */
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  BRAND  (logo area)
+// ══════════════════════════════════════════════════════════════════════════════
+
+.sidebar-brand {
+  padding: 16px;
+  border-bottom: 1px solid #F0EEF3;
+  flex-shrink: 0;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════════════════════════════════════════
+
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar { display: none; }
+}
+
+// ── Nav item (both <a> links and <button> parent openers) ─────────────────────
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  color: #6B6880;                        /* muted grey when inactive */
+  text-decoration: none;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-family: var(--font-human, 'Inter', sans-serif);
+  font-size: 13px;
+  cursor: pointer;
+  border-right: 3px solid transparent;   /* reserved space — filled when active */
+  white-space: nowrap;
+  overflow: hidden;
+  transition: background 0.12s ease, color 0.12s ease;
+
+  &:hover {
+    background: #FAF9FB;
+    color: #1A1A2E;
+  }
+
+  // Active leaf link — orange right-edge bar
+  &--active {
+    border-right-color: #F25D27;
+    background: #FFF5F1;
+    color: #F25D27;
+
+    .nav-icon svg { stroke: #F25D27; }
+  }
+
+  // Parent button when its submenu is expanded — subtle highlight, no orange bar
+  &--active-parent {
+    background: #FAF9FB;
+    color: #1A1A2E;
+  }
+}
+
+// ── Icon wrapper ──────────────────────────────────────────────────────────────
+
+.nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  flex-shrink: 0;
+
+  svg { stroke: currentColor; }
+}
+
+// ── Label ─────────────────────────────────────────────────────────────────────
+
+.nav-label {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+// ── Chevron (submenu toggle indicator) ───────────────────────────────────────
+
+.chevron {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: #B4B2C0;
+  transition: transform 0.2s ease;
+
+  &--open {
+    transform: rotate(180deg);
+  }
+}
+
+// ── Submenu ───────────────────────────────────────────────────────────────────
+
+.submenu {
+  // Slight left indent so children feel nested
+  padding-left: 0;
+  border-left: none;
+  animation: slideDown 0.18s ease;
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .nav-item--child {
+    padding-left: 48px;   /* icon(20) + gap(12) + extra indent(16) */
+    font-size: 12.5px;
+    color: #8A8799;
+
+    &:hover  { color: #1A1A2E; }
+    &--active {
+      color: #F25D27;
+      border-right-color: #F25D27;
+      background: #FFF5F1;
+    }
+  }
+}
+
+// ── Submenu bullet dot ────────────────────────────────────────────────────────
+
+.submenu-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+  opacity: 0.45;
+  margin-right: 4px;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  BADGES
+// ══════════════════════════════════════════════════════════════════════════════
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  margin-left: auto;
+
+  &--primary { background: #F25D27; color: #fff; }
+  &--warning  { background: #F59E0B; color: #fff; }
+  &--success  { background: #10B981; color: #fff; }
+  &--danger   { background: #EF4444; color: #fff; }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  FOOTER  (user chip + logout)
+// ══════════════════════════════════════════════════════════════════════════════
+
+.sidebar-footer {
+  padding: 12px 16px;
+  border-top: 1px solid #F0EEF3;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.user-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  // Rendered as a link to /profile — keep the chip's original look
+  text-decoration: none;
+  color: inherit;
+  border-radius: 8px;
+  padding: 4px;
+  margin: -4px;
+  transition: background 0.15s;
+
+  &:hover {
+    background: rgba(242, 93, 39, 0.08);
+  }
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #F25D27;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.user-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.user-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #1A1A2E;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-role {
+  font-size: 10.5px;
+  color: #8A8799;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.logout-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #F4F3F5;
+  border: 1px solid #EEECF1;
+  color: #8A8799;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.12s ease;
+
+  &:hover {
+    background: #FDEEE8;
+    border-color: rgba(242, 93, 39, 0.3);
+    color: #F25D27;
+  }
+}

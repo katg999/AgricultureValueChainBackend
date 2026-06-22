@@ -1,0 +1,132 @@
+<!-- features/platform/dashboard/platform-dashboard.component.html -->
+
+<div class="platform-dashboard">
+
+  <!-- ── Page Header ──────────────────────────────────────────────────────── -->
+  <div class="dashboard-header">
+    <div>
+      <h1 class="page-title">Platform overview</h1>
+      <p class="page-subtitle">All Cooperatives</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-secondary"
+        (click)="exportReport()"
+        title="Export all dashboard data as CSV">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Export report
+      </button>
+      <button class="btn-primary" routerLink="/platform/cooperatives/onboard">
+        <span>+</span>
+        Add Cooperative
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Stats Grid ────────────────────────────────────────────────────────── -->
+  <div class="stats-grid">
+    <app-stat-card
+      *ngFor="let stat of stats; let i = index"
+      [data]="stat"
+      [delay]="i * 80">
+    </app-stat-card>
+  </div>
+
+  <!-- ── Two-Column Layout ─────────────────────────────────────────────────── -->
+  <div class="two-column-grid">
+
+    <!-- Onboarding Pipeline -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Onboarding pipeline</h2>
+        <button class="btn-icon">⋮</button>
+      </div>
+
+      <div class="onboarding-list">
+        <div *ngFor="let item of onboardingItems" class="onboarding-item">
+          <div class="onboarding-top">
+            <div class="onboarding-info">
+              <h3 class="onboarding-name">{{ item.name }}</h3>
+              <p class="onboarding-meta">
+                {{ item.steps }}
+                <span *ngIf="item.live" class="live-badge">· Live</span>
+              </p>
+            </div>
+            <span class="status-badge" [class]="'badge-' + item.statusVariant">
+              {{ item.status }}
+            </span>
+          </div>
+          <app-progress-bar
+            [percentage]="item.progress"
+            [variant]="item.statusVariant"
+            [showLabel]="false">
+          </app-progress-bar>
+        </div>
+      </div>
+    </div>
+
+    <!-- Platform Health -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Platform health</h2>
+      </div>
+
+      <div class="health-list">
+        <div
+          *ngFor="let item of platformHealth"
+          class="health-item"
+          [class.highlight]="item.highlight">
+          <span class="health-label">{{ item.label }}</span>
+          <span class="health-value">{{ item.value }}</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Recent Platform Activity ──────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Recent platform activity</h2>
+    </div>
+
+    <div class="activity-table">
+      <div class="table-header">
+        <div class="col-actor">ACTOR</div>
+        <div class="col-event">EVENT</div>
+        <div class="col-object">OBJECT</div>
+        <div class="col-when">WHEN</div>
+      </div>
+
+      <div class="table-body">
+        <div *ngFor="let activity of recentActivity" class="activity-row">
+          <div class="col-actor">
+            <div class="actor-avatar">{{ activity.actor.charAt(0) }}</div>
+            <span>{{ activity.actor }}</span>
+          </div>
+          <div class="col-event">
+            <span class="event-badge" [class]="'badge-' + activity.eventVariant">
+              {{ activity.event }}
+            </span>
+          </div>
+          <div class="col-object">
+            <code>{{ activity.object }}</code>
+          </div>
+          <div class="col-when">{{ activity.when }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-footer">
+      <button class="btn-link" (click)="viewFullAuditLogs()">
+        View full audit logs
+      </button>
+    </div>
+  </div>
+
+</div>

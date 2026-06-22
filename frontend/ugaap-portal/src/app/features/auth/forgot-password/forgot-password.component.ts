@@ -1,42 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {
-  ReactiveFormsModule,
-  FormBuilder,
-  FormGroup,
-  Validators
-} from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
+import { API_ENDPOINTS } from '../../../core/constants/api-endpoints';
 
-// Shared reusable components
+import { AuthService } from '../../../core/services/auth.service';
+import { SessionService } from '../../../core/services/session.service';
+
+// Shared UI components
 import { LogoComponent } from '../../../shared/components/logo/logo.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { AlertComponent } from '../../../shared/components/alert/alert.component';
 
-/**
- * Forgot Password Component
- * 
- * First step in password recovery flow.
- * Collects user's email or phone number and sends verification code.
- * 
- * Flow:
- * 1. User enters email or phone
- * 2. System sends OTP code
- * 3. Navigate to reset-otp verification
- * 
- * Features:
- * - Accepts email or phone number
- * - Form validation
- * - Loading states
- * - Error handling
- * 
- * Components Used:
- * - LogoComponent: UGAAP branding
- * - AlertComponent: Error messages
- * - InputComponent: Email/phone field
- * - ButtonComponent: Submit button
- */
 @Component({
   selector: 'app-forgot-password',
   standalone: true,
@@ -47,51 +23,43 @@ import { AlertComponent } from '../../../shared/components/alert/alert.component
     LogoComponent,
     InputComponent,
     ButtonComponent,
-    AlertComponent
+    AlertComponent,
   ],
   templateUrl: './forgot-password.component.html',
-  styleUrl: './forgot-password.component.css'
+  styleUrl: './forgot-password.component.css',
 })
 export class ForgotPasswordComponent implements OnInit {
-
-  /**
-   * Reactive form for password recovery
-   * Contains emailOrPhone control with validation
-   */
   forgotForm!: FormGroup;
-
-  /**
-   * Loading state during code sending
-   */
   isLoading = false;
-
-  /**
-   * Error message to display
-   * Shown when code sending fails
-   */
   errorMessage = '';
 
   constructor(
     private fb: FormBuilder,
-    private router: Router
+    private router: Router,
+    private authService: AuthService,
+    private session: SessionService,
   ) {}
 
   ngOnInit(): void {
-    // Initialize forgot password form
     this.forgotForm = this.fb.group({
-      emailOrPhone: ['', [Validators.required]]
+      emailOrPhone: ['', [Validators.required, Validators.email]],
     });
   }
 
-  /**
-   * Handle form submission
-   * Sends verification code to provided email/phone
-   * 
-   * TODO: Replace setTimeout with actual API call
-   * Example: this.authService.sendResetCode(emailOrPhone).subscribe(...)
-   */
+  // ── Template helper ─────────────────────────────────────────────────────────
+
+  getEmailOrPhoneError(): string {
+    const c = this.forgotForm.get('emailOrPhone');
+    if (c?.touched && c.errors) {
+      if (c.errors['required']) return 'Email is required';
+      if (c.errors['email']) return 'Please enter a valid email address';
+    }
+    return '';
+  }
+
+  // ── Form submission ─────────────────────────────────────────────────────────
+
   onSubmit(): void {
-    // Mark field as touched to trigger validation display
     if (this.forgotForm.invalid) {
       this.forgotForm.markAllAsTouched();
       return;
@@ -100,25 +68,23 @@ export class ForgotPasswordComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = '';
 
-    // Temporary simulation - Replace with actual API call
-    setTimeout(() => {
-      this.isLoading = false;
-      // On success, navigate to reset OTP verification
-      this.router.navigate(['/auth/reset-otp']);
-    }, 1200);
-  }
+    const email = this.forgotForm.value.emailOrPhone;
 
-  /**
-   * Get email/phone field error message
-   * Used in template to display contextual validation errors
-   * 
-   * @returns Error message string or empty string if no error
-   */
-  getEmailOrPhoneError(): string {
-    const control = this.forgotForm.get('emailOrPhone');
-    if (control?.touched && control?.errors) {
-      if (control.errors['required']) return 'Email or phone number is required';
-    }
-    return '';
+    console.log('FORGOT PASSWORD - email:', email);
+    console.log('FORGOT PASSWORD - hitting endpoint:', API_ENDPOINTS.AUTH.FORGOT_PASSWORD);
+
+    this.authService.forgotPassword({ email }).subscribe({
+      next: (res) => {
+        this.isLoading = false;
+        console.log('FORGOT PASSWORD - success:', res);
+        this.session.setResetEmail(email);
+        this.router.navigate(['/auth/reset-otp']);
+      },
+      error: (err) => {
+        this.isLoading = false;
+        console.error('FORGOT PASSWORD - error:', err);
+        this.errorMessage = err?.error?.message ?? 'Could not send reset code. Please try again.';
+      },
+    });
   }
 }

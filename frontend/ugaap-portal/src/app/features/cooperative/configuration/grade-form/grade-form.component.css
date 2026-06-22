@@ -1,0 +1,142 @@
+/* grade-form.component.css */
+
+.page {
+  padding: 32px;
+  max-width: 900px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── heading ──────────────────────────────────────────────── */
+.page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.page-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #1A1A2E;
+}
+
+.page-subtitle {
+  font-size: 13px;
+  color: #6B6880;
+}
+
+/* ── form card ────────────────────────────────────────────── */
+.form-card {
+  background: var(--surface-lowest);
+  border-radius: 14px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── field block ──────────────────────────────────────────── */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.field__input,
+.field__textarea {
+  width: 100%;
+  background: var(--surface-highest);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-family: var(--font-human);
+  font-size: 14px;
+  color: #1A1A2E;
+  outline: none;
+  transition: border-color 0.15s;
+  resize: vertical;
+}
+
+.field__input::placeholder,
+.field__textarea::placeholder {
+  color: #B4B2C0;
+  font-size: 13px;
+}
+
+.field__input:focus,
+.field__textarea:focus {
+  border-color: var(--primary);
+  background: #fff;
+}
+
+.field__input--error {
+  border-color: #E07070 !important;
+}
+
+.field__hint {
+  font-size: 11px;
+  color: #8A8799;
+}
+
+.field__error {
+  font-size: 11px;
+  color: #8C342B;
+}
+
+/* ── grade code with character counter ────────────────────── */
+.input-with-counter {
+  position: relative;
+}
+
+.input-with-counter .field__input {
+  padding-right: 48px;   /* room for the counter */
+}
+
+.char-counter {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-technical);
+  font-size: 11px;
+  color: #8A8799;
+  pointer-events: none;
+}
+
+/* ── system tip box ───────────────────────────────────────── */
+.system-tip {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: #FFF5F0;
+  border-left: 3px solid var(--primary);
+  border-radius: 0 8px 8px 0;
+  padding: 14px 16px;
+  color: #8C3418;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.system-tip svg {
+  flex-shrink: 0;
+  color: var(--primary);
+  margin-top: 1px;
+}
+
+.system-tip strong {
+  font-weight: 700;
+}
+
+/* ── page action row ──────────────────────────────────────── */
+.page-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}

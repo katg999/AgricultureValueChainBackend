@@ -1,0 +1,199 @@
+<!-- async pipe subscribes to the observable and auto-unsubscribes when the component is destroyed.
+     "as filteredDeliveries" gives us a local template variable to pass into getter methods. -->
+<div class="delivery-page" (click)="closeActionMenu()" *ngIf="filteredDeliveries$ | async as filteredDeliveries">
+
+  <!-- =========================================================
+       PAGE HEADER
+       ========================================================= -->
+  <div class="page-header">
+
+  <div class="header-content-wrapper">
+    <div>
+      <h1>Branch Deliveries</h1>
+      <p>
+        Review and approve commodity deliveries submitted by branches.
+      </p>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn primary-action-btn" (click)="addFarmerDelivery()">
+        <span class="icon-plus">+</span> Add Farmer Delivery
+      </button>
+    </div>
+  </div>
+
+</div>
+
+  <!-- =========================================================
+       FILTER SECTION
+       applyFilter() is triggered whenever values change
+       ========================================================= -->
+  <div class="filter-card">
+    <div class="filter-group">
+      <label>Search</label>
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (input)="applyFilter()"
+        placeholder="Search by branch, commodity, status, season, session or ID..."
+      />
+    </div>
+  </div>
+
+  <!-- DELIVERY TABLE -->
+  <div class="table-card" *ngIf="paginatedDeliveries$ | async as paginatedDeliveries">
+
+    <div class="table-wrapper">
+
+      <table>
+
+        <!-- TABLE HEAD -->
+        <thead>
+          <tr>
+            <th>Delivery ID</th>
+            <th>Branch</th>
+            <th>Season</th>
+            <th>Commodity</th>
+            <th>Volume</th>
+            <th>Estimated Value</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <!-- TABLE BODY -->
+        <tbody>
+
+          <!-- trackBy tells Angular how to identify each row by ID so it only re-renders rows that actually changed. -->
+          <tr *ngFor="let delivery of paginatedDeliveries; trackBy: trackByDeliveryId">
+
+            <!-- ID -->
+            <td class="mono">
+              {{ delivery.id }}
+            </td>
+
+            <!-- Branch -->
+            <td class="cell-branch" [title]="delivery.branchName">
+              {{ delivery.branchName }}
+            </td>
+
+            <!-- Season -->
+            <td>
+              <span class="season-badge" [ngClass]="seasonClass(delivery.season)">
+                {{ delivery.season }}
+              </span>
+            </td>
+
+            <!-- Commodity -->
+            <td>
+              {{ delivery.commodity }}
+            </td>
+
+            <!-- Volume -->
+            <td>
+              {{ delivery.volume | number }} {{ delivery.volumeUnit || 'KG' }}
+            </td>
+
+            <!-- Value -->
+            <td>
+              UGX {{ formatUGX(delivery.estimatedValue) }}
+            </td>
+
+            <!-- Status -->
+            <td>
+              <span
+                class="status-badge"
+                [ngClass]="statusClass(delivery.status)"
+              >
+                {{ delivery.status }}
+              </span>
+            </td>
+
+            <!-- Actions -->
+            <td>
+
+              <div class="action-menu" (click)="$event.stopPropagation()">
+                <button
+                  type="button"
+                  class="kebab-btn"
+                  title="Delivery actions"
+                  aria-label="Delivery actions"
+                  [attr.aria-expanded]="openActionMenuId === delivery.id"
+                  (click)="toggleActionMenu(delivery.id, $event)"
+                >
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </button>
+
+                <!-- position:fixed with JS-calculated coordinates so the menu
+                     escapes the overflow:hidden on .table-card. -->
+                <div class="menu-panel" *ngIf="openActionMenuId === delivery.id"
+                  [style.top]="menuPosition.top !== undefined ? menuPosition.top + 'px' : 'auto'"
+                  [style.bottom]="menuPosition.bottom !== undefined ? menuPosition.bottom + 'px' : 'auto'"
+                  [style.right.px]="menuPosition.right">
+                  <button
+                    type="button"
+                    (click)="viewFarmers(delivery)">
+                    View Farmers
+                  </button>
+                  <!-- Approve/Reject are hidden when the delivery is already in that state -->
+                  <button
+                    type="button"
+                    class="menu-item--approve"
+                    *ngIf="delivery.status !== 'Approved'"
+                    (click)="approveDelivery(delivery)">
+                    Approve
+                  </button>
+                  <button
+                    type="button"
+                    class="menu-item--reject"
+                    *ngIf="delivery.status !== 'Rejected'"
+                    (click)="rejectDelivery(delivery)">
+                    Reject
+                  </button>
+                </div>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+          <tr *ngIf="paginatedDeliveries.length === 0">
+            <td colspan="8">
+              <app-empty-state
+                icon="truck"
+                title="No deliveries yet"
+                message="Record the first farmer delivery to get started."
+                actionLabel="Add Delivery"
+                route="/branch/collections/deliveries/add">
+              </app-empty-state>
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+    <div class="pagination-section" *ngIf="totalCount > itemsPerPage">
+      <span class="pagination-info">Showing {{ startIndex }}–{{ endIndex }} of {{ totalCount }}</span>
+      <div class="pagination-controls">
+        <button type="button" class="btn secondary-action-btn" (click)="prevPage()" [disabled]="currentPage === 1">Previous</button>
+        <button
+          *ngFor="let page of pagesArray; trackBy: trackByIndex"
+          type="button"
+          class="btn"
+          [class.primary-action-btn]="page === currentPage"
+          [class.secondary-action-btn]="page !== currentPage"
+          (click)="goToPage(page)">{{ page }}</button>
+        <button type="button" class="btn secondary-action-btn" (click)="nextPage()" [disabled]="endIndex >= totalCount">Next</button>
+      </div>
+    </div>
+
+  </div>
+
+</div>

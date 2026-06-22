@@ -1,0 +1,213 @@
+<!-- GENERATED CREDENTIALS CARD (replaces the wizard after successful creation) -->
+<div class="credentials-shell" *ngIf="generatedCredentials">
+  <div class="credentials-card">
+    <div class="credentials-header">
+      <div class="credentials-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3" y="11" width="18" height="11" rx="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+      <div>
+        <h3 class="credentials-title">Account created successfully</h3>
+        <p class="credentials-subtitle">
+          Share these login credentials with the user. The temporary password will not be shown
+          again.
+        </p>
+      </div>
+    </div>
+
+    <div class="credentials-grid">
+      <div class="credential-item">
+        <span class="credential-label">Full name</span>
+        <span class="credential-value">{{ generatedCredentials.fullName }}</span>
+      </div>
+      <div class="credential-item">
+        <span class="credential-label">Role</span>
+        <span class="credential-value">{{ generatedCredentials.roleName }}</span>
+      </div>
+      <div class="credential-item">
+        <span class="credential-label">Username</span>
+        <span class="credential-value">{{ generatedCredentials.username }}</span>
+      </div>
+      <div class="credential-item">
+        <span class="credential-label">Email</span>
+        <span class="credential-value">{{ generatedCredentials.email }}</span>
+      </div>
+      <div class="credential-item">
+        <span class="credential-label">Temporary password</span>
+        <span class="credential-value credential-password">{{
+          generatedCredentials.temporaryPassword
+        }}</span>
+      </div>
+    </div>
+
+    <div class="credentials-actions">
+      <button type="button" class="btn-copy" (click)="copyAllCredentials()">
+        {{ credentialsCopied ? '✓ Copied' : 'Copy credentials' }}
+      </button>
+      <button type="button" class="btn-done" (click)="dismissCredentials()">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- WIZARD (hidden once credentials are shown) -->
+<app-form-wizard
+  *ngIf="!generatedCredentials"
+  [title]="isEditMode ? 'Edit role' : 'Create role'"
+  [steps]="steps"
+  [currentStep]="currentStep"
+  (stepSelected)="goToStep($event)">
+
+  <form [formGroup]="roleForm" (ngSubmit)="saveRole()">
+
+    <!-- ── STEP 0: Role details ── -->
+    <section *ngIf="currentStep === 0" class="form-panel" aria-labelledby="step0-heading">
+      <div class="panel-header">
+        <h2 id="step0-heading" class="panel-title">Role details</h2>
+        <p class="panel-sub">Name and describe what this role is for</p>
+      </div>
+
+      <div class="field-grid field-grid--2">
+        <app-input
+          label="Role name"
+          placeholder="e.g. Logistics Manager"
+          type="text"
+          [required]="true"
+          [error]="getFieldError('name')"
+          formControlName="name">
+        </app-input>
+
+        <div class="field-stack">
+          <app-input
+            label="Tenant ID"
+            placeholder="e.g. ugaap-farmers"
+            type="text"
+            [required]="true"
+            [error]="getFieldError('tenantId')"
+            formControlName="tenantId">
+          </app-input>
+          <p class="field-hint">Pre-filled when arriving from onboarding</p>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Description <span class="required-mark">*</span></label>
+        <textarea
+          class="form-input"
+          placeholder="Brief description of what this role can do..."
+          formControlName="description"
+          [class.input-error]="getFieldError('description')"
+          rows="3"></textarea>
+        <p class="field-error" *ngIf="getFieldError('description')">
+          {{ getFieldError('description') }}
+        </p>
+      </div>
+    </section>
+
+    <!-- ── STEP 1: User details ── -->
+    <section *ngIf="currentStep === 1" class="form-panel" aria-labelledby="step1-heading">
+      <div class="panel-header">
+        <h2 id="step1-heading" class="panel-title">User details</h2>
+        <p class="panel-sub">The first account created with this role</p>
+      </div>
+
+      <div class="field-grid field-grid--2">
+        <div class="field-stack">
+          <app-input
+            label="Full name"
+            placeholder="e.g. Brian Katende"
+            type="text"
+            [required]="true"
+            [error]="getFieldError('fullName')"
+            formControlName="fullName">
+          </app-input>
+          <p class="field-hint">Full legal name of the user for this role</p>
+        </div>
+
+        <div class="field-stack">
+          <app-input
+            label="Email address"
+            placeholder="e.g. brian@cooperative.ug"
+            type="email"
+            [required]="true"
+            [error]="getFieldError('email')"
+            formControlName="email">
+          </app-input>
+          <p class="field-hint">A system account will be created for this email</p>
+        </div>
+      </div>
+
+      <div class="field-grid field-grid--2">
+        <div class="field-stack">
+          <app-input
+            label="Phone number"
+            placeholder="+256712345678"
+            type="tel"
+            [required]="true"
+            [error]="getFieldError('phone')"
+            formControlName="phone">
+          </app-input>
+          <p class="field-hint">Include country code</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── STEP 2: Permissions ── -->
+    <section *ngIf="currentStep === 2" class="form-panel" aria-labelledby="step2-heading">
+      <div class="panel-header">
+        <h2 id="step2-heading" class="panel-title">Permissions</h2>
+        <p class="panel-sub">
+          {{ selectedPermissionsCount }} permission{{ selectedPermissionsCount === 1 ? '' : 's' }} selected —
+          users only see sidebar entries they hold permissions for
+        </p>
+      </div>
+
+      <app-permission-tabs
+        scope="cooperative"
+        [(selected)]="selectedPermissions">
+      </app-permission-tabs>
+
+      <div *ngIf="errorMessage" class="save-error" role="alert">{{ errorMessage }}</div>
+    </section>
+
+    <!-- ── Bottom nav ── -->
+    <div class="form-nav">
+      <app-button variant="ghost" size="md" type="button" (clicked)="cancel()">
+        Cancel
+      </app-button>
+
+      <div class="form-nav__right">
+        <app-button
+          *ngIf="currentStep > 0"
+          variant="ghost"
+          size="md"
+          type="button"
+          (clicked)="prevStep()">
+          ← Back
+        </app-button>
+
+        <app-button
+          *ngIf="currentStep < steps.length - 1"
+          variant="primary"
+          size="md"
+          type="button"
+          (clicked)="nextStep()">
+          Next →
+        </app-button>
+
+        <app-button
+          *ngIf="currentStep === steps.length - 1"
+          variant="primary"
+          size="md"
+          type="submit"
+          [disabled]="isLoading">
+          {{ isLoading ? 'Saving…' : (isEditMode ? 'Save changes' : 'Create role') }}
+        </app-button>
+      </div>
+    </div>
+
+  </form>
+</app-form-wizard>

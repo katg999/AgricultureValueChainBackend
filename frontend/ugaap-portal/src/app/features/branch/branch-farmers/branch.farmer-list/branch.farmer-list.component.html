@@ -1,0 +1,147 @@
+<div class="page-shell" *ngIf="farmers$ | async as farmers">
+  <div class="top-header">
+    <div class="header-content">
+      <h1>Farmers</h1>
+      <p class="subtitle">Branch farmer records</p>
+    </div>
+
+    <div class="header-actions">
+      <app-button type="button" size="md" variant="primary" iconLeft="+" (clicked)="onAddFarmer()">
+        Register farmer
+      </app-button>
+    </div>
+  </div>
+
+  <div class="summary-cards-grid">
+    <app-stat-card
+      [data]="{
+        label: 'Registered Farmers',
+        value: farmers.length,
+        icon: 'farmer',
+        trend: '+8.5%',
+        trendUp: true,
+      }"
+    >
+    </app-stat-card>
+
+    <app-stat-card
+      [data]="{
+        label: 'Portfolio At Risk',
+        value: 'UGX ' + portfolioAtRisk(farmers),
+        icon: 'wallet',
+        trend: '-5.2%',
+        trendUp: false,
+        status: 'warning',
+      }"
+    >
+    </app-stat-card>
+
+    <app-stat-card
+      [data]="{
+        label: 'Collection Progress',
+        value: collectionProgress + '%',
+        icon: 'chart',
+      }"
+    >
+    </app-stat-card>
+  </div>
+
+  <div class="search-bar-row">
+    <app-input
+      label=""
+      placeholder="Search farmers by name, ID, branch, commodity, status or stage…"
+      type="text"
+      [(ngModel)]="searchQuery"
+      (ngModelChange)="applyFilter()"
+    ></app-input>
+  </div>
+
+  <div class="table-wrapper" *ngIf="filteredFarmers$ | async as filteredFarmers">
+    <table class="farmers-table">
+      <thead>
+        <tr>
+          <th>FARMER ID</th>
+          <th>NAME</th>
+          <th>BRANCH</th>
+          <th>PRIMARY COMMODITY</th>
+          <th>CREDIT LIMIT</th>
+          <th>BALANCE</th>
+          <th>STATUS</th>
+          <th></th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngIf="filteredFarmers.length === 0">
+          <td colspan="8">
+            <app-empty-state
+              icon="farmer"
+              title="No farmers yet"
+              message="Register the first farmer for this branch to get started."
+              actionLabel="Register Farmer"
+              route="/branch/farmers/register">
+            </app-empty-state>
+          </td>
+        </tr>
+        <tr *ngFor="let farmer of filteredFarmers; trackBy: trackByFarmerId">
+          <td class="farmer-id">{{ farmer.id }}</td>
+          <td class="farmer-name">{{ farmer.name }}</td>
+          <td>{{ farmer.branch }}</td>
+          <td>
+            <span class="commodity-tag">{{ farmer.primaryCommodity }}</span>
+          </td>
+          <td class="text-bold">{{ farmer.creditLimit }}</td>
+          <td
+            class="text-bold"
+            [ngClass]="{
+              'text-danger-custom': farmer.balance !== '0.00' && farmer.balance !== '--',
+            }"
+          >
+            {{ farmer.balance }}
+          </td>
+          <td>
+            <span class="status-badge" [ngClass]="farmer.status.toLowerCase()">
+              {{ farmer.status }}
+            </span>
+          </td>
+          <td class="kebab-cell">
+            <div class="kebab-wrapper">
+              <button
+                class="kebab-btn"
+                type="button"
+                title="More options"
+                (click)="toggleKebab(farmer.id, $event)">
+                &#8942;
+              </button>
+              <div class="kebab-dropdown" *ngIf="openKebabId === farmer.id">
+                <button class="kebab-item" type="button" (click)="onEditFarmer(farmer)">
+                  Edit details
+                </button>
+                <button class="kebab-item" type="button" (click)="onViewProfile(farmer)">
+                  View profile
+                </button>
+                <button class="kebab-item" type="button" (click)="onViewAllocations(farmer)">
+                  View allocations
+                </button>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="pagination-section">
+      <div class="pagination-info">
+        <span>Showing 1 to {{ filteredFarmers.length }} of {{ farmers.length }} entries</span>
+      </div>
+
+      <div class="pagination-controls">
+        <app-button class="pagination-button" variant="secondary" size="sm">Previous</app-button>
+        <app-button class="pagination-button" variant="primary" size="sm">1</app-button>
+        <app-button class="pagination-button" variant="secondary" size="sm">2</app-button>
+        <app-button class="pagination-button" variant="secondary" size="sm">3</app-button>
+        <app-button class="pagination-button" variant="secondary" size="sm">Next</app-button>
+      </div>
+    </div>
+  </div>
+</div>

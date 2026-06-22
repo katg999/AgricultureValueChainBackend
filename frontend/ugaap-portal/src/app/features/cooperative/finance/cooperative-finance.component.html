@@ -1,0 +1,151 @@
+<section class="cf-page">
+
+  <!-- Header -->
+  <div class="cf-header">
+    <h1 class="cf-title">Finance — Batch Overview</h1>
+    <p class="cf-subtitle">All batch processing records across every branch. Update status inline.</p>
+  </div>
+
+  <!-- KPI cards -->
+  <!-- <div class="kpi-grid">
+    <app-stat-card [data]="{ label: 'Total Batches', value: totalBatches, icon: 'clipboard' }"></app-stat-card>
+    <app-stat-card [data]="{ label: 'Pending', value: pendingCount, icon: 'clock', status: 'warning' }" [delay]="80"></app-stat-card>
+    <app-stat-card [data]="{ label: 'Total Farmers', value: totalFarmers, icon: 'farmer' }" [delay]="160"></app-stat-card>
+    <app-stat-card [data]="{ label: 'Net Payable', value: 'UGX ' + formatUGX(totalNet), icon: 'wallet' }" [delay]="240"></app-stat-card>
+  </div> -->
+
+  <!-- Controls row: season tabs + view toggle -->
+  <div class="controls-row">
+    <div class="season-tabs">
+      <button type="button" class="season-tab"     [class.active]="selectedSeason === ''"           (click)="setSeasonFilter('')">All Seasons</button>
+      <button type="button" class="season-tab wet" [class.active]="selectedSeason === 'Wet Season'" (click)="setSeasonFilter('Wet Season')">Wet Season</button>
+      <button type="button" class="season-tab dry" [class.active]="selectedSeason === 'Dry Season'" (click)="setSeasonFilter('Dry Season')">Dry Season</button>
+    </div>
+
+    <div class="view-toggle">
+      <button type="button" class="view-btn" [class.view-btn--active]="viewMode === 'summary'" (click)="setViewMode('summary')">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <rect x="1" y="1" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.5"/>
+          <rect x="8" y="1" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.5"/>
+          <rect x="1" y="8" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.5"/>
+          <rect x="8" y="8" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.5"/>
+        </svg>
+        Summary
+      </button>
+      <button type="button" class="view-btn" [class.view-btn--active]="viewMode === 'batches'" (click)="setViewMode('batches')">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <line x1="1" y1="3.5" x2="13" y2="3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="1" y1="7"   x2="13" y2="7"   stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="1" y1="10.5" x2="13" y2="10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        Batches
+      </button>
+    </div>
+  </div>
+
+  <!-- ── SUMMARY VIEW ── one row per branch ── -->
+  <div class="table-section" *ngIf="viewMode === 'summary'">
+    <div class="table-wrapper">
+      <table class="cf-table">
+        <thead>
+          <tr>
+            <th>Branch</th>
+            <th class="col-numeric">Batches</th>
+            <th>Status Breakdown</th>
+            <th class="col-numeric">Farmers</th>
+            <th class="col-numeric">Gross (UGX)</th>
+            <th class="col-numeric">Deductions (UGX)</th>
+            <th class="col-numeric">Net Payable (UGX)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let s of branchSummaries; trackBy: trackBySummaryId" class="batch-row">
+            <td>
+              <span class="branch-dot">&#9679;</span>
+              <span class="branch-name">{{ s.branchName }}</span>
+            </td>
+            <td class="col-numeric mono">{{ s.batchCount }}</td>
+            <td>
+              <div class="status-pills">
+                <span class="status-pill status-pill--pending"   *ngIf="s.pendingCount">{{ s.pendingCount }} pending</span>
+                <span class="status-pill status-pill--processed" *ngIf="s.processedCount">{{ s.processedCount }} processed</span>
+                <span class="status-pill status-pill--settled"   *ngIf="s.settledCount">{{ s.settledCount }} settled</span>
+              </div>
+            </td>
+            <td class="col-numeric mono">{{ s.farmerCount }}</td>
+            <td class="col-numeric mono">{{ formatUGX(s.grossAmount) }}</td>
+            <td class="col-numeric mono cell-deduction">{{ formatUGX(s.deductions) }}</td>
+            <td class="col-numeric mono cell-net">{{ formatUGX(s.netPayable) }}</td>
+          </tr>
+
+          <tr *ngIf="branchSummaries.length === 0">
+            <td colspan="7" class="empty-state">
+              No batches found{{ selectedSeason ? ' for ' + selectedSeason : '' }}.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── BATCHES VIEW ── individual batches grouped by branch ── -->
+  <div class="table-section" *ngIf="viewMode === 'batches'">
+    <div class="table-wrapper">
+      <table class="cf-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Batch Name</th>
+            <th>Season</th>
+            <th class="col-numeric">Farmers</th>
+            <th class="col-numeric">Gross (UGX)</th>
+            <th class="col-numeric">Deductions (UGX)</th>
+            <th class="col-numeric">Net Payable (UGX)</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <ng-container *ngFor="let group of branchGroups; trackBy: trackByBranchId">
+            <tr class="branch-group-row">
+              <td class="branch-group-cell" colspan="8">
+                <span class="branch-icon">&#9679;</span>
+                <span class="branch-name">{{ group.branchName }}</span>
+                <span class="branch-count">{{ group.batches.length }} batch{{ group.batches.length !== 1 ? 'es' : '' }}</span>
+              </td>
+            </tr>
+
+            <tr *ngFor="let batch of group.batches; let i = index; trackBy: trackByBatchId" class="batch-row">
+              <td class="col-num mono">{{ i + 1 }}</td>
+              <td class="cell-name" [title]="batch.batchName">{{ batch.batchName }}</td>
+              <td>
+                <span class="season-badge" [ngClass]="seasonClass(batch.season)">{{ batch.season }}</span>
+              </td>
+              <td class="col-numeric mono">{{ batch.farmerCount }}</td>
+              <td class="col-numeric mono">{{ formatUGX(batch.grossAmount) }}</td>
+              <td class="col-numeric mono cell-deduction">{{ formatUGX(batch.deductions) }}</td>
+              <td class="col-numeric mono cell-net">{{ formatUGX(batch.netPayable) }}</td>
+              <td>
+                <select
+                  [ngClass]="['status-select', 'status-select--' + batch.status]"
+                  [value]="batch.status"
+                  (change)="onStatusChange(batch.id, $event)"
+                  title="Change batch status">
+                  <option *ngFor="let s of statusOptions" [value]="s">{{ s }}</option>
+                </select>
+              </td>
+            </tr>
+          </ng-container>
+
+          <tr *ngIf="branchGroups.length === 0">
+            <td colspan="8" class="empty-state">
+              No batches found{{ selectedSeason ? ' for ' + selectedSeason : '' }}.
+            </td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</section>

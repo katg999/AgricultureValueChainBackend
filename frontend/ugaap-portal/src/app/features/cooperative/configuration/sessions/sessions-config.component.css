@@ -1,0 +1,228 @@
+.sessions-page {
+  padding: 24px;
+  background: var(--surface-low);
+  min-height: 100vh;
+  font-family: var(--font-human);
+}
+
+.sessions-form {
+  margin-top: 24px;
+}
+
+.table-card {
+  background: var(--surface-lowest);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(32, 11, 38, 0.06);
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background: var(--surface-highest);
+}
+
+thead th {
+  text-align: left;
+  padding: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--secondary);
+  white-space: nowrap;
+}
+
+tbody td {
+  padding: 14px 16px;
+  font-size: 14px;
+  color: #2b2b2b;
+  border-top: 1px solid #f0edf2;
+  white-space: nowrap;
+}
+
+.fw-600 {
+  font-weight: 600;
+  color: var(--secondary);
+}
+
+.mono {
+  font-family: var(--font-technical);
+}
+
+.preview-cell {
+  color: var(--muted-purple);
+}
+
+select {
+  box-sizing: border-box;
+  min-width: 100px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border, #e5e5e5);
+  background-color: var(--surface-highest);
+  font-size: 14px;
+  color: var(--secondary);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23999' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+
+select:focus {
+  outline: none;
+  border-color: var(--primary);
+  background-color: #ffffff;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+/* ── Section headings ──────────────────────────────────────────────────────── */
+
+.section-heading {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  margin: 24px 0 12px;
+}
+
+/* ── Season status card ────────────────────────────────────────────────────── */
+
+.season-status-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  background: var(--surface-lowest);
+  border-radius: 16px;
+  padding: 20px 24px;
+  box-shadow: 0 2px 8px rgba(32, 11, 38, 0.06);
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.season-status-left {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.season-status-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6B7280;
+}
+
+.season-status-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.season-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.season-badge--open   { background: #D1FAE5; color: #065F46; }
+.season-badge--closed { background: #FEE2E2; color: #991B1B; }
+
+.season-status-desc {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--secondary);
+}
+
+.season-status-desc--none { color: #9CA3AF; }
+
+/* ── Season toggle buttons ─────────────────────────────────────────────────── */
+
+.season-toggle-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.season-btn {
+  padding: 9px 18px;
+  border-radius: 10px;
+  border: 1.5px solid transparent;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.season-btn--wet {
+  border-color: #93C5FD;
+  color: #1D4ED8;
+  background: #EFF6FF;
+}
+
+.season-btn--wet:hover,
+.season-btn--wet.season-btn--active {
+  background: #DBEAFE;
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 2px #BFDBFE;
+}
+
+.season-btn--dry {
+  border-color: #FCD34D;
+  color: #92400E;
+  background: #FFFBEB;
+}
+
+.season-btn--dry:hover,
+.season-btn--dry.season-btn--active {
+  background: #FEF3C7;
+  border-color: #F59E0B;
+  box-shadow: 0 0 0 2px #FDE68A;
+}
+
+.season-btn--close {
+  border-color: #FCA5A5;
+  color: #991B1B;
+  background: #FEF2F2;
+}
+
+.season-btn--close:hover {
+  background: #FEE2E2;
+  border-color: #EF4444;
+}
+
+/* ── Responsive ────────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .sessions-page {
+    padding: 16px;
+  }
+
+  table {
+    min-width: 560px;
+  }
+
+  .season-status-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

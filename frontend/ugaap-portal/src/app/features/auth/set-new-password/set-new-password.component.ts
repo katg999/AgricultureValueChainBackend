@@ -1,42 +1,36 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// features/auth/set-new-password/set-new-password.component.ts
+//
+// Step 3 (final) of the forgot-password flow.
+//
+// What happens here:
+//   1. User chooses a new password (with real-time strength criteria display)
+//   2. Component reads the resetToken + OTP code from SessionService
+//      (both were stored by the previous two screens)
+//   3. POST /auth/reset-password via AuthService
+//   4. SessionService.clearResetContext() removes the temporary tokens
+//   5. Navigate to /auth/login
+//
+// Password requirements enforced client-side:
+//   ✓ Minimum 8 characters
+//   ✓ At least one uppercase letter
+//   ✓ At least one number
+//   ✓ At least one special character
+// ─────────────────────────────────────────────────────────────────────────────
+
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {
-  ReactiveFormsModule,
-  FormBuilder,
-  FormGroup,
-  Validators
-} from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 
-// Shared reusable components
+import { AuthService } from '../../../core/services/auth.service';
+import { SessionService } from '../../../core/services/session.service';
+
+// Shared UI components
 import { LogoComponent } from '../../../shared/components/logo/logo.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 
-/**
- * Set New Password Component
- * 
- * Allows users to create a new password after forgot password flow.
- * Includes real-time password strength validation with visual criteria.
- * 
- * Flow:
- * 1. User enters new password
- * 2. Real-time validation against criteria
- * 3. Confirm password match
- * 4. Submit and return to login
- * 
- * Password Criteria:
- * - Minimum 8 characters
- * - At least 1 uppercase letter
- * - At least 1 number
- * - At least 1 special character
- * 
- * Components Used:
- * - LogoComponent: UGAAP branding
- * - InputComponent: Password fields
- * - ButtonComponent: Submit button
- * - Custom criteria box (unique to this page)
- */
 @Component({
   selector: 'app-set-new-password',
   standalone: true,
@@ -46,138 +40,108 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
     RouterModule,
     LogoComponent,
     InputComponent,
-    ButtonComponent
+    ButtonComponent,
   ],
   templateUrl: './set-new-password.component.html',
-  styleUrl: './set-new-password.component.css'
+  styleUrl: './set-new-password.component.css',
 })
 export class SetNewPasswordComponent implements OnInit {
-
-  /**
-   * Reactive form for password reset
-   * Contains newPassword and confirmPassword controls
-   */
   passwordForm!: FormGroup;
-
-  /**
-   * Loading state during password update
-   */
   isLoading = false;
+  errorMessage = '';
 
   constructor(
     private fb: FormBuilder,
-    private router: Router
+    private router: Router,
+    private authService: AuthService,
+    private session: SessionService,
   ) {}
 
   ngOnInit(): void {
-    // Initialize password form with validators
+    // Guard: must have verifiedToken from reset-otp screen
+    if (!this.session.getResetToken()) {
+      this.router.navigate(['/auth/forgot-password']);
+      return;
+    }
+
     this.passwordForm = this.fb.group({
-      newPassword: ['', [
-        Validators.required,
-        Validators.minLength(8)
-      ]],
-      confirmPassword: ['', Validators.required]
+      newPassword: ['', [Validators.required, Validators.minLength(8)]],
+      confirmPassword: ['', Validators.required],
     });
   }
 
-  /**
-   * Get current password value for criteria checking
-   * 
-   * @returns Password string or empty string
-   */
+  // ── Computed password strength ──────────────────────────────────────────────
+
   get password(): string {
-    return this.passwordForm.get('newPassword')?.value || '';
+    return this.passwordForm.get('newPassword')?.value ?? '';
   }
 
-  /**
-   * Password criteria validation
-   * Real-time checks against password requirements
-   * 
-   * @returns Object with boolean flags for each criterion
-   */
   get criteria() {
     return {
       length: this.password.length >= 8,
-      number: /\d/.test(this.password),
       uppercase: /[A-Z]/.test(this.password),
-      special: /[^A-Za-z0-9]/.test(this.password)
+      number: /\d/.test(this.password),
+      special: /[^A-Za-z0-9]/.test(this.password),
     };
   }
 
-  /**
-   * Check if all password criteria are met
-   * Used to enable/disable submit button
-   * 
-   * @returns true if all criteria met, false otherwise
-   */
   get allCriteriaMet(): boolean {
-    return Object.values(this.criteria).every(v => v);
+    return Object.values(this.criteria).every(Boolean);
   }
 
-  /**
-   * Get new password field error message
-   * 
-   * @returns Error message string or empty string
-   */
+  // ── Template helpers ────────────────────────────────────────────────────────
+
   getNewPasswordError(): string {
-    const control = this.passwordForm.get('newPassword');
-    if (control?.touched && control?.errors) {
-      if (control.errors['required']) return 'New password is required';
-      if (control.errors['minlength']) return 'Password must be at least 8 characters';
+    const c = this.passwordForm.get('newPassword');
+    if (c?.touched && c.errors) {
+      if (c.errors['required']) return 'New password is required';
+      if (c.errors['minlength']) return 'Password must be at least 8 characters';
     }
     return '';
   }
 
-  /**
-   * Get confirm password field error message
-   * 
-   * @returns Error message string or empty string
-   */
   getConfirmPasswordError(): string {
-    const control = this.passwordForm.get('confirmPassword');
+    const c = this.passwordForm.get('confirmPassword');
     const newPassword = this.passwordForm.get('newPassword')?.value;
-    const confirmPassword = control?.value;
-
-    if (control?.touched) {
-      if (control.errors?.['required']) {
-        return 'Please confirm your password';
-      }
-      if (newPassword && confirmPassword && newPassword !== confirmPassword) {
-        return 'Passwords do not match';
-      }
+    if (c?.touched) {
+      if (c.errors?.['required']) return 'Please confirm your password';
+      if (newPassword && c.value && newPassword !== c.value) return 'Passwords do not match';
     }
     return '';
   }
 
-  /**
-   * Handle form submission
-   * Validates all criteria and passwords match
-   * 
-   * TODO: Replace setTimeout with actual API call
-   * Example: this.authService.resetPassword(this.passwordForm.value).subscribe(...)
-   */
+  // ── Form submission ─────────────────────────────────────────────────────────
+
   onSubmit(): void {
-    // Validate all criteria are met
     if (this.passwordForm.invalid || !this.allCriteriaMet) {
       this.passwordForm.markAllAsTouched();
       return;
     }
 
-    // Check passwords match
-    const newPassword = this.passwordForm.get('newPassword')?.value;
-    const confirmPassword = this.passwordForm.get('confirmPassword')?.value;
+    const { newPassword, confirmPassword } = this.passwordForm.value;
 
-    if (newPassword !== confirmPassword) {
-      return;
-    }
+    if (newPassword !== confirmPassword) return;
+
+    // Read verifiedToken stored by reset-otp screen
+    const verifiedToken = this.session.getResetToken()!;
 
     this.isLoading = true;
+    this.errorMessage = '';
 
-    // Temporary simulation - Replace with actual API call
-    setTimeout(() => {
-      this.isLoading = false;
-      // On success, return to login
-      this.router.navigate(['/auth/login']);
-    }, 1200);
+    this.authService.resetPassword({ verifiedToken, newPassword }).subscribe({
+      next: () => {
+        this.isLoading = false;
+
+        // Clean up all reset context from sessionStorage
+        this.session.clearResetContext();
+
+        // Back to login — user authenticates with new password
+        this.router.navigate(['/auth/login']);
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.errorMessage = err?.error?.message ?? 'Password reset failed. Please try again.';
+      },
+    });
   }
 }

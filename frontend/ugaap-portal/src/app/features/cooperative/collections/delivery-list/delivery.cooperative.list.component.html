@@ -1,0 +1,138 @@
+<div class="delivery-page" *ngIf="filteredDeliveries$ | async as filteredDeliveries">
+
+  <div class="page-header">
+    <div class="header-content-wrapper">
+      <div>
+        <h1>Cooperative Deliveries</h1>
+        <p>Aggregated delivery summary across all branches.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- <div class="kpi-grid">
+    <div class="kpi-card">
+      <span class="kpi-label">Total Branches</span>
+      <h2>{{ filteredDeliveries.length }}</h2>
+      <small>Reporting branches</small>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Total Farmers</span>
+      <h2>{{ formatUGX(totalFarmers(filteredDeliveries)) }}</h2>
+      <small>Participating farmers</small>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Total Volume</span>
+      <h2>{{ formatUGX(totalVolume(filteredDeliveries)) }}</h2>
+      <small>KGs collected</small>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Est. Total Value</span>
+      <h2>UGX {{ formatUGX(totalValue(filteredDeliveries)) }}</h2>
+      <small>Estimated worth</small>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Approved</span>
+      <h2>{{ approvedCount(filteredDeliveries) }}</h2>
+      <small>Approved deliveries</small>
+    </div>
+  </div> -->
+
+  <div class="season-tabs">
+    <button type="button" class="season-tab" [class.active]="selectedSeason === ''" (click)="setSeasonFilter('')">
+      All Seasons
+    </button>
+    <button type="button" class="season-tab wet" [class.active]="selectedSeason === 'Wet Season'" (click)="setSeasonFilter('Wet Season')">
+      Wet Season
+    </button>
+    <button type="button" class="season-tab dry" [class.active]="selectedSeason === 'Dry Season'" (click)="setSeasonFilter('Dry Season')">
+      Dry Season
+    </button>
+  </div>
+
+  <div class="filter-card">
+    <div class="filter-group">
+      <label>Search</label>
+      <input type="text" [(ngModel)]="searchTerm" (input)="applyFilter()" placeholder="Search by branch, commodity, status, season, session or ID..." />
+    </div>
+  </div>
+
+  <div class="table-card" *ngIf="paginatedDeliveries$ | async as paginatedDeliveries">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Branch Name</th>
+            <th>Season</th>
+            <th>Farmers</th>
+            <th>Commodity</th>
+            <th>Volume (KG)</th>
+            <th>Est. Value (UGX)</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="paginatedDeliveries.length === 0">
+            <td colspan="8">
+              <app-empty-state
+                icon="truck"
+                title="No deliveries found"
+                message="Branch deliveries will appear here once recorded.">
+              </app-empty-state>
+            </td>
+          </tr>
+          <tr *ngFor="let d of paginatedDeliveries; trackBy: trackByDeliveryId">
+            <td>
+              <span class="status-badge" [ngClass]="statusClass(d.status)">{{ d.status }}</span>
+            </td>
+            <td class="cell-branch" [title]="d.branchName">
+              <span class="branch-name">{{ d.branchName }}</span>
+              <span class="branch-id mono">{{ d.id }}</span>
+            </td>
+            <td>
+              <span class="season-badge" [ngClass]="seasonClass(d.season)">{{ d.season }}</span>
+            </td>
+            <td>{{ d.farmerCount }}</td>
+            <td>{{ d.commodity }}</td>
+            <td>{{ formatUGX(d.volume) }} KG</td>
+            <td>UGX {{ formatUGX(d.estimatedValue) }}</td>
+            <td>
+              <div class="action-menu" (click)="$event.stopPropagation()">
+                <button
+                  type="button"
+                  class="kebab-btn"
+                  title="Delivery actions"
+                  aria-label="Delivery actions"
+                  [attr.aria-expanded]="openActionMenuId === d.id"
+                  (click)="toggleActionMenu(d, $event)">
+                  <span></span><span></span><span></span>
+                </button>
+                <!-- Cooperative role is view-only — navigate into the farmer list to see delivery detail. -->
+                <div class="menu-panel" *ngIf="openActionMenuId === d.id">
+                  <button type="button" (click)="viewFarmers(d)">View Farmers</button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pagination-section" *ngIf="totalCount > itemsPerPage">
+      <span class="pagination-info">Showing {{ startIndex }}–{{ endIndex }} of {{ totalCount }}</span>
+      <div class="pagination-controls">
+        <button type="button" class="btn secondary-action-btn" (click)="prevPage()" [disabled]="currentPage === 1">Previous</button>
+        <button
+          *ngFor="let page of pagesArray; trackBy: trackByIndex"
+          type="button"
+          class="btn"
+          [class.primary-action-btn]="page === currentPage"
+          [class.secondary-action-btn]="page !== currentPage"
+          (click)="goToPage(page)">{{ page }}</button>
+        <button type="button" class="btn secondary-action-btn" (click)="nextPage()" [disabled]="endIndex >= totalCount">Next</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+

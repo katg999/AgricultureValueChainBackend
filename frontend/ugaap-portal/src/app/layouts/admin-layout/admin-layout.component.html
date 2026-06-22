@@ -1,0 +1,74 @@
+<!-- admin-layout.component.html
+     Two-column shell: sidebar (SidebarComponent) + main column (topbar + outlet).
+     The sidebar component owns its own mobile overlay logic — nothing here changes
+     on small screens except the topbar gains left padding to clear the hamburger. -->
+<div class="layout">
+
+  <!-- Role-aware sidebar — passes navItems signal; sidebar handles mobile toggle -->
+  <app-sidebar [menuItems]="navItems()"></app-sidebar>
+
+  <!-- MAIN COLUMN -->
+  <div class="main">
+    <!-- Top bar -->
+    <header class="topbar">
+
+      <!-- Global search -->
+      <div class="topbar-search">
+        <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input
+          type="text"
+          placeholder="Search payments, farmers or batches…"
+          class="search-input"
+          aria-label="Global search" />
+      </div>
+
+      <!-- Right-side actions -->
+      <div class="topbar-actions">
+
+        <!-- Notification bell -->
+        <button class="topbar-icon-btn" title="Notifications" aria-label="Notifications">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+        </button>
+
+        <!-- Help -->
+        <button class="topbar-icon-btn" title="Help" aria-label="Help">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </button>
+
+        <!-- User chip -->
+        <div class="topbar-user">
+          <span class="topbar-user-name">{{ user()?.fullName ?? 'UGAAP Admin' }}</span>
+          <div class="topbar-avatar" aria-hidden="true">
+            {{ (user()?.fullName ?? 'U')[0].toUpperCase() }}
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Routed page content -->
+    <main class="content">
+      <router-outlet />
+    </main>
+
+  </div>
+
+</div>
+
+<!-- Global toast notifications — floats above everything -->
+<app-toast></app-toast>

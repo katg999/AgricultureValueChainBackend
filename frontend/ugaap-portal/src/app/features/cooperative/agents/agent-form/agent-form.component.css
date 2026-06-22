@@ -1,0 +1,9 @@
+/* Layout and field styling come from the shared <app-form-wizard> shell and
+   the global wizard form kit in styles.css — nothing component-specific here.
+   The form element must stretch so the bottom nav pins to the card's foot. */
+
+form {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}

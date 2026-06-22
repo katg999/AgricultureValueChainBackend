@@ -1,138 +1,130 @@
-/**
- * Stepper Component Styles
- * 
- * Multi-step progress indicator
- * Dynamically shows bars for all steps (even if 3, 4, or 5 steps)
- */
-
-/* 
-   STEPPER CONTAINER
-    */
-
+/* ── Stepper container ───────────────────────────────────────────────────── */
 .stepper {
   width: 100%;
-  margin-bottom: 32px;
 }
 
-.stepper-steps {
+/* All step wrappers in one horizontal row */
+.stepper-track {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
+  width: 100%;
 }
 
-/* 
-   INDIVIDUAL STEP
-    */
-
-.step {
-  flex: 1;
+/* ── Individual step wrapper ─────────────────────────────────────────────── */
+.step-wrapper {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  position: relative;
-  padding-right: 12px; /* Small space between steps */
+  align-items: center;
+  flex: 1;
+  min-width: 0;
 }
 
-/* Remove padding on last step */
-.step:last-child {
-  padding-right: 0;
+/* Last step doesn't need to grow — it ends at its circle */
+.step-wrapper:last-child {
+  flex: 0 0 auto;
 }
 
-.step-content {
+/* ── Step node: circle + connecting line side by side ────────────────────── */
+/*
+   KEY FIX: the circle and the line share the same flex row so the line is
+   always vertically centred on the circle.  No position:absolute needed.
+*/
+.step-node {
   display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin-bottom: 8px;
+  align-items: center;   /* centres the line on the circle */
+  width: 100%;
 }
 
-.step-number {
-  font-family: var(--font-human);
+/* ── Circle ──────────────────────────────────────────────────────────────── */
+.step-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-family: var(--font-human, 'Inter', sans-serif);
   font-size: 13px;
   font-weight: 700;
-  color: #9E9E9E;
+  transition: background 0.2s, box-shadow 0.2s;
+
+  /* upcoming default */
+  background: #E8E6ED;
+  color: #9B8FA8;
 }
 
+/* ── Connecting line ─────────────────────────────────────────────────────── */
+.step-line {
+  flex: 1;          /* fills the remaining horizontal space */
+  height: 2px;
+  background: #E8E6ED;
+  transition: background 0.3s;
+}
+
+/* ── Step label ──────────────────────────────────────────────────────────── */
 .step-label {
-  font-family: var(--font-human);
-  font-size: 11px;
+  margin-top: 8px;
+  font-family: var(--font-human, 'Inter', sans-serif);
+  font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #9E9E9E;
+  letter-spacing: 0.06em;
+  color: #BDBDBD;
+  text-align: center;
+  white-space: nowrap;
+  transition: color 0.2s;
 }
 
-/* 
-   PROGRESS BAR
-   ALL steps show bars (including last one)
-    */
-
-.step-bar {
-  width: 100%;
-  height: 4px;
-  background: #E0E0E0;
-  border-radius: 2px;
-  margin-top: 4px;
-  /* Show bar on ALL steps */
+/* ── Completed state ─────────────────────────────────────────────────────── */
+.step-completed .step-circle {
+  background: var(--primary, #F25D27);
+  color: #fff;
 }
 
-/* 
-   STEP STATES
-    */
+.step-completed .step-line {
+  background: var(--primary, #F25D27);
+}
 
-/* Completed step */
-.step-completed .step-number,
 .step-completed .step-label {
-  color: var(--primary);
+  color: var(--primary, #F25D27);
 }
 
-.step-completed .step-bar {
-  background: var(--primary);
+/* ── Active state ────────────────────────────────────────────────────────── */
+.step-active .step-circle {
+  background: var(--primary, #F25D27);
+  color: #fff;
+  box-shadow: 0 0 0 4px rgba(242, 93, 39, 0.18);
 }
 
-/* Active step */
-.step-active .step-number,
 .step-active .step-label {
-  color: var(--primary);
+  color: var(--primary, #F25D27);
 }
 
-.step-active .step-bar {
-  background: #E0E0E0;
-}
-
-/* Upcoming step */
-.step-upcoming .step-number,
-.step-upcoming .step-label {
+/* ── Upcoming state ──────────────────────────────────────────────────────── */
+.step-upcoming .step-circle {
+  background: #E8E6ED;
   color: #BDBDBD;
 }
 
-.step-upcoming .step-bar {
-  background: #E0E0E0;
+.step-upcoming .step-line {
+  background: #E8E6ED;
 }
 
-/* 
-   RESPONSIVE DESIGN
-    */
-
-@media (max-width: 768px) {
-  .step {
-    padding-right: 8px; /* Smaller gap on mobile */
-  }
-
-  .step-content {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
-
-  .step-number {
-    font-size: 12px;
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .step-circle {
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
   }
 
   .step-label {
-    font-size: 10px;
+    font-size: 9px;
+    letter-spacing: 0.03em;
   }
 
-  .step-bar {
-    height: 3px;
+  .step-line {
+    height: 2px;
   }
 }

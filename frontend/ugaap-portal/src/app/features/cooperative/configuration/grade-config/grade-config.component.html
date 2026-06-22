@@ -1,0 +1,210 @@
+<!-- grade-config.component.html -->
+<div class="page">
+
+  <!-- ── Page heading ─────────────────────────────────────────── -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Grading &amp; Pricing</h1>
+      <p class="page-subtitle">
+        Step 1: define your quality grades below.
+        Step 2: expand any grade to set or review what each branch pays for it.
+      </p>
+    </div>
+    <button class="btn-back" (click)="router.navigate(['/cooperative/configuration'])">
+      ← Back to Configuration
+    </button>
+  </div>
+
+  @if (error()) {
+    <div class="error-bar">{{ error() }}</div>
+  }
+
+  <!-- 
+       SECTION 1 — Grade Definitions
+   -->
+  <div class="section-card">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Grade Definitions</h2>
+        <p class="section-hint">These quality tiers apply to all branches. Create a grade here, then set its price per branch below.</p>
+      </div>
+      <app-button variant="primary" size="sm"
+        (clicked)="router.navigate(['/cooperative/grade-config/new'])">
+        + Add Grade
+      </app-button>
+    </div>
+
+    @if (loading()) {
+      <div class="state-msg">Loading grades…</div>
+    } @else if (grades().length === 0) {
+      <div class="state-msg empty-grades">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
+        </svg>
+        <p>No grades defined yet.</p>
+        <app-button variant="primary" size="sm"
+          (clicked)="router.navigate(['/cooperative/grade-config/new'])">
+          Create your first grade
+        </app-button>
+      </div>
+    } @else {
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Grade Name</th>
+            <th>Code</th>
+            <th>Description</th>
+            <th>Created</th>
+            <th>Prices Set</th>
+            <th class="col-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (grade of grades(); track grade.id) {
+            <tr>
+              <td>
+                <span class="grade-dot" [style.background]="dotColor(grade.code)"></span>
+                <strong>{{ grade.name }}</strong>
+              </td>
+              <td>
+                <span class="grade-code-badge">{{ grade.code }}</span>
+              </td>
+              <td class="text-muted">{{ grade.description }}</td>
+              <td class="text-muted">{{ grade.createdAt }}</td>
+              <td>
+                <span class="prices-set-pill"
+                  [class.prices-set-pill--some]="pricesSetCount(grade.code) > 0"
+                  [class.prices-set-pill--none]="pricesSetCount(grade.code) === 0">
+                  {{ pricesSetCount(grade.code) }} / {{ branches().length }} branches
+                </span>
+              </td>
+              <td>
+                <div class="action-btns">
+                  <button class="icon-btn icon-btn--edit"
+                    (click)="editGrade(grade)" title="Edit grade">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                  </button>
+                  <button class="icon-btn icon-btn--delete"
+                    (click)="deleteGrade(grade)" title="Delete grade">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6l-1 14H6L5 6"/>
+                      <path d="M10 11v6M14 11v6M9 6V4h6v2"/>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+
+  <!--        
+       SECTION 2 — Branch Pricing per Grade
+       Each accordion row = one grade.
+       Expand it to see/edit what every branch pays for that grade.
+   -->
+  <div class="section-card">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Branch Prices per Grade</h2>
+        <p class="section-hint">
+          Expand a grade to see what each branch currently pays for it.
+          Click <strong>Set Price</strong> to open the price editor for that branch.
+        </p>
+      </div>
+    </div>
+
+    @if (grades().length === 0) {
+      <div class="state-msg">Create a grade above to start setting branch prices.</div>
+    } @else {
+      <div class="accordion">
+        @for (grade of grades(); track grade.code) {
+          <div class="accordion-item"
+            [class.accordion-item--open]="expandedGrade() === grade.code">
+
+            <!-- accordion header -->
+            <button class="accordion-header" (click)="toggleGrade(grade.code)">
+              <div class="acc-left">
+                <span class="acc-icon">
+                  <span class="grade-dot" [style.background]="dotColor(grade.code)"
+                    style="width:12px;height:12px;"></span>
+                </span>
+                <div class="acc-meta">
+                  <span class="acc-name">{{ grade.name }}</span>
+                  <span class="acc-region">Code: {{ grade.code }}</span>
+                </div>
+              </div>
+
+              <div class="acc-right">
+                <div class="acc-summary">
+                  <div class="summary-stat">
+                    <span class="summary-label">PRICES SET</span>
+                    <span class="summary-value">
+                      {{ pricesSetCount(grade.code) }} / {{ branches().length }}
+                    </span>
+                  </div>
+                </div>
+                <svg class="chevron" width="16" height="16" viewBox="0 0 24 24"
+                  fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </div>
+            </button>
+
+            <!-- accordion body -->
+            @if (expandedGrade() === grade.code) {
+              <div class="accordion-body">
+                @if (branches().length === 0) {
+                  <p class="state-msg">No branches found.</p>
+                } @else {
+                  <table class="branch-price-table">
+                    <thead>
+                      <tr>
+                        <th>BRANCH</th>
+                        <th>REGION</th>
+                        <th class="text-right">PRICE (UGX / KG)</th>
+                        <th class="text-right">ACTION</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (branch of branches(); track branch.id) {
+                        <tr>
+                          <td class="branch-cell-name">{{ branch.name }}</td>
+                          <td class="text-muted">{{ branch.region }}</td>
+                          <td class="text-right">
+                            @if (getBranchPrice(branch, grade.code); as price) {
+                              <span class="price-value">{{ price | number:'1.0-0' }}</span>
+                            } @else {
+                              <span class="not-set">Not set</span>
+                            }
+                          </td>
+                          <td class="text-right">
+                            <button class="set-price-btn"
+                              (click)="editPricesForBranch(branch)">
+                              {{ getBranchPrice(branch, grade.code) ? 'Edit Price' : 'Set Price' }} →
+                            </button>
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                }
+              </div>
+            }
+
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+</div>

@@ -1,0 +1,102 @@
+/* config-card.component.css
+   Hub-style card that sits on configuration landing pages.
+   Colour tokens all come from the global :root palette. */
+
+.config-card {
+  background: var(--surface-lowest);
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ── dark (plum) variant ────────────────────────────────────── */
+.config-card--dark {
+  background: var(--muted-purple);
+}
+
+/* ── top row ────────────────────────────────────────────────── */
+.config-card__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.config-card__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* icon background tints */
+.icon-bg--orange { background: #FDEEE8; }
+.icon-bg--purple { background: #EDE8EF; }
+.icon-bg--dark   { background: rgba(255, 255, 255, 0.12); }
+
+.config-id-badge {
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  color: #8A8799;
+  background: var(--surface-low);
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.config-card--dark .config-id-badge {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* ── meta: title + small label ──────────────────────────────── */
+.config-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.config-card__title {
+  font-size: 17px;
+  font-weight: 600;
+  color: #1A1A2E;
+  line-height: 1.25;
+}
+
+.config-card--dark .config-card__title {
+  color: #fff;
+}
+
+.config-card__subtitle {
+  font-family: var(--font-technical);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--primary);
+  text-transform: uppercase;
+}
+
+.config-card--dark .config-card__subtitle {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* ── description ────────────────────────────────────────────── */
+.config-card__desc {
+  font-size: 13px;
+  line-height: 1.55;
+  color: #6B6880;
+  flex: 1;
+}
+
+.config-card--dark .config-card__desc {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* ── footer ─────────────────────────────────────────────────── */
+.config-card__footer {
+  margin-top: 4px;
+}

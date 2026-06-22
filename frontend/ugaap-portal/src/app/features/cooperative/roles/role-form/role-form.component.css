@@ -1,0 +1,130 @@
+/* Layout and field styling come from the shared <app-form-wizard> shell and
+   the global wizard form kit in styles.css. This file only styles what is
+   unique to this form: the post-save credentials card. */
+
+form {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Credentials card (shown after successful creation) ─────────────────── */
+
+.credentials-shell {
+  min-height: 100%;
+  background: #F5F4F7;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 48px 24px;
+  font-family: var(--font-human);
+  box-sizing: border-box;
+}
+
+.credentials-card {
+  width: 100%;
+  max-width: 640px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 4px 32px rgba(32, 11, 38, 0.07);
+}
+
+.credentials-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.credentials-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #dcfce7;
+  color: #166534;
+  flex-shrink: 0;
+}
+
+.credentials-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--secondary);
+  margin: 0 0 4px;
+}
+
+.credentials-subtitle {
+  font-size: 13px;
+  color: #6b6b7b;
+  margin: 0;
+}
+
+.credentials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.credential-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.credential-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b6b7b;
+}
+
+.credential-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--secondary);
+}
+
+.credential-password {
+  font-family: var(--font-technical);
+  letter-spacing: 0.05em;
+}
+
+.credentials-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.btn-copy {
+  padding: 9px 20px;
+  border: 1px solid #d1cdd8;
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--secondary);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.btn-copy:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.btn-done {
+  padding: 9px 20px;
+  border: none;
+  border-radius: 8px;
+  background: var(--primary);
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}

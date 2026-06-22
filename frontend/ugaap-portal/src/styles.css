@@ -40,3 +40,210 @@ html, body {
   height: 100%;
   width: 100%;
 }
+
+button,
+a,
+.btn,
+.icon-btn,
+.search-box,
+.search-input,
+.search-wrap,
+.filter-select,
+.field-select {
+  min-width: 0;
+}
+
+button svg,
+a svg,
+.btn svg,
+.icon-btn svg,
+.search-box svg,
+.search-input svg,
+.search-wrap svg,
+.filter-select svg,
+.select-arrow,
+.select-chevron,
+.search-icon {
+  width: 1rem;
+  height: 1rem;
+  max-width: 1rem;
+  max-height: 1rem;
+  flex: 0 0 1rem;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+button,
+a.btn,
+.btn,
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   WIZARD FORM KIT
+   Field primitives shared by every form built on <app-form-wizard>
+   (shared/components/form-wizard). Scoped under .wizard-card so they style
+   the panels each form projects into the shell — content projection keeps
+   the parent's style scope, so these must live globally.
+   Design reference: branch farmer-register.
+═══════════════════════════════════════════════════════════════════════════ */
+
+.wizard-card {
+  --wiz-primary:       #F25D27;
+  --wiz-primary-light: rgba(242, 93, 39, 0.08);
+  --wiz-primary-ring:  rgba(242, 93, 39, 0.18);
+  --wiz-secondary:     #200B26;
+  --wiz-surface-input: #FFFFFF;
+  --wiz-surface-subtle:#FAF9FB;
+  --wiz-border:        #E8E4EE;
+  --wiz-text-muted:    #6B6277;
+  --wiz-text-hint:     #9C94A8;
+  --wiz-danger:        #b3261e;
+  --wiz-danger-bg:     #fffafa;
+}
+
+/* ── Panels ── */
+.wizard-card .form-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  animation: wizFadeSlide 0.2s ease both;
+}
+
+@keyframes wizFadeSlide {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.wizard-card .panel-header { margin-bottom: 4px; }
+
+.wizard-card .panel-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--wiz-secondary);
+  margin: 0 0 4px;
+}
+
+.wizard-card .panel-sub {
+  font-size: 13px;
+  color: var(--wiz-text-muted);
+  margin: 0;
+}
+
+/* ── Field grids ── */
+.wizard-card .field-grid { display: grid; gap: 18px; }
+.wizard-card .field-grid--1 { grid-template-columns: 1fr; }
+.wizard-card .field-grid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+.wizard-card .field-stack,
+.wizard-card .field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ── Field primitives ── */
+.wizard-card .field-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--wiz-secondary);
+  letter-spacing: 0.02em;
+}
+
+.wizard-card .required-mark {
+  color: var(--wiz-primary);
+  margin-left: 2px;
+}
+
+.wizard-card .field-hint {
+  font-size: 11px;
+  color: var(--wiz-text-hint);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.wizard-card .field-error {
+  font-size: 11px;
+  color: var(--wiz-danger);
+  margin: 0;
+}
+
+.wizard-card .form-input,
+.wizard-card .form-select {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid var(--wiz-border);
+  border-radius: 8px;
+  background: var(--wiz-surface-input);
+  color: var(--wiz-secondary);
+  font-family: var(--font-human, 'Inter', sans-serif);
+  font-size: 13px;
+  padding: 0 12px;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.wizard-card .form-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B6277' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+  cursor: pointer;
+}
+
+.wizard-card .form-input:focus,
+.wizard-card .form-select:focus {
+  border-color: var(--wiz-primary);
+  box-shadow: 0 0 0 3px var(--wiz-primary-ring);
+  outline: none;
+}
+
+.wizard-card .form-input.input-error,
+.wizard-card .form-select.input-error {
+  border-color: #f09595;
+  background: var(--wiz-danger-bg);
+}
+
+.wizard-card textarea.form-input {
+  min-height: 84px;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+/* ── Save error banner ── */
+.wizard-card .save-error {
+  padding: 12px 16px;
+  background: var(--wiz-danger-bg);
+  border: 1px solid #f09595;
+  border-radius: 8px;
+  color: var(--wiz-danger);
+  font-size: 13px;
+}
+
+/* ── Bottom navigation ── */
+.wizard-card .form-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--wiz-border);
+}
+
+.wizard-card .form-nav__right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+@media (max-width: 720px) {
+  .wizard-card .field-grid--2 { grid-template-columns: 1fr; }
+  .wizard-card .form-nav { flex-wrap: wrap; gap: 12px; }
+}

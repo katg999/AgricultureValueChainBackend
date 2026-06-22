@@ -1,0 +1,84 @@
+<!-- all-batch-farmers.component.html
+     Shows every farmer in the system — across all batches — in a searchable table.
+     Two sections:
+       1. Page header with a back button
+       2. Search input
+       3. Farmer table
+-->
+
+<div class="farmers-page">
+
+  <!-- ── 1. Page header ──────────────────────────────────────────────────── -->
+  <div class="page-header">
+    <div class="header-content-wrapper">
+      <div>
+        <!-- (click)="goBack()" calls router.navigate(['/branch/finance/batch-processing']) -->
+        <button class="back-btn" type="button" (click)="goBack()">← Back to Batches</button>
+        <h1>All Batch Farmers</h1>
+        <p>Every farmer registered across all payment batches.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 2. Search input ─────────────────────────────────────────────────── -->
+  <!-- [(ngModel)]="searchTerm" = two-way binding: this input mirrors the searchTerm property.
+       (input) fires on every keystroke → applySearch() pushes the new value to search$
+       → the combineLatest in ngOnInit recalculates filteredFarmers$ automatically. -->
+  <div class="filter-card">
+    <div class="filter-group">
+      <label>Search</label>
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (input)="applySearch()"
+        placeholder="Search by farmer ID, name, commodity or branch…"
+      />
+    </div>
+  </div>
+
+  <!-- ── 3. Farmer table ─────────────────────────────────────────────────── -->
+  <!-- filteredFarmers$ is an Observable<FarmerRecord[]>.
+       '| async' subscribes and unwraps it into the local variable 'farmers'.
+       Every time search$ emits a new value, filteredFarmers$ recalculates and the table re-renders. -->
+  @if (filteredFarmers$ | async; as farmers) {
+    <div class="table-card">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Farmer ID</th>
+              <th>Name</th>
+              <th>Commodity</th>
+              <th>Branch</th>
+              <th>Delivery Date</th>
+              <th>Payment Method</th>
+              <th class="numeric">Net Payable</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- track f.farmerId = Angular reuses DOM rows by ID instead of rebuilding them
+                 on every search keypress. Makes the table feel instant. -->
+            @for (f of farmers; track f.farmerId) {
+              <tr>
+                <!-- mono = IBM Plex Mono — codes and dates are easier to read in monospace -->
+                <td class="mono">{{ f.farmerId }}</td>
+                <td>{{ f.fullName }}</td>
+                <td>{{ f.commodity }}</td>
+                <td>{{ f.branch }}</td>
+                <td class="mono">{{ f.deliveryDate }}</td>
+                <td>{{ f.paymentMethod }}</td>
+                <td class="numeric mono">{{ formatCurrency(f.netPayable) }}</td>
+              </tr>
+            } @empty {
+              <!-- @empty renders when the @for list is empty — no separate condition needed -->
+              <tr>
+                <td colspan="7" class="empty-state">No farmers match the search.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+</div>

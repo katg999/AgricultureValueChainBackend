@@ -1,0 +1,113 @@
+<!-- async pipe subscribes to farmers$ and auto-unsubscribes on destroy.
+     "as farmers" exposes the full list for KPI methods (newRegistrations, portfolioAtRisk). -->
+<div class="page-shell" *ngIf="farmers$ | async as farmers">
+  <div class="top-header">
+    <div class="header-content">
+      <h1>Farmers</h1>
+      <p class="subtitle">
+        Pending approval:
+        <span class="highlight-count">{{ newRegistrations(farmers) }}</span>
+      </p>
+    </div>
+  </div>
+
+  <div class="filters-section">
+    <div class="search-wrapper">
+      <app-input
+        label="Search"
+        placeholder="Search by name, ID, branch, commodity, status or stage"
+        type="text"
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="applyFilter()">
+      </app-input>
+    </div>
+  </div>
+
+  <div class="table-wrapper" *ngIf="paginatedFarmers$ | async as paginatedFarmers">
+    <table class="farmers-table">
+      <thead>
+        <tr>
+          <th>FARMER ID</th>
+          <th>NAME</th>
+          <th>BRANCH</th>
+          <th>PRIMARY COMMODITY</th>
+          <th>BALANCE</th>
+          <th>STATUS</th>
+          <th class="text-center">ACTIONS</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let farmer of paginatedFarmers; trackBy: trackByFarmerId">
+          <td class="farmer-id">{{ farmer.id }}</td>
+          <td class="farmer-name">{{ farmer.name }}</td>
+          <td>{{ farmer.branch }}</td>
+          <td>
+            <span class="commodity-tag">{{ farmer.primaryCommodity }}</span>
+          </td>
+          <td
+            class="text-bold"
+            [ngClass]="{ 'text-danger-custom': farmer.balance !== '0' && farmer.balance !== '0.00' && farmer.balance !== '--' }">
+            {{ (farmer.balance === '0' || farmer.balance === '0.00') ? '--' : farmer.balance }}
+          </td>
+          <td>
+            <span class="status-badge" [ngClass]="farmer.status.toLowerCase()">
+              {{ farmer.status }}
+            </span>
+          </td>
+          <td class="text-center actions-cell">
+            <div class="kebab-wrapper">
+              <button
+                class="kebab-btn"
+                type="button"
+                aria-label="Open actions menu"
+                (click)="toggleMenu(farmer.id, $event)">
+                &#8942;
+              </button>
+              <div class="kebab-dropdown" *ngIf="openMenuId === farmer.id">
+                <button class="kebab-item" type="button" (click)="onReviewFarmer(farmer)">
+                  Review
+                </button>
+                <!-- Only show approve/reject for farmers still awaiting a decision. -->
+                <ng-container *ngIf="farmer.status === 'Pending'">
+                  <button class="kebab-item approve" type="button" (click)="onApproveFarmer(farmer)">
+                    Approve
+                  </button>
+                  <button class="kebab-item reject" type="button" (click)="onRejectFarmer(farmer)">
+                    Reject
+                  </button>
+                </ng-container>
+              </div>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="paginatedFarmers.length === 0 && !loading">
+          <td colspan="7">
+            <app-empty-state
+              icon="farmer"
+              title="No farmers found"
+              message="Farmers registered at branches will appear here. Try adjusting your search or filters.">
+            </app-empty-state>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="pagination-section">
+      <div class="pagination-info">
+        <span>Showing {{ startIndex }} to {{ endIndex }} of {{ totalCount }} entries</span>
+      </div>
+      <div class="pagination-controls">
+        <app-button class="pagination-button" variant="secondary" size="sm" (clicked)="prevPage()" [disabled]="currentPage === 1">Previous</app-button>
+        <app-button
+          *ngFor="let page of pagesArray; trackBy: trackByIndex"
+          class="pagination-button"
+          [variant]="page === currentPage ? 'primary' : 'secondary'"
+          size="sm"
+          (clicked)="goToPage(page)">{{ page }}</app-button>
+        <app-button class="pagination-button" variant="secondary" size="sm" (clicked)="nextPage()" [disabled]="endIndex >= totalCount">Next</app-button>
+      </div>
+    </div>
+  </div>
+
+</div>

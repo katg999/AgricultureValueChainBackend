@@ -48,9 +48,11 @@
       type="text"
       inputmode="numeric"
       autocomplete="one-time-code"
+      aria-label="Enter 4-digit OTP code"
+      title="Enter 4-digit OTP code"
       [value]="otpValue"
       (input)="onHiddenInput($event)"
-      (keydown)="onHiddenKeyDown($event)"/>
+      (keydown)="onHiddenKeyDown($event)">
 
     <!-- Verify Button (Reusable Component) -->
     <app-button

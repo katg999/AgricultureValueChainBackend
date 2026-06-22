@@ -1,0 +1,299 @@
+<!-- 
+  Add New User Page
+  
+  Form for creating new users with personal and account details
+-->
+
+<div class="page">
+  <div class="page-container">
+    
+    <!-- Page Header -->
+    <div class="page-header">
+      <app-logo size="sm" [showSubtitle]="false"></app-logo>
+      <h1 class="page-title">Add New User</h1>
+      <p class="page-subtitle">Create a new User</p>
+    </div>
+
+    <form [formGroup]="userForm" (ngSubmit)="saveUser()">
+
+      <!-- SECTION 1: PERSONAL DETAILS -->
+      <app-info-card title="PERSONAL DETAILS">
+        
+        <!-- Full Name -->
+        <div class="form-row">
+          <app-input
+            label="Full name"
+            type="text"
+            placeholder="e.g. Sarah Namubiru"
+            formControlName="fullName"
+            [required]="true"
+            [error]="getFieldError('fullName')">
+          </app-input>
+        </div>
+
+        <!-- Email & Phone -->
+        <div class="form-row form-row-2col">
+          <app-input
+            label="Email address"
+            type="email"
+            placeholder="sarah.n@emtech.co.ug"
+            formControlName="email"
+            [required]="true"
+            [error]="getFieldError('email')">
+          </app-input>
+
+          <app-input
+            label="Phone number"
+            type="tel"
+            placeholder="+256 700 000000"
+            formControlName="phone"
+            [required]="true"
+            hint="Must be a valid MTN or Airtel Uganda number for OTP delivery"
+            [error]="getFieldError('phone')">
+          </app-input>
+        </div>
+
+        <!-- Date of Birth & National ID -->
+        <div class="form-row form-row-2col">
+          <app-input
+            label="Date of birth"
+            type="date"
+            placeholder="YYYY-MM-DD"
+            formControlName="dateOfBirth"
+            hint="Format: YYYY-MM-DD">
+          </app-input>
+
+          <app-input
+            label="National ID number"
+            type="text"
+            placeholder="CF9200000XXX"
+            formControlName="nationalId">
+          </app-input>
+        </div>
+
+        <!-- Gender -->
+        <div class="form-row">
+          <div class="form-field">
+            <label class="form-label">Gender</label>
+            <select class="form-select" formControlName="gender">
+              <option *ngFor="let gender of genderOptions" [value]="gender">
+                {{ gender }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+      </app-info-card>
+
+      <!-- SECTION 2: ACCOUNT ACCESS -->
+      <app-info-card title="ACCOUNT ACCESS" >
+        
+        <!-- Role -->
+        <div class="form-row">
+          <div class="form-field">
+            <label class="form-label">Role <span class="required">*</span></label>
+            <select class="form-select" formControlName="role">
+              <option *ngFor="let role of roleOptions" [value]="role">
+                {{ role }}
+              </option>
+            </select>
+            <p class="field-note">Branch users are created inside each cooperative portal</p>
+          </div>
+        </div>
+
+        <!-- Temporary Password & Confirm - USING REUSABLE INPUT COMPONENT -->
+        <div class="form-row form-row-2col">
+          
+          <!-- Temporary Password -->
+          <app-input
+            label="Temporary password"
+            type="password"
+            placeholder="••••••••"
+            formControlName="tempPassword"
+            [required]="true"
+            [error]="getFieldError('tempPassword')">
+          </app-input>
+
+          <!-- Confirm Password -->
+          <app-input
+            label="Confirm temporary password"
+            type="password"
+            placeholder="••••••••"
+            formControlName="confirmPassword"
+            [required]="true"
+            [error]="getFieldError('confirmPassword')">
+          </app-input>
+
+        </div>
+
+        <!-- Password Strength Meter -->
+        <app-password-strength
+          [password]="currentPassword"
+          [showLabel]="true">
+        </app-password-strength>
+
+        <!-- Toggle Options -->
+        <div class="toggles-section">
+          
+          <!-- Send Welcome Email -->
+          <!-- <app-toggle-switch
+            label="Send welcome email with login credentials"
+            description="The user will receive their temporary password and a link to set a permanent password on first login."
+            [(ngModel)]="sendWelcomeEmail"
+            [ngModelOptions]="{standalone: true}">
+          </app-toggle-switch> -->
+
+          <!-- Require OTP -->
+          <app-toggle-switch
+            label="Require OTP verification on first login"
+            description="Recommended, the user must verify their phone number before accessing the platform."
+            [(ngModel)]="requireOTP"
+            [ngModelOptions]="{standalone: true}">
+          </app-toggle-switch>
+
+        </div>
+
+        <!-- Warning Alert -->
+        <app-alert variant="warning">
+          <p><strong></strong> This user will be prompted to change their temporary password on first login. Make sure the phone number is correct before saving, it is used for OTP delivery.</p>
+        </app-alert>
+
+      </app-info-card>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <button 
+          type="button"
+          class="btn-cancel"
+          (click)="cancel()">
+          Cancel
+        </button>
+
+        <app-button
+          type="submit"
+          variant="primary"
+          size="lg"
+          [loading]="isLoading"
+          loadingText="Saving...">
+          Save user
+        </app-button>
+      </div>
+
+    </form>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     CREDENTIALS POPUP — shown after user is created successfully
+     Displays name, email and password so the admin can copy and share them.
+═══════════════════════════════════════════════════════════ -->
+<div class="cred-backdrop" *ngIf="showCredentials && createdCredentials">
+  <div class="cred-card" role="dialog" aria-label="User created">
+
+    <!-- Success icon + title -->
+    <div class="cred-header">
+      <div class="cred-check">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+      <h2 class="cred-title">User created successfully!</h2>
+      <p class="cred-sub">
+        Copy these credentials and share them with <strong>{{ createdCredentials.name }}</strong>.
+        They will be asked to change their password on first login.
+      </p>
+    </div>
+
+    <!-- Credentials rows -->
+    <div class="cred-fields">
+
+      <!-- Name -->
+      <div class="cred-row">
+        <div class="cred-row-label">Full Name</div>
+        <div class="cred-row-value">
+          <span class="cred-value">{{ createdCredentials.name }}</span>
+          <button class="cred-copy-btn" type="button"
+            (click)="copyField(createdCredentials.name, 'Name')" title="Copy name">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2"/>
+              <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Email -->
+      <div class="cred-row">
+        <div class="cred-row-label">Email Address</div>
+        <div class="cred-row-value">
+          <span class="cred-value">{{ createdCredentials.email }}</span>
+          <button class="cred-copy-btn" type="button"
+            (click)="copyField(createdCredentials.email, 'Email')" title="Copy email">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2"/>
+              <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Password -->
+      <div class="cred-row">
+        <div class="cred-row-label">Temporary Password</div>
+        <div class="cred-row-value">
+          <span class="cred-value cred-value--pw">
+            {{ showCreatedPassword ? createdCredentials.password : '••••••••••••' }}
+          </span>
+          <!-- show / hide -->
+          <button class="cred-copy-btn" type="button"
+            (click)="showCreatedPassword = !showCreatedPassword"
+            [title]="showCreatedPassword ? 'Hide password' : 'Show password'">
+            <svg *ngIf="!showCreatedPassword" width="15" height="15" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+            <svg *ngIf="showCreatedPassword" width="15" height="15" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
+              <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
+              <line x1="1" y1="1" x2="23" y2="23"/>
+            </svg>
+          </button>
+          <!-- copy -->
+          <button class="cred-copy-btn cred-copy-btn--primary" type="button"
+            (click)="copyField(createdCredentials.password, 'Password')" title="Copy password">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2"/>
+              <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+            </svg>
+            Copy
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Warning note -->
+    <div class="cred-note">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/>
+        <line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+      This password will not be shown again. Make sure to copy it before closing.
+    </div>
+
+    <!-- Action -->
+    <button class="cred-done-btn" type="button" (click)="dismissCredentials()">
+      Done — go to Users list
+    </button>
+
+  </div>
+</div>

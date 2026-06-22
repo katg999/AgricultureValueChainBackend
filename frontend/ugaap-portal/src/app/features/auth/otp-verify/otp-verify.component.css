@@ -79,7 +79,6 @@
   background: #F0F0F5;
   position: relative;
   transition: all 0.15s;
-  user-select: none;
 }
 
 /* Active box (currently receiving input) */

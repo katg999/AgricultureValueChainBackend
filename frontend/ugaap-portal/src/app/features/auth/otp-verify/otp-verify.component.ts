@@ -1,293 +1,253 @@
-import {
-  Component,
-  OnInit,
-  OnDestroy,
-  ViewChild,
-  ElementRef,
-  AfterViewInit
-} from '@angular/core';
+// ─────────────────────────────────────────────────────────────────────────────
+// features/auth/otp-verify/otp-verify.component.ts
+//
+// OTP verification screen — second step of the login flow.
+//
+// What happens here:
+//   1. Component reads the tempToken that AuthService saved in SessionService
+//   2. User enters 4-digit OTP received via email/SMS
+//   3. Auto-submits on 4th digit  (or user can tap "Verify")
+//   4. POST /auth/verify-otp via AuthService
+//      → AuthService calls SessionService.setSession() which persists the real tokens
+//   5. Navigate to the role-appropriate dashboard via DashboardConfigService
+//
+// Resend OTP:
+//   Calls AuthService.resendOtp(tempToken) → POST /auth/resend-otp
+//   A 30-second cooldown prevents spam.
+//
+// Session countdown:
+//   OTP is valid for 5 minutes.  A local countdown informs the user.
+// ─────────────────────────────────────────────────────────────────────────────
+
+import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 
-// Shared reusable components
+import { AuthService } from '../../../core/services/auth.service';
+import { SessionService } from '../../../core/services/session.service';
+import { DashboardConfigService } from '../../../core/services/dashboard-config.service';
+
+// Shared UI components
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { LogoComponent } from '../../../shared/components/logo/logo.component';
 import { AlertComponent } from '../../../shared/components/alert/alert.component';
 
-/**
- * OTP Verification Component
- * 
- * Handles 4-digit OTP verification after login.
- * Features custom OTP input boxes with hidden actual input.
- * 
- * Flow:
- * 1. User receives OTP via email/SMS
- * 2. Enter 4-digit code
- * 3. Auto-submit when complete
- * 4. Navigate to dashboard on success
- * 
- * Features:
- * - Visual OTP boxes with active state
- * - Hidden input for actual data capture
- * - Auto-focus and keyboard handling
- * - Resend OTP with cooldown timer
- * - Session timeout countdown
- * 
- * Components Used:
- * - LogoComponent: UGAAP branding
- * - AlertComponent: Error messages
- * - ButtonComponent: Verify button with loading state
- * - Custom OTP boxes (unique to this page)
- */
 @Component({
   selector: 'app-otp-verify',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterModule,
-    ButtonComponent,
-    LogoComponent,
-    AlertComponent
-  ],
+  imports: [CommonModule, RouterModule, ButtonComponent, LogoComponent, AlertComponent],
   templateUrl: './otp-verify.component.html',
-  styleUrl: './otp-verify.component.css'
+  styleUrl: './otp-verify.component.css',
 })
-export class OtpVerifyComponent implements OnInit, OnDestroy, AfterViewInit {
+export class OtpVerifyComponent implements OnInit, AfterViewInit, OnDestroy {
+  /** Hidden <input> that captures keystrokes — the visible boxes are decorative */
+  @ViewChild('hiddenInput') hiddenInput!: ElementRef<HTMLInputElement>;
 
-  /**
-   * Reference to hidden input element
-   * Used for programmatic focus and value capture
-   */
-  @ViewChild('hiddenInput') hiddenInput!: ElementRef;
-
-  /**
-   * OTP value (4 digits)
-   * Captured from hidden input, displayed in visual boxes
-   */
+  /** 4-digit code as the user types */
   otpValue = '';
 
-  /**
-   * Loading state during verification
-   */
   isLoading = false;
-
-  /**
-   * Error message to display
-   * Shown when verification fails
-   */
   errorMessage = '';
 
-  /**
-   * Time remaining for OTP validity (in seconds)
-   * Default: 300 seconds (5 minutes)
-   */
+  /** Counts down from 300 s (5 min) — OTP validity window */
   timeLeft = 300;
 
-  /**
-   * Interval timer for countdown
-   */
-  timer: any;
-
-  /**
-   * Cooldown before resend is allowed (in seconds)
-   * Prevents spam resend requests
-   */
+  /** Cooldown before "Resend" is active again (seconds) */
   resendCooldown = 0;
 
-  /**
-   * Interval timer for resend cooldown
-   */
-  resendTimer: any;
+  private countdownTimer: ReturnType<typeof setInterval> | null = null;
+  private resendTimer: ReturnType<typeof setInterval> | null = null;
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private authService: AuthService,
+    private session: SessionService,
+    private dashboardConfig: DashboardConfigService,
+  ) {}
+
+  // ── Lifecycle ───────────────────────────────────────────────────────────────
 
   ngOnInit(): void {
-    this.startTimer();
+    const token = this.session.getTempToken();
+    console.log('OTP page -token:', token);
+    if (!token) {
+      console.log('No token -> redirecting');
+      this.router.navigate(['/auth/login']);
+      return;
+    }
+    this.startCountdown();
   }
 
   ngAfterViewInit(): void {
-    // Auto-focus hidden input after view init
-    setTimeout(() => {
-      this.hiddenInput.nativeElement.focus();
-    }, 100);
+    // Auto-focus so the user can start typing immediately
+    setTimeout(() => this.hiddenInput?.nativeElement.focus(), 100);
   }
 
   ngOnDestroy(): void {
-    // Clean up timers to prevent memory leaks
-    clearInterval(this.timer);
-    clearInterval(this.resendTimer);
+    // Prevent memory leaks from dangling intervals
+    this._clearTimers();
   }
 
-  /**
-   * Get array of 4 characters for visual display
-   * Empty slots are empty strings
-   * 
-   * @returns Array of 4 strings (filled or empty)
-   */
+  // ── OTP box computed properties ─────────────────────────────────────────────
+
+  /** Array of 4 characters for the visual boxes (empty string = blank box) */
   get boxes(): string[] {
-    const result = ['', '', '', ''];
-    for (let i = 0; i < this.otpValue.length && i < 4; i++) {
-      result[i] = this.otpValue[i];
-    }
-    return result;
+    return Array.from({ length: 4 }, (_, i) => this.otpValue[i] ?? '');
   }
 
-  /**
-   * Check if all 4 digits are entered
-   * 
-   * @returns true if OTP is complete
-   */
   get isComplete(): boolean {
     return this.otpValue.length === 4;
   }
 
-  /**
-   * Get index of currently active input box
-   * 
-   * @returns Index of active box (0-3)
-   */
+  /** Which box should appear "active" (highlighted) */
   get activeIndex(): number {
     return Math.min(this.otpValue.length, 3);
   }
 
-  /**
-   * Start countdown timer for OTP validity
-   * Runs every second until time expires
-   */
-  startTimer(): void {
-    clearInterval(this.timer);
-    this.timer = setInterval(() => {
-      if (this.timeLeft > 0) {
-        this.timeLeft--;
-      } else {
-        clearInterval(this.timer);
-      }
-    }, 1000);
-  }
-
-  /**
-   * Format time remaining as MM:SS
-   * 
-   * @returns Formatted time string (e.g., "4:52")
-   */
   get formattedTime(): string {
-    const minutes = Math.floor(this.timeLeft / 60);
-    const seconds = this.timeLeft % 60;
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    const m = Math.floor(this.timeLeft / 60);
+    const s = this.timeLeft % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
   }
 
-  /**
-   * Focus the hidden input when user clicks OTP boxes
-   * Provides intuitive interaction
-   */
+  // ── Input handling ──────────────────────────────────────────────────────────
+
+  /** Click on any visible box → delegate focus to the hidden input */
   focusHidden(): void {
     this.hiddenInput.nativeElement.focus();
   }
 
-  /**
-   * Handle input from hidden field
-   * Filters to digits only and limits to 4 characters
-   * Auto-verifies when complete
-   * 
-   * @param event Input event from hidden input
-   */
+  /** Filter non-digits; auto-verify when the 4th digit is entered */
   onHiddenInput(event: Event): void {
     const input = event.target as HTMLInputElement;
-    // Only keep digits, max 4
     const cleaned = input.value.replace(/\D/g, '').slice(0, 4);
     this.otpValue = cleaned;
-    // Reset the hidden input value to match
     input.value = cleaned;
 
-    // Auto-verify when 4 digits entered
     if (this.isComplete) {
+      // Short delay lets the user see the filled boxes before the spinner appears
       setTimeout(() => this.verify(), 200);
     }
   }
 
-  /**
-   * Handle manual submit button click
-   * Useful if user wants to verify before typing all 4 digits
-   */
+  /** Block non-digit key presses early */
+  onHiddenKeyDown(event: KeyboardEvent): void {
+    const allowed = /^\d$/.test(event.key) || ['Backspace', 'Delete', 'Tab'].includes(event.key);
+    if (!allowed) event.preventDefault();
+  }
+
+  /** "Verify" button tapped manually */
   onSubmit(): void {
     this.verify();
   }
 
-  /**
-   * Handle keyboard events on hidden input
-   * Only allow digits and special keys (backspace, delete, tab)
-   * 
-   * @param event Keyboard event
-   */
-  onHiddenKeyDown(event: KeyboardEvent): void {
-    // Allow only digits and control keys
-    if (
-      !/^\d$/.test(event.key) &&
-      event.key !== 'Backspace' &&
-      event.key !== 'Delete' &&
-      event.key !== 'Tab'
-    ) {
-      event.preventDefault();
-    }
-  }
+  // ── Core actions ────────────────────────────────────────────────────────────
 
   /**
-   * Verify OTP code
-   * Sends code to backend for validation
-   * 
-   * TODO: Replace setTimeout with actual API call
-   * Example: this.authService.verifyOtp(this.otpValue).subscribe(...)
+   * Call the backend to verify the OTP.
+   * AuthService.verifyOtp() internally calls SessionService.setSession()
+   * so by the time subscribe(next) fires the user is fully authenticated.
    */
   verify(): void {
     if (!this.isComplete || this.isLoading) return;
 
+    const tempToken = this.session.getTempToken();
+    if (!tempToken) {
+      this.errorMessage = 'Session expired. Please log in again.';
+      this.router.navigate(['/auth/set-new-password']);
+      return;
+    }
+
     this.isLoading = true;
     this.errorMessage = '';
 
-    // Temporary simulation - Replace with actual API call
-    setTimeout(() => {
-      this.isLoading = false;
+    this.authService.verifyLoginOtp({ tempToken, otp: this.otpValue }).subscribe({
+      next: (res) => {
+        this.isLoading = false;
 
-      // Example invalid code check (replace with real backend response)
-      if (this.otpValue === '0000') {
-        this.errorMessage = 'Invalid code. Please try again.';
+        const roles: string[] = res?.data?.roles ?? [];
+
+        if (roles.includes('PLATFORM_ADMIN')) {
+          this.router.navigateByUrl('/platform/dashboard');
+          return;
+        }
+
+        if (
+          roles.includes('COOPERATIVE_ADMIN_MAKER') ||
+          roles.includes('COOPERATIVE_ADMIN_CHECKER')
+        ) {
+          const userId = res?.data?.userId;
+          const hasCompletedSetup = localStorage.getItem(`setup_complete_${userId}`);
+          this.router.navigateByUrl(
+            hasCompletedSetup ? '/branch/farmers/list' : '/auth/first-time-login',
+          );
+          return;
+        }
+
+        // fallback
+        this.router.navigateByUrl('/platform/dashboard');
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.errorMessage = err?.error?.message ?? 'Invalid OTP code. Please try again.';
         this.otpValue = '';
         this.hiddenInput.nativeElement.value = '';
         this.hiddenInput.nativeElement.focus();
-        return;
-      }
-
-      // On success, navigate to dashboard
-      this.router.navigate(['/dashboard']);
-    }, 1200);
+      },
+    });
   }
 
   /**
-   * Resend OTP code
-   * Resets timer and cooldown
-   * 
-   * TODO: Replace with actual API call to resend OTP
-   * Example: this.authService.resendOtp().subscribe(...)
+   * Request a fresh OTP code.
+   * Enforces a 30-second cooldown to prevent spam.
    */
   resendOtp(): void {
     if (this.resendCooldown > 0) return;
 
-    // Reset validity timer
+    const tempToken = this.session.getTempToken();
+    if (!tempToken) return;
+
+    // Reset local state
     this.timeLeft = 300;
     this.otpValue = '';
     this.errorMessage = '';
     this.hiddenInput.nativeElement.value = '';
-    this.startTimer();
+    this.startCountdown();
     this.hiddenInput.nativeElement.focus();
 
-    // Start resend cooldown (30 seconds)
+    // Fire the API request
+    this.authService.resendOtp(tempToken).subscribe({
+      error: (err) => {
+        this.errorMessage = err?.error?.message ?? 'Could not resend OTP. Please try again.';
+      },
+    });
+
+    // Start 30-second cooldown
     this.resendCooldown = 30;
     this.resendTimer = setInterval(() => {
       if (this.resendCooldown > 0) {
         this.resendCooldown--;
       } else {
-        clearInterval(this.resendTimer);
+        clearInterval(this.resendTimer!);
       }
     }, 1000);
+  }
+
+  // ── Private helpers ─────────────────────────────────────────────────────────
+
+  private startCountdown(): void {
+    if (this.countdownTimer) clearInterval(this.countdownTimer);
+    this.countdownTimer = setInterval(() => {
+      if (this.timeLeft > 0) {
+        this.timeLeft--;
+      } else {
+        clearInterval(this.countdownTimer!);
+      }
+    }, 1000);
+  }
+
+  private _clearTimers(): void {
+    if (this.countdownTimer) clearInterval(this.countdownTimer);
+    if (this.resendTimer) clearInterval(this.resendTimer);
   }
 }

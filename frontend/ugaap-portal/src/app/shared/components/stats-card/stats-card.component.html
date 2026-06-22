@@ -1,60 +1,71 @@
-<!-- 
+<!--
   Stats Card Component
-  
-  Displays metric with title, value, and optional trend
+  Fixed-dimension card: min-height 160px, tabular-nums value, fixed trend row.
+  Prevents layout shake during count-up animations.
 -->
 
-<div class="stats-card" [ngClass]="'stats-card-' + variant">
-  
-  <!-- Icon (optional) -->
-  <div class="stats-icon" *ngIf="icon">
-    <span class="icon">{{ icon }}</span>
+<div
+  class="stats-card"
+  [class.clickable]="clickable"
+  [class.variant-default]="variant === 'default'"
+  [class.variant-success]="variant === 'success'"
+  [class.variant-warning]="variant === 'warning'"
+  [class.variant-danger]="variant === 'danger'"
+  [title]="fullValue"
+  (click)="onClick()">
+
+  <!-- Header: Icon + Status Badge -->
+  <div class="card-header">
+    <div class="icon-container" [style.background-color]="getIconBgColor()">
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        [attr.stroke]="getIconColor()"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round">
+        <path [attr.d]="getIconPath()"></path>
+      </svg>
+    </div>
+
+    <span
+      class="status-badge"
+      *ngIf="status"
+      [class.badge-success]="variant === 'success'"
+      [class.badge-warning]="variant === 'warning'"
+      [class.badge-danger]="variant === 'danger'">
+      {{ status }}
+    </span>
+    <!-- Reserve header height when no badge -->
+    <span *ngIf="!status" class="badge-placeholder" aria-hidden="true"></span>
   </div>
 
-  <!-- Card Content -->
-  <div class="stats-content">
-    
-    <!-- Title -->
-    <h3 class="stats-title">{{ title }}</h3>
-    
-    <!-- Value and Trend -->
-    <div class="stats-row">
-      <span class="stats-value">{{ formattedValue }}</span>
-      
-      <!-- Trend Indicator -->
-      <span 
-        *ngIf="trend" 
-        class="stats-trend"
-        [ngClass]="{
-          'trend-positive': isPositiveTrend,
-          'trend-negative': isNegativeTrend
-        }">
-        
-        <!-- Up Arrow for positive -->
-        <svg 
-          *ngIf="isPositiveTrend" 
-          width="12" 
-          height="12" 
-          viewBox="0 0 24 24" 
-          fill="none" 
-          xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 4l-8 8h16l-8-8z" fill="currentColor"/>
+  <!-- Content: Label + Value + Trend -->
+  <div class="card-content">
+    <div class="card-label">{{ label }}</div>
+    <div class="card-value" [style.font-size]="getValueFontSize()">{{ displayValue }}</div>
+
+    <!-- Trend row — always rendered so cards without trend stay same height -->
+    <div class="card-trend" *ngIf="trend">
+      <span
+        class="trend-icon"
+        [class.trend-up]="trendType === 'positive'"
+        [class.trend-down]="trendType === 'negative'">
+        <svg *ngIf="trendType === 'positive'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+          <polyline points="17 6 23 6 23 12"></polyline>
         </svg>
-        
-        <!-- Down Arrow for negative -->
-        <svg 
-          *ngIf="isNegativeTrend" 
-          width="12" 
-          height="12" 
-          viewBox="0 0 24 24" 
-          fill="none" 
-          xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 20l8-8H4l8 8z" fill="currentColor"/>
+        <svg *ngIf="trendType === 'negative'" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline>
+          <polyline points="17 18 23 18 23 12"></polyline>
         </svg>
-        
-        {{ trend }}
       </span>
+      <span class="trend-text">{{ trend }}</span>
     </div>
+    <!-- Invisible placeholder keeps height consistent when trend is absent -->
+    <div class="card-trend placeholder" *ngIf="!trend" aria-hidden="true">&nbsp;</div>
   </div>
 
 </div>

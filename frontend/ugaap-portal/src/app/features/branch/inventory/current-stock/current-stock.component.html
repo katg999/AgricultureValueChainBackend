@@ -1,0 +1,133 @@
+<div class="page-container">
+ 
+    <div class="header-actions" *ngIf="isCooperativeScope">
+      <app-button
+        type="button"
+        variant="primary"
+        size="md"
+        iconLeft="+"
+        (clicked)="addStock()">
+        Add stock
+      </app-button>
+
+      <app-button
+        type="button"
+        variant="secondary"
+        size="md"
+        iconLeft="+"
+        [loading]="isImporting"
+        loadingText="Importing..."
+        (clicked)="importStock()">
+        Import stock
+      </app-button>
+    </div>
+
+  <div class="summary-cards">
+    <app-stat-card
+      [data]="{ label: 'TOTAL TYPES', value: summary.totalTypes, icon: 'box', clickable: true }">
+    </app-stat-card>
+
+    <app-stat-card
+      [data]="{ label: 'HEALTHY', value: summary.healthy, icon: 'check', clickable: true }">
+    </app-stat-card>
+
+    <!-- Color reacts to value; tapping navigates to request-stock when there are low items -->
+    <app-stat-card
+      [data]="{
+        label: 'LOW', value: summary.low, icon: 'alert',
+        thresholds: { warning: 1, direction: 'above' },
+        route: summary.low > 0 ? lowItemRoute : undefined
+      }">
+    </app-stat-card>
+
+    <app-stat-card
+      [data]="{
+        label: 'OUT OF STOCK', value: summary.outOfStock, icon: 'alert',
+        thresholds: { warning: 1, critical: 1, direction: 'above' },
+        route: summary.outOfStock > 0 ? lowItemRoute : undefined
+      }">
+    </app-stat-card>
+
+    <app-stat-card
+      [data]="{ label: 'TOTAL VALUE', value: (summary.totalValue | currency:'UGX':'symbol':'1.0-0') ?? '', icon: 'wallet', clickable: true }">
+    </app-stat-card>
+  </div>
+
+  <div class="alert-stack">
+    <app-alert
+      *ngIf="alertMessage"
+      variant="warning"
+      [message]="alertMessage">
+    </app-alert>
+
+    <app-alert
+      *ngIf="importMessage"
+      variant="success"
+      [message]="importMessage">
+    </app-alert>
+  </div>
+
+  <div class="filters-row">
+    <div class="search-box">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8" />
+        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      </svg>
+      <input
+        type="text"
+        placeholder="Search by name, category, status, season or branch…"
+        [(ngModel)]="searchQuery"
+        (input)="applyFilters()"
+      />
+    </div>
+  </div>
+
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ITEM NAME</th>
+          <th>CATEGORY</th>
+          <th>QUANTITY</th>
+          <th>UNIT</th>
+          <th>MIN. THRESHOLD</th>
+          <th>ENTRY DATE</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let item of filteredItems" [class.row-out]="item.stockStatus === 'out'">
+          <td class="item-name">{{ item.name }}</td>
+          <td>
+            <span class="category-badge" [ngClass]="item.categoryClass">
+              {{ item.category }}
+            </span>
+          </td>
+          <td
+            class="quantity-cell"
+            [ngClass]="{
+              'qty-orange': item.stockStatus === 'low',
+              'qty-red': item.stockStatus === 'out'
+            }">
+            {{ item.quantity | number }}
+          </td>
+          <td>{{ item.unit }}</td>
+          <td class="threshold-cell">{{ item.minThreshold | number }}</td>
+          <td class="date-cell">{{ item.updatedAt }}</td>
+        </tr>
+
+        <tr *ngIf="filteredItems.length === 0">
+          <td colspan="6">
+            <app-empty-state
+              icon="box"
+              title="No stock items"
+              message="Add stock to start tracking your branch inventory."
+              actionLabel="Add Stock"
+              (actionClick)="addStock()">
+            </app-empty-state>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -4,7 +4,7 @@ import { Router, RouterModule } from '@angular/router';
 
 import { LogoComponent } from '../../../shared/components/logo/logo.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
-
+import { SessionService } from '../../../core/services/session.service';
 
 type SetupStepStatus = 'completed' | 'active' | 'pending' | 'locked';
 type SetupStepIcon = 'shield' | 'branches' | 'roles' | 'commodities' | 'seasons' | 'grading';
@@ -34,7 +34,7 @@ export class FirstTimeLoginComponent {
       description: 'Confirm your administrator profile and access permissions.',
       status: 'completed',
       icon: 'shield',
-      actionLabel: 'Complete'
+      actionLabel: 'Complete',
     },
     {
       title: 'Register cooperative branches',
@@ -42,39 +42,42 @@ export class FirstTimeLoginComponent {
       status: 'active',
       icon: 'branches',
       actionLabel: 'Continue',
-      route: '/cooperatives/onboarding'
+      route: '/cooperatives/branches/onboarding',
     },
     {
       title: 'Assign user roles',
       description: 'Prepare managers, tellers, and inventory officers for controlled access.',
       status: 'pending',
       icon: 'roles',
-      actionLabel: 'Pending'
+      actionLabel: 'Pending',
     },
     {
       title: 'Configure commodities',
       description: 'Define the crop and produce categories handled by the cooperative.',
       status: 'locked',
       icon: 'commodities',
-      actionLabel: 'Locked'
+      actionLabel: 'Locked',
     },
     {
       title: 'Set trading seasons',
       description: 'Create active seasons for procurement, storage, and repayment cycles.',
       status: 'locked',
       icon: 'seasons',
-      actionLabel: 'Locked'
+      actionLabel: 'Locked',
     },
     {
       title: 'Define grading standards',
       description: 'Set quality grades used for pricing, finance limits, and inventory valuation.',
       status: 'locked',
       icon: 'grading',
-      actionLabel: 'Locked'
-    }
+      actionLabel: 'Locked',
+    },
   ];
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private session: SessionService,
+  ) {}
 
   get setupProgress(): number {
     const completedSteps = this.steps.filter((step) => step.status === 'completed').length;
@@ -87,6 +90,8 @@ export class FirstTimeLoginComponent {
   }
 
   onSkipSetup(): void {
+    const userId = this.session.currentUser()?.id;
+    localStorage.setItem(`setup_complete_${userId}`, 'true');
     this.router.navigateByUrl('/auth/login');
   }
 }

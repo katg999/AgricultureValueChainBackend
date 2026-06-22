@@ -1,0 +1,176 @@
+<div class="page-container">
+
+  <!-- Page header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Agents</h1>
+      <p class="page-subtitle">
+        {{ activeCount() }} active agent{{ activeCount() === 1 ? '' : 's' }} working across your branches
+      </p>
+    </div>
+
+    <app-button
+      *hasPermission="'agents.register'"
+      type="button"
+      variant="primary"
+      size="md"
+      iconLeft="+"
+      (clicked)="registerAgent()">
+      Register agent
+    </app-button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-row">
+    <div class="search-box">
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Search by name, code, phone, email or branch…"
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event)" />
+    </div>
+
+    <select
+      class="status-select"
+      [ngModel]="statusFilter()"
+      (ngModelChange)="statusFilter.set($event)">
+      <option value="all">All statuses</option>
+      <option value="active">Active</option>
+      <option value="inactive">Inactive</option>
+    </select>
+  </div>
+
+  <!-- Agents table -->
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>CODE</th>
+          <th>NAME</th>
+          <th>ROLE</th>
+          <th>BRANCH</th>
+          <th>FARMERS</th>
+          <th>COLLECTIONS</th>
+          <th>STATUS</th>
+          <th>ACTIONS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let agent of filteredAgents(); trackBy: trackById">
+          <td class="mono">{{ agent.agentCode }}</td>
+          <td>
+            <button type="button" class="agent-name" (click)="viewAgent(agent)">
+              {{ agent.fullName }}
+            </button>
+            <div class="agent-contact">{{ agent.phone }}</div>
+          </td>
+          <td>{{ roleLabel(agent) }}</td>
+          <td>{{ agent.branchName }}</td>
+          <td class="mono">{{ agent.assignedFarmers }}</td>
+          <td class="mono">{{ agent.collectionsThisSeason }}</td>
+          <td>
+            <span class="status-pill" [class.pill-active]="agent.status === 'active'" [class.pill-inactive]="agent.status === 'inactive'">
+              {{ agent.status | uppercase }}
+            </span>
+          </td>
+          <td>
+            <div class="row-actions">
+              <button type="button" class="action-link" (click)="viewAgent(agent)">View</button>
+              <button
+                *hasPermission="'agents.edit'"
+                type="button" class="action-link" (click)="editAgent(agent)">
+                Edit
+              </button>
+              <button
+                *hasPermission="'agents.deactivate'"
+                type="button"
+                class="action-link"
+                [class.action-danger]="agent.status === 'active'"
+                (click)="toggleStatus(agent)">
+                {{ agent.status === 'active' ? 'Deactivate' : 'Reactivate' }}
+              </button>
+            </div>
+          </td>
+        </tr>
+
+        <tr *ngIf="filteredAgents().length === 0">
+          <td colspan="8">
+            <app-empty-state
+              icon="farmer"
+              title="No agents found"
+              message="Register an agent to assign them to branches and manage farmer collections."
+              actionLabel="Register Agent"
+              route="/cooperative/agents/register">
+            </app-empty-state>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Agent detail modal -->
+<app-modal
+  [isOpen]="showDetailModal"
+  [title]="selectedAgent?.fullName ?? 'Agent'"
+  [subtitle]="selectedAgent?.agentCode ?? ''"
+  size="md"
+  (closed)="closeDetail()"
+  (isOpenChange)="showDetailModal = $event">
+
+  <div body>
+  <dl class="detail-list" *ngIf="selectedAgent as agent">
+    <div class="detail-item">
+      <dt>Role</dt>
+      <dd>{{ roleLabel(agent) }}</dd>
+    </div>
+    <div class="detail-item">
+      <dt>Branch</dt>
+      <dd>{{ agent.branchName }}</dd>
+    </div>
+    <div class="detail-item">
+      <dt>Phone</dt>
+      <dd class="mono">{{ agent.phone }}</dd>
+    </div>
+    <div class="detail-item">
+      <dt>Email</dt>
+      <dd>{{ agent.email }}</dd>
+    </div>
+    <div class="detail-item">
+      <dt>National ID</dt>
+      <dd class="mono">{{ agent.nationalId }}</dd>
+    </div>
+    <div class="detail-item">
+      <dt>Assigned farmers</dt>
+      <dd class="mono">{{ agent.assignedFarmers }}</dd>
+    </div>
+    <div class="detail-item">
+      <dt>Collections this season</dt>
+      <dd class="mono">{{ agent.collectionsThisSeason }}</dd>
+    </div>
+    <div class="detail-item">
+      <dt>Registered</dt>
+      <dd class="mono">{{ agent.registeredAt }}</dd>
+    </div>
+    <div class="detail-item">
+      <dt>Status</dt>
+      <dd>
+        <span class="status-pill" [class.pill-active]="agent.status === 'active'" [class.pill-inactive]="agent.status === 'inactive'">
+          {{ agent.status | uppercase }}
+        </span>
+      </dd>
+    </div>
+  </dl>
+  </div>
+
+  <div footer>
+    <app-button variant="ghost" size="md" type="button" (clicked)="closeDetail()">Close</app-button>
+    <app-button
+      *hasPermission="'agents.edit'"
+      variant="primary" size="md" type="button"
+      (clicked)="closeDetail(); editAgent(selectedAgent!)">
+      Edit agent
+    </app-button>
+  </div>
+</app-modal>

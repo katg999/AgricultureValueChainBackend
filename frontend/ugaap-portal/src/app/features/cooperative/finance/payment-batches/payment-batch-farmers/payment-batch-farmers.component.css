@@ -1,0 +1,127 @@
+.farmers-page {
+  padding: 24px;
+  background: var(--surface-low);
+  min-height: 100vh;
+  font-family: var(--font-human);
+}
+
+.page-header { margin-bottom: 20px; }
+
+.back-btn {
+  border: none;
+  background: none;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.back-btn:hover { text-decoration: underline; }
+
+.page-header h1 {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--secondary);
+  margin-bottom: 6px;
+}
+
+.page-header p { color: var(--muted-purple, #6b6b6b); font-size: 14px; }
+
+.summary-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface-lowest, #fff);
+  padding: 14px 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: var(--secondary);
+  box-shadow: 0 2px 8px rgba(32,11,38,.06);
+}
+
+.divider { color: var(--muted-purple, #ccc); }
+
+.table-card {
+  background: var(--surface-lowest, #fff);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(32,11,38,.06);
+}
+
+.day-group { margin-bottom: 28px; }
+
+.day-group-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.day-group-header h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--secondary);
+}
+
+.session-group { margin-bottom: 16px; }
+
+.session-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--surface-highest, #f0edf2);
+  border-bottom: 1px solid #e5e1e8;
+}
+
+.session-group-header h3 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.table-wrapper { overflow-x: auto; }
+
+table { width: 100%; border-collapse: collapse; }
+
+thead { background: var(--surface-highest, #f0edf2); }
+
+thead th {
+  text-align: left;
+  padding: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--secondary);
+  white-space: nowrap;
+}
+
+thead th.numeric { text-align: right; }
+
+tbody td {
+  padding: 16px;
+  font-size: 14px;
+  color: #2b2b2b;
+  border-top: 1px solid #f0edf2;
+  white-space: nowrap;
+}
+
+tbody td.numeric { text-align: right; }
+
+tbody tr:hover { background: #faf9fb; }
+
+.mono { font-family: var(--font-technical, 'IBM Plex Mono', monospace); }
+
+.empty-state { text-align: center; padding: 40px; color: var(--muted-purple, #6b6b6b); }
+
+@media (max-width: 768px) {
+  .farmers-page { padding: 16px; }
+  table { min-width: 760px; }
+}

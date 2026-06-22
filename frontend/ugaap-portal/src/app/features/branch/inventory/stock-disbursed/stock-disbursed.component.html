@@ -1,0 +1,279 @@
+<div class="stock-disbursed-page">
+
+  <div class="stats-grid">
+    <app-stat-card
+      [data]="{ label: 'TOTAL ALLOCATIONS', value: (summary.totalAllocations | number) ?? '', icon: 'clipboard', clickable: true }">
+    </app-stat-card>
+
+    <app-stat-card
+      [data]="{ label: 'FULLY RECOVERED', value: (summary.fullyRecovered | number) ?? '', icon: 'check', clickable: true }">
+    </app-stat-card>
+
+    <app-stat-card
+      [data]="{ label: 'TOTAL VALUE', value: 'UGX ' + ((summary.totalValue | number:'1.0-0') ?? '0'), icon: 'wallet', clickable: true }">
+    </app-stat-card>
+
+    <!-- Color reacts to value; tapping focuses on the partial-recovery rows in the table -->
+    <app-stat-card
+      [data]="{
+        label: 'PARTIALLY RECOVERED', value: (summary.partiallyRecovered | number:'1.0-0') ?? '',
+        icon: 'alert', thresholds: { warning: 1, direction: 'above' }, clickable: true
+      }">
+    </app-stat-card>
+
+    <app-stat-card
+      [data]="{
+        label: 'OVERDUE', value: (summary.overdue | number:'1.0-0') ?? '',
+        icon: 'alert', thresholds: { warning: 1, critical: 1, direction: 'above' },
+        route: summary.overdue > 0 ? (isCooperativeScope ? '/cooperative/finance/batch-processing' : '/branch/finance/batch-processing') : undefined
+      }">
+    </app-stat-card>
+
+    <app-stat-card
+      [data]="{ label: 'RECOVERY RATE', value: summary.recoveryRate + '%', icon: 'chart', clickable: true }">
+    </app-stat-card>
+  </div>
+
+  <div class="filter-section">
+    <div class="search-input">
+      <app-input
+        [placeholder]="isCooperativeScope ? 'Search branch, item name, category, status…' : 'Search farmer, branch, item name, category, status…'"
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="applyFilters()">
+      </app-input>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th class="col-destination">{{ destinationLabel }}</th>
+          <th *ngIf="!isCooperativeScope" class="col-branch">BRANCH</th>
+          <th class="col-item-name">ITEM NAME</th>
+          <th class="col-quantity">QUANTITY</th>
+          <th class="col-total-value">TOTAL VALUE</th>
+          <th class="col-issue-date">ISSUE DATE</th>
+          <th class="col-status">STATUS</th>
+          <th class="col-alloc-date">ALLOCATION DATE</th>
+          <th class="col-action">ACTION</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <!-- trackBy: trackById — Angular uses the ID to reuse existing DOM nodes
+             instead of re-creating the whole row when the list updates. -->
+        <tr *ngFor="let row of visibleAllocations; trackBy: trackById">
+          <td class="name-cell">{{ row.destinationName }}</td>
+          <td *ngIf="!isCooperativeScope">{{ row.branch }}</td>
+          <td class="item-name-cell">{{ row.itemName }}</td>
+          <td>{{ row.quantity }}</td>
+          <td class="value-cell">UGX {{ row.totalValue | number }}</td>
+          <td>{{ row.issueDate }}</td>
+          <td>
+            <app-badge [variant]="getStatusVariant(row.status)" [dot]="true">
+              {{ row.status | titlecase }}
+            </app-badge>
+          </td>
+          <td>{{ row.allocationDate }}</td>
+          <td class="kebab-cell">
+            <div class="kebab-wrapper">
+              <button
+                class="kebab-btn"
+                type="button"
+                title="More options"
+                (click)="toggleKebab(row.id, $event)">
+                &#8942;
+              </button>
+              <!-- position:fixed dropdown — coordinates come from toggleKebab()
+                   so the menu stays visible even inside overflow:hidden containers. -->
+              <div
+                class="kebab-dropdown"
+                *ngIf="openKebabId === row.id"
+                [style.top]="kebabPosition.top !== undefined ? kebabPosition.top + 'px' : 'auto'"
+                [style.bottom]="kebabPosition.bottom !== undefined ? kebabPosition.bottom + 'px' : 'auto'"
+                [style.right.px]="kebabPosition.right">
+                <button class="kebab-item" type="button" (click)="onViewDetails(row, $event)">
+                  View details
+                </button>
+                <button class="kebab-item" type="button" (click)="onEditDetails(row, $event)">
+                  Edit
+                </button>
+              </div>
+            </div>
+          </td>
+        </tr>
+
+        <tr *ngIf="visibleAllocations.length === 0">
+          <td [attr.colspan]="isCooperativeScope ? 8 : 9" class="empty-row">No disbursed stock entries match your filters.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="table-footer">
+      <span>Showing {{ pageStart }}-{{ pageEnd }} of {{ totalAllocations }} entries</span>
+
+      <div class="pagination">
+        <app-button
+          title="Previous page"
+          size="sm"
+          variant="ghost"
+          type="button"
+          iconLeft=""
+          [disabled]="currentPage === 1"
+          (clicked)="prevPage()">
+        </app-button>
+
+        <app-button
+          *ngFor="let p of visiblePages"
+          class="page-btn"
+          size="sm"
+          [variant]="p === currentPage ? 'primary' : 'ghost'"
+          type="button"
+          (clicked)="goToPage(p)">
+          {{ p }}
+        </app-button>
+
+        <app-button
+          title="Next page"
+          size="sm"
+          variant="ghost"
+          type="button"
+          iconLeft=">"
+          [disabled]="currentPage === totalPages"
+          (clicked)="nextPage()">
+        </app-button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<app-modal
+  [(isOpen)]="showDetailModal"
+  [title]="selectedAllocation ? selectedAllocation.id : ''"
+  subtitle="Allocation details"
+  size="md"
+  (closed)="closeDetailModal()">
+
+  <div body *ngIf="selectedAllocation">
+    <dl class="detail-grid">
+      <div class="detail-row">
+        <dt>{{ destinationLabel }}</dt>
+        <dd>{{ selectedAllocation.destinationName }}</dd>
+      </div>
+      <div class="detail-row">
+        <dt>BRANCH</dt>
+        <dd>{{ selectedAllocation.branch }}</dd>
+      </div>
+      <div class="detail-row">
+        <dt>ITEM NAME</dt>
+        <dd>{{ selectedAllocation.itemName }}</dd>
+      </div>
+      <div class="detail-row">
+        <dt>CATEGORY</dt>
+        <dd>
+          <app-badge variant="info">{{ selectedAllocation.itemType }}</app-badge>
+        </dd>
+      </div>
+      <div class="detail-row">
+        <dt>QUANTITY</dt>
+        <dd>{{ selectedAllocation.quantity }}</dd>
+      </div>
+      <div class="detail-row">
+        <dt>TOTAL VALUE</dt>
+        <dd class="detail-value">UGX {{ selectedAllocation.totalValue | number }}</dd>
+      </div>
+      <div class="detail-row">
+        <dt>OUTSTANDING</dt>
+        <dd [class.detail-danger]="selectedAllocation.outstanding > 0">
+          UGX {{ selectedAllocation.outstanding | number:'1.0-0' }}
+        </dd>
+      </div>
+      <div class="detail-row">
+        <dt>STATUS</dt>
+        <dd>
+          <app-badge [variant]="getStatusVariant(selectedAllocation.status)" [dot]="true">
+            {{ selectedAllocation.status | titlecase }}
+          </app-badge>
+        </dd>
+      </div>
+      <div class="detail-row">
+        <dt>ISSUE DATE</dt>
+        <dd>{{ selectedAllocation.issueDate }}</dd>
+      </div>
+      <div class="detail-row">
+        <dt>ALLOCATION DATE</dt>
+        <dd>{{ selectedAllocation.allocationDate }}</dd>
+      </div>
+    </dl>
+  </div>
+
+  <div footer>
+    <app-button variant="ghost" size="md" type="button" (clicked)="closeDetailModal()">
+      Close
+    </app-button>
+  </div>
+</app-modal>
+
+<app-modal
+  [(isOpen)]="showEditModal"
+  [title]="selectedAllocation ? selectedAllocation.id : ''"
+  subtitle="Edit allocation"
+  size="md"
+  (closed)="closeEditModal()">
+
+  <div body *ngIf="selectedAllocation">
+    <dl class="detail-grid">
+      <div class="detail-row">
+        <dt>{{ destinationLabel }}</dt>
+        <dd>{{ selectedAllocation.destinationName }}</dd>
+      </div>
+
+      <div class="detail-row">
+        <dt>ITEM NAME</dt>
+        <dd>{{ selectedAllocation.itemName }}</dd>
+      </div>
+      <div class="detail-row">
+        <dt>CATEGORY</dt>
+        <dd>
+          <app-badge variant="info">{{ selectedAllocation.itemType }}</app-badge>
+        </dd>
+      </div>
+
+      <div class="detail-row">
+        <dt>QUANTITY</dt>
+        <dd>
+          <app-input title="edit-quantity" [(ngModel)]="editForm.quantity" placeholder="e.g. 4 Bags"></app-input>
+        </dd>
+      </div>
+
+      <div class="detail-row">
+        <dt>TOTAL VALUE (UGX)</dt>
+        <dd>
+          <app-input title="edit-total-value" type="number" [(ngModel)]="editForm.totalValue" placeholder="0"></app-input>
+        </dd>
+      </div>
+
+      <div class="detail-row" *ngIf="!isCooperativeScope">
+        <dt>OUTSTANDING (UGX)</dt>
+        <dd>
+          <app-input type="number" [(ngModel)]="editForm.outstanding" placeholder="0"></app-input>
+        </dd>
+      </div>
+
+      <div class="detail-row">
+        <dt>STATUS</dt>
+        <dd>
+          <select title="select-status" class="edit-select" [(ngModel)]="editForm.status">
+            <option *ngFor="let opt of statusOptions" [value]="opt.value">{{ opt.label }}</option>
+          </select>
+        </dd>
+      </div>
+    </dl>
+  </div>
+
+  <div footer>
+    <app-button variant="ghost" size="md" type="button" (clicked)="closeEditModal()">Cancel</app-button>
+    <app-button variant="primary" size="md" type="button" (clicked)="saveEdit()">Save Changes</app-button>
+  </div>
+</app-modal>

@@ -1,0 +1,100 @@
+<!-- grade-form.component.html
+     Create or edit a quality grade level. -->
+
+<div class="page">
+
+  <!-- page heading -->
+  <div class="page-header">
+    <h1 class="page-title">{{ isEditMode() ? 'Edit Grade' : 'Create New Grade' }}</h1>
+    <p class="page-subtitle">Define the quality parameters and identification for a new agricultural grade level.</p>
+  </div>
+
+  <!-- error banner -->
+  @if (error()) {
+    <app-alert variant="error" [message]="error()!" />
+  }
+
+  <!-- form card -->
+  <form [formGroup]="form" (ngSubmit)="save()" class="form-card">
+
+    <!-- Grade Name -->
+    <div class="field">
+      <label class="field__label" for="gradeName">Grade Name *</label>
+      <input
+        id="gradeName"
+        formControlName="name"
+        class="field__input"
+        [class.field__input--error]="isInvalid('name')"
+        placeholder="e.g., Premium"
+        autocomplete="off" />
+      <span class="field__hint">What do you call this quality level?</span>
+      @if (isInvalid('name')) {
+        <span class="field__error">Grade name is required</span>
+      }
+    </div>
+
+    <!-- Grade Code -->
+    <div class="field">
+      <label class="field__label" for="gradeCode">Grade Code *</label>
+      <div class="input-with-counter">
+        <input
+          id="gradeCode"
+          formControlName="code"
+          class="field__input"
+          [class.field__input--error]="isInvalid('code')"
+          placeholder="E.G., A"
+          maxlength="5"
+          autocomplete="off"
+          style="text-transform: uppercase" />
+        <!-- live character counter top-right inside the input wrapper -->
+        <span class="char-counter">{{ codeLength }}/5</span>
+      </div>
+      <span class="field__hint">Short code for quick reference, Max 5 chars</span>
+      @if (isInvalid('code')) {
+        <span class="field__error">Grade code is required (max 5 characters)</span>
+      }
+    </div>
+
+    <!-- Description -->
+    <div class="field">
+      <label class="field__label" for="gradeDesc">Description</label>
+      <textarea
+        id="gradeDesc"
+        formControlName="description"
+        class="field__textarea"
+        placeholder="Describe quality criteria..."
+        rows="4">
+      </textarea>
+    </div>
+
+    <!-- system tip -->
+    <div class="system-tip">
+      <svg width="16" height="16" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8"  x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <p>
+        <strong>System Tip:</strong> Grade codes are used in inventory barcodes. Ensure
+        the code is unique across all product categories to prevent harvest
+        misidentification at the weighing stations.
+      </p>
+    </div>
+
+  </form><!-- /form-card -->
+
+  <!-- page-level action row -->
+  <div class="page-actions">
+    <app-button variant="secondary" (clicked)="cancel()">Cancel</app-button>
+    <app-button
+      variant="primary"
+      type="submit"
+      [loading]="saving()"
+      loadingText="Saving..."
+      (clicked)="save()">
+      Save Changes
+    </app-button>
+  </div>
+
+</div><!-- /page -->
