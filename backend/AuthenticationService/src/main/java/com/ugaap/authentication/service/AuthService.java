@@ -342,6 +342,7 @@ public class    AuthService {
                 credentials.getEmail(),
                 credentials.getUsername(),
                 claims.tenantId() != null ? claims.tenantId() : "",
+
                 claims.branchId() != null ? claims.branchId() : "",
                 claims.roles(),
                 claims.permissions()
