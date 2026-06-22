@@ -46,11 +46,12 @@ public class MemberService {
         }
 
         // 2. Validate cooperative exists
+        // Replace lines 47-50 with:
         Cooperative cooperative = cooperativeRepository
-                .findById(request.getCooperativeId())
+                .findByTenantId(request.getTenantId())
                 .orElseThrow(() -> new AuthException(
-                        "Cooperative not found: "
-                                + request.getCooperativeId()));
+                        "Cooperative not found for tenantId: "
+                                + request.getTenantId()));
 
         // 3. Generate member ID early (needed for photo path)
 
@@ -79,17 +80,24 @@ public class MemberService {
                 .email(request.getEmail())
                 .dateOfBirth(request.getDateOfBirth())
                 .profilePhotoUrl(photoUrl)
-                .farmRegion(request.getFarmRegion())
+                .farmLocation(request.getFarmLocation())
                 .villageTown(request.getVillageTown())
                 .totalLandAreaHectares(request.getTotalLandAreaHectares())
                 .landOwnershipType(request.getLandOwnershipType())
                 .primaryCrops(request.getPrimaryCrops())
-                .cattleCount(request.getCattleCount())
-                .goatsCount(request.getGoatsCount())
-                .poultryCount(request.getPoultryCount())
+                .paymentMethodType(request.getPaymentMethodType())
+                .irrigationSource(request.getIrrigationSource())
+                .bankName(request.getBankName())
+                .bankBranch(request.getBankBranch())
+                .accountHolderName(request.getAccountHolderName())
+                .walletNumber(request.getWalletNumber())
+                .accountNumber(request.getAccountNumber())
                 .cooperative(cooperative)
                 .tenantId(request.getTenantId())
-                .branchId(request.getBranchId())
+                .commodityToDeliver(request.getCommodityToDeliver())   // ← add this
+                .livestockKept(request.getLivestockKept())
+                .branchId(request.getBranchId() != null && !request.getBranchId().isBlank()
+                        ? UUID.fromString(request.getBranchId()) : null)
                 .status(Member.MemberStatus.ACTIVE)
                 .registeredBy(registeredBy)
                 .build();
@@ -154,14 +162,23 @@ public class MemberService {
         member.setPhoneNumber(request.getPhoneNumber());
         member.setEmail(request.getEmail());
         member.setDateOfBirth(request.getDateOfBirth());
-        member.setFarmRegion(request.getFarmRegion());
+        member.setFarmLocation(request.getFarmLocation());
         member.setVillageTown(request.getVillageTown());
         member.setTotalLandAreaHectares(request.getTotalLandAreaHectares());
         member.setLandOwnershipType(request.getLandOwnershipType());
-        member.setPrimaryCrops(request.getPrimaryCrops());
-        member.setCattleCount(request.getCattleCount());
-        member.setGoatsCount(request.getGoatsCount());
-        member.setPoultryCount(request.getPoultryCount());
+        member.setAccountNumber(request.getAccountNumber());
+        member.setAccountHolderName(request.getAccountHolderName());
+        member.setWalletNumber(request.getWalletNumber());
+        member.setIrrigationSource(request.getIrrigationSource());
+        member.setBankBranch(request.getBankBranch());
+        member.setBankName(request.getBankName());
+        member.setPaymentMethodType(request.getPaymentMethodType());
+        member.setCommodityToDeliver(request.getCommodityToDeliver());
+        member.setLivestockKept(request.getLivestockKept());
+
+        //member.setCattleCount(request.getCattleCount());
+        //member.setGoatsCount(request.getGoatsCount());
+        //member.setPoultryCount(request.getPoultryCount());
 
         memberRepository.save(member);
         log.info("Member updated: memberId={}", memberId);
@@ -197,22 +214,27 @@ public class MemberService {
                 .dateOfBirth(member.getDateOfBirth() != null
                         ? member.getDateOfBirth().toString() : null)
                 .profilePhotoUrl(member.getProfilePhotoUrl())
-                .farmRegion(member.getFarmRegion().name())
+                .farmLocation(member.getFarmLocation().name())
                 .villageTown(member.getVillageTown())
                 .totalLandAreaHectares(member.getTotalLandAreaHectares())
-                .landOwnershipType(member.getLandOwnershipType() != null
-                        ? member.getLandOwnershipType().name() : null)
-                .primaryCrops(member.getPrimaryCrops() != null
-                        ? member.getPrimaryCrops().stream()
-                          .map(Enum::name).toList()
-                        : List.of())
-                .cattleCount(member.getCattleCount())
-                .goatsCount(member.getGoatsCount())
-                .poultryCount(member.getPoultryCount())
                 .cooperativeId(member.getCooperative()
                         .getCooperativeId().toString())
                 .tenantId(member.getTenantId())
-                .branchId(member.getBranchId().toString())
+                .paymentMethodType(member.getPaymentMethodType() != null ? member.getPaymentMethodType().name() : null)
+                .bankName(member.getBankName())
+                .bankBranch(member.getBankBranch())
+                .irrigationSource(member.getIrrigationSource() != null ? member.getIrrigationSource().name() : null)
+                .accountHolderName(member.getAccountHolderName())
+                .walletNumber(member.getWalletNumber())
+                .accountNumber(member.getAccountNumber())
+                .commodityToDeliver(member.getCommodityToDeliver())
+                .livestockKept(member.getLivestockKept())
+                .branchId(member.getBranchId() != null ? member.getBranchId().toString() : null)
+                .farmLocation(
+                member.getFarmLocation() != null
+                        ? member.getFarmLocation().name()
+                        : null
+        )
                 .status(member.getStatus().name())
                 .registeredBy(member.getRegisteredBy())
                 .createdAt(member.getCreatedAt() != null
