@@ -15,11 +15,7 @@ public class Cooperative {
 
         @Id
         @GeneratedValue(strategy = GenerationType.UUID)
-        @Column(name = "id", updatable = false, nullable = false)
-
-        private UUID id;
-
-        @Column(name = "cooperative_id", nullable = false, unique = true)
+        @Column(name = "cooperative_id", updatable = false, nullable = false)
         private UUID cooperativeId;
 
         @Column(name = "tenant_id", unique = true, nullable = false)
@@ -71,6 +67,6 @@ public class Cooperative {
         private String createdBy;
 
         public enum CooperativeStatus {
-            PENDING, ACTIVE, SUSPENDED, DEACTIVATED
+                PENDING, ACTIVE, SUSPENDED, DEACTIVATED
         }
 }

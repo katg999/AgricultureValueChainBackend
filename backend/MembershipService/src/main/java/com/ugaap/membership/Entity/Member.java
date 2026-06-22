@@ -40,6 +40,11 @@ public class Member {
     @Column(name = "gender", nullable = false)
     private Gender gender;
 
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "irrigation_source", nullable = true)
+    private IrrigationSource irrigationSource;
+
     @Column(name = "email")
     private String email;
 
@@ -52,11 +57,17 @@ public class Member {
     // ── Location Details ──────────────────────────────────────
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "farm_region", nullable = false)
-    private FarmRegion farmRegion;
+    @Column(name = "farm_location", nullable = true)
+    private FarmLocation farmLocation;
 
     @Column(name = "village_town")
     private String villageTown;
+
+    @Column(name="commodity")
+    private String commodityToDeliver;
+
+    @Column(name="livestock_kept")
+    private String livestockKept;
 
     // ── Farm Details ──────────────────────────────────────────
 
@@ -80,17 +91,17 @@ public class Member {
     @Column(name = "crop")
     private List<PrimaryCrop> primaryCrops;
 
-    @Column(name = "cattle_count", nullable = false)
-    @Builder.Default
-    private int cattleCount = 0;
-
-    @Column(name = "goats_count", nullable = false)
-    @Builder.Default
-    private int goatsCount = 0;
-
-    @Column(name = "poultry_count", nullable = false)
-    @Builder.Default
-    private int poultryCount = 0;
+//    @Column(name = "cattle_count", nullable = false)
+//    @Builder.Default
+//    private int cattleCount = 0;
+//
+//    @Column(name = "goats_count", nullable = false)
+//    @Builder.Default
+//    private int goatsCount = 0;
+//
+//    @Column(name = "poultry_count", nullable = false)
+//    @Builder.Default
+//    private int poultryCount = 0;
 
     // ── Cooperative Assignment ────────────────────────────────
 
@@ -113,13 +124,39 @@ public class Member {
     @Column(name = "registered_by")
     private String registeredBy;
 
-    @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
 
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_method_type", nullable = true)
+    private PaymentMethodType paymentMethodType;
+
+    // BANK ACCOUNT FIELDS
+    @Column(name = "bank_name")
+    private String bankName;
+
+    @Column(name = "bank_branch")
+    private String bankBranch;
+
+    @Column(name = "account_holder_name")
+    private String accountHolderName;
+
+    @Column(name = "account_number")
+    private String accountNumber;
+
+    // MOBILE MONEY / WENDI WALLET
+    @Column(name = "wallet_number")
+    private String walletNumber;
 
     // ── Enums ─────────────────────────────────────────────────
 
@@ -127,8 +164,13 @@ public class Member {
         MALE, FEMALE, OTHER
     }
 
-    public enum FarmRegion {
-        CENTRAL, EAST, WEST, NORTH
+
+    public enum IrrigationSource {
+        RAIN_FED, IRRIGATION, BOTH
+    }
+
+    public enum FarmLocation {
+        CENTRAL_REGION, EASTERN_REGION, WESTERN_REGION, NORTHERN_REGION
     }
 
     public enum LandOwnershipType {
@@ -142,4 +184,13 @@ public class Member {
     public enum MemberStatus {
         ACTIVE, INACTIVE, SUSPENDED
     }
+
+    public enum PaymentMethodType {
+        BANK_ACCOUNT,
+        WENDI_WALLET,
+        MOBILE_MONEY
+    }
+
+
+
 }
