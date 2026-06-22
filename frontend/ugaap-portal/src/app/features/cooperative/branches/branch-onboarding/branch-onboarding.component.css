@@ -40,18 +40,35 @@
 .section-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  /* stretch (default) keeps paired cards the same height per row */
+  gap: 0; /* cards sit flush — no gutter */
   margin-bottom: 28px;
+  /* the wrapper owns the outer border so we only need 1 border line, not 2 per edge */
+  border: 1px solid #E8E6ED;
+  border-radius: 14px;
+  /* overflow: hidden clips card content to the rounded corners of this wrapper */
+  overflow: hidden;
 }
 
 /* ── FORM CARD ───────────────────────────────────────────────────────────── */
 
 .form-card {
   background: #ffffff;
-  border: 1px solid #E8E6ED;
-  border-radius: 14px;
+  /* no outer border — the .section-grid wrapper handles that */
+  /* cards only draw the lines that DIVIDE them from their neighbours */
+  border-right: 1px solid #E8E6ED; /* vertical divider between left and right column */
+  border-bottom: 1px solid #E8E6ED; /* horizontal divider between top and bottom row */
+  border-radius: 0; /* individual rounding would create gaps — wrapper handles corners */
   padding: 28px 32px;
+}
+
+/* Right-column cards (every 2nd card) sit against the outer edge — no right divider needed */
+.form-card:nth-child(even) {
+  border-right: none;
+}
+
+/* Bottom-row cards (last 2) sit against the outer edge — no bottom divider needed */
+.form-card:nth-last-child(-n+2) {
+  border-bottom: none;
 }
 
 .card-title {
@@ -194,11 +211,19 @@
   /* Stack the 4 cards vertically on small screens */
   .section-grid {
     grid-template-columns: 1fr;
-    gap: 16px;
+    /* gap stays 0 — still flush, just stacked */
   }
 
   .form-card {
     padding: 20px 20px;
+    /* in single column every card is in the "right column" so we want no right border on any */
+    border-right: none;
+  }
+
+  /* In single column, nth-last-child(-n+2) wrongly removes the border from the 3rd card too.
+     Restore it — only the very last card should have no bottom border. */
+  .form-card:nth-last-child(2) {
+    border-bottom: 1px solid #E8E6ED;
   }
 
   /* Also collapse in-card two-column rows (Region|Country, Email|Phone) */
