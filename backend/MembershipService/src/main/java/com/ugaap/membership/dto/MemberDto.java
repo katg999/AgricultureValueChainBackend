@@ -35,14 +35,18 @@ public class MemberDto {
         @NotNull(message = "Gender is required")
         private Member.Gender gender;
 
+
+        @NotNull(message = "IrrigationSource is required")
+        private Member.IrrigationSource irrigationSource;
+
         private String email;
 
         private LocalDate dateOfBirth;
 
         // ── Location Details ──────────────────────────────────
 
-        @NotNull(message = "Farm region is required")
-        private Member.FarmRegion farmRegion;
+        @NotNull(message = "Farm Location is required")
+        private Member.FarmLocation farmLocation;
 
         private String villageTown;
 
@@ -56,14 +60,18 @@ public class MemberDto {
 
         private List<Member.PrimaryCrop> primaryCrops;
 
-        @Builder.Default
-        private int cattleCount = 0;
+        private String commodityToDeliver;
+        private String livestockKept;
 
-        @Builder.Default
-        private int goatsCount = 0;
+       //payment details
+       @NotNull(message = "Payment method is required")
+       private Member.PaymentMethodType paymentMethodType;
 
-        @Builder.Default
-        private int poultryCount = 0;
+        private String bankName;
+        private String bankBranch;
+        private String accountHolderName;
+        private String accountNumber;
+        private String walletNumber;
 
         // ── Cooperative Assignment ────────────────────────────
 
@@ -71,11 +79,14 @@ public class MemberDto {
         private String tenantId;
 
         @NotNull(message = "Branch ID is required")
-        private UUID branchId;
+        private String branchId;
 
         @NotNull(message = "Cooperative ID is required")
-        private UUID cooperativeId;
+        private String cooperativeId;
     }
+
+
+
 
     @Data
     @Builder
@@ -85,22 +96,28 @@ public class MemberDto {
         private String nationalId;
         private String phoneNumber;
         private String gender;
+        private String irrigationSource;
         private String email;
         private String dateOfBirth;
         private String profilePhotoUrl;
-        private String farmRegion;
+        private String farmLocation;
         private String villageTown;
         private BigDecimal totalLandAreaHectares;
         private String landOwnershipType;
-        private List<String> primaryCrops;
-        private int cattleCount;
-        private int goatsCount;
-        private int poultryCount;
         private String cooperativeId;
         private String tenantId;
         private String branchId;
         private String status;
         private String registeredBy;
         private String createdAt;
+        private String bankName;
+        private String bankBranch;
+        private String accountHolderName;
+        private String accountNumber;
+        private String walletNumber;
+        private String commodityToDeliver;
+        private String livestockKept;
+        private String paymentMethodType;
+
     }
 }

@@ -53,7 +53,7 @@ public class CooperativeService {
         Cooperative cooperative = Cooperative.builder()
                 .tenantId(tenantId)
                 .name(request.getName())
-                .cooperativeId(UUID.randomUUID())
+                //.cooperativeId(UUID.randomUUID())
                 .registrationNumber(request.getRegistrationNumber())
                 .address(request.getAddress())
                 .contactPersonName(request.getContactPersonName())

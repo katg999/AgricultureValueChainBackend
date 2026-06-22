@@ -20,8 +20,9 @@
 		<module>shared</module>
 		<module>AuthenticationService</module>
 		<module>MembershipService</module>
+		<module>ConfigurationService</module>
 		<module>CollectionService</module>
-		<module>InventoryService 2</module>
+		<module>InventoryService</module>
 	</modules>
 
 	<properties>

@@ -25,7 +25,8 @@ public class MemberController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('BRANCH_MANAGER') or hasRole('FIELD_AGENT') " +
-            "or hasRole('COOPERATIVE_ADMIN_MAKER')")
+            "or hasRole('COOPERATIVE_ADMIN_MAKER')"  +
+            "or hasRole('PLATFORM_ADMIN')")
     public ResponseEntity<MemberDto.Response> registerMember(
             @RequestPart("data") String requestJson,
             @RequestPart(value = "photo", required = false)
