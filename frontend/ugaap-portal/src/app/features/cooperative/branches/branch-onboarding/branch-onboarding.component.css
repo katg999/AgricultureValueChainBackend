@@ -198,7 +198,10 @@
   display: flex;
   gap: 12px;
   justify-content: flex-end;
-  margin-top: 24px;
+  /* width: 100% so this div fills the modal-footer flex row;
+     without it the footer centres it as a small block and justify-content: flex-end has no room to work */
+  width: 100%;
+  /* margin-top removed — the modal-body already has 24px bottom padding, so no extra gap needed here */
 }
 
 /* ── RESPONSIVE ──────────────────────────────────────────────────────────── */

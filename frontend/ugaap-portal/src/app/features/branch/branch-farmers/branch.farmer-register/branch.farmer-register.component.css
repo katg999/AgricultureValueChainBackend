@@ -1,306 +1,156 @@
-/* ─────────────────────────────────────────────
-   BRAND TOKENS
-───────────────────────────────────────────── */
-:host {
-  --primary:        #F25D27;
-  --primary-light:  rgba(242, 93, 39, 0.08);
-  --primary-ring:   rgba(242, 93, 39, 0.18);
-  --secondary:      #200B26;
-  --surface-page:   #F5F4F7;
-  --surface-card:   #FFFFFF;
-  --surface-input:  #FFFFFF;
-  --surface-subtle: #FAF9FB;
-  --border:         #E8E4EE;
-  --border-focus:   #F25D27;
-  --text-primary:   #200B26;
-  --text-muted:     #6B6277;
-  --text-hint:      #9C94A8;
-  --danger:         #b3261e;
-  --danger-bg:      #fffafa;
-  --step-size:      36px;
-  --radius-card:    16px;
-  --radius-input:   8px;
-  --radius-chip:    999px;
-  --font:           var(--font-human, 'IBM Plex Sans', sans-serif);
+/* ─────────────────────────────────────────────────────────────────────────────
+   Farmer Registration — single-page card-grid layout.
+   Mirrors branch-onboarding: flush 2×2 grid, generous padding, no wizard.
+───────────────────────────────────────────────────────────────────────────── */
+
+/* ── PAGE SHELL ── */
+.onboarding-shell {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 40px 32px 72px;
+  font-family: var(--font-human, 'IBM Plex Sans', sans-serif);
 }
 
-/* ─────────────────────────────────────────────
-   PAGE SHELL
-───────────────────────────────────────────── */
-.page-shell {
-  min-height: 100vh;
-  background: var(--surface-page);
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 48px 24px;
-  font-family: var(--font);
-  box-sizing: border-box;
-}
-
-/* ─────────────────────────────────────────────
-   WIZARD CARD — two-column layout
-───────────────────────────────────────────── */
-.wizard-card {
-  width: 100%;
-  max-width: 900px;
-  background: var(--surface-card);
-  border-radius: var(--radius-card);
-  box-shadow: 0 4px 32px rgba(32, 11, 38, 0.07),
-              0 1px 4px  rgba(32, 11, 38, 0.04);
-  display: grid;
-  grid-template-columns: 220px 1fr;
-  overflow: hidden;
-  min-height: 600px;
-}
-
-/* ─────────────────────────────────────────────
-   LEFT COLUMN — stepper sidebar
-───────────────────────────────────────────── */
-.stepper-col {
-  background: var(--surface-subtle);
-  border-right: 1px solid var(--border);
-  padding: 36px 28px;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-.wizard-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+/* ── PAGE HEADER ── */
+.page-header {
   margin-bottom: 28px;
 }
 
-.wizard-brand-name {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--secondary);
-  letter-spacing: 0.06em;
-}
-
-.wizard-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  margin: 0 0 20px;
-}
-
-/*  step list  */
-.step-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex: 1;
-}
-
-.step-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  text-align: left;
-  transition: background 0.15s ease;
-  width: 100%;
-}
-
-.step-item:hover {
-  background: rgba(32, 11, 38, 0.04);
-}
-
-.step-item:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-}
-
-/* bubble */
-.step-bubble {
-  width: var(--step-size);
-  height: var(--step-size);
-  border-radius: 50%;
-  border: 2px solid var(--border);
-  background: var(--surface-card);
-  color: var(--text-muted);
-  font-size: 13px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
-}
-
-/* done */
-.step--done .step-bubble {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: #ffffff;
-}
-
-/* active */
-.step--active .step-bubble {
-  border-color: var(--primary);
-  background: var(--primary-light);
-  color: var(--primary);
-  box-shadow: 0 0 0 4px var(--primary-ring);
-}
-
-/* label */
-.step-label {
-  font-size: 13px;
-  color: var(--text-muted);
-  font-weight: 400;
-  transition: color 0.15s ease, font-weight 0.15s ease;
-}
-
-.step--active .step-label {
-  color: var(--secondary);
-  font-weight: 600;
-}
-
-.step--done .step-label {
-  color: var(--text-muted);
-}
-
-/* progress counter */
-.step-counter {
-  font-size: 11px;
-  color: var(--text-hint);
-  margin: 24px 0 0;
-}
-
-/* connector line between steps */
-.step-list .step-item + .step-item {
-  position: relative;
-}
-
-.step-list .step-item + .step-item::before {
-  content: '';
-  position: absolute;
-  left: 29px;           /* center of 36px bubble (12px padding + 17px center) */
-  top: -10px;
-  width: 2px;
-  height: 12px;
-  background: var(--border);
-  border-radius: 1px;
-}
-
-/* RIGHT COLUMN — form area */
-.form-col {
-  display: flex;
-  flex-direction: column;
-  padding: 40px 44px 36px;
-  gap: 0;
-}
-
-/*  panel header  */
-.form-panel {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  animation: fadeSlide 0.2s ease both;
-}
-
-@keyframes fadeSlide {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.panel-header {
-  margin-bottom: 4px;
-}
-
-.panel-title {
+.page-title {
   font-size: 20px;
   font-weight: 700;
-  color: var(--secondary);
+  color: var(--secondary, #200B26);
   margin: 0 0 4px;
+  line-height: 1.2;
 }
 
-.panel-sub {
+.page-subtitle {
   font-size: 13px;
-  color: var(--text-muted);
-  margin: 0;
-}
-
-/* FIELD GRIDS */
-.field-grid {
-  display: grid;
-  gap: 18px;
-}
-
-.field-grid--1 {
-  grid-template-columns: 1fr;
-}
-
-.field-grid--2 {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-/* stacks label + hint tightly */
-.field-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-/* FIELD PRIMITIVES */
-.field-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.field-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--secondary);
-  letter-spacing: 0.02em;
-}
-
-.required-mark {
-  color: var(--primary);
-  margin-left: 2px;
-}
-
-.field-hint {
-  font-size: 11px;
-  color: var(--text-hint);
+  color: #6B6B7B;
   margin: 0;
   line-height: 1.5;
 }
 
-.field-error {
-  font-size: 11px;
-  color: var(--danger);
-  margin: 0;
+/* ── 2×2 SECTION GRID ── */
+/*
+  gap: 0 — cards are flush (touching), no white gap between them.
+  The wrapper owns the single outer border; cards only draw their internal dividers.
+  overflow: hidden clips card backgrounds to the wrapper's rounded corners.
+  Without overflow: hidden, card backgrounds would bleed past the border-radius.
+*/
+.section-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  margin-bottom: 28px;
+  border: 1px solid #E8E6ED;
+  border-radius: 14px;
+  overflow: hidden;
 }
 
+/* ── FORM CARD ── */
+/*
+  Each card only draws borders toward its internal neighbours — not the outer edges.
+  display: flex + flex-direction: column + gap: 16px spaces all field rows uniformly
+  without needing manual margin-bottom on every child element.
+*/
+.form-card {
+  background: #ffffff;
+  border-right: 1px solid #E8E6ED;   /* vertical divider between left and right column */
+  border-bottom: 1px solid #E8E6ED;  /* horizontal divider between top and bottom row */
+  border-radius: 0;                   /* wrapper handles corner rounding, not individual cards */
+  padding: 28px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Right-column cards are on the outer edge — no right divider needed */
+.form-card:nth-child(even) {
+  border-right: none;
+}
+
+/* Bottom-row cards are on the outer edge — no bottom divider needed */
+.form-card:nth-last-child(-n+2) {
+  border-bottom: none;
+}
+
+/* ── CARD HEADER ── */
+/*
+  Wrapping title + subtitle in a single .card-header div treats them as ONE flex item.
+  This means the 16px gap from .form-card only separates the header block from the
+  first field — not the title from the subtitle (which stays a tight 4px apart).
+*/
+.card-header {
+  /* no additional styles needed — just acts as a grouping wrapper */
+}
+
+.card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--secondary, #200B26);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 4px;
+}
+
+/* The orange bottom border acts as a visual separator between heading and fields */
+.card-subtitle {
+  font-size: 13px;
+  color: #6B6B7B;
+  margin: 0;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--primary, #F25D27);
+}
+
+/* ── FIELD ROW (two inputs side by side inside a card) ── */
+/*
+  1fr 1fr splits the card width evenly between two inputs.
+  Without this, both inputs would stack vertically.
+*/
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* ── INPUT GROUP (label + select + optional hint/error) ── */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.input-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--secondary, #200B26);
+}
+
+/* Red asterisk marks required fields */
+.required-mark {
+  color: #D92D20;
+  margin-left: 2px;
+}
+
+/* ── FORM CONTROLS ── */
 .form-input,
 .form-select {
+  font-family: var(--font-human, 'IBM Plex Sans', sans-serif);
+  font-size: 14px;
+  padding: 11px 14px;
+  border: 1px solid #E8E6ED;
+  border-radius: 10px;
+  background: white;
+  color: var(--secondary, #200B26);
   width: 100%;
-  min-height: 40px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-input);
-  background: var(--surface-input);
-  color: var(--text-primary);
-  font-family: var(--font);
-  font-size: 13px;
-  padding: 0 12px;
   box-sizing: border-box;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-  -webkit-appearance: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
   appearance: none;
+  -webkit-appearance: none;
 }
 
+/* Custom SVG chevron replaces the native dropdown arrow (hidden above via appearance: none) */
 .form-select {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B6277' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
@@ -310,61 +160,76 @@
 
 .form-input:focus,
 .form-select:focus {
-  border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px var(--primary-ring);
   outline: none;
+  border-color: var(--primary, #F25D27);
+  box-shadow: 0 0 0 3px rgba(242, 93, 39, 0.12);
 }
 
+/* Red border signals to the user that this field has failed validation */
 .form-input.input-error,
 .form-select.input-error {
-  border-color: #f09595;
-  background: var(--danger-bg);
+  border-color: #D92D20;
 }
 
-.readonly-field {
-  background: var(--surface-subtle);
-  color: var(--text-muted);
+/* Muted style communicates that this field is not editable */
+.readonly-input {
+  background: #FAF9FB;
+  color: #6B6277;
   cursor: not-allowed;
 }
 
-/* PHOTO UPLOAD*/
-.photo-section__header {
+.hint-text {
+  font-size: 12px;
+  color: #9C94A8;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.error-text {
+  font-size: 12px;
+  color: #D92D20;
+  margin: 0;
+}
+
+/* ── PROFILE PHOTO UPLOAD ── */
+.photo-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px;
 }
 
 .optional-badge {
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.06em;
-  color: var(--text-hint);
+  color: #9C94A8;
   text-transform: uppercase;
   background: rgba(32, 11, 38, 0.04);
   border-radius: 4px;
   padding: 2px 6px;
 }
 
+/* Dashed border signals a droppable area to the user */
 .photo-drop {
   width: 100%;
   max-width: 300px;
   min-height: 130px;
-  border: 1.5px dashed var(--border);
+  border: 1.5px dashed #E8E6ED;
   border-radius: 10px;
-  background: var(--surface-subtle);
+  background: #FAF9FB;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  transition: border-color 0.2s ease, background 0.2s ease;
+  transition: border-color 0.2s, background 0.2s;
 }
 
 .photo-drop:hover {
-  border-color: var(--primary);
-  background: var(--primary-light);
+  border-color: var(--primary, #F25D27);
+  background: rgba(242, 93, 39, 0.04);
 }
 
+/* Switch to solid border once an image is loaded — dashed would look odd on a photo */
 .photo-drop--has-image {
   border-style: solid;
   max-width: 300px;
@@ -383,6 +248,7 @@
   object-fit: cover;
 }
 
+/* Absolute positioned so the remove button floats over the image corner */
 .photo-remove {
   position: absolute;
   top: 8px;
@@ -397,11 +263,11 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background 0.15s;
 }
 
 .photo-remove:hover {
-  background: var(--danger);
+  background: #D92D20;
 }
 
 .photo-prompt {
@@ -417,7 +283,7 @@
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  color: var(--text-muted);
+  color: #6B6277;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -425,57 +291,24 @@
 }
 
 .photo-prompt__label svg {
-  color: var(--text-hint);
+  color: #9C94A8;
 }
 
-.photo-prompt__label:hover svg,
 .photo-drop:hover .photo-prompt__label svg {
-  color: var(--primary);
+  color: var(--primary, #F25D27);
 }
 
 .photo-prompt__sub {
   font-size: 11px;
   font-weight: 400;
-  color: var(--text-hint);
+  color: #9C94A8;
 }
 
-/* FARM MAP */
-.farm-map-wrapper {
-  position: relative;
-  width: 100%;
-  height: 180px;
-  border-radius: 10px;
-  overflow: hidden;
-  background: var(--surface-subtle);
-}
-
-.farm-map-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.farm-map-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(32, 11, 38, 0.14);
-}
-
-.map-badge {
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-chip);
-  color: var(--secondary);
-  font-size: 12px;
-  font-weight: 600;
-  padding: 6px 14px;
-}
-
-/* PAYMENT TABS */
+/* ── PAYMENT TABS ── */
+/*
+  Three equal-width tiles. The radio input is hidden — the entire <label>
+  is the clickable area. [class.payment-tab--active] mirrors the selection visually.
+*/
 .payment-tabs {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -488,49 +321,46 @@
   align-items: center;
   gap: 5px;
   padding: 16px 10px 14px;
-  border: 1.5px solid var(--border);
+  border: 1.5px solid #E8E6ED;
   border-radius: 10px;
   cursor: pointer;
-  background: var(--surface-subtle);
-  transition: border-color 0.15s ease, background 0.15s ease;
+  background: #FAF9FB;
+  transition: border-color 0.15s, background 0.15s;
   text-align: center;
 }
 
+/* Native radio is hidden; the styled label acts as the full interactive control */
 .payment-tab input[type="radio"] {
   display: none;
 }
 
-.payment-tab:hover {
-  border-color: var(--primary);
-  background: var(--primary-light);
-}
-
+.payment-tab:hover,
 .payment-tab--active {
-  border-color: var(--primary);
-  background: var(--primary-light);
+  border-color: var(--primary, #F25D27);
+  background: rgba(242, 93, 39, 0.04);
 }
 
 .payment-tab__icon {
-  color: var(--text-muted);
+  color: #6B6277;
   display: flex;
 }
 
 .payment-tab--active .payment-tab__icon {
-  color: var(--primary);
+  color: var(--primary, #F25D27);
 }
 
 .payment-tab__name {
   font-size: 12px;
   font-weight: 600;
-  color: var(--secondary);
+  color: var(--secondary, #200B26);
 }
 
 .payment-tab__sub {
   font-size: 10px;
-  color: var(--text-hint);
+  color: #9C94A8;
 }
 
-/* provider radio pills */
+/* ── PROVIDER RADIO PILLS ── */
 .provider-row {
   display: flex;
   gap: 10px;
@@ -542,74 +372,80 @@
   align-items: center;
   gap: 7px;
   padding: 9px 16px;
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-chip);
-  background: var(--surface-subtle);
+  border: 1.5px solid #E8E6ED;
+  border-radius: 999px;
+  background: #FAF9FB;
   cursor: pointer;
   font-size: 13px;
-  color: var(--secondary);
-  transition: border-color 0.15s ease, background 0.15s ease;
+  color: var(--secondary, #200B26);
+  transition: border-color 0.15s, background 0.15s;
 }
 
+/* Same as payment-tab: native input hidden, styled label is the control */
 .radio-pill input[type="radio"] {
   display: none;
 }
 
 .radio-pill:hover,
 .radio-pill--active {
-  border-color: var(--primary);
-  background: var(--primary-light);
+  border-color: var(--primary, #F25D27);
+  background: rgba(242, 93, 39, 0.04);
 }
 
-
-.livestock-input:focus {
-  outline: none;
-  box-shadow: none;
-  border-bottom: 1.5px solid var(--primary);
-  border-radius: 0;
-}
-
-/* SAVE ERROR */
-.save-error {
+/* ── SAVE ERROR BANNER ── */
+/* Shown when the API returns an error after the user clicks Register */
+.save-error-banner {
   padding: 12px 16px;
-  background: var(--danger-bg);
+  background: #fffafa;
   border: 1px solid #f09595;
-  border-radius: var(--radius-input);
-  color: var(--danger);
+  border-radius: 10px;
+  color: #b3261e;
   font-size: 13px;
+  margin-bottom: 20px;
 }
 
-/*BOTTOM NAV*/
-.form-nav {
+/* ── FORM ACTIONS ── */
+/* Cancel on the left, Register Farmer on the right */
+.form-actions {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-top: 32px;
-  padding-top: 24px;
-  border-top: 1px solid var(--border);
+  justify-content: flex-end;
+  gap: 12px;
 }
 
-.form-nav__right {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.btn-secondary {
+  background: #ffffff;
+  border: 1px solid #E8E6ED;
+  color: var(--secondary, #200B26);
+  font-family: var(--font-human, 'IBM Plex Sans', sans-serif);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 11px 22px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
 }
 
-/* LOADING */
+.btn-secondary:hover {
+  border-color: var(--primary, #F25D27);
+}
+
+/* ── LOADING STATE ── */
 .loading-hint {
   display: flex;
   align-items: center;
   gap: 10px;
   font-size: 13px;
-  color: var(--text-muted);
+  color: #6B6277;
   margin: 48px auto;
 }
 
+/* Pulsing dot gives visual feedback that something is loading */
 .loading-dot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: var(--primary);
+  background: var(--primary, #F25D27);
   animation: pulse 1.2s ease-in-out infinite;
 }
 
@@ -618,83 +454,48 @@
   50%       { opacity: 1;   transform: scale(1.1); }
 }
 
-/* RESPONSIVE */
+/* ── RESPONSIVE ── */
 @media (max-width: 720px) {
-  .page-shell {
-    padding: 0;
-    align-items: stretch;
-    background: var(--surface-card);
+  .onboarding-shell {
+    padding: 24px 16px 56px;
   }
 
-  .wizard-card {
+  /* Stack 4 cards into a single column */
+  .section-grid {
     grid-template-columns: 1fr;
-    border-radius: 0;
-    box-shadow: none;
-    min-height: 100vh;
   }
 
-  /* collapse stepper to a horizontal pill row on mobile */
-  .stepper-col {
+  /* In single column, every card is on the right edge — no right dividers needed */
+  .form-card {
     border-right: none;
-    border-bottom: 1px solid var(--border);
-    padding: 20px 20px 16px;
-    gap: 12px;
   }
 
-  .wizard-title,
-  .step-counter {
-    display: none;
+  /* nth-last-child(-n+2) removes the bottom border from cards 3 and 4 in a 2-column grid.
+     In a single column, only the very last card should lose its bottom border —
+     so restore it on the 3rd card (2nd from last in a 4-card set). */
+  .form-card:nth-last-child(2) {
+    border-bottom: 1px solid #E8E6ED;
   }
 
-  .step-list {
-    flex-direction: row;
-    gap: 0;
-  }
-
-  .step-list .step-item + .step-item::before {
-    display: none;
-  }
-
-  .step-item {
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    padding: 6px 4px;
-    flex: 1;
-  }
-
-  .step-label {
-    font-size: 9px;
-    text-align: center;
-  }
-
-  .step-bubble {
-    --step-size: 28px;
-    font-size: 11px;
-  }
-
-  .form-col {
-    padding: 28px 20px 24px;
-  }
-
-  .field-grid--2 {
+  /* Two-column field rows collapse to one column inside cards on small screens */
+  .field-row {
     grid-template-columns: 1fr;
   }
 
+  /* Payment tabs stack vertically too */
   .payment-tabs {
     grid-template-columns: 1fr;
   }
 
-  .livestock-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* Reverse order so the primary action is on top when stacked */
+  .form-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
   }
 
-  .photo-drop {
-    max-width: 100%;
-  }
-
-  .form-nav {
-    flex-wrap: wrap;
-    gap: 12px;
+  .form-actions app-button,
+  .form-actions .btn-secondary {
+    width: 100%;
+    text-align: center;
   }
 }

@@ -1,7 +1,9 @@
 import { CommonModule }            from '@angular/common';
-import { Component, OnInit }        from '@angular/core';
+import { Component }                from '@angular/core';
 import { FormsModule }              from '@angular/forms';
 import { ActivatedRoute, Router }   from '@angular/router';
+import { permissionGuard } from '../../../../core/guards/permission.guard';
+
 
 import { ButtonComponent }  from '../../../../shared/components/button/button.component';
 import { InputComponent }   from '../../../../shared/components/input/input.component';
@@ -23,7 +25,7 @@ interface WizardStep {
   templateUrl: './branch.farmer-register.component.html',
   styleUrl: './branch.farmer-register.component.css',
 })
-export class BranchFarmerRegisterComponent implements OnInit {
+export class BranchFarmerRegisterComponent {
 
   // WIZARD STEPS
   readonly steps: WizardStep[] = [
@@ -108,30 +110,31 @@ export class BranchFarmerRegisterComponent implements OnInit {
   // ─────────────────────────────────────────
   // LIFECYCLE
   // ─────────────────────────────────────────
-  ngOnInit(): void {
-    const role = this.session.userRole();
-    if (role && role !== 'branch') {
-      this.router.navigate(['/unauthorized']);
-      return;
-    }
+  // this method is to be uncommented when the permission guard is implemented and we want to enforce that only branch staff can access this page.
+  // ngOnInit(): void {
+  //   // const role = this.session.userRole();
+  //   // if (role && role !== 'branch') {
+  //   //   this.router.navigate(['/unauthorized']);
+  //   //   return;
+  //   // }
 
-    const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      this.isEditMode    = true;
-      this.farmerId      = id;
-      this.loadingFarmer = true;
-      this.farmerService.getById(id).subscribe({
-        next: profile => {
-          this.populateForm(profile);
-          this.loadingFarmer = false;
-        },
-        error: () => {
-          this.loadingFarmer = false;
-          this.saveError = 'Could not load farmer profile.';
-        },
-      });
-    }
-  }
+  //   const id = this.route.snapshot.paramMap.get('id');
+  //   if (id) {
+  //     this.isEditMode    = true;
+  //     this.farmerId      = id;
+  //     this.loadingFarmer = true;
+  //     this.farmerService.getById(id).subscribe({
+  //       next: profile => {
+  //         this.populateForm(profile);
+  //         this.loadingFarmer = false;
+  //       },
+  //       error: () => {
+  //         this.loadingFarmer = false;
+  //         this.saveError = 'Could not load farmer profile.';
+  //       },
+  //     });
+  //   }
+  // }
 
   // ─────────────────────────────────────────
   // STEP NAVIGATION
@@ -260,10 +263,7 @@ export class BranchFarmerRegisterComponent implements OnInit {
           if (!/^\d{12}$/.test(pm.bankAccountNumber))
             this.formErrors['bankAccountNumber'] = 'Must be exactly 12 digits.';
         }
-        if (pm.type === 'wendi_wallet') {
-          if (!/^\d{14}$/.test(pm.wendiWalletNumber))
-            this.formErrors['wendiWalletNumber'] = 'Must be exactly 14 digits.';
-        }
+        // wendi_wallet: no validation needed — number is auto-filled from phone on save
         break;
 
       // Step 3 (Production Details) has no required fields
@@ -305,10 +305,7 @@ export class BranchFarmerRegisterComponent implements OnInit {
       if (!/^\d{12}$/.test(pm.bankAccountNumber))
         this.formErrors['bankAccountNumber'] = 'Must be exactly 12 digits.';
     }
-    if (pm.type === 'wendi_wallet') {
-      if (!/^\d{14}$/.test(pm.wendiWalletNumber))
-        this.formErrors['wendiWalletNumber'] = 'Must be exactly 14 digits.';
-    }
+    // wendi_wallet: no validation needed — number is auto-filled from phone on save
 
     return Object.keys(this.formErrors).length === 0;
   }
@@ -323,8 +320,14 @@ export class BranchFarmerRegisterComponent implements OnInit {
   onSave(): void {
     if (!this.validateForm()) return;
 
+    // Both mobile money and Wendi wallet are tied to the farmer's phone number.
+    // We write the value here (not reactively in the template) so the model
+    // is always in sync with whatever phone number was entered at submit time.
     if (this.form.paymentMethod.type === 'mobile_money') {
       this.form.paymentMethod.mobileMoneyPhone = this.form.phoneNumber;
+    }
+    if (this.form.paymentMethod.type === 'wendi_wallet') {
+      this.form.paymentMethod.wendiWalletNumber = this.form.phoneNumber;
     }
 
     this.isSaving  = true;

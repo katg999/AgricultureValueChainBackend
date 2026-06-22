@@ -290,7 +290,8 @@
     <strong>{{ formValue.managerName }}</strong> as branch manager.
   </p>
   <p><strong>Continue?</strong></p>
-  <div class="modal-actions">
+  <!-- "footer" tells app-modal "I'm providing my own buttons — hide your built-in ones" -->
+  <div class="modal-actions" footer>
     <button type="button" class="btn-secondary" (click)="closeConfirmModal()" [disabled]="isLoading">
       Cancel
     </button>
