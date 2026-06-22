@@ -583,12 +583,16 @@ export class BranchDeliveryService {
   // Two different endpoints — the tenant interceptor handles the headers, not us.
   getDeliveries(): Observable<BranchDelivery[]> {
     const role = this.session.userRole();
+
     // Match both the short alias ('cooperative') and the JWT full name ('COOPERATIVE_ADMIN').
     const isCoopRole = role === 'cooperative' || role === 'COOPERATIVE_ADMIN';
-    const url = isCoopRole
-      ? API_ENDPOINTS.COOPERATIVE.COLLECTIONS
-      : API_ENDPOINTS.BRANCH.COLLECTIONS;
+
+    // Cooperative:  GET /cooperative/collections
+    // Branch:       GET /branch/collections
+    const url = isCoopRole ? API_ENDPOINTS.COOPERATIVE.COLLECTIONS : API_ENDPOINTS.BRANCH.COLLECTIONS;
+
     const snapshot = [...this.deliveries$.value];
+
     return this.http.get<BranchDelivery[]>(url).pipe(
       timeout(3000),
       tap(rows => this.deliveries$.next(rows)),
@@ -596,6 +600,7 @@ export class BranchDeliveryService {
       startWith(snapshot),
     );
   }
+
 
   getDeliveriesForBranch(branchId: string | null, branchName?: string | null): Observable<BranchDelivery[]> {
     return this.deliveries$.pipe(
@@ -619,19 +624,25 @@ export class BranchDeliveryService {
   }
 
   addDelivery(form: BranchDeliveryFormData): Observable<BranchDelivery> {
-    return this.http.post<BranchDelivery>(API_ENDPOINTS.BRANCH.COLLECTIONS, form).pipe(
+    // POST /branch/farmer-deliveries
+    return this.http.post<BranchDelivery>(API_ENDPOINTS.BRANCH.FARMER_DELIVERIES, form).pipe(
       timeout(2000),
       tap(d => this.deliveries$.next([...this.deliveries$.value, d])),
       catchError(() => of(this.addMock(form))),
     );
   }
 
+
   updateDelivery(id: string, form: BranchDeliveryFormData): Observable<BranchDelivery | null> {
     const rows = this.deliveries$.value;
     const idx = rows.findIndex(d => d.id === id);
     if (idx === -1) return of(null);
+
     const localUpdated: BranchDelivery = { ...rows[idx], ...form, updatedAt: new Date() };
-    return this.http.put<BranchDelivery>(API_ENDPOINTS.BRANCH.COLLECTION_BY_ID(id), form).pipe(
+
+    // PUT /branch/farmer-deliveries/{id}
+    return this.http.put<BranchDelivery>(API_ENDPOINTS.BRANCH.FARMER_DELIVERIES_BY_ID(id), form).pipe(
+
       timeout(2000),
       tap(updated => this.replaceAt(idx, updated)),
       catchError(() => {
@@ -641,8 +652,12 @@ export class BranchDeliveryService {
     );
   }
 
+
   deleteDelivery(id: string): Observable<void> {
-    return this.http.delete<void>(API_ENDPOINTS.BRANCH.COLLECTION_BY_ID(id)).pipe(
+    // DELETE /branch/farmer-deliveries/{id}
+    return this.http.delete<void>(API_ENDPOINTS.BRANCH.FARMER_DELIVERY_BY_ID(id)).pipe(
+
+
       timeout(2000),
       tap(() => this.deliveries$.next(this.deliveries$.value.filter(d => d.id !== id))),
       catchError(() => {
@@ -651,6 +666,7 @@ export class BranchDeliveryService {
       }),
     );
   }
+
 
   getSeasonOptions(): Season[] {
     return ['Wet Season', 'Dry Season'];

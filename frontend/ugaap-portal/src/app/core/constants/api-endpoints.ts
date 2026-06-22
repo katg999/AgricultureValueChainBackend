@@ -14,7 +14,7 @@ export const API_ENDPOINTS = {
   AUTH: {
     LOGIN: `${BASE}/auth/login`,
     LOGOUT: `${BASE}/auth/logout`,
-    VERIFY_OTP: `${BASE}/auth/verify-otp`,
+    VERIFY_OTP: `${BASE}/auth/login/verify-otp`,
     VERIFY_PASSWORD_RESET_OTP: `${BASE}/auth/password-reset/verify-otp`,
     REFRESH_TOKEN: `${BASE}/auth/refresh-token`,
     FORGOT_PASSWORD: `${BASE}/auth/password-reset/request`,
@@ -52,9 +52,12 @@ export const API_ENDPOINTS = {
     BRANCHES: `${BASE}/api/v1/cooperatives/branches`,
     BRANCH_BY_ID: (id: string) => `${BASE}/api/v1/cooperatives/branches/${id}`,
 
-    // Collections & Deliveries (Mapped to FarmerDeliveryController)
-    COLLECTIONS: `${BASE}/api/v1/deliveries/paginated`,
-    COLLECTION_BY_ID: (id: string) => `${BASE}/api/v1/deliveries/${id}`,
+    // Cooperative collections aggregation (Mapped to CooperativeCollectionController)
+    COLLECTIONS: `${BASE}/cooperative/collections`,
+
+    // Session/season configuration (Mapped to CooperativeCollectionController)
+    SESSION_CONFIG: `${BASE}/cooperative/session-config`,
+    SEASON_CONFIG: `${BASE}/cooperative/season-config`,
 
     PAYMENT_BATCHES: `${BASE}/api/v1/settlements/batches`, 
     PAYMENT_FARMERS: `${BASE}/api/v1/settlements/farmers`,
@@ -75,10 +78,6 @@ export const API_ENDPOINTS = {
     COLLECTION_HUB_ACTIVATE: (id: string) => `${BASE}/cooperative/collection-hubs/${id}/activate`,
     COLLECTION_HUB_DEACTIVATE: (id: string) =>
       `${BASE}/cooperative/collection-hubs/${id}/deactivate`,
-    // Delivery session-hours config (morning/midday/afternoon windows) — cooperative-wide
-    SESSION_CONFIG: `${BASE}/cooperative/session-config`,
-    // Season open/close status and month-range config — cooperative-wide
-    SEASON_CONFIG: `${BASE}/cooperative/season-config`,
   },
 
   // ── Branches Infrastructure ──────────────────────────────────────────────────
@@ -93,17 +92,22 @@ export const API_ENDPOINTS = {
     DASHBOARD: `${BASE}/api/v1/branches/dashboard`,
     DAILY_GRADING: `${BASE}/api/v1/branches/daily-grading`,
 
-    // Collections & Main Deliveries Page (FarmerDeliveryController)
-    COLLECTIONS: `${BASE}/api/v1/deliveries`, 
-    COLLECTION_BY_ID: (id: string) => `${BASE}/api/v1/deliveries/${id}`,
+    // Branch collections aggregation (Mapped to BranchCollectionController)
+    COLLECTIONS: `${BASE}/branch/collections`,
+
+    // Branch farmer delivery ledger entry CRUD (Mapped to BranchCollectionController)
+    FARMER_DELIVERIES: `${BASE}/branch/farmer-deliveries`,
+    FARMER_DELIVERY_BY_ID: (id: string) => `${BASE}/branch/farmer-deliveries/${id}`,
+    // Backward-compat alias (some components/services may reference this old key)
+    FARMER_DELIVERIES_BY_ID: (id: string) => `${BASE}/branch/farmer-deliveries/${id}`,
+
 
     // Farmer Registry Lookup (FarmerController)
     FARMERS: `${BASE}/api/v1/farmers/search`,
     FARMER_BY_ID: (id: string) => `${BASE}/api/v1/farmers/${id}`,
 
-    // Farmer-level delivery tracking entries
-    FARMER_DELIVERIES: `${BASE}/api/v1/deliveries`,
-    FARMER_DELIVERY_BY_ID: (id: string) => `${BASE}/api/v1/deliveries/${id}`,
+    // Branch-level farmer-deliveries listing (Mapped to BranchCollectionController)
+    // (This reuses the same endpoint as FARMER_DELIVERIES with GET semantics)
 
     // Branch Inventory Hooks (Prepared for INVENTORY-SERVICE)
     INVENTORY: `${BASE}/api/v1/inventory/branch`,

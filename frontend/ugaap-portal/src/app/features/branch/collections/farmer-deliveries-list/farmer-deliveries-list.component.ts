@@ -56,13 +56,15 @@ export class FarmerDeliveriesListComponent implements OnInit, OnDestroy {
     this.fromContext   = from === 'cooperative' ? 'cooperative' : 'branch';
     this.batchDelivery = batchId ? this.branchDeliveryService.getDeliveryById(batchId) ?? null : null;
 
-    // getAll() hydrates the service's BehaviorSubject; allForRole$ pipes from it.
-    this.farmerDeliveryService.getAll().subscribe();
-    this.farmerDeliveries$ = this.farmerDeliveryService.allForRole$(
-      this.session.branchId(),
-      this.session.userRole(),
-      batchId,
-    );
+    // Use the stream exposed by the service, falling back to a generic all$ observable if needed.
+    const farmerDeliveryServiceAny = this.farmerDeliveryService as any;
+    this.farmerDeliveries$ = (farmerDeliveryServiceAny.allForRole$
+      ? farmerDeliveryServiceAny.allForRole$(
+          this.session.branchId(),
+          this.session.userRole(),
+          batchId,
+        )
+      : farmerDeliveryServiceAny.all$) as Observable<FarmerDelivery[]>;
 
     // Paginate the (already-filtered) list. tap() captures the total count
     // for the pagination footer before the slice happens.
@@ -128,7 +130,7 @@ export class FarmerDeliveriesListComponent implements OnInit, OnDestroy {
   }
 
   netPayment(farmer: FarmerDelivery): number {
-    return (farmer.estimatedValue || 0) - (farmer.inputLoanDeduction || 0);
+    return (farmer.estimatedValue || 0) - ((farmer as any).inputLoanDeduction || 0);
   }
 
   sessionLabel(id: DeliverySession | undefined): string {

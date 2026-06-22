@@ -102,7 +102,11 @@ public class AuthService {
     private boolean hasKey(String key) {
         if (redisTemplate != null) {
             try {
+<<<<<<< Updated upstream
                 return Boolean.TRUE.equals(redisTemplate.hasKey(key));
+=======
+                return redisTemplate.hasKey(key);
+>>>>>>> Stashed changes
             } catch (Exception e) {
                 log.warn("Redis unavailable, checking in-memory store: {}", e.getMessage());
             }
@@ -442,12 +446,20 @@ public class AuthService {
                               AuditLog.EventType eventType,
                               String ip, String userAgent,
                               boolean success, String failureReason) {
+        UUID performedBy = userId != null ? userId : UUID.fromString("00000000-0000-0000-0000-000000000000");
         auditLogRepository.save(AuditLog.builder()
                 .action(eventType.name())
+<<<<<<< Updated upstream
                 .entityId(userId != null ? userId : UUID.fromString("00000000-0000-0000-0000-000000000000"))
                 .entityType("USER")
                 .performedAt(LocalDateTime.now())
                 .performedBy(userId != null ? userId : UUID.fromString("00000000-0000-0000-0000-000000000000"))
+=======
+                .entityId(performedBy)
+                .entityType("USER")
+                .performedAt(LocalDateTime.now())
+                .performedBy(performedBy)
+>>>>>>> Stashed changes
                 .eventType(eventType)
                 .success(success)
                 .clientId(userId)
@@ -472,7 +484,10 @@ public class AuthService {
 
 
 
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 //package com.ugaap.authentication.service;
 //
 //import com.ugaap.authentication.Entity.AuditLog;
@@ -497,7 +512,10 @@ public class AuthService {
 //
 //import java.security.SecureRandom;
 //import java.time.LocalDateTime;
+<<<<<<< Updated upstream
 //import java.util.List;
+=======
+>>>>>>> Stashed changes
 //import java.util.UUID;
 //import java.util.concurrent.TimeUnit;
 //
@@ -560,7 +578,11 @@ public class AuthService {
 //        credentials.setLastLoginAt(LocalDateTime.now());
 //        credentialsRepository.save(credentials);
 //
+<<<<<<< Updated upstream
 //        // 5. Generate 6-digit OTP
+=======
+//        // 5. Generate 4-digit OTP
+>>>>>>> Stashed changes
 //        String otp = String.format("%04d", new SecureRandom().nextInt(10000));
 //
 //        // 6. Generate tempToken (UUID)
@@ -897,6 +919,7 @@ public class AuthService {
 //                              AuditLog.EventType eventType,
 //                              String ip, String userAgent,
 //                              boolean success, String failureReason) {
+<<<<<<< Updated upstream
 //        auditLogRepository.save(AuditLog.builder()
 //                .action(eventType.name())        // NOT NULL
 //                .entityId(userId != null ? userId : UUID.fromString("00000000-0000-0000-0000-000000000000"))
@@ -905,6 +928,17 @@ public class AuthService {
 //                .performedBy(userId != null ? userId : UUID.fromString("00000000-0000-0000-0000-000000000000"))
 //                .eventType(eventType)            // NOT NULL
 //                .success(success)                // NOT NULL
+=======
+//        UUID entityId = userId != null ? userId : UUID.fromString("00000000-0000-0000-0000-000000000000");
+//        auditLogRepository.save(AuditLog.builder()
+//                .action(eventType.name())
+//                .entityId(entityId)
+//                .entityType("USER")
+//                .performedAt(LocalDateTime.now())
+//                .performedBy(entityId)
+//                .eventType(eventType)
+//                .success(success)
+>>>>>>> Stashed changes
 //                .clientId(userId)
 //                .email(email)
 //                .ipAddress(ip)
