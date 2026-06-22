@@ -8,7 +8,8 @@ import { ALL_DELIVERY_SESSIONS, BranchDelivery, BranchDeliveryFormData, Delivery
 
 @Injectable({ providedIn: 'root' })
 export class BranchDeliveryService {
-  private nextId = 21;
+  // Start after the highest seed id (BD-038) so programmatic adds never collide.
+  private nextId = 39;
 
   private readonly seed: BranchDelivery[] = [
     // ── Wet Season ──────────────────────────────────────────────────────────
@@ -297,6 +298,279 @@ export class BranchDeliveryService {
       createdAt: new Date('2025-10-17'),
       updatedAt: new Date('2025-10-17'),
     },
+
+    // ── Extra batches for all non-MBL branches — gives the cooperative view
+    //    realistic cross-branch data (2 deliveries each, mixed season & status).
+
+    // Kampala Central (BR-KLA)
+    {
+      id: 'BD-021',
+      branchId: 'BR-KLA',
+      branchName: 'Kampala Central',
+      farmerCount: 7,
+      commodity: 'Beans',
+      volume: 11000,
+      estimatedValue: 24200000,
+      status: 'Approved',
+      season: 'Dry Season',
+      session: 'afternoon',
+      createdAt: new Date('2025-06-04'),
+      updatedAt: new Date('2025-06-05'),
+    },
+    {
+      id: 'BD-022',
+      branchId: 'BR-KLA',
+      branchName: 'Kampala Central',
+      farmerCount: 5,
+      commodity: 'Coffee',
+      volume: 2100,
+      estimatedValue: 12600000,
+      status: 'Pending',
+      season: 'Dry Season',
+      session: 'morning',
+      createdAt: new Date('2025-07-14'),
+      updatedAt: new Date('2025-07-14'),
+    },
+
+    // Jinja East (BR-JIN)
+    {
+      id: 'BD-023',
+      branchId: 'BR-JIN',
+      branchName: 'Jinja East',
+      farmerCount: 6,
+      commodity: 'Maize',
+      volume: 9800,
+      estimatedValue: 24500000,
+      status: 'Approved',
+      season: 'Dry Season',
+      session: 'midday',
+      createdAt: new Date('2025-06-11'),
+      updatedAt: new Date('2025-06-12'),
+    },
+    {
+      id: 'BD-024',
+      branchId: 'BR-JIN',
+      branchName: 'Jinja East',
+      farmerCount: 4,
+      commodity: 'Tea',
+      volume: 5200,
+      estimatedValue: 13000000,
+      status: 'Pending',
+      season: 'Wet Season',
+      session: 'afternoon',
+      createdAt: new Date('2025-08-01'),
+      updatedAt: new Date('2025-08-01'),
+    },
+
+    // Mbarara South (BR-MBA)
+    {
+      id: 'BD-025',
+      branchId: 'BR-MBA',
+      branchName: 'Mbarara South',
+      farmerCount: 7,
+      commodity: 'Maize',
+      volume: 13500,
+      estimatedValue: 33750000,
+      status: 'Approved',
+      season: 'Dry Season',
+      session: 'morning',
+      createdAt: new Date('2025-06-18'),
+      updatedAt: new Date('2025-06-19'),
+    },
+    {
+      id: 'BD-026',
+      branchId: 'BR-MBA',
+      branchName: 'Mbarara South',
+      farmerCount: 3,
+      commodity: 'Coffee',
+      volume: 1800,
+      estimatedValue: 10800000,
+      status: 'Rejected',
+      season: 'Wet Season',
+      session: 'afternoon',
+      createdAt: new Date('2025-08-12'),
+      updatedAt: new Date('2025-08-13'),
+    },
+
+    // Gulu North (BR-GUL)
+    {
+      id: 'BD-027',
+      branchId: 'BR-GUL',
+      branchName: 'Gulu North',
+      farmerCount: 5,
+      commodity: 'Maize',
+      volume: 8200,
+      estimatedValue: 20500000,
+      status: 'Approved',
+      season: 'Wet Season',
+      session: 'morning',
+      createdAt: new Date('2025-06-25'),
+      updatedAt: new Date('2025-06-26'),
+    },
+    {
+      id: 'BD-028',
+      branchId: 'BR-GUL',
+      branchName: 'Gulu North',
+      farmerCount: 4,
+      commodity: 'Sunflower',
+      volume: 3900,
+      estimatedValue: 7800000,
+      status: 'Pending',
+      season: 'Dry Season',
+      session: 'midday',
+      createdAt: new Date('2025-09-08'),
+      updatedAt: new Date('2025-09-08'),
+    },
+
+    // Fort Portal West (BR-FTP)
+    {
+      id: 'BD-029',
+      branchId: 'BR-FTP',
+      branchName: 'Fort Portal West',
+      farmerCount: 6,
+      commodity: 'Maize',
+      volume: 10200,
+      estimatedValue: 25500000,
+      status: 'Approved',
+      season: 'Dry Season',
+      session: 'afternoon',
+      createdAt: new Date('2025-07-02'),
+      updatedAt: new Date('2025-07-03'),
+    },
+    {
+      id: 'BD-030',
+      branchId: 'BR-FTP',
+      branchName: 'Fort Portal West',
+      farmerCount: 5,
+      commodity: 'Coffee',
+      volume: 2600,
+      estimatedValue: 15600000,
+      status: 'Pending',
+      season: 'Wet Season',
+      session: 'morning',
+      createdAt: new Date('2025-09-15'),
+      updatedAt: new Date('2025-09-15'),
+    },
+
+    // Adjumani East (BR-ADJ)
+    {
+      id: 'BD-031',
+      branchId: 'BR-ADJ',
+      branchName: 'Adjumani East',
+      farmerCount: 5,
+      commodity: 'Sesame',
+      volume: 4400,
+      estimatedValue: 13200000,
+      status: 'Approved',
+      season: 'Dry Season',
+      session: 'midday',
+      createdAt: new Date('2025-07-09'),
+      updatedAt: new Date('2025-07-10'),
+    },
+    {
+      id: 'BD-032',
+      branchId: 'BR-ADJ',
+      branchName: 'Adjumani East',
+      farmerCount: 3,
+      commodity: 'Beans',
+      volume: 5800,
+      estimatedValue: 14500000,
+      status: 'Pending',
+      season: 'Wet Season',
+      session: 'afternoon',
+      createdAt: new Date('2025-10-02'),
+      updatedAt: new Date('2025-10-02'),
+    },
+
+    // Kiboga Central (BR-KIB)
+    {
+      id: 'BD-033',
+      branchId: 'BR-KIB',
+      branchName: 'Kiboga Central',
+      farmerCount: 7,
+      commodity: 'Maize',
+      volume: 14000,
+      estimatedValue: 35000000,
+      status: 'Approved',
+      season: 'Wet Season',
+      session: 'morning',
+      createdAt: new Date('2025-07-16'),
+      updatedAt: new Date('2025-07-17'),
+    },
+    {
+      id: 'BD-034',
+      branchId: 'BR-KIB',
+      branchName: 'Kiboga Central',
+      farmerCount: 4,
+      commodity: 'Beans',
+      volume: 7200,
+      estimatedValue: 18000000,
+      status: 'Pending',
+      season: 'Dry Season',
+      session: 'midday',
+      createdAt: new Date('2025-09-22'),
+      updatedAt: new Date('2025-09-22'),
+    },
+
+    // Lira Town (BR-LIR)
+    {
+      id: 'BD-035',
+      branchId: 'BR-LIR',
+      branchName: 'Lira Town',
+      farmerCount: 5,
+      commodity: 'Millet',
+      volume: 7800,
+      estimatedValue: 11700000,
+      status: 'Approved',
+      season: 'Wet Season',
+      session: 'afternoon',
+      createdAt: new Date('2025-07-23'),
+      updatedAt: new Date('2025-07-24'),
+    },
+    {
+      id: 'BD-036',
+      branchId: 'BR-LIR',
+      branchName: 'Lira Town',
+      farmerCount: 6,
+      commodity: 'Maize',
+      volume: 9400,
+      estimatedValue: 23500000,
+      status: 'Pending',
+      season: 'Dry Season',
+      session: 'morning',
+      createdAt: new Date('2025-10-09'),
+      updatedAt: new Date('2025-10-09'),
+    },
+
+    // Mbale East (BR-MBA2)
+    {
+      id: 'BD-037',
+      branchId: 'BR-MBA2',
+      branchName: 'Mbale East',
+      farmerCount: 6,
+      commodity: 'Maize',
+      volume: 11200,
+      estimatedValue: 28000000,
+      status: 'Approved',
+      season: 'Wet Season',
+      session: 'midday',
+      createdAt: new Date('2025-07-30'),
+      updatedAt: new Date('2025-07-31'),
+    },
+    {
+      id: 'BD-038',
+      branchId: 'BR-MBA2',
+      branchName: 'Mbale East',
+      farmerCount: 5,
+      commodity: 'Beans',
+      volume: 8600,
+      estimatedValue: 21500000,
+      status: 'Pending',
+      season: 'Dry Season',
+      session: 'afternoon',
+      createdAt: new Date('2025-10-24'),
+      updatedAt: new Date('2025-10-24'),
+    },
   ];
 
   private readonly deliveries$ = new BehaviorSubject<BranchDelivery[]>([...this.seed]);
@@ -309,10 +583,16 @@ export class BranchDeliveryService {
   // Two different endpoints — the tenant interceptor handles the headers, not us.
   getDeliveries(): Observable<BranchDelivery[]> {
     const role = this.session.userRole();
-    const url = role === 'cooperative_admin'
-      ? API_ENDPOINTS.COOPERATIVE.COLLECTIONS
-      : API_ENDPOINTS.BRANCH.COLLECTIONS;
+
+    // Match both the short alias ('cooperative') and the JWT full name ('COOPERATIVE_ADMIN').
+    const isCoopRole = role === 'cooperative' || role === 'COOPERATIVE_ADMIN';
+
+    // Cooperative:  GET /cooperative/collections
+    // Branch:       GET /branch/collections
+    const url = isCoopRole ? API_ENDPOINTS.COOPERATIVE.COLLECTIONS : API_ENDPOINTS.BRANCH.COLLECTIONS;
+
     const snapshot = [...this.deliveries$.value];
+
     return this.http.get<BranchDelivery[]>(url).pipe(
       timeout(3000),
       tap(rows => this.deliveries$.next(rows)),
@@ -321,10 +601,14 @@ export class BranchDeliveryService {
     );
   }
 
+
   getDeliveriesForBranch(branchId: string | null, branchName?: string | null): Observable<BranchDelivery[]> {
     return this.deliveries$.pipe(
       map(deliveries => {
-        if (!branchId && !branchName) return deliveries;
+        // Guard: no branch context at all → return nothing rather than leaking
+        // every branch's data.  This happens when a cooperative_admin user
+        // navigates to a branch route that doesn't belong to them.
+        if (!branchId && !branchName) return [];
         const normalizedName = branchName?.trim().toLowerCase();
         return deliveries.filter(d =>
           (branchId && this.branchIdMatches(d.branchId, branchId)) ||
@@ -340,19 +624,25 @@ export class BranchDeliveryService {
   }
 
   addDelivery(form: BranchDeliveryFormData): Observable<BranchDelivery> {
-    return this.http.post<BranchDelivery>(API_ENDPOINTS.BRANCH.COLLECTIONS, form).pipe(
+    // POST /branch/farmer-deliveries
+    return this.http.post<BranchDelivery>(API_ENDPOINTS.BRANCH.FARMER_DELIVERIES, form).pipe(
       timeout(2000),
       tap(d => this.deliveries$.next([...this.deliveries$.value, d])),
       catchError(() => of(this.addMock(form))),
     );
   }
 
+
   updateDelivery(id: string, form: BranchDeliveryFormData): Observable<BranchDelivery | null> {
     const rows = this.deliveries$.value;
     const idx = rows.findIndex(d => d.id === id);
     if (idx === -1) return of(null);
+
     const localUpdated: BranchDelivery = { ...rows[idx], ...form, updatedAt: new Date() };
-    return this.http.put<BranchDelivery>(API_ENDPOINTS.BRANCH.COLLECTION_BY_ID(id), form).pipe(
+
+    // PUT /branch/farmer-deliveries/{id}
+    return this.http.put<BranchDelivery>(API_ENDPOINTS.BRANCH.FARMER_DELIVERIES_BY_ID(id), form).pipe(
+
       timeout(2000),
       tap(updated => this.replaceAt(idx, updated)),
       catchError(() => {
@@ -362,8 +652,12 @@ export class BranchDeliveryService {
     );
   }
 
+
   deleteDelivery(id: string): Observable<void> {
-    return this.http.delete<void>(API_ENDPOINTS.BRANCH.COLLECTION_BY_ID(id)).pipe(
+    // DELETE /branch/farmer-deliveries/{id}
+    return this.http.delete<void>(API_ENDPOINTS.BRANCH.FARMER_DELIVERY_BY_ID(id)).pipe(
+
+
       timeout(2000),
       tap(() => this.deliveries$.next(this.deliveries$.value.filter(d => d.id !== id))),
       catchError(() => {
@@ -372,6 +666,7 @@ export class BranchDeliveryService {
       }),
     );
   }
+
 
   getSeasonOptions(): Season[] {
     return ['Wet Season', 'Dry Season'];

@@ -23,19 +23,24 @@ public class AuthController {
     private final OtpService otpService;
 
 
-
-
-    // POST /auth/login
+    // Step 1: validate credentials, send OTP
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LoginResponse>> login(
+    public ResponseEntity<ApiResponse<TempTokenResponse>> login(
             @Valid @RequestBody LoginRequest request,
             HttpServletRequest httpRequest) {
-
-        LoginResponse response = authService.login(request, httpRequest);
-        return ResponseEntity.ok(
-                ApiResponse.ok("Login successful", response));
+        TempTokenResponse response = authService.loginStep1(request, httpRequest);
+        return ResponseEntity.ok(ApiResponse.ok("OTP sent to your email", response));
     }
 
+
+    // Step 2: verify OTP, get full tokens
+    @PostMapping("/login/verify-otp")
+    public ResponseEntity<ApiResponse<LoginResponse>> verifyLoginOtp(
+            @Valid @RequestBody OtpVerifyRequest request,
+            HttpServletRequest httpRequest) {
+        LoginResponse response = authService.loginStep2(request, httpRequest);
+        return ResponseEntity.ok(ApiResponse.ok("Login successful", response));
+    }
     // POST /auth/logout
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(
@@ -59,21 +64,31 @@ public class AuthController {
     }
 
 
-    // GET /password-reset/request
-
+    // Step 1 — user submits email or phone → OTP sent
     @PostMapping("/password-reset/request")
-    public ResponseEntity<ApiResponse<Void>> requestOtp(@Valid @RequestBody OtpRequest.Request request) {
+    public ResponseEntity<ApiResponse<Void>> requestPasswordReset(
+            @Valid @RequestBody OtpRequest.Request request) {
         otpService.generateAndSendOtp(request.getEmail());
-        return ResponseEntity.ok(ApiResponse.ok("OTP sent to your email", null));
+        return ResponseEntity.ok(ApiResponse.ok("OTP sent to your registered email", null));
     }
 
-    // POST /password-reset/verify
-    @PostMapping("/password-reset/verify")
-    public ResponseEntity<ApiResponse<Void>> verifyOtp(@Valid @RequestBody OtpRequest.Verify request) {
-        otpService.verifyAndResetPassword(request.getEmail(), request.getOtp(), request.getNewPassword());
+    // Step 2 — user submits OTP → get verifiedToken back
+    @PostMapping("/password-reset/verify-otp")
+    public ResponseEntity<ApiResponse<PasswordResetVerifyResponse>> verifyPasswordResetOtp(
+            @Valid @RequestBody OtpRequest.Verify request) {
+        String verifiedToken = otpService.verifyOtp(request.getEmail(), request.getOtp());
+        return ResponseEntity.ok(ApiResponse.ok("OTP verified",
+                new PasswordResetVerifyResponse(verifiedToken)));
+    }
+
+
+    // Step 3 — user submits new password with verifiedToken
+    @PostMapping("/password-reset/set-password")
+    public ResponseEntity<ApiResponse<Void>> setNewPassword(
+            @Valid @RequestBody SetNewPasswordRequest request) {
+        otpService.resetPassword(request.getVerifiedToken(), request.getNewPassword());
         return ResponseEntity.ok(ApiResponse.ok("Password reset successful", null));
     }
-
 
 
     private String extractBearerToken(HttpServletRequest request) {

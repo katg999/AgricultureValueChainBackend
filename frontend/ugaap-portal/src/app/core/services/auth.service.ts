@@ -39,10 +39,21 @@ export class AuthService {
     );
   }
 
-  verifyOtp(payload: OtpVerifyRequest): Observable<OtpVerifyResponse> {
-    return this.http.post<OtpVerifyResponse>(API_ENDPOINTS.AUTH.VERIFY_OTP, payload).pipe(
+  verifyLoginOtp(payload: { tempToken: string; otp: string }): Observable<any> {
+    return this.http.post<any>(API_ENDPOINTS.AUTH.VERIFY_OTP, payload).pipe(
       tap((res) => {
-        this.session.setSession(res.accessToken, res.refreshToken, res.user);
+        const data = res?.data;
+        if (data?.accessToken) {
+          this.session.clearTempToken();
+          this.session.setSession(data.accessToken, data.refreshToken, {
+            id: data.userId,
+            fullName: data.username,
+            email: data.email,
+            phone: '',
+            role: data.roles?.[0] ?? '',
+            permissions: [],
+          });
+        }
       }),
     );
   }

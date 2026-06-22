@@ -5,9 +5,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
 } from '@angular/core';
-
 import { CommonModule } from '@angular/common';
-
 import {
   ReactiveFormsModule,
   FormBuilder,
@@ -17,22 +15,18 @@ import {
   ValidatorFn,
   ValidationErrors,
 } from '@angular/forms';
-
 import { ActivatedRoute, Router } from '@angular/router';
-import { SessionService } from '../../../../core/services/session.service';
-import { DeliverySessionConfigService } from '../../../../core/services/delivery-session-config.service';
-import { AlertComponent } from '../../../../shared/components/alert/alert.component';
-
-import { Subject } from 'rxjs';
+import { Subject, merge, EMPTY } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-// DELIVERY SERVICE
-
+import { SessionService } from '../../../../core/services/session.service';
+import { DeliverySessionConfigService } from '../../../../core/services/delivery-session-config.service';
+import { SeasonConfigService } from '../../../../core/services/season-config.service';
+import { AlertComponent } from '../../../../shared/components/alert/alert.component';
 import { FarmerDeliveryService } from '../farmer.delivery.service';
-import { DeliverySession, FarmerDelivery, FarmerDeliveryFormData } from '../farmer.delivery.model';
-import { ALL_DELIVERY_SESSIONS, Season } from '../branch.delivery.model';
-
-// MODELS
+import { FarmerDelivery } from '../farmer.delivery.model';
+import { ALL_DELIVERY_SESSIONS, DeliverySession, Season } from '../branch.delivery.model';
+import { CooperativePricingService, GradeOption } from '../../../../core/services/cooperative-pricing.service';
 
 export interface Farmer {
   id: string;
@@ -40,14 +34,9 @@ export interface Farmer {
   phone: string;
   branch: string;
   currentSeason: Season;
-  /** Optional — the farmer's last delivery may predate the session field, or come from a backend response that doesn't include it yet. */
   currentSession?: DeliverySession;
 }
 
-export type FarmerMode = 'search' | 'manual';
-
-// Maps a FarmerDelivery's branchId to the display name shown in the Branch
-// dropdown — keeps the farmer search registry and the dropdown in sync.
 const BRANCH_NAMES: Record<string, string> = {
   'BR-KLA': 'Kampala Central',
   'BR-JIN': 'Jinja East',
@@ -61,145 +50,110 @@ const BRANCH_NAMES: Record<string, string> = {
   'BR-MBA2': 'Mbale East',
 };
 
-// CUSTOM VALIDATORS
-
 export function ugandaPhoneValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
-
     if (!control.value) return null;
-
     const cleaned = String(control.value).replace(/\s/g, '');
-
     const valid = /^(07\d{8}|\+2567\d{8})$/.test(cleaned);
-
-    return valid
-      ? null
-      : { invalidPhone: true };
-  };
-}
-
-export function farmerIdFormatValidator(): ValidatorFn {
-  return (control: AbstractControl): ValidationErrors | null => {
-
-    if (!control.value) return null;
-
-    const valid = /^UG-F-\d{5}$/.test(
-      String(control.value).trim()
-    );
-
-    return valid
-      ? null
-      : { invalidFarmerId: true };
+    return valid ? null : { invalidPhone: true };
   };
 }
 
 export function positiveNumberValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
-
     const val = parseFloat(control.value);
-
-    if (isNaN(val) || val <= 0) {
-      return { notPositive: true };
-    }
-
+    if (isNaN(val) || val <= 0) return { notPositive: true };
     return null;
   };
 }
 
-// COMPONENT
-
 @Component({
   selector: 'app-farmer-delivery',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    AlertComponent,
-  ],
+  imports: [CommonModule, ReactiveFormsModule, AlertComponent],
   templateUrl: './farmer-delivery.component.html',
   styleUrls: ['./farmer-delivery.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class FarmerDeliveriesComponent
-implements OnInit, OnDestroy {
-
-  // FORM STATE
-
+export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
   deliveryForm!: FormGroup;
-
-  farmerMode: FarmerMode = 'search';
-
   selectedFarmer: Farmer | null = null;
 
-  filteredFarmers: Farmer[] = [];
   allFarmers: Farmer[] = [];
-
+  filteredFarmers: Farmer[] = [];
   showDropdown = false;
 
-  estValueDisplay = '—';
-
   submitted = false;
-
   isSaving = false;
-
   successMessage = '';
-
   errorMessage = '';
-
-  redirectProgress = 0;
-
   formSubmitAttempted = false;
-
-  // REFERENCE DATA
+  useGrades = false;
 
   readonly branches = Object.values(BRANCH_NAMES);
-
   readonly commodities = [
-    'Maize',
-    'Coffee',
-    'Beans',
-    'Rice',
-    'Sunflower',
-    'Cassava',
+    'Maize', 'Coffee', 'Beans', 'Rice',
+    'Sunflower', 'Cassava', 'Tea', 'Sesame',
+    'Vanilla', 'Sorghum', 'Millet',
   ];
-
   readonly seasonOptions: Season[] = ['Wet Season', 'Dry Season'];
 
-  // This page only ever creates new deliveries (never edits), so every session
-  // whose window has passed for today is dropped from the options outright.
-  // Hours come from the cooperative's configured session windows, not a fixed default.
   get sessionOptions(): DeliverySession[] {
     return ALL_DELIVERY_SESSIONS.filter(s => !this.sessionConfig.isSessionPassed(s));
+  }
+
+  get isSeasonBlocked(): boolean {
+    return !this.seasonConfig.isDeliveryAllowed();
+  }
+
+  get isSessionBlocked(): boolean {
+    return this.sessionOptions.length === 0;
+  }
+
+  get isFormBlocked(): boolean {
+    return this.isSeasonBlocked || this.isSessionBlocked;
+  }
+
+  get gradeOptions(): GradeOption[] {
+    return this.pricingService.gradeOptions;
   }
 
   private readonly destroy$ = new Subject<void>();
 
   constructor(
-    private fb: FormBuilder,
-    private router: Router,
-    private route: ActivatedRoute,
-    private cdr: ChangeDetectorRef,
-    private deliveryService: FarmerDeliveryService,
-    private session: SessionService,
-    private sessionConfig: DeliverySessionConfigService,
+    private readonly fb: FormBuilder,
+    private readonly router: Router,
+    private readonly route: ActivatedRoute,
+    private readonly cdr: ChangeDetectorRef,
+    private readonly deliveryService: FarmerDeliveryService,
+    private readonly session: SessionService,
+    private readonly sessionConfig: DeliverySessionConfigService,
+    private readonly seasonConfig: SeasonConfigService,
+    public readonly pricingService: CooperativePricingService,
   ) {}
-
-  // LIFECYCLE
 
   ngOnInit(): void {
     this.buildForm();
-    this.applyModeValidators();
+
+    this.pricingService.useGrades$.pipe(takeUntil(this.destroy$)).subscribe(v => {
+      this.useGrades = v;
+      this.updateGradeValidators();
+      this.cdr.markForCheck();
+    });
+
     this.watchValueChanges();
 
-    // Farmer search draws on every farmer already seeded in FarmerDeliveryService,
-    // rather than a separate hand-maintained list — keeps the two from drifting apart.
-    this.deliveryService.getAll()
+    this.deliveryService.deliveries$
       .pipe(takeUntil(this.destroy$))
       .subscribe(records => {
-        this.allFarmers = this.buildFarmerRegistry(records);
-        this.filteredFarmers = [...this.allFarmers];
-        this.cdr.markForCheck();
+        if (records && records.length > 0) {
+          this.allFarmers = this.buildFarmerRegistry(records);
+          this.cdr.markForCheck();
+        }
       });
+
+    // Make an initial paginated request to populate the reactive cache store
+    this.deliveryService.getPaginated(0, 50).pipe(takeUntil(this.destroy$)).subscribe();
   }
 
   ngOnDestroy(): void {
@@ -207,174 +161,102 @@ implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  // FORM
-
   private buildForm(): void {
-
     this.deliveryForm = this.fb.group({
-
-      farmerSearch: [''],
-
-      farmerName: [''],
-
-      farmerId: [
-        '',
-        [farmerIdFormatValidator()],
-      ],
-
-      manualPhone: [
-        '',
-        [ugandaPhoneValidator()],
-      ],
-
-      phone: [
-        '',
-        [ugandaPhoneValidator()],
-      ],
-
-      branch: [
-        BRANCH_NAMES[this.session.branchId() ?? ''] ?? '',
-        Validators.required,
-      ],
-
-      batch: [''],
-
-      commodity: [
-        '',
-        Validators.required,
-      ],
-
-      volume: [
-        null,
-        [
-          Validators.required,
-          positiveNumberValidator(),
-        ],
-      ],
-
-      unitPrice: [
-        null,
-        [
-          Validators.required,
-          positiveNumberValidator(),
-        ],
-      ],
-
+      farmerSearch: ['', Validators.required],
+      phone: ['', [ugandaPhoneValidator()]],
+      branch: [BRANCH_NAMES[this.session.branchId() ?? ''] ?? '', Validators.required],
+      commodity: ['', Validators.required],
+      grade: [''],
+      volume: [null, [Validators.required, positiveNumberValidator()]],
+      volumeUnit: ['KG'],
+      unitPrice: [{ value: null, disabled: true }],
+      estimatedValue: [{ value: null, disabled: true }],
       notes: [''],
-
-      season: [
-        'Wet Season',
-        Validators.required,
-      ],
-
-      session: [
-        this.sessionOptions[0],
-        Validators.required,
-      ],
+      season: [this.seasonConfig.activeSeason() ?? 'Wet Season', Validators.required],
+      session: [this.sessionOptions[0] ?? null],
     });
+  }
+
+  private updateGradeValidators(): void {
+    const gradeCtrl = this.deliveryForm?.get('grade');
+    if (!gradeCtrl) return;
+
+    if (this.useGrades) {
+      gradeCtrl.setValidators([Validators.required]);
+    } else {
+      gradeCtrl.clearValidators();
+      gradeCtrl.setValue('', { emitEvent: false });
+    }
+    gradeCtrl.updateValueAndValidity({ emitEvent: false });
   }
 
   private buildFarmerRegistry(records: FarmerDelivery[]): Farmer[] {
-    return records.map(r => ({
-      id: r.farmerId,
-      name: r.farmerName,
-      phone: r.phone,
-      branch: BRANCH_NAMES[r.branchId ?? ''] ?? '',
-      currentSeason: r.season,
-      currentSession: r.session,
-    }));
-  }
-
-  setFarmerMode(mode: FarmerMode): void {
-    this.farmerMode = mode;
-    this.clearFarmer();
-    this.deliveryForm.patchValue({
-      farmerSearch: '',
-      farmerName: '',
-      farmerId: '',
-      manualPhone: '',
-      phone: '',
-    });
-    this.applyModeValidators();
-    this.deliveryForm.updateValueAndValidity();
-    this.cdr.markForCheck();
-  }
-
-  private applyModeValidators(): void {
-    const farmerSearch = this.deliveryForm.get('farmerSearch');
-    const farmerName = this.deliveryForm.get('farmerName');
-    const manualPhone = this.deliveryForm.get('manualPhone');
-    const phone = this.deliveryForm.get('phone');
-
-    farmerSearch?.clearValidators();
-    farmerName?.clearValidators();
-    manualPhone?.setValidators([ugandaPhoneValidator()]);
-    phone?.setValidators([ugandaPhoneValidator()]);
-
-    if (this.farmerMode === 'search') {
-      farmerSearch?.setValidators([Validators.required]);
-      phone?.setValidators([Validators.required, ugandaPhoneValidator()]);
-    } else {
-      farmerName?.setValidators([Validators.required]);
-      manualPhone?.setValidators([Validators.required, ugandaPhoneValidator()]);
-    }
-
-    farmerSearch?.updateValueAndValidity({ emitEvent: false });
-    farmerName?.updateValueAndValidity({ emitEvent: false });
-    manualPhone?.updateValueAndValidity({ emitEvent: false });
-    phone?.updateValueAndValidity({ emitEvent: false });
+    const seen = new Set<string>();
+    return records.reduce<Farmer[]>((acc, r) => {
+      if (r.farmerId && !seen.has(r.farmerId)) {
+        seen.add(r.farmerId);
+        acc.push({
+          id: r.farmerId,
+          name: r.farmerName,
+          phone: r.notes || '', // Fallback fallback mappings safely match model options
+          branch: BRANCH_NAMES[this.session.branchId() ?? ''] ?? '',
+          currentSeason: r.season as Season,
+          currentSession: r.session as DeliverySession,
+        });
+      }
+      return acc;
+    }, []);
   }
 
   private watchValueChanges(): void {
-
-    this.deliveryForm
-      .get('volume')
-      ?.valueChanges
+    this.deliveryForm.get('volume')?.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => this.calcEstValue());
 
-    this.deliveryForm
-      .get('unitPrice')
-      ?.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => this.calcEstValue());
+    merge(
+      this.deliveryForm.get('commodity')?.valueChanges ?? EMPTY,
+      this.deliveryForm.get('grade')?.valueChanges ?? EMPTY,
+    ).pipe(takeUntil(this.destroy$))
+      .subscribe(() => this.updateUnitPrice());
   }
 
-  // FARMER SEARCH
+  private updateUnitPrice(): void {
+    const commodity = this.deliveryForm.get('commodity')?.value ?? '';
+    const gradeCode = this.deliveryForm.get('grade')?.value ?? '';
+    const branchId = this.session.branchId() ?? '';
+
+    const price = commodity
+      ? this.pricingService.getUnitPrice(branchId, commodity, this.useGrades ? gradeCode : undefined)
+      : 0;
+
+    this.deliveryForm.patchValue({ unitPrice: price || null }, { emitEvent: false });
+    this.calcEstValue();
+    this.cdr.markForCheck();
+  }
 
   onFarmerSearch(event: Event): void {
-
-    const query = (event.target as HTMLInputElement)
-      .value
-      .toLowerCase()
-      .trim();
+    const query = (event.target as HTMLInputElement).value.toLowerCase().trim();
 
     if (!query) {
       this.filteredFarmers = [];
       this.showDropdown = false;
+      this.cdr.markForCheck();
       return;
     }
 
     this.filteredFarmers = this.allFarmers.filter(
-      f =>
-        f.name.toLowerCase().includes(query) ||
-        f.id.toLowerCase().includes(query) ||
-        f.phone.includes(query)
+      f => f.name.toLowerCase().includes(query) ||
+           f.id.toLowerCase().includes(query)
     );
-
-    this.showDropdown = this.filteredFarmers.length > 0;
-
+    this.showDropdown = true;
     this.cdr.markForCheck();
   }
 
   selectFarmer(farmer: Farmer): void {
-
     this.selectedFarmer = farmer;
-
     this.showDropdown = false;
 
-    // The farmer's last recorded session may be missing (older/partial record) or no
-    // longer open today — fall back to whatever's still available in either case.
     const session = farmer.currentSession && this.sessionOptions.includes(farmer.currentSession)
       ? farmer.currentSession
       : this.sessionOptions[0];
@@ -386,135 +268,12 @@ implements OnInit, OnDestroy {
       season: farmer.currentSeason,
       session,
     });
-
     this.cdr.markForCheck();
   }
 
   clearFarmer(): void {
-
     this.selectedFarmer = null;
-
-    this.deliveryForm.patchValue({
-      farmerSearch: '',
-      phone: '',
-      branch: '',
-    });
-
-    this.cdr.markForCheck();
-  }
-
-  // ESTIMATED VALUE
-
-  calcEstValue(): void {
-
-    const volume =
-      parseFloat(this.deliveryForm.get('volume')?.value) || 0;
-
-    const unitPrice =
-      parseFloat(this.deliveryForm.get('unitPrice')?.value) || 0;
-
-    const total = volume * unitPrice;
-
-    this.estValueDisplay =
-      total > 0
-        ? total.toLocaleString('en-UG')
-        : '—';
-
-    this.cdr.markForCheck();
-  }
-
-  // SUBMIT
-
-  onSubmit(): void {
-
-    this.formSubmitAttempted = true;
-
-    if (this.farmerMode === 'search' && !this.selectedFarmer) {
-      this.deliveryForm.get('farmerSearch')?.setErrors({ farmerRequired: true });
-    }
-
-    if (this.deliveryForm.invalid) {
-
-      this.deliveryForm.markAllAsTouched();
-
-      return;
-    }
-
-    this.isSaving = true;
-
-    this.errorMessage = '';
-
-    this.cdr.markForCheck();
-
-    const payload = this.buildPayload();
-
-    this.deliveryService
-      .add(payload)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-
-        next: () => {
-          this.onSaveSuccess(payload);
-        },
-
-        error: (err: unknown) => {
-          this.onSaveError(err);
-        },
-      });
-  }
-
-  private buildPayload(): FarmerDeliveryFormData {
-    const v = this.deliveryForm.value;
-    const volume = parseFloat(v.volume);
-    const unitPrice = parseFloat(v.unitPrice);
-    const farmerId = this.selectedFarmer?.id || v.farmerId || this.generateFarmerId();
-
-    return {
-      branchDeliveryId: v.batch || this.route.snapshot.paramMap.get('id') || undefined,
-      branchId:         this.session.branchId() ?? undefined,
-      farmerId,
-      farmerName: this.selectedFarmer?.name || v.farmerName,
-      phone: this.selectedFarmer?.phone || v.manualPhone || v.phone,
-      commodity: v.commodity,
-      volume,
-      estimatedValue: volume * unitPrice,
-      notes: v.notes || '',
-      status: 'Pending',
-      season: v.season,
-      session: v.session,
-    };
-  }
-
-  // SUCCESS / ERROR
-
-  private onSaveSuccess(payload: FarmerDeliveryFormData): void {
-
-    this.isSaving = false;
-
-    this.submitted = true;
-
-    this.successMessage =
-      `Delivery for ${payload.farmerName} saved successfully`;
-
-    this.cdr.markForCheck();
-
-    setTimeout(() => {
-      this.goToBranchDeliveries();
-    }, 1500);
-  }
-
-  private onSaveError(err: unknown): void {
-
-    this.isSaving = false;
-
-    console.error(
-      '[FarmerDeliveries] Save failed:',
-      err
-    );
-
-    this.errorMessage =
-      'Failed to save farmer delivery. Please try again.';
-
+    this.deliveryForm.patchValue({ farmerSearch: '', phone: '', branch: '' });
     this.cdr.markForCheck();
   }
 
@@ -526,30 +285,89 @@ implements OnInit, OnDestroy {
   }
 
   getInitials(name: string): string {
-    return name
-      .trim()
-      .split(/\s+/)
-      .slice(0, 2)
-      .map(part => part.charAt(0).toUpperCase())
-      .join('');
+    return name.trim().split(/\s+/).slice(0, 2)
+      .map(w => w.charAt(0).toUpperCase()).join('');
   }
 
-  // NAVIGATION
+  calcEstValue(): void {
+    const volume = parseFloat(this.deliveryForm.get('volume')?.value) || 0;
+    const unitPrice = parseFloat(this.deliveryForm.getRawValue().unitPrice) || 0;
+    const gross = volume * unitPrice;
+
+    this.deliveryForm.patchValue({ estimatedValue: gross > 0 ? gross : null });
+    this.cdr.markForCheck();
+  }
+
+  onSubmit(): void {
+    this.formSubmitAttempted = true;
+
+    if (this.isSeasonBlocked) {
+      this.errorMessage = 'No active season is currently open. Recording blocked.';
+      this.cdr.markForCheck();
+      return;
+    }
+
+    if (this.isSessionBlocked) {
+      this.errorMessage = 'All delivery windows for today have passed.';
+      this.cdr.markForCheck();
+      return;
+    }
+
+    if (!this.selectedFarmer) {
+      this.deliveryForm.get('farmerSearch')?.setErrors({ farmerRequired: true });
+    }
+
+    if (this.deliveryForm.invalid) {
+      this.deliveryForm.markAllAsTouched();
+      this.cdr.markForCheck();
+      return;
+    }
+
+    this.isSaving = true;
+    this.errorMessage = '';
+    this.cdr.markForCheck();
+
+    const payload = this.buildPayload();
+
+    // Directly calling the new clean .create DTO alignment method
+    this.deliveryService.create(payload)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => this.onSaveSuccess(payload.farmerName),
+        error: (err: any) => this.onSaveError(err),
+      });
+  }
+
+  private buildPayload() {
+    const v = this.deliveryForm.getRawValue();
+    return {
+      farmerName: this.selectedFarmer?.name || v.farmerSearch,
+      commodity: v.commodity,
+      volume: parseFloat(v.volume),
+      season: v.season,
+      session: v.session || undefined,
+      notes: v.notes || '',
+    };
+  }
+
+  private onSaveSuccess(farmerName: string): void {
+    this.isSaving = false;
+    this.submitted = true;
+    this.successMessage = `Delivery for ${farmerName} logged successfully to the ledger.`;
+    this.cdr.markForCheck();
+    setTimeout(() => this.goToBranchDeliveries(), 1500);
+  }
+
+  private onSaveError(err: any): void {
+    this.isSaving = false;
+    console.error('[FarmerDeliveries] Save execution failed:', err);
+    // Explicitly unmask the error message returned from Spring Boot validation filters
+    this.errorMessage = err.error?.message || 'Failed to record entry. Please check server connections and retry.';
+    this.cdr.markForCheck();
+  }
 
   goToBranchDeliveries(): void {
-
-    this.router.navigate([
-      '/branch/collections/deliveries',
-    ]);
-  }
-
-  // HELPERS
-
-  private generateFarmerId(): string {
-
-    const seq = String(Date.now()).slice(-5);
-
-    return `UG-F-${seq}`;
+    this.router.navigate(['/branch/collections/deliveries']);
   }
 
   sessionLabel(id: DeliverySession | undefined): string {
@@ -557,17 +375,555 @@ implements OnInit, OnDestroy {
   }
 
   isFieldInvalid(controlName: string): boolean {
-
     const ctrl = this.deliveryForm.get(controlName);
-
     if (!ctrl) return false;
-
-    return ctrl.invalid &&
-      (
-        ctrl.touched ||
-        this.formSubmitAttempted
-      );
+    return ctrl.invalid && (ctrl.touched || this.formSubmitAttempted);
   }
 }
 
 export { FarmerDeliveriesComponent as AddFarmerDeliveryComponent };
+
+
+// ============================================================================
+
+// import {
+//   Component,
+//   OnInit,
+//   OnDestroy,
+//   ChangeDetectionStrategy,
+//   ChangeDetectorRef,
+// } from '@angular/core';
+
+// import { CommonModule } from '@angular/common';
+
+// import {
+//   ReactiveFormsModule,
+//   FormBuilder,
+//   FormGroup,
+//   Validators,
+//   AbstractControl,
+//   ValidatorFn,
+//   ValidationErrors,
+// } from '@angular/forms';
+
+// import { ActivatedRoute, Router } from '@angular/router';
+// import { Subject, merge, EMPTY } from 'rxjs';
+// import { takeUntil } from 'rxjs/operators';
+
+// import { SessionService } from '../../../../core/services/session.service';
+// import { DeliverySessionConfigService } from '../../../../core/services/delivery-session-config.service';
+// import { SeasonConfigService } from '../../../../core/services/season-config.service';
+// import { AlertComponent } from '../../../../shared/components/alert/alert.component';
+// import { FarmerDeliveryService } from '../farmer.delivery.service';
+// import { DeliverySession, FarmerDelivery, FarmerDeliveryFormData, SaveFarmerDeliveryPayload } from '../farmer.delivery.model';
+// import { ALL_DELIVERY_SESSIONS, Season } from '../branch.delivery.model';
+// import { CooperativePricingService, GradeOption } from '../../../../core/services/cooperative-pricing.service';
+
+// // ── Farmer model (used by the autocomplete dropdown) ──────────────────────────
+
+// // A lightweight view of a registered farmer — built from delivery records.
+// // Enough info to display in the dropdown and pre-fill the form.
+// export interface Farmer {
+//   id: string;
+//   name: string;
+//   phone: string;
+//   branch: string;
+//   currentSeason: Season;
+//   currentSession?: DeliverySession;
+// }
+
+// // Maps branch IDs (from SessionService) to readable names for the Branch field.
+// const BRANCH_NAMES: Record<string, string> = {
+//   'BR-KLA': 'Kampala Central',
+//   'BR-JIN': 'Jinja East',
+//   'BR-MBA': 'Mbarara South',
+//   'BR-FTP': 'Fort Portal West',
+//   'BR-ADJ': 'Adjumani East',
+//   'BR-GUL': 'Gulu North',
+//   'BR-MBL': 'Mbale West',
+//   'BR-KIB': 'Kiboga Central',
+//   'BR-LIR': 'Lira Town',
+//   'BR-MBA2': 'Mbale East',
+// };
+
+// // ── Custom validators ─────────────────────────────────────────────────────────
+
+// export function ugandaPhoneValidator(): ValidatorFn {
+//   return (control: AbstractControl): ValidationErrors | null => {
+//     if (!control.value) return null;
+//     const cleaned = String(control.value).replace(/\s/g, '');
+//     const valid = /^(07\d{8}|\+2567\d{8})$/.test(cleaned);
+//     return valid ? null : { invalidPhone: true };
+//   };
+// }
+
+// export function positiveNumberValidator(): ValidatorFn {
+//   return (control: AbstractControl): ValidationErrors | null => {
+//     const val = parseFloat(control.value);
+//     if (isNaN(val) || val <= 0) return { notPositive: true };
+//     return null;
+//   };
+// }
+
+// // ── Component ─────────────────────────────────────────────────────────────────
+
+// @Component({
+//   selector: 'app-farmer-delivery',
+//   standalone: true,
+//   imports: [CommonModule, ReactiveFormsModule, AlertComponent],
+//   templateUrl: './farmer-delivery.component.html',
+//   styleUrls: ['./farmer-delivery.component.css'],
+//   changeDetection: ChangeDetectionStrategy.OnPush,
+// })
+// export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
+
+//   // ── Form state ────────────────────────────────────────────────────────────
+
+//   deliveryForm!: FormGroup;
+
+//   // The farmer selected from the autocomplete — required before submission.
+//   selectedFarmer: Farmer | null = null;
+
+//   // The full list of farmers loaded from the registry; filteredFarmers is a subset.
+//   allFarmers: Farmer[] = [];
+//   filteredFarmers: Farmer[] = [];
+//   showDropdown = false;
+
+//   submitted    = false;
+//   isSaving     = false;
+//   successMessage  = '';
+//   errorMessage    = '';
+//   redirectProgress = 0;
+//   formSubmitAttempted = false;
+
+//   // Tracks the cooperative's grade toggle so the template can show/hide the grade field.
+//   useGrades = false;
+
+//   // ── Reference data ─────────────────────────────────────────────────────────
+
+//   readonly branches = Object.values(BRANCH_NAMES);
+
+//   readonly commodities = [
+//     'Maize', 'Coffee', 'Beans', 'Rice',
+//     'Sunflower', 'Cassava', 'Tea', 'Sesame',
+//     'Vanilla', 'Sorghum', 'Millet',
+//   ];
+
+//   readonly seasonOptions: Season[] = ['Wet Season', 'Dry Season'];
+
+//   // Only sessions whose time window hasn't passed today are offered.
+//   get sessionOptions(): DeliverySession[] {
+//     return ALL_DELIVERY_SESSIONS.filter(s => !this.sessionConfig.isSessionPassed(s));
+//   }
+
+//   // True when no season is open — blocks the entire form.
+//   get isSeasonBlocked(): boolean {
+//     return !this.seasonConfig.isDeliveryAllowed();
+//   }
+
+//   // True when all today's sessions have closed — blocks submit independently of season.
+//   get isSessionBlocked(): boolean {
+//     return this.sessionOptions.length === 0;
+//   }
+
+//   get isFormBlocked(): boolean {
+//     return this.isSeasonBlocked || this.isSessionBlocked;
+//   }
+
+//   // Exposed for the template's *ngFor on the grade dropdown.
+//   get gradeOptions(): GradeOption[] {
+//     return this.pricingService.gradeOptions;
+//   }
+
+//   private readonly destroy$ = new Subject<void>();
+
+//   constructor(
+//     private fb: FormBuilder,
+//     private router: Router,
+//     private route: ActivatedRoute,
+//     private cdr: ChangeDetectorRef,
+//     private deliveryService: FarmerDeliveryService,
+//     private session: SessionService,
+//     private sessionConfig: DeliverySessionConfigService,
+//     private seasonConfig: SeasonConfigService,
+//     // Public so the template can call pricingService.useGrades directly if needed.
+//     public pricingService: CooperativePricingService,
+//   ) {}
+
+//   // ── Lifecycle ──────────────────────────────────────────────────────────────
+
+//   ngOnInit(): void {
+//     this.buildForm();
+
+//     // Subscribe to the cooperative-wide grade toggle so the grade field
+//     // appears / disappears immediately if an admin changes it elsewhere.
+//     this.pricingService.useGrades$.pipe(takeUntil(this.destroy$)).subscribe(v => {
+//       this.useGrades = v;
+//       this.updateGradeValidators();
+//       this.cdr.markForCheck();
+//     });
+
+//     this.watchValueChanges();
+
+//     // Populate the farmer autocomplete from the existing delivery registry.
+//     // Using delivery records as the registry keeps farmer names/IDs in sync
+//     // without needing a separate farmers endpoint right now.
+//     this.deliveryService.getAll()
+//       .pipe(takeUntil(this.destroy$))
+//       .subscribe(records => {
+//         this.allFarmers = this.buildFarmerRegistry(records);
+//         this.cdr.markForCheck();
+//       });
+//   }
+
+//   ngOnDestroy(): void {
+//     this.destroy$.next();
+//     this.destroy$.complete();
+//   }
+
+//   // ── Form ───────────────────────────────────────────────────────────────────
+
+//   private buildForm(): void {
+//     this.deliveryForm = this.fb.group({
+
+//       // farmerSearch drives the autocomplete input; the actual farmer object
+//       // is stored in this.selectedFarmer — both must be set before submission.
+//       farmerSearch: ['', Validators.required],
+
+//       // Auto-populated from the selected farmer — not editable.
+//       phone:  ['', [ugandaPhoneValidator()]],
+//       branch: [BRANCH_NAMES[this.session.branchId() ?? ''] ?? '', Validators.required],
+
+//       commodity: ['', Validators.required],
+
+//       // Grade is only required when the cooperative has grade mode ON.
+//       // Validators are added/removed reactively in updateGradeValidators().
+//       grade: [''],
+
+//       volume:     [null, [Validators.required, positiveNumberValidator()]],
+//       volumeUnit: ['KG'],
+
+//       // unitPrice is auto-filled from CooperativePricingService when commodity/grade change.
+//       // estimatedValue (= gross) is unitPrice × volume, also auto-computed.
+//       unitPrice:      [{ value: null, disabled: true }],
+//       estimatedValue: [{ value: null, disabled: true }],
+
+//       notes:  [''],
+//       // Auto-filled from whichever season the cooperative has currently opened.
+//       season: [this.seasonConfig.activeSeason() ?? 'Wet Season', Validators.required],
+//       session: [this.sessionOptions[0] ?? null],
+//     });
+//   }
+
+//   // Adds/removes Validators.required on the grade control based on the mode.
+//   // Called on init and whenever the cooperative toggles the grade switch.
+//   private updateGradeValidators(): void {
+//     const gradeCtrl = this.deliveryForm?.get('grade');
+//     if (!gradeCtrl) return;
+
+//     if (this.useGrades) {
+//       gradeCtrl.setValidators([Validators.required]);
+//     } else {
+//       gradeCtrl.clearValidators();
+//       gradeCtrl.setValue('', { emitEvent: false });
+//     }
+//     gradeCtrl.updateValueAndValidity({ emitEvent: false });
+//   }
+
+//   // Builds a deduplicated list of farmers from delivery records.
+//   // Uses farmerId as the deduplication key so the same farmer appears only once.
+//   private buildFarmerRegistry(records: FarmerDelivery[]): Farmer[] {
+//     const seen = new Set<string>();
+//     return records.reduce<Farmer[]>((acc, r) => {
+//       if (!seen.has(r.farmerId)) {
+//         seen.add(r.farmerId);
+//         acc.push({
+//           id: r.farmerId,
+//           name: r.farmerName,
+//           phone: r.phone,
+//           branch: BRANCH_NAMES[r.branchId ?? ''] ?? '',
+//           currentSeason: r.season,
+//           currentSession: r.session,
+//         });
+//       }
+//       return acc;
+//     }, []);
+//   }
+
+//   private watchValueChanges(): void {
+//     // Recompute gross value whenever volume changes.
+//     this.deliveryForm.get('volume')?.valueChanges
+//       .pipe(takeUntil(this.destroy$))
+//       .subscribe(() => this.calcEstValue());
+
+//     // Recompute unit price (and then gross) whenever commodity OR grade changes.
+//     // merge() lets us watch both controls with one subscription.
+//     merge(
+//       this.deliveryForm.get('commodity')?.valueChanges ?? EMPTY,
+//       this.deliveryForm.get('grade')?.valueChanges    ?? EMPTY,
+//     ).pipe(takeUntil(this.destroy$))
+//       .subscribe(() => this.updateUnitPrice());
+//   }
+
+//   // ── Unit price auto-population ─────────────────────────────────────────────
+
+//   // Called whenever commodity or grade changes.
+//   // Asks CooperativePricingService for the current price and patches the form.
+//   private updateUnitPrice(): void {
+//     const commodity  = this.deliveryForm.get('commodity')?.value ?? '';
+//     const gradeCode  = this.deliveryForm.get('grade')?.value ?? '';
+//     const branchId   = this.session.branchId() ?? '';
+
+//     const price = commodity
+//       ? this.pricingService.getUnitPrice(branchId, commodity, this.useGrades ? gradeCode : undefined)
+//       : 0;
+
+//     // patchValue on a disabled control requires {emitEvent: false} to avoid loops.
+//     this.deliveryForm.patchValue({ unitPrice: price || null }, { emitEvent: false });
+//     this.calcEstValue();
+//     this.cdr.markForCheck();
+//   }
+
+//   // ── Farmer search autocomplete ─────────────────────────────────────────────
+
+//   onFarmerSearch(event: Event): void {
+//     const query = (event.target as HTMLInputElement).value.toLowerCase().trim();
+
+//     if (!query) {
+//       this.filteredFarmers = [];
+//       this.showDropdown = false;
+//       this.cdr.markForCheck();
+//       return;
+//     }
+
+//     // Match on name, farmer ID, or phone number.
+//     this.filteredFarmers = this.allFarmers.filter(
+//       f => f.name.toLowerCase().includes(query) ||
+//            f.id.toLowerCase().includes(query) ||
+//            f.phone.includes(query)
+//     );
+//     this.showDropdown = true;
+//     this.cdr.markForCheck();
+//   }
+
+//   selectFarmer(farmer: Farmer): void {
+//     this.selectedFarmer = farmer;
+//     this.showDropdown   = false;
+
+//     // Prefer the farmer's last session if it's still open today, otherwise fall back.
+//     const session = farmer.currentSession && this.sessionOptions.includes(farmer.currentSession)
+//       ? farmer.currentSession
+//       : this.sessionOptions[0];
+
+//     this.deliveryForm.patchValue({
+//       farmerSearch: `${farmer.name} (${farmer.id})`,
+//       phone:  farmer.phone,
+//       branch: farmer.branch,
+//       season: farmer.currentSeason,
+//       session,
+//     });
+//     this.cdr.markForCheck();
+//   }
+
+//   clearFarmer(): void {
+//     this.selectedFarmer = null;
+//     this.deliveryForm.patchValue({ farmerSearch: '', phone: '', branch: '' });
+//     this.cdr.markForCheck();
+//   }
+
+//   onSearchBlur(): void {
+//     // Delay so mousedown on a dropdown option fires before the dropdown hides.
+//     setTimeout(() => {
+//       this.showDropdown = false;
+//       this.cdr.markForCheck();
+//     }, 150);
+//   }
+
+//   getInitials(name: string): string {
+//     return name.trim().split(/\s+/).slice(0, 2)
+//       .map(w => w.charAt(0).toUpperCase()).join('');
+//   }
+
+//   // ── Gross value calculation ────────────────────────────────────────────────
+
+//   calcEstValue(): void {
+//     const volume    = parseFloat(this.deliveryForm.get('volume')?.value) || 0;
+//     const unitPrice = parseFloat(this.deliveryForm.getRawValue().unitPrice) || 0;
+//     const gross     = volume * unitPrice;
+
+//     this.deliveryForm.patchValue({ estimatedValue: gross > 0 ? gross : null });
+//     this.cdr.markForCheck();
+//   }
+
+//   // ── Submit ─────────────────────────────────────────────────────────────────
+//   private createPayload(): SaveFarmerDeliveryPayload {
+//   // getRawValue() is required here — .value skips disabled controls (estimatedValue, unitPrice)
+//   const v = this.deliveryForm.getRawValue();
+
+//   const grossValue = parseFloat(v.estimatedValue) || 0;
+//   const deductionValue = 0; // no deduction field on this form yet; reserved for future input-loan recovery
+//   const finalNetValue = grossValue - deductionValue;
+
+//   return {
+//     branch: BRANCH_NAMES[this.session.branchId() ?? ''] ?? '',
+//     commodity: v.commodity || '',
+//     farmerId: this.selectedFarmer?.id ?? '',
+//     farmerName: this.selectedFarmer?.name ?? '',
+//     quantityDelivered: parseFloat(v.volume) || 0,
+//     unitOfMeasure: v.volumeUnit || 'Kg', // form control is named volumeUnit, not unitOfMeasure
+//     estimatedDeliveryValue: grossValue,
+//     totalValue: finalNetValue,
+//     inputValueUgx: deductionValue,
+//     status: 'Pending',
+//     season: v.season || '',
+//     session: v.session || '',
+//   };
+// }
+
+//   // ── Submit ─────────────────────────────────────────────────────────────────
+
+//   // onSubmit(): void {
+//   //   this.formSubmitAttempted = true;
+
+//   //   // Hard-block: cooperative admin must open a season before any delivery can be saved.
+//   //   if (this.isSeasonBlocked) {
+//   //     this.errorMessage = 'No season is currently open. A cooperative admin must open a season before deliveries can be recorded.';
+//   //     this.cdr.markForCheck();
+//   //     return;
+//   //   }
+
+//   //   // Hard-block: all sessions for today have closed.
+//   //   if (this.isSessionBlocked) {
+//   //     this.errorMessage = 'All sessions for today have closed. New deliveries can be recorded again tomorrow.';
+//   //     this.cdr.markForCheck();
+//   //     return;
+//   //   }
+
+//   //   // A farmer must be selected from the dropdown — typing alone isn't enough.
+//   //   if (!this.selectedFarmer) {
+//   //     this.deliveryForm.get('farmerSearch')?.setErrors({ farmerRequired: true });
+//   //   }
+
+//   //   if (this.deliveryForm.invalid) {
+//   //     this.deliveryForm.markAllAsTouched();
+//   //     return;
+//   //   }
+
+//   //   this.isSaving = true;
+//   //   this.errorMessage = '';
+//   //   this.cdr.markForCheck();
+
+//   //   const payload = this.buildPayload();
+
+//   //   this.deliveryService.add(payload)
+//   //     .pipe(takeUntil(this.destroy$))
+//   //     .subscribe({
+//   //       next: () => this.onSaveSuccess(payload),
+//   //       error: (err: unknown) => this.onSaveError(err),
+//   //     });
+//   // }
+  
+//   onSubmit(): void {
+//     this.formSubmitAttempted = true;
+
+//     // Hard-block: cooperative admin must open a season before any delivery can be saved.
+//     if (this.isSeasonBlocked) {
+//       this.errorMessage = 'No season is currently open. A cooperative admin must open a season before deliveries can be recorded.';
+//       this.cdr.markForCheck();
+//       return;
+//     }
+
+//     // Hard-block: all sessions for today have closed.
+//     if (this.isSessionBlocked) {
+//       this.errorMessage = 'All sessions for today have closed. New deliveries can be recorded again tomorrow.';
+//       this.cdr.markForCheck();
+//       return;
+//     }
+
+//     // A farmer must be selected from the dropdown — typing alone isn't enough.
+//     if (!this.selectedFarmer) {
+//       this.deliveryForm.get('farmerSearch')?.setErrors({ farmerRequired: true });
+//     }
+
+//     if (this.deliveryForm.invalid) {
+//       this.deliveryForm.markAllAsTouched();
+//       return;
+//     }
+
+//     this.isSaving = true;
+//     this.errorMessage = '';
+//     this.cdr.markForCheck();
+
+//     const payload = this.buildPayload();
+
+//     this.deliveryService.add(payload)
+//       .pipe(takeUntil(this.destroy$))
+//       .subscribe({
+//         next: () => this.onSaveSuccess(payload),
+//         error: (err: unknown) => this.onSaveError(err),
+//       });
+//   }
+
+//   private buildPayload(): FarmerDeliveryFormData {
+//     const v        = this.deliveryForm.getRawValue(); // getRawValue includes disabled controls
+//     const grade    = this.useGrades ? v.grade : undefined;
+//     const gradeName = grade
+//       ? this.pricingService.gradeOptions.find(g => g.code === grade)?.name
+//       : undefined;
+
+//     return {
+//       branchDeliveryId: v.batch || this.route.snapshot.paramMap.get('id') || undefined,
+//       branchId:         this.session.branchId() ?? undefined,
+//       farmerId:         this.selectedFarmer!.id,
+//       farmerName:       this.selectedFarmer!.name,
+//       phone:            this.selectedFarmer!.phone,
+//       commodity:        v.commodity,
+//       volume:           parseFloat(v.volume),
+//       unitPrice:        parseFloat(v.unitPrice) || undefined,
+//       estimatedValue:   parseFloat(v.estimatedValue) || 0,
+//       grade,
+//       gradeName,
+//       notes:   v.notes || '',
+//       status:  'Pending',
+//       season:  v.season,
+//       session: v.session,
+//     };
+//   }
+
+//   // ── Save success / error ────────────────────────────────────────────────────
+
+//   private onSaveSuccess(payload: FarmerDeliveryFormData): void {
+//     this.isSaving  = false;
+//     this.submitted = true;
+//     this.successMessage = `Delivery for ${payload.farmerName} saved successfully`;
+//     this.cdr.markForCheck();
+//     setTimeout(() => this.goToBranchDeliveries(), 1500);
+//   }
+
+//   private onSaveError(err: unknown): void {
+//     this.isSaving = false;
+//     console.error('[FarmerDeliveries] Save failed:', err);
+//     this.errorMessage = 'Failed to save farmer delivery. Please try again.';
+//     this.cdr.markForCheck();
+//   }
+
+//   // ── Navigation ─────────────────────────────────────────────────────────────
+
+//   goToBranchDeliveries(): void {
+//     this.router.navigate(['/branch/collections/deliveries']);
+//   }
+
+//   // ── Helpers ────────────────────────────────────────────────────────────────
+
+//   sessionLabel(id: DeliverySession | undefined): string {
+//     return this.sessionConfig.getLabel(id);
+//   }
+
+//   isFieldInvalid(controlName: string): boolean {
+//     const ctrl = this.deliveryForm.get(controlName);
+//     if (!ctrl) return false;
+//     return ctrl.invalid && (ctrl.touched || this.formSubmitAttempted);
+//   }
+// }
+
+// export { FarmerDeliveriesComponent as AddFarmerDeliveryComponent };

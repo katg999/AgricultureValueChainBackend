@@ -46,9 +46,12 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/auth/login",
                                 "/auth/register",
+                                "/auth/login/verify-otp",
                                 "/auth/refresh",
                                 "/auth/password-reset/**",
-                                "/internal/**",        // guarded by InternalApiKeyFilter, not JWT
+                                "/auth/password-reset/verify-otp",
+                                "/auth/password-reset/set-password",
+                                "/internal/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/actuator/**",

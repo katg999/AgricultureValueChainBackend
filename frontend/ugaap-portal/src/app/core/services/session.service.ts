@@ -11,6 +11,7 @@ const DEV_MOCK_USER: AuthUser = {
   role: 'cooperative_admin',
   tenantId: 'dev-tenant',
   cooperativeId: 'COOP-001',
+  branchId: 'BR-MBL', // Mbale West — has the most seed delivery data
   permissions: [],
 };
 
@@ -167,7 +168,6 @@ export class SessionService {
     this.router.navigate(['/auth/login']);
   }
 
-  //  Private helpers
   clearTempToken(): void {
     sessionStorage.removeItem(KEYS.TEMP_TOKEN);
   }

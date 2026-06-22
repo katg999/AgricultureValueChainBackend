@@ -82,7 +82,13 @@
           </ng-container>
 
           <tr *ngIf="filteredBatches.length === 0">
-            <td colspan="9" class="empty-state">No batches match the selected filters.</td>
+            <td colspan="9">
+              <app-empty-state
+                icon="wallet"
+                title="No payment batches"
+                message="Payment batches created at branches will appear here.">
+              </app-empty-state>
+            </td>
           </tr>
         </tbody>
       </table>

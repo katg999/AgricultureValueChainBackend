@@ -7,12 +7,13 @@ import { BehaviorSubject, combineLatest, map, Observable, Subject, takeUntil } f
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
+import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { FarmerListItem, FarmerService } from '../../../shared-farmer-domain/farmer.service';
 
 @Component({
   selector: 'app-branch.farmer-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonComponent, InputComponent, StatCardComponent],
+  imports: [CommonModule, FormsModule, ButtonComponent, InputComponent, StatCardComponent, EmptyStateComponent],
   templateUrl: './branch.farmer-list.component.html',
   styleUrl: './branch.farmer-list.component.css',
 })
@@ -81,7 +82,7 @@ export class BranchFarmerListComponent implements OnInit, OnDestroy {
   }
 
   onAddFarmer(): void {
-    this.router.navigate(['../register'], { relativeTo: this.route }).then((success) => {
+    this.router.navigate(['./register'], { relativeTo: this.route }).then((success) => {
       console.log('Navigation result:', success);
       console.log('Current URL after nav:', this.router.url);
     });

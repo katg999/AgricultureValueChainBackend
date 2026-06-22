@@ -1,20 +1,21 @@
-import { Component, HostListener, OnInit, OnDestroy } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { BehaviorSubject, combineLatest, map, Observable, shareReplay, Subject, takeUntil, tap } from 'rxjs';
-import { BranchDelivery, BranchDeliveryFormData, DeliverySession, DeliveryStatus, Season } from '../../../branch/collections/branch.delivery.model';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { BehaviorSubject, combineLatest, map, Observable, shareReplay, tap } from 'rxjs';
+import { BranchDelivery, DeliverySession, DeliveryStatus, Season } from '../../../branch/collections/branch.delivery.model';
 import { BranchDeliveryService } from '../../../branch/collections/branch.delivery.service';
 import { DeliverySessionConfigService } from '../../../../core/services/delivery-session-config.service';
+import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 
 @Component({
   selector: 'app-cooperative-deliveries',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, EmptyStateComponent],
   templateUrl: './delivery.cooperative.list.component.html',
   styleUrls: ['./delivery.cooperative.list.component.css'],
 })
-export class CooperativeDeliveriesComponent implements OnInit, OnDestroy {
+export class CooperativeDeliveriesComponent implements OnInit {
   branchDeliveries$!: Observable<BranchDelivery[]>;
   filteredDeliveries$!: Observable<BranchDelivery[]>;
   paginatedDeliveries$!: Observable<BranchDelivery[]>;
@@ -22,14 +23,8 @@ export class CooperativeDeliveriesComponent implements OnInit, OnDestroy {
   searchTerm = '';
   selectedSeason = '';
 
-  isEditRoute = false;
-  editingDelivery: BranchDelivery | null = null;
-  form!: FormGroup;
+  // Tracks which row's kebab menu is currently open.
   openActionMenuId: string | null = null;
-
-  statusOptions: DeliveryStatus[] = [];
-  commodityOptions: string[] = [];
-  seasonOptions: Season[] = [];
 
   currentPage = 1;
   readonly itemsPerPage = 10;
@@ -41,7 +36,6 @@ export class CooperativeDeliveriesComponent implements OnInit, OnDestroy {
     return Array.from({ length: Math.ceil(this.totalCount / this.itemsPerPage) }, (_, i) => i + 1);
   }
 
-  private readonly destroy$ = new Subject<void>();
   private readonly filterState$ = new BehaviorSubject({
     searchTerm: '',
     selectedSeason: '',
@@ -50,18 +44,12 @@ export class CooperativeDeliveriesComponent implements OnInit, OnDestroy {
 
   constructor(
     private svc: BranchDeliveryService,
-    private fb: FormBuilder,
     private router: Router,
-    private route: ActivatedRoute,
     private sessionConfig: DeliverySessionConfigService,
   ) {}
 
   ngOnInit(): void {
-    this.statusOptions = this.svc.getStatusOptions();
-    this.commodityOptions = this.svc.getCommodityOptions();
-    this.seasonOptions = this.svc.getSeasonOptions();
-
-    // Cooperative sees ALL deliveries across branches.
+    // Cooperative sees ALL branch deliveries (not filtered by branchId).
     this.branchDeliveries$ = this.svc.getDeliveries().pipe(
       shareReplay({ bufferSize: 1, refCount: true }),
     );
@@ -71,39 +59,14 @@ export class CooperativeDeliveriesComponent implements OnInit, OnDestroy {
       map(([deliveries, filter]) => this.filterDeliveries(deliveries, filter)),
     );
 
-    // Step 2 — paginate the already-filtered list. tap() captures the total count
-    // for the pagination footer before the slice happens.
+    // Step 2 — paginate the already-filtered list.
+    // tap() captures the total count for the footer before the slice happens.
     this.paginatedDeliveries$ = combineLatest([this.filteredDeliveries$, this.pageState$]).pipe(
       tap(([deliveries]) => { this.totalCount = deliveries.length; }),
       map(([deliveries, page]) =>
         deliveries.slice((page - 1) * this.itemsPerPage, page * this.itemsPerPage),
       ),
     );
-
-    // Watch the URL for /:id/edit so the edit modal opens/closes via navigation
-    // rather than a local boolean flag — this makes the edit state bookmarkable.
-    combineLatest([this.branchDeliveries$, this.route.paramMap])
-      .pipe(takeUntil(this.destroy$)) // unsubscribe when component is destroyed to avoid memory leaks
-      .subscribe(([deliveries, params]) => {
-        const editId = params.get('id');
-        this.isEditRoute = Boolean(editId);
-
-        if (!editId) {
-          this.editingDelivery = null;
-          return;
-        }
-
-        const delivery = deliveries.find(row => row.id === editId) ?? null;
-        this.editingDelivery = delivery;
-        if (delivery) this.buildEditForm(delivery);
-      });
-  }
-
-  ngOnDestroy(): void {
-    this.filterState$.complete();
-    this.pageState$.complete();
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
   applyFilter(): void {
@@ -151,63 +114,18 @@ export class CooperativeDeliveriesComponent implements OnInit, OnDestroy {
     this.openActionMenuId = this.openActionMenuId === delivery.id ? null : delivery.id;
   }
 
-  openEdit(delivery: BranchDelivery): void {
+  // Navigate to the cooperative-scoped farmer list for this batch.
+  // from=cooperative tells FarmerDeliveriesListComponent to back-link to here, not the branch view.
+  viewFarmers(delivery: BranchDelivery): void {
     this.openActionMenuId = null;
-    this.router.navigate(['/cooperative/collections/delivery-list', delivery.id, 'edit']);
-  }
-
-  cancelEdit(): void {
-    this.editingDelivery = null;
-    this.router.navigate(['/cooperative/collections/delivery-list']);
-  }
-
-  saveEdit(): void {
-    if (!this.form || this.form.invalid) {
-      this.form?.markAllAsTouched();
-      return;
-    }
-    if (!this.editingDelivery) return;
-    const formData: BranchDeliveryFormData = this.form.value;
-    this.svc.updateDelivery(this.editingDelivery.id, formData);
-    this.cancelEdit();
-  }
-
-  approveDelivery(delivery: BranchDelivery): void {
-    this.openActionMenuId = null;
-    const formData: BranchDeliveryFormData = {
-      branchId: delivery.branchId,
-      branchName: delivery.branchName,
-      farmerCount: delivery.farmerCount,
-      commodity: delivery.commodity,
-      volume: delivery.volume,
-      estimatedValue: delivery.estimatedValue,
-      status: 'Approved',
-      season: delivery.season,
-    };
-    this.svc.updateDelivery(delivery.id, formData);
-  }
-
-  rejectDelivery(delivery: BranchDelivery): void {
-    this.openActionMenuId = null;
-    const formData: BranchDeliveryFormData = {
-      branchId: delivery.branchId,
-      branchName: delivery.branchName,
-      farmerCount: delivery.farmerCount,
-      commodity: delivery.commodity,
-      volume: delivery.volume,
-      estimatedValue: delivery.estimatedValue,
-      status: 'Rejected',
-      season: delivery.season,
-    };
-    this.svc.updateDelivery(delivery.id, formData);
+    this.router.navigate(
+      ['/cooperative/collections/farmers'],
+      { queryParams: { batch: delivery.id, from: 'cooperative' } },
+    );
   }
 
   trackByDeliveryId(_index: number, delivery: BranchDelivery): string {
     return delivery.id;
-  }
-
-  trackByOption(_index: number, option: string): string {
-    return option;
   }
 
   trackByIndex(index: number): number {
@@ -246,19 +164,6 @@ export class CooperativeDeliveriesComponent implements OnInit, OnDestroy {
 
   sessionLabel(id: DeliverySession | undefined): string {
     return this.sessionConfig.getLabel(id);
-  }
-
-  private buildEditForm(delivery: BranchDelivery): void {
-    this.form = this.fb.group({
-      branchId: [delivery.branchId],
-      branchName: [delivery.branchName, Validators.required],
-      farmerCount: [delivery.farmerCount, [Validators.required, Validators.min(1)]],
-      commodity: [delivery.commodity, Validators.required],
-      volume: [delivery.volume, [Validators.required, Validators.min(0)]],
-      estimatedValue: [delivery.estimatedValue, [Validators.required, Validators.min(0)]],
-      status: [delivery.status, Validators.required],
-      season: [delivery.season, Validators.required],
-    });
   }
 
   private filterDeliveries(

@@ -5,12 +5,13 @@ import { FormsModule } from '@angular/forms';
 
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { RoleCardComponent, RoleCardData } from '../../../../shared/components/role-card/role-card.component';
+import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { ToastService } from '../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-roles-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, ButtonComponent, RoleCardComponent],
+  imports: [CommonModule, RouterModule, FormsModule, ButtonComponent, RoleCardComponent, EmptyStateComponent],
   templateUrl: './roles-list.component.html',
   styleUrls: ['./roles-list.component.css'],
 })

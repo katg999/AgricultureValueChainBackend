@@ -188,6 +188,234 @@
   background: #fff;
 }
 
+/* ── flat branch picker ───────────────────────────────────── */
+.flat-branch-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.flat-branch-picker .select-wrap {
+  max-width: 320px;
+}
+
+.flat-context-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 12px;
+  color: #8A8799;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.flat-context-hint--branch {
+  color: #F25D27;
+}
+
+.flat-context-hint svg { flex-shrink: 0; margin-top: 2px; }
+
+/* ── commodity card grid ──────────────────────────────────── */
+
+/* 2 columns; single column on small screens. */
+.commodity-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+@media (max-width: 480px) {
+  .commodity-grid { grid-template-columns: 1fr; }
+}
+
+.commodity-card {
+  background: #fff;
+  border: 1px solid #E5E7EB;
+  border-left: 4px solid var(--primary);  /* stat-card accent stripe */
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.commodity-card:hover {
+  box-shadow: 0 6px 20px rgba(242, 93, 39, 0.14);
+  transform: translateY(-2px);
+}
+
+/* Header row: commodity name + remove button */
+.cc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  min-height: 20px;
+}
+
+/* Matches stat-card .stat-label */
+.cc-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.cc-divider {
+  display: none; /* replaced by spacing via gap */
+}
+
+/* Matches stat-card .stat-value */
+.cc-price-display {
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 28px;
+  font-weight: 700;
+  color: #200B26;
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+}
+
+/* Full-width price input inside the card — styled like the value */
+.cc-input {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 24px;
+  font-weight: 700;
+  color: #200B26;
+  text-align: left;
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 10px 12px;
+  letter-spacing: -0.5px;
+}
+
+.cc-input:focus {
+  background: #fff;
+  border-color: var(--primary);
+  outline: none;
+}
+
+/* Matches stat-card .stat-trend */
+.cc-unit {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: #6B7280;
+  text-transform: uppercase;
+  margin-top: auto;
+}
+
+/* Dashed "add" card — no left accent, just a ghost outline */
+.commodity-card--add {
+  border: 2px dashed #D5D3DC;
+  border-left: 2px dashed #D5D3DC;
+  background: transparent;
+  box-shadow: none;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 118px;
+  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+}
+
+.commodity-card--add:hover {
+  border-color: var(--primary);
+  border-left-color: var(--primary);
+  background: #FFF5F0;
+  box-shadow: none;
+  transform: translateY(-2px);
+}
+
+.cc-add-icon {
+  font-size: 26px;
+  font-weight: 300;
+  color: #C8C6D0;
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.commodity-card--add:hover .cc-add-icon { color: var(--primary); }
+
+.cc-add-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #8A8799;
+  transition: color 0.15s;
+}
+
+.commodity-card--add:hover .cc-add-label { color: var(--primary); }
+
+/* Expanded add card (form state) */
+.commodity-card--add-open {
+  border: 2px dashed var(--primary);
+  border-left: 2px dashed var(--primary);
+  background: #FFF5F0;
+  box-shadow: none;
+}
+
+.cc-add-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.cc-cancel-btn {
+  background: none;
+  border: none;
+  color: #B4B2C0;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+.cc-cancel-btn:hover { color: #dc3545; background: #FEE2E2; }
+
+/* ── commodity add/remove controls ───────────────────────── */
+.add-commodity-btn {
+  font-family: var(--font-technical);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+.add-commodity-btn:hover { opacity: 0.88; }
+
+.remove-commodity-btn {
+  background: none;
+  border: none;
+  color: #B4B2C0;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+.remove-commodity-btn:hover {
+  color: #dc3545;
+  background: #FEE2E2;
+}
+
+.add-commodity-error {
+  font-size: 12px;
+  color: #dc3545;
+  margin: -12px 0 0;
+  padding: 0 4px;
+}
+
 /* ── quick actions bar ────────────────────────────────────── */
 .quick-actions {
   display: flex;
@@ -332,6 +560,78 @@
   text-align: center;
   color: #8A8799;
   font-size: 13px;
+}
+
+/* ── grade mode toggle ────────────────────────────────────── */
+
+/* Row that holds the description text and the toggle switch side by side. */
+.toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.toggle-desc {
+  font-size: 13px;
+  color: #6B6880;
+  margin: 6px 0 0;
+  line-height: 1.6;
+}
+
+/* Custom checkbox-based toggle switch. */
+.toggle-switch {
+  position: relative;
+  display: inline-flex;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* Hide the real checkbox — the visual track replaces it. */
+.toggle-switch input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-track {
+  width: 48px;
+  height: 26px;
+  background: #D5D3DC;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  padding: 3px;
+  transition: background 0.2s;
+}
+
+.toggle-switch input:checked + .toggle-track {
+  background: var(--primary);
+}
+
+.toggle-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  transition: transform 0.2s;
+}
+
+.toggle-switch input:checked + .toggle-track .toggle-thumb {
+  transform: translateX(22px);
+}
+
+/* ── commodity filter row ─────────────────────────────────── */
+
+/* Sits above the grade price table — allows focusing on one crop. */
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
 /* ── save/cancel row ──────────────────────────────────────── */

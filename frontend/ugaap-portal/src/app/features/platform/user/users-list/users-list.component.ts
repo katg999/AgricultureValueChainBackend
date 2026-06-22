@@ -8,6 +8,7 @@ import { StatsCardComponent } from '../../../../shared/components/stats-card/sta
 import { TableComponent, TableColumn } from '../../../../shared/components/table/table.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
+import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 
 /**
  * User interface
@@ -58,7 +59,8 @@ type BadgeVariant = 'info' | 'active' | 'pending' | 'inactive' | 'suspended' |
     StatsCardComponent,
     // TableComponent,
     BadgeComponent,
-    ButtonComponent
+    ButtonComponent,
+    EmptyStateComponent
   ],
   templateUrl: './users-list.component.html',
   styleUrls: ['./users-list.component.css']

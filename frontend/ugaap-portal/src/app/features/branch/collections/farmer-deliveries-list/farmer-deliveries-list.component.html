@@ -1,8 +1,9 @@
-<div class="farmers-page" *ngIf="farmerDeliveries$ | async">
+<div class="farmers-page" *ngIf="farmerDeliveries$ | async as pageData">
 
-  <!-- Breadcrumb -->
   <nav class="breadcrumb" aria-label="Breadcrumb">
-    <span class="link" (click)="goToBranchDeliveries()">Branch Deliveries</span>
+    <span class="link" (click)="goToBranchDeliveries()">
+      {{ fromContext === 'cooperative' ? 'Cooperative Deliveries' : 'Branch Deliveries' }}
+    </span>
     <span class="sep">›</span>
     <ng-container *ngIf="batchDelivery">
       <span class="link" (click)="clearBatchFilter()">Farmers</span>
@@ -25,17 +26,18 @@
     </button>
   </div>
 
-  <div class="table-card" *ngIf="paginatedFarmerDeliveries$ | async as paginatedFarmerDeliveries">
+  <div class="table-card">
     <div class="table-wrapper">
       <table>
         <thead>
           <tr>
             <th>Farmer ID</th>
             <th>Name</th>
-            <th>Phone</th>
             <th>Commodity</th>
+            <th *ngIf="pricingService.useGrades">Grade</th>
             <th>Volume</th>
-            <th>Estimated Value</th>
+            <th>Unit Price</th>
+            <th>Gross Value</th>
             <th>Season</th>
             <th>Session</th>
             <th>Status</th>
@@ -43,12 +45,13 @@
         </thead>
 
         <tbody>
-          <tr *ngFor="let farmer of paginatedFarmerDeliveries; trackBy: trackByFarmerDeliveryId">
-            <td class="mono">{{ farmer.farmerId }}</td>
+          <tr *ngFor="let farmer of $any(pageData).content; trackBy: trackByFarmerDeliveryId">
+            <td class="mono">{{ farmer.id }}</td>
             <td class="fw-600">{{ farmer.farmerName }}</td>
-            <td>{{ farmer.phone }}</td>
             <td>{{ farmer.commodity }}</td>
+            <td *ngIf="pricingService.useGrades">{{ farmer.notes || '&mdash;' }}</td>
             <td>{{ farmer.volume | number }} KG</td>
+            <td>{{ farmer.estimatedValue && farmer.volume ? (formatUGX(farmer.estimatedValue / farmer.volume) + '/KG') : '&mdash;' }}</td>
             <td>UGX {{ formatUGX(farmer.estimatedValue) }}</td>
             <td>{{ farmer.season }}</td>
             <td>{{ sessionLabel(farmer.session) }}</td>
@@ -59,8 +62,8 @@
             </td>
           </tr>
 
-          <tr *ngIf="paginatedFarmerDeliveries.length === 0">
-            <td colspan="9" class="empty-state">
+          <tr *ngIf="$any(pageData).content.length === 0">
+            <td [attr.colspan]="pricingService.useGrades ? 10 : 9" class="empty-state">
               {{ batchDelivery ? 'No farmers have delivered in this batch yet.' : 'No farmer deliveries recorded yet.' }}
             </td>
           </tr>
@@ -68,7 +71,129 @@
       </table>
     </div>
 
-    <div class="pagination-section" *ngIf="totalCount > itemsPerPage">
+    <div class="pagination-section" *ngIf="$any(pageData).totalElements > $any(pageData).size">
+      <span class="pagination-info">
+        Showing Page {{ $any(pageData).number + 1 }} of {{ $any(pageData).totalPages }} 
+        ({{ $any(pageData).totalElements }} items total)
+      </span>
+      <div class="pagination-controls">
+        <button 
+          type="button" 
+          class="btn secondary-action-btn" 
+          (click)="goToPage($any(pageData).number - 1)" 
+          [disabled]="$any(pageData).number === 0">
+          Previous
+        </button>
+        
+        <button
+          type="button"
+          class="btn primary-action-btn">
+          {{ $any(pageData).number + 1 }}
+        </button>
+
+        <button 
+          type="button" 
+          class="btn secondary-action-btn" 
+          (click)="goToPage($any(pageData).number + 1)" 
+          [disabled]="($any(pageData).number + 1) >= $any(pageData).totalPages">
+          Next
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+
+==============================================================================
+
+<!-- <div class="farmers-page" *ngIf="farmerDeliveries$ | async"> -->
+
+  <!-- Breadcrumb -->
+  <!-- <nav class="breadcrumb" aria-label="Breadcrumb">
+    <span class="link" (click)="goToBranchDeliveries()">
+      {{ fromContext === 'cooperative' ? 'Cooperative Deliveries' : 'Branch Deliveries' }}
+    </span>
+    <span class="sep">›</span>
+    <ng-container *ngIf="batchDelivery">
+      <span class="link" (click)="clearBatchFilter()">Farmers</span>
+      <span class="sep">›</span>
+      <span class="current">{{ batchDelivery.id }}</span>
+    </ng-container>
+    <span class="current" *ngIf="!batchDelivery">Farmers</span>
+  </nav> -->
+
+  <!-- <div class="page-header">
+    <div>
+      <h1>Farmers</h1>
+      <p *ngIf="batchDelivery">
+        Farmers who delivered in {{ batchDelivery.id }} — {{ batchDelivery.branchName }}, {{ batchDelivery.commodity }}.
+      </p>
+      <p *ngIf="!batchDelivery">Every farmer who has delivered commodities at this branch.</p>
+    </div>
+    <button type="button" class="clear-filter-btn" *ngIf="batchDelivery" (click)="clearBatchFilter()">
+      View all farmers
+    </button>
+  </div> -->
+
+  <!-- <div class="table-card" *ngIf="paginatedFarmerDeliveries$ | async as paginatedFarmerDeliveries">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Farmer ID</th>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Commodity</th> -->
+            <!-- Grade column only appears when the cooperative has grade mode enabled. -->
+            <!-- <th *ngIf="pricingService.useGrades">Grade</th>
+            <th>Volume</th>
+            <th>Unit Price</th>
+            <th>Gross Value</th>
+            <th>Deduction</th>
+            <th>Net Payment</th>
+            <th>Season</th>
+            <th>Session</th>
+            <th>Status</th>
+          </tr>
+        </thead> -->
+
+        <!-- <tbody>
+          <tr *ngFor="let farmer of paginatedFarmerDeliveries; trackBy: trackByFarmerDeliveryId">
+            <td class="mono">{{ farmer.farmerId }}</td>
+            <td class="fw-600">{{ farmer.farmerName }}</td>
+            <td>{{ farmer.phone }}</td>
+            <td>{{ farmer.commodity }}</td> -->
+            <!-- Shows grade name (e.g. "Premium") or a dash for older ungraded records. -->
+            <!-- <td *ngIf="pricingService.useGrades">{{ farmer.gradeName || '&mdash;' }}</td>
+            <td>{{ farmer.volume | number }} KG</td>
+            <td>{{ farmer.unitPrice ? (formatUGX(farmer.unitPrice) + '/KG') : '&mdash;' }}</td>
+            <td>UGX {{ formatUGX(farmer.estimatedValue) }}</td>
+            <td [class.deduction-cell]="farmer.inputLoanDeduction">
+              {{ farmer.inputLoanDeduction ? ('UGX ' + formatUGX(farmer.inputLoanDeduction)) : '&mdash;' }}
+            </td>
+            <td class="fw-600">UGX {{ formatUGX(netPayment(farmer)) }}</td>
+            <td>{{ farmer.season }}</td>
+            <td>{{ sessionLabel(farmer.session) }}</td>
+            <td>
+              <span class="status-badge" [ngClass]="statusClass(farmer.status)">
+                {{ farmer.status }}
+              </span>
+            </td>
+          </tr> -->
+
+          <!-- <tr *ngIf="paginatedFarmerDeliveries.length === 0"> -->
+            <!-- colspan adjusts automatically when the Grade column is added or removed. -->
+            <!-- <td [attr.colspan]="pricingService.useGrades ? 13 : 12" class="empty-state">
+              {{ batchDelivery ? 'No farmers have delivered in this batch yet.' : 'No farmer deliveries recorded yet.' }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div> -->
+
+    <!-- <div class="pagination-section" *ngIf="totalCount > itemsPerPage">
       <span class="pagination-info">Showing {{ startIndex }}–{{ endIndex }} of {{ totalCount }}</span>
       <div class="pagination-controls">
         <button type="button" class="btn secondary-action-btn" (click)="prevPage()" [disabled]="currentPage === 1">Previous</button>
@@ -84,4 +209,4 @@
     </div>
   </div>
 
-</div>
+</div> -->

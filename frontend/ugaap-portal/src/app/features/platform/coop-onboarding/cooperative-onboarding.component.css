@@ -89,6 +89,60 @@
   margin-bottom: 0;
 }
 
+/* ── PEARL BANK BADGE ────────────────────────────────────────────────────── */
+
+.bank-badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #FFF8F5;
+  border: 1px solid #FDD5C0;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+}
+
+.bank-badge__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--primary, #F25D27);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.bank-badge__text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bank-badge__name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--secondary);
+}
+
+.bank-badge__sub {
+  font-size: 11px;
+  color: #9B8FA8;
+}
+
+.bank-badge__lock {
+  font-family: var(--font-technical);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--primary, #F25D27);
+  background: #FEE9DF;
+  padding: 3px 8px;
+  border-radius: 20px;
+}
+
 /* ── TWO-COLUMN ROW ──────────────────────────────────────────────────────── */
 
 .form-row {

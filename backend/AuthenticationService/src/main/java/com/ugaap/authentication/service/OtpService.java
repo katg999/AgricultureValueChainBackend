@@ -1,7 +1,8 @@
 package com.ugaap.authentication.service;
 
 import com.ugaap.shared.Exception.AuthException;
-import com.ugaap.authentication.Repository.ClientRepository;
+import com.ugaap.authentication.Repository.CredentialsRepository;
+import com.ugaap.authentication.Entity.Credentials;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -9,6 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -16,21 +18,27 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class OtpService {
 
-    private static final String OTP_PREFIX = "otp:";
-    private static final int OTP_EXPIRY_MINUTES = 5;
-    private final StringRedisTemplate redisTemplate;
-    private final ClientRepository clientRepository;
-    private final PasswordEncoder passwordEncoder;
+    private static final String OTP_PREFIX       = "pwd_otp:";
+    private static final String VERIFIED_PREFIX  = "pwd_verified:";
+    private static final int    OTP_EXPIRY_MINUTES      = 5;
+    private static final int    VERIFIED_EXPIRY_MINUTES = 10;
+
+    private final StringRedisTemplate  redisTemplate;
+    private final CredentialsRepository credentialsRepository;
+    private final PasswordEncoder      passwordEncoder;
+    private final SecureRandom         secureRandom = new SecureRandom();
+
+    // ── Step 1: Forgot Password → generate OTP → send to email ───────────────
 
     public void generateAndSendOtp(String email) {
-        // 1. Ensure user exists
-        var client = clientRepository.findByEmail(email)
-                .orElseThrow(() -> new AuthException("User not found"));
 
-        // 2. Generate 6-digit OTP
-        String otp = String.format("%06d", new SecureRandom().nextInt(999999));
+        Credentials credentials = credentialsRepository
+                .findByEmail(email)
+                .orElseThrow(() -> new AuthException(
+                        "No account found with that email"));
 
-        // 3. Store in Redis
+        String otp = String.format("%04d", secureRandom.nextInt(10000));
+
         redisTemplate.opsForValue().set(
                 OTP_PREFIX + email,
                 otp,
@@ -38,28 +46,83 @@ public class OtpService {
                 TimeUnit.MINUTES
         );
 
-        // 4. Send Email (Integration Placeholder)
-        log.info("OTP for {}: {}", email, otp);
-        // TODO: Call your EmailService.send(email, "Your OTP is: " + otp);
+        // TODO: emailService.sendOtp(email, otp);
+        log.info("PASSWORD RESET OTP for {} : {}", email, otp);
     }
 
-    public void verifyAndResetPassword(String email, String otp, String newPassword) {
-        String storedOtp = redisTemplate.opsForValue().get(OTP_PREFIX + email);
+    // ── Step 2: Verify OTP only → return a short-lived verified token ─────────
+
+    public String verifyOtp(String email, String otp) {
+
+        // confirm account exists
+        credentialsRepository.findByEmail(email)
+                .orElseThrow(() -> new AuthException("Account not found"));
+
+        String storedOtp = redisTemplate.opsForValue()
+                .get(OTP_PREFIX + email);
 
         if (storedOtp == null || !storedOtp.equals(otp)) {
             throw new AuthException("Invalid or expired OTP");
         }
 
-        // OTP is valid, update password
-        var client = clientRepository.findByEmail(email)
-                .orElseThrow(() -> new AuthException("User not found"));
-
-        client.setPasswordHash(passwordEncoder.encode(newPassword));
-        clientRepository.save(client);
-
-        // Remove OTP from Redis so it can't be reused
+        // Delete OTP — one time use
         redisTemplate.delete(OTP_PREFIX + email);
 
-        log.info("Password successfully reset for user: {}", email);
+        // Issue short-lived verifiedToken
+        String verifiedToken = UUID.randomUUID().toString();
+        redisTemplate.opsForValue().set(
+                VERIFIED_PREFIX + verifiedToken,
+                email,
+                VERIFIED_EXPIRY_MINUTES,
+                TimeUnit.MINUTES
+        );
+
+        log.info("Password reset OTP verified for {}", email);
+        return verifiedToken;
+    }
+
+    // ── Step 3: Set new password using verifiedToken ──────────────────────────
+
+    public void resetPassword(String verifiedToken, String newPassword) {
+
+        // Look up email from the verified token
+        String email = redisTemplate.opsForValue()
+                .get(VERIFIED_PREFIX + verifiedToken);
+
+        if (email == null) {
+            throw new AuthException(
+                    "Session expired or invalid. Please restart the password reset flow.");
+        }
+
+        Credentials credentials = credentialsRepository
+                .findByEmail(email)
+                .orElseThrow(() -> new AuthException("Account not found"));
+
+        // Validate password strength
+        if (!isStrongPassword(newPassword)) {
+            throw new AuthException(
+                    "Password must be at least 8 characters and include " +
+                            "an uppercase letter, a number, and a special character");
+        }
+
+        credentials.setPasswordHash(passwordEncoder.encode(newPassword));
+        credentials.setMustChangePassword(false);
+        credentialsRepository.save(credentials);
+
+        // Clean up verified token
+        redisTemplate.delete(VERIFIED_PREFIX + verifiedToken);
+
+        log.info("Password successfully reset for {}", email);
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private boolean isStrongPassword(String password) {
+        if (password == null || password.length() < 8) return false;
+        boolean hasUpper   = password.chars().anyMatch(Character::isUpperCase);
+        boolean hasDigit   = password.chars().anyMatch(Character::isDigit);
+        boolean hasSpecial = password.chars().anyMatch(c ->
+                "!@#$%^&*()_+-=[]{}|;':\",./<>?".indexOf(c) >= 0);
+        return hasUpper && hasDigit && hasSpecial;
     }
 }
