@@ -1,22 +1,18 @@
-/**
- * Branch Onboarding — sits inside the admin layout (sidebar visible).
- * Content centered at a balanced width, no overlay.
- */
+/* Branch Onboarding — single-page two-column grid layout */
 
-/* ── SHELL ──────────────────────────────────────────────── */
+/* ── SHELL ──────────────────────────────────────────────────────────────── */
+
+/* Wider than the old 800px to give both columns enough breathing room */
 .onboarding-shell {
-  max-width: 800px;
+  max-width: 1040px;
   margin: 0 auto;
-  padding: 32px 24px 64px;
+  padding: 40px 32px 72px;
   font-family: var(--font-human);
 }
 
-/*  PAGE HEADER  */
+/* ── PAGE HEADER ─────────────────────────────────────────────────────────── */
+
 .page-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
   margin-bottom: 28px;
 }
 
@@ -35,34 +31,31 @@
   line-height: 1.5;
 }
 
-.step-counter {
-  flex-shrink: 0;
-  font-size: 12px;
-  font-weight: 600;
-  color: #9B8FA8;
-  background: var(--surface-low, #F4F3F5);
-  padding: 4px 10px;
-  border-radius: 20px;
-  white-space: nowrap;
-  margin-top: 4px;
-}
+/* ── 2×2 SECTION GRID ────────────────────────────────────────────────────── */
 
-/* ── STEPPER ────────────────────────────────────────────── */
-.onboarding-stepper {
+/*
+  Four cards auto-flow into two rows of two.
+  align-items: start prevents short cards from stretching to match a tall neighbour.
+*/
+.section-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  /* stretch (default) keeps paired cards the same height per row */
   margin-bottom: 28px;
 }
 
-/* ── FORM CARD ──────────────────────────────────────────── */
+/* ── FORM CARD ───────────────────────────────────────────────────────────── */
+
 .form-card {
   background: #ffffff;
   border: 1px solid #E8E6ED;
   border-radius: 14px;
-  padding: 28px;
-  margin-bottom: 24px;
+  padding: 28px 32px;
 }
 
 .card-title {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--secondary);
   text-transform: uppercase;
@@ -70,39 +63,45 @@
   margin: 0 0 4px;
 }
 
+/* Orange underline separates the card heading from its fields */
 .card-subtitle {
   font-size: 13px;
   color: #6B6B7B;
   margin: 0 0 20px;
-  padding-bottom: 14px;
+  padding-bottom: 12px;
   border-bottom: 2px solid var(--primary, #F25D27);
 }
 
-/* Field spacing inside card */
+/* Keep consistent vertical rhythm between fields inside each card */
 .form-card app-input,
-.form-card .input-group {
+.form-card .input-group,
+.form-card app-alert {
   display: block;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .form-card app-input:last-child,
-.form-card .input-group:last-child {
+.form-card .input-group:last-child,
+.form-card .form-row:last-child {
   margin-bottom: 0;
 }
 
-/* ── TWO-COLUMN ROW ─────────────────────────────────────── */
+/* ── TWO-COLUMN ROW (inside a card) ─────────────────────────────────────── */
+
+/* Used within the Location card (Region | Country) and Manager card (Email | Phone) */
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 18px;
-  margin-bottom: 18px;
+  gap: 14px;
+  margin-bottom: 16px;
 }
 
 .form-row:last-child {
   margin-bottom: 0;
 }
 
-/* ── SELECT DROPDOWNS ───────────────────────────────────── */
+/* ── SELECT DROPDOWNS ────────────────────────────────────────────────────── */
+
 .input-group {
   display: flex;
   flex-direction: column;
@@ -115,6 +114,7 @@
   margin-bottom: 6px;
 }
 
+/* Red asterisk marks required fields */
 .required {
   color: #D92D20;
   margin-left: 2px;
@@ -137,6 +137,7 @@
   border-color: var(--primary, #F25D27);
 }
 
+/* Red border when the field is touched and invalid */
 .form-select.has-error {
   border-color: #D92D20;
 }
@@ -147,11 +148,13 @@
   margin-top: 4px;
 }
 
-/* ── FORM ACTIONS ───────────────────────────────────────── */
+/* ── FORM ACTIONS ────────────────────────────────────────────────────────── */
+
+/* Cancel on the left, Register Branch on the right */
 .form-actions {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 12px;
 }
 
@@ -172,83 +175,8 @@
   border-color: var(--primary, #F25D27);
 }
 
-.btn-ghost {
-  background: transparent;
-  border: none;
-  color: #9B8FA8;
-  font-family: var(--font-human);
-  font-size: 13px;
-  font-weight: 500;
-  padding: 8px 4px;
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
+/* ── MODAL ACTIONS ───────────────────────────────────────────────────────── */
 
-.btn-ghost:hover {
-  color: var(--secondary);
-}
-
-.btn-ghost:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-/* ── REVIEW GRID (2×2 cards) ────────────────────────────── */
-.review-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.review-card {
-  background: #ffffff;
-  border: 1px solid #E8E6ED;
-  border-radius: 14px;
-  padding: 20px;
-}
-
-.review-card-title {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  margin: 0 0 12px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #F0EEF2;
-}
-
-.review-row {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 6px 0;
-  border-bottom: 1px solid #F7F6F8;
-}
-
-.review-row:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.review-label {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #9B8FA8;
-}
-
-.review-value {
-  font-size: 14px;
-  color: var(--secondary);
-  font-weight: 500;
-  word-break: break-word;
-}
-
-/* ── MODAL ACTIONS ──────────────────────────────────────── */
 .modal-actions {
   display: flex;
   gap: 12px;
@@ -256,31 +184,31 @@
   margin-top: 24px;
 }
 
-/* ── RESPONSIVE ─────────────────────────────────────────── */
-@media (max-width: 680px) {
+/* ── RESPONSIVE ──────────────────────────────────────────────────────────── */
+
+@media (max-width: 720px) {
   .onboarding-shell {
-    padding: 20px 16px 48px;
+    padding: 24px 16px 56px;
   }
 
-  .page-header {
-    flex-direction: column;
-    gap: 8px;
+  /* Stack the 4 cards vertically on small screens */
+  .section-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
 
   .form-card {
-    padding: 20px 18px;
+    padding: 20px 20px;
   }
 
+  /* Also collapse in-card two-column rows (Region|Country, Email|Phone) */
   .form-row {
-    grid-template-columns: 1fr;
-  }
-
-  .review-grid {
     grid-template-columns: 1fr;
   }
 
   .form-actions {
     flex-direction: column-reverse;
+    align-items: stretch;
   }
 
   .form-actions app-button,

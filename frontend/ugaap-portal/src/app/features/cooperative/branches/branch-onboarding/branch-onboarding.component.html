@@ -1,30 +1,38 @@
 <!--
-  Branch Onboarding
-  Layout: page title → horizontal stepper → single-step form card (inside admin layout)
-  5 steps: Identity · Location · Contact · Manager · Review
+  Branch Onboarding — single-page form, no wizard steps.
+
+  Layout: page header → 2×2 card grid → single submit.
+  Row 1: Identity (left)  | Location (right)
+  Row 2: Address  (left)  | Manager  (right)
+
+  All fields are validated together when the user clicks "Register Branch".
+  Invalid fields are highlighted inline so nothing gets missed.
 -->
 
 <div class="onboarding-shell">
 
-  <!-- PAGE TITLE -->
+  <!-- PAGE HEADER -->
   <div class="page-header">
-    <span class="step-counter">Step {{ currentStep + 1 }} of {{ steps.length }}</span>
+    <div>
+      <h1 class="page-title">New Branch</h1>
+      <p class="page-subtitle">Fill in the details below, then register when ready.</p>
+    </div>
   </div>
 
-  <!-- STEPPER -->
-  <div class="onboarding-stepper">
-    <app-stepper [steps]="steps" [currentStep]="currentStep"></app-stepper>
-  </div>
+  <form [formGroup]="branchForm">
 
-  <!-- CONTENT -->
-  <div class="onboarding-content">
+    <!--
+      Section grid: 2 columns, 4 cards auto-flow into 2 rows.
+      On mobile this collapses to a single column (see CSS).
+    -->
+    <div class="section-grid">
 
-    <!-- ── STEP 0: IDENTITY ─────────────────────────────── -->
-    <form [formGroup]="branchForm" *ngIf="currentStep === 0">
+      <!-- ── IDENTITY -->
       <div class="form-card">
-        <h2 class="card-title">Branch Identity</h2>
-        <p class="card-subtitle">The official name and registration code for this branch</p>
+        <h2 class="card-title">Identity</h2>
+        <p class="card-subtitle">Official name and unique code for this branch</p>
 
+        <!-- Human-readable name shown in reports and dashboards -->
         <app-input
           label="Branch Name"
           type="text"
@@ -35,6 +43,7 @@
           [error]="getFieldError('branchName')">
         </app-input>
 
+        <!-- Short alphanumeric code — used as a unique identifier across the platform -->
         <app-input
           label="Registration Number"
           type="text"
@@ -46,20 +55,12 @@
         </app-input>
       </div>
 
-      <div class="form-actions">
-        <button type="button" class="btn-ghost" (click)="saveProgress()" [disabled]="isSaving">
-          {{ isSaving ? 'Saving…' : 'Save & exit' }}
-        </button>
-        <app-button variant="primary" size="lg" (clicked)="nextStep()">Continue</app-button>
-      </div>
-    </form>
-
-    <!-- ── STEP 1: LOCATION ─────────────────────────────── -->
-    <form [formGroup]="branchForm" *ngIf="currentStep === 1">
+      <!-- ── LOCATION ───────────────────────────────────────── -->
       <div class="form-card">
         <h2 class="card-title">Location</h2>
         <p class="card-subtitle">Where this branch operates</p>
 
+        <!-- Town or district the branch physically serves -->
         <app-input
           label="Town / Area"
           type="text"
@@ -70,26 +71,31 @@
           [error]="getFieldError('location')">
         </app-input>
 
-        <div class="input-group">
-          <label class="input-label">Region <span class="required">*</span></label>
-          <select
-            title="region"
-            formControlName="region"
-            class="form-select"
-            [class.has-error]="branchForm.get('region')?.invalid && branchForm.get('region')?.touched">
-            <option value="" disabled>Select region</option>
-            <option value="Central Region">Central Region</option>
-            <option value="Eastern Region">Eastern Region</option>
-            <option value="Northern Region">Northern Region</option>
-            <option value="Western Region">Western Region</option>
-            <option value="South Western Region">South Western Region</option>
-          </select>
-          <span class="error-text" *ngIf="branchForm.get('region')?.invalid && branchForm.get('region')?.touched">
-            Please select a region
-          </span>
-        </div>
-
+        <!-- Region and country in a side-by-side row to save vertical space -->
         <div class="form-row">
+
+          <!-- Uganda has 4 administrative regions; select from the fixed list -->
+          <div class="input-group">
+            <label class="input-label">Region <span class="required">*</span></label>
+            <select
+              title="region"
+              formControlName="region"
+              class="form-select"
+              [class.has-error]="branchForm.get('region')?.invalid && branchForm.get('region')?.touched">
+              <option value="" disabled>Select region</option>
+              <option value="Central Region">Central Region</option>
+              <option value="Eastern Region">Eastern Region</option>
+              <option value="Northern Region">Northern Region</option>
+              <option value="Western Region">Western Region</option>
+              <option value="South Western Region">South Western Region</option>
+            </select>
+            <span class="error-text"
+              *ngIf="branchForm.get('region')?.invalid && branchForm.get('region')?.touched">
+              Please select a region
+            </span>
+          </div>
+
+          <!-- Country list covers all African nations for cross-border operations -->
           <div class="input-group">
             <label class="input-label">Country <span class="required">*</span></label>
             <select
@@ -153,34 +159,32 @@
               <option value="Zambia">Zambia</option>
               <option value="Zimbabwe">Zimbabwe</option>
             </select>
-            <span class="error-text" *ngIf="branchForm.get('country')?.invalid && branchForm.get('country')?.touched">
+            <span class="error-text"
+              *ngIf="branchForm.get('country')?.invalid && branchForm.get('country')?.touched">
               Please select a country
             </span>
           </div>
 
-          <app-input
-            label="Established Date"
-            type="date"
-            formControlName="establishedDate"
-            [required]="true"
-            hint="Date the branch was established"
-            [error]="getFieldError('establishedDate')">
-          </app-input>
-        </div>
-      </div>
+        </div><!-- /form-row (region | country) -->
 
-      <div class="form-actions">
-        <button type="button" class="btn-secondary" (click)="previousStep()">Back</button>
-        <app-button variant="primary" size="lg" (clicked)="nextStep()">Continue</app-button>
-      </div>
-    </form>
+        <!-- The date this branch was officially established, used for audit history -->
+        <app-input
+          label="Established Date"
+          type="date"
+          formControlName="establishedDate"
+          [required]="true"
+          hint="Date the branch was established"
+          [error]="getFieldError('establishedDate')">
+        </app-input>
 
-    <!-- ── STEP 2: CONTACT ──────────────────────────────── -->
-    <form [formGroup]="branchForm" *ngIf="currentStep === 2">
+      </div><!-- /Location card -->
+
+      <!-- ── ADDRESS ─────────────────────────────────────────── -->
       <div class="form-card">
-        <h2 class="card-title">Contact Details</h2>
+        <h2 class="card-title">Address</h2>
         <p class="card-subtitle">Physical and postal address for the branch</p>
 
+        <!-- Used for deliveries, inspections and official correspondence -->
         <app-input
           label="Physical Address"
           type="text"
@@ -191,6 +195,7 @@
           [error]="getFieldError('address')">
         </app-input>
 
+        <!-- P.O. Box is the mailing address; different from the physical location -->
         <app-input
           label="P.O. Box"
           type="text"
@@ -202,18 +207,12 @@
         </app-input>
       </div>
 
-      <div class="form-actions">
-        <button type="button" class="btn-secondary" (click)="previousStep()">Back</button>
-        <app-button variant="primary" size="lg" (clicked)="nextStep()">Continue</app-button>
-      </div>
-    </form>
-
-    <!-- ── STEP 3: MANAGER ──────────────────────────────── -->
-    <form [formGroup]="branchForm" *ngIf="currentStep === 3">
+      <!-- ── MANAGER ─────────────────────────────────────────── -->
       <div class="form-card">
         <h2 class="card-title">Branch Manager</h2>
         <p class="card-subtitle">Primary contact for all branch operations and communications</p>
 
+        <!-- Legal name used for agreements, reports and system accounts -->
         <app-input
           label="Full Name"
           type="text"
@@ -224,6 +223,7 @@
           [error]="getFieldError('managerName')">
         </app-input>
 
+        <!-- Email and phone side by side — both required for platform communications -->
         <div class="form-row">
           <app-input
             label="Email Address"
@@ -235,6 +235,7 @@
             [error]="getFieldError('managerEmail')">
           </app-input>
 
+          <!-- Country code is required — e.g., +256 for Uganda -->
           <app-input
             label="Phone Number"
             type="tel"
@@ -245,116 +246,60 @@
             [error]="getFieldError('managerPhone')">
           </app-input>
         </div>
-      </div>
 
-      <div class="form-actions">
-        <button type="button" class="btn-secondary" (click)="previousStep()">Back</button>
-        <app-button variant="primary" size="lg" (clicked)="nextStep()">Review</app-button>
-      </div>
-    </form>
+      </div><!-- /Manager card -->
 
-    <!-- ── STEP 4: REVIEW ───────────────────────────────── -->
-    <div *ngIf="currentStep === 4">
+    </div><!-- /section-grid -->
 
-      <div class="review-grid">
-        <div class="review-card">
-          <h3 class="review-card-title">Identity</h3>
-          <div class="review-row">
-            <span class="review-label">Branch Name</span>
-            <span class="review-value">{{ formValue.branchName }}</span>
-          </div>
-          <div class="review-row">
-            <span class="review-label">Reg. Number</span>
-            <span class="review-value">{{ formValue.branchRegistrationNumber }}</span>
-          </div>
-        </div>
+    <!-- Inline error shown when the API rejects the submission -->
+    <app-alert variant="error" *ngIf="errorMessage">
+      <p>{{ errorMessage }}</p>
+    </app-alert>
 
-        <div class="review-card">
-          <h3 class="review-card-title">Location</h3>
-          <div class="review-row">
-            <span class="review-label">Town / Area</span>
-            <span class="review-value">{{ formValue.location }}</span>
-          </div>
-          <div class="review-row">
-            <span class="review-label">Region</span>
-            <span class="review-value">{{ formValue.region }}</span>
-          </div>
-          <div class="review-row">
-            <span class="review-label">Country</span>
-            <span class="review-value">{{ formValue.country }}</span>
-          </div>
-          <div class="review-row">
-            <span class="review-label">Established</span>
-            <span class="review-value">{{ formValue.establishedDate | date:'mediumDate' }}</span>
-          </div>
-        </div>
-
-        <div class="review-card">
-          <h3 class="review-card-title">Contact</h3>
-          <div class="review-row">
-            <span class="review-label">Address</span>
-            <span class="review-value">{{ formValue.address }}</span>
-          </div>
-          <div class="review-row">
-            <span class="review-label">P.O. Box</span>
-            <span class="review-value">{{ formValue.poBox }}</span>
-          </div>
-        </div>
-
-        <div class="review-card">
-          <h3 class="review-card-title">Manager</h3>
-          <div class="review-row">
-            <span class="review-label">Name</span>
-            <span class="review-value">{{ formValue.managerName }}</span>
-          </div>
-          <div class="review-row">
-            <span class="review-label">Email</span>
-            <span class="review-value">{{ formValue.managerEmail }}</span>
-          </div>
-          <div class="review-row">
-            <span class="review-label">Phone</span>
-            <span class="review-value">{{ formValue.managerPhone }}</span>
-          </div>
-        </div>
-      </div>
-
-      <app-alert variant="error" *ngIf="errorMessage">
-        <p>{{ errorMessage }}</p>
-      </app-alert>
-
-      <app-alert variant="success" *ngIf="submitSuccess">
-        <p>Branch registered successfully. The branch is now active on the platform.</p>
-      </app-alert>
-
-      <div class="form-actions">
-        <button type="button" class="btn-secondary" (click)="previousStep()">Back</button>
-        <app-button
-          variant="primary"
-          size="lg"
-          (clicked)="registerBranch()"
-          [loading]="isLoading"
-          loadingText="Registering…">
-          Register Branch
-        </app-button>
-      </div>
-
+    <!--
+      Actions: Cancel goes back to the branch list.
+      Register Branch validates all fields, then opens the confirm modal.
+    -->
+    <div class="form-actions">
+      <button type="button" class="btn-secondary" routerLink="/cooperative/branches/dashboard">
+        Cancel
+      </button>
+      <app-button
+        variant="primary"
+        size="lg"
+        (clicked)="openConfirmModal()"
+        [loading]="isLoading"
+        loadingText="Registering…">
+        Register Branch
+      </app-button>
     </div>
 
-  </div><!-- /onboarding-content -->
+  </form>
+
 </div><!-- /onboarding-shell -->
 
-<!-- Confirmation Modal -->
+<!-- Confirmation modal — only opens after all fields pass validation -->
 <app-modal
   [isOpen]="showConfirmModal"
   title="Confirm Branch Registration"
   subtitle="Please review before proceeding"
   variant="warning"
   (closed)="closeConfirmModal()">
-  <p>You are about to register <strong>{{ formValue.branchName }}</strong> and assign <strong>{{ formValue.managerName }}</strong> as branch manager.</p>
+  <p>
+    You are about to register <strong>{{ formValue.branchName }}</strong> and assign
+    <strong>{{ formValue.managerName }}</strong> as branch manager.
+  </p>
   <p><strong>Continue?</strong></p>
   <div class="modal-actions">
-    <button type="button" class="btn-secondary" (click)="closeConfirmModal()" [disabled]="isLoading">Cancel</button>
-    <app-button variant="primary" size="md" (clicked)="registerBranch()" [loading]="isLoading" loadingText="Registering…">
+    <button type="button" class="btn-secondary" (click)="closeConfirmModal()" [disabled]="isLoading">
+      Cancel
+    </button>
+    <app-button
+      variant="primary"
+      size="md"
+      (clicked)="registerBranch()"
+      [loading]="isLoading"
+      loadingText="Registering…">
       Yes, Register Branch
     </app-button>
   </div>
