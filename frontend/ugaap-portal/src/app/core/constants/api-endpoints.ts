@@ -59,7 +59,7 @@ export const API_ENDPOINTS = {
     SESSION_CONFIG: `${BASE}/cooperative/session-config`,
     SEASON_CONFIG: `${BASE}/cooperative/season-config`,
 
-    PAYMENT_BATCHES: `${BASE}/api/v1/settlements/batches`, 
+    PAYMENT_BATCHES: `${BASE}/api/v1/settlements/batches`,
     PAYMENT_FARMERS: `${BASE}/api/v1/settlements/farmers`,
 
     // Inventory Service (Staged Next Deployment)
@@ -87,6 +87,18 @@ export const API_ENDPOINTS = {
     BY_ID: (id: string) => `${BASE}/api/v1/branches/${id}`,
   },
 
+  // ── Members (Farmer registration — membership-service) ───────────────────────
+  MEMBERS: {
+    REGISTER: `${BASE}/api/v1/members`,
+    BY_ID: (id: string) => `${BASE}/api/v1/members/${id}`,
+    LIST: (tenantId: string, branchId?: string) =>
+      branchId
+        ? `${BASE}/api/v1/members?tenantId=${tenantId}&branchId=${branchId}`
+        : `${BASE}/api/v1/members?tenantId=${tenantId}`,
+  },
+
+  // ── Branch Staff ────────────────────────────────────────────────────────────
+  // Scoped to a single branch (X-Branch-ID header set by interceptor)
   // ── Branch Staff operations ──────────────────────────────────────────────────
   BRANCH: {
     DASHBOARD: `${BASE}/api/v1/branches/dashboard`,
@@ -100,7 +112,6 @@ export const API_ENDPOINTS = {
     FARMER_DELIVERY_BY_ID: (id: string) => `${BASE}/branch/farmer-deliveries/${id}`,
     // Backward-compat alias (some components/services may reference this old key)
     FARMER_DELIVERIES_BY_ID: (id: string) => `${BASE}/branch/farmer-deliveries/${id}`,
-
 
     // Farmer Registry Lookup (FarmerController)
     FARMERS: `${BASE}/api/v1/farmers/search`,
@@ -129,9 +140,6 @@ export const API_ENDPOINTS = {
     USER_BY_ID: (id: string) => `${BASE}/api/v1/access/users/${id}`,
   },
 } as const;
-
-
-
 
 // // ─────────────────────────────────────────────────────────────────────────────
 // // core/constants/api-endpoints.ts
