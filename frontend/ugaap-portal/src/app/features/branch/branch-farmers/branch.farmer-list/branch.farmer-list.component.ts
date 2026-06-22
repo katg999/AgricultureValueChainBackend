@@ -125,13 +125,14 @@ export class BranchFarmerListComponent implements OnInit, OnDestroy {
     const q = filter.searchQuery.trim().toLowerCase();
     if (!q) return farmers;
 
-    return farmers.filter((farmer) =>
-      farmer.id.toLowerCase().includes(q) ||
-      farmer.name.toLowerCase().includes(q) ||
-      farmer.branch.toLowerCase().includes(q) ||
-      farmer.primaryCommodity.toLowerCase().includes(q) ||
-      farmer.status.toLowerCase().includes(q) ||
-      farmer.stage.toLowerCase().includes(q),
+    return farmers.filter(
+      (farmer) =>
+        farmer.id.toLowerCase().includes(q) ||
+        farmer.name.toLowerCase().includes(q) ||
+        farmer.branch.toLowerCase().includes(q) ||
+        farmer.primaryCommodity.toLowerCase().includes(q) ||
+        farmer.status.toLowerCase().includes(q) ||
+        farmer.stage.toLowerCase().includes(q),
     );
   }
 }

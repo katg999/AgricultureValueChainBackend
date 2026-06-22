@@ -89,6 +89,16 @@ export const API_ENDPOINTS = {
     BY_ID: (id: string) => `${BASE}/api/v1/branches/${id}`,
   },
 
+  // ── Members (Farmer registration — membership-service) ───────────────────────
+  MEMBERS: {
+    REGISTER: `${BASE}/api/v1/members`,
+    BY_ID: (id: string) => `${BASE}/api/v1/members/${id}`,
+    LIST: (tenantId: string, branchId?: string) =>
+      branchId
+        ? `${BASE}/api/v1/members?tenantId=${tenantId}&branchId=${branchId}`
+        : `${BASE}/api/v1/members?tenantId=${tenantId}`,
+  },
+
   // ── Branch Staff ────────────────────────────────────────────────────────────
   // Scoped to a single branch (X-Branch-ID header set by interceptor)
   BRANCH: {
@@ -100,8 +110,8 @@ export const API_ENDPOINTS = {
     COLLECTION_BY_ID: (id: string) => `${BASE}/branch/collections/${id}`,
 
     // Farmers registered at this branch
-    FARMERS: `${BASE}/branch/farmers`,
-    FARMER_BY_ID: (id: string) => `${BASE}/branch/farmers/${id}`,
+    //FARMERS: `${BASE}/api/v1/members`,
+    //FARMER_BY_ID: (id: string) => `${BASE}/api/v1/members/${id}`,
 
     // Farmer-level deliveries nested inside branch collections
     FARMER_DELIVERIES: `${BASE}/branch/farmer-deliveries`,

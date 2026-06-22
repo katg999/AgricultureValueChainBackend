@@ -34,6 +34,7 @@ export interface AuthUser {
   email: string;
   phone: string;
   role: string;
+  tenantId?: string;
   cooperativeId?: string;
   branchId?: string;
   permissions: string[];
