@@ -12,19 +12,12 @@
     <!-- Top bar -->
     <header class="topbar">
 
-      <!-- Global search -->
-      <div class="topbar-search">
-        <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="8"/>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-        <input
-          type="text"
-          placeholder="Search payments, farmers or batches…"
-          class="search-input"
-          aria-label="Global search" />
+      <!-- Page title + subtitle — set via route data on every navigation -->
+      <div class="topbar-page-heading">
+        <h1 class="topbar-page-title">{{ pageTitle() }}</h1>
+        @if (pageSubtitle()) {
+          <p class="topbar-page-subtitle">{{ pageSubtitle() }}</p>
+        }
       </div>
 
       <!-- Right-side actions -->

@@ -10,11 +10,12 @@ import { FarmerRecord, BatchFilterCriteria } from '../models/batch.models';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
+import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 
 @Component({
   selector: 'app-batch-create',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, PageHeaderComponent, InputComponent, ButtonComponent],
+  imports: [CommonModule, ReactiveFormsModule, PageHeaderComponent, InputComponent, ButtonComponent, EmptyStateComponent],
   templateUrl: './batch-create.component.html',
   styleUrls: ['./batch-create.component.css'],
 })

@@ -13,13 +13,13 @@ import { BehaviorSubject, combineLatest, map, Observable, shareReplay } from 'rx
 import { PaymentBatchService } from '../services/payment-batch.service';
 import { PaymentExportService } from '../services/payment-export.service';
 import { PaymentBatch, BatchStatus } from '../models/batch.models';
+import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
+import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
 
 @Component({
   selector: 'app-batch-processing',
   standalone: true,
-  // AsyncPipe is imported separately so we can use the '| async' pipe in the template
-  // without importing the whole CommonModule (though CommonModule also includes it).
-  imports: [CommonModule, FormsModule, AsyncPipe],
+  imports: [CommonModule, FormsModule, AsyncPipe, DataTableComponent, CellDirective],
   templateUrl: './batch-processing.html',
   styleUrls: ['./batch-processing.css'],
 })
@@ -27,10 +27,24 @@ export class BatchProcessingComponent implements OnInit, OnDestroy {
   // '!' = "trust me TypeScript, this WILL be set before it's used" (in ngOnInit).
   // Without it, TypeScript would complain that it might be undefined.
   filteredBatches$!: Observable<PaymentBatch[]>;
+  totalBatchCount$!: Observable<number>;
 
   // These two-way-bind to the filter inputs in the template via [(ngModel)].
   searchTerm = '';
   selectedStatus = '';
+
+  readonly batchCols: TableColumn[] = [
+    { key: 'id',              header: 'Batch ID',     class: 'mono' },
+    { key: 'batchName',       header: 'Batch Name' },
+    { key: 'season',          header: 'Season' },
+    { key: 'dateRange',       header: 'Date Range',   class: 'mono' },
+    { key: 'commodityFilter', header: 'Commodity' },
+    { key: 'branch',          header: 'Branch' },
+    { key: 'farmerCount',     header: 'Farmers',      align: 'right' },
+    { key: 'totalAmount',     header: 'Total Amount', align: 'right', class: 'mono' },
+    { key: 'status',          header: 'Status' },
+    { key: 'actions',         header: 'Actions' },
+  ];
 
   // Tracks which row's kebab menu is open. null = all menus closed.
   openActionMenuId: string | null = null;
@@ -60,6 +74,8 @@ export class BatchProcessingComponent implements OnInit, OnDestroy {
     // shareReplay caches the last emitted value — so when filterState$ changes,
     // it doesn't re-trigger the HTTP fetch in getBatches().
     const batches$ = this.svc.getBatches().pipe(shareReplay({ bufferSize: 1, refCount: true }));
+
+    this.totalBatchCount$ = batches$.pipe(map(b => b.length));
 
     // combineLatest watches both streams. Either one changing triggers a new filtered list.
     this.filteredBatches$ = combineLatest([batches$, this.filterState$]).pipe(

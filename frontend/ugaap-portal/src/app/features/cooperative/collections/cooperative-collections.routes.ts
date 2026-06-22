@@ -8,6 +8,7 @@ export const COOPERATIVES_COLLECTIONS_ROUTES: Routes = [
   },
   {
     path: 'delivery-list',
+    data: { title: 'Collections' },
     loadComponent: () =>
       import('./delivery-list/delivery.cooperative.list.component')
         .then(m => m.CooperativeDeliveriesComponent),

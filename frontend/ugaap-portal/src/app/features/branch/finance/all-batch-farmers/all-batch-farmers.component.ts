@@ -12,17 +12,29 @@ import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
 
 import { PaymentBatchService } from '../services/payment-batch.service';
 import { FarmerRecord } from '../models/batch.models';
+import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
+import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
 
 @Component({
   selector: 'app-all-batch-farmers',
   standalone: true,
-  imports: [CommonModule, FormsModule, AsyncPipe],
+  imports: [CommonModule, FormsModule, AsyncPipe, DataTableComponent, CellDirective],
   templateUrl: './all-batch-farmers.component.html',
   styleUrls: ['./all-batch-farmers.component.css'],
 })
 export class AllBatchFarmersComponent implements OnInit {
   // '!' = assigned in ngOnInit, not here — TypeScript needs reassurance it won't be undefined.
   filteredFarmers$!: Observable<FarmerRecord[]>;
+
+  readonly cols: TableColumn[] = [
+    { key: 'farmerId',      header: 'Farmer ID',      class: 'mono' },
+    { key: 'fullName',      header: 'Name' },
+    { key: 'commodity',     header: 'Commodity' },
+    { key: 'branch',        header: 'Branch' },
+    { key: 'deliveryDate',  header: 'Delivery Date',  class: 'mono' },
+    { key: 'paymentMethod', header: 'Payment Method' },
+    { key: 'netPayable',    header: 'Net Payable',    align: 'right', class: 'mono' },
+  ];
 
   private readonly svc = inject(PaymentBatchService);
   private readonly router = inject(Router);

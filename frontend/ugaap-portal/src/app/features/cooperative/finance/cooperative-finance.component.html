@@ -2,7 +2,6 @@
 
   <!-- Header -->
   <div class="cf-header">
-    <h1 class="cf-title">Finance — Batch Overview</h1>
     <p class="cf-subtitle">All batch processing records across every branch. Update status inline.</p>
   </div>
 
@@ -79,8 +78,12 @@
           </tr>
 
           <tr *ngIf="branchSummaries.length === 0">
-            <td colspan="7" class="empty-state">
-              No batches found{{ selectedSeason ? ' for ' + selectedSeason : '' }}.
+            <td colspan="7">
+              <app-empty-state
+                icon="finance"
+                title="No batches found"
+                [message]="selectedSeason ? 'No payment batches found for ' + selectedSeason + '.' : 'No payment batches have been created yet.'">
+              </app-empty-state>
             </td>
           </tr>
         </tbody>
@@ -138,8 +141,12 @@
           </ng-container>
 
           <tr *ngIf="branchGroups.length === 0">
-            <td colspan="8" class="empty-state">
-              No batches found{{ selectedSeason ? ' for ' + selectedSeason : '' }}.
+            <td colspan="8">
+              <app-empty-state
+                icon="finance"
+                title="No batches found"
+                [message]="selectedSeason ? 'No payment batches found for ' + selectedSeason + '.' : 'No payment batches have been created yet.'">
+              </app-empty-state>
             </td>
           </tr>
 

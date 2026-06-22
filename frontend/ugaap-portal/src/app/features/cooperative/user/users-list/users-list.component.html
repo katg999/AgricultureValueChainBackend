@@ -2,10 +2,6 @@
   <div class="page-container">
 
     <div class="page-header">
-      <div class="header-content">
-        <h1 class="page-title">Users</h1>
-        <p class="page-subtitle">All registered platform and cooperative admin users.</p>
-      </div>
       <app-button variant="primary" size="md" iconLeft="+" (clicked)="addNewUser()">
         Add new user
       </app-button>
@@ -35,76 +31,49 @@
       </select>
     </div>
 
-    <div class="table-container">
-      <table class="users-table">
-        <thead>
-          <tr>
-            <th>NAME</th><th>EMAIL</th><th>PHONE NUMBER</th>
-            <th>ROLE</th><th>ORGANISATION</th><th>LAST LOGIN</th><th>ACTIONS</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngIf="users.length === 0">
-            <td colspan="7">
-              <app-empty-state
-                icon="users"
-                title="No users found"
-                message="Add a user to start managing your cooperative team."
-                actionLabel="Add User"
-                route="/cooperative/users/add-user">
-              </app-empty-state>
-            </td>
-          </tr>
-          <tr *ngFor="let user of users" class="table-row" (click)="onRowClicked(user)">
-            <td>
-              <div class="user-cell">
-                <div class="user-avatar">{{ getUserInitials(user.name) }}</div>
-                <span class="user-name">{{ user.name }}</span>
-              </div>
-            </td>
-            <td class="text-muted">{{ user.email }}</td>
-            <td class="text-muted">{{ user.phone }}</td>
-            <td>
-              <app-badge [variant]="getRoleBadgeVariant(user.role)" size="sm">{{ user.role }}</app-badge>
-            </td>
-            <td>{{ user.organization }}</td>
-            <td class="text-muted">{{ user.lastLogin }}</td>
-            <td>
-              <div class="actions-cell">
-                <button class="action-btn" (click)="viewUser(user, $event)" title="View user">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 5C7 5 2.73 8.11 1 12.5 2.73 16.89 7 20 12 20s9.27-3.11 11-7.5C21.27 8.11 17 5 12 5z" stroke="currentColor" stroke-width="1.8"/>
-                    <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/>
-                  </svg>
-                </button>
-                <button class="action-btn" (click)="moreActions(user, $event)" title="More actions">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="5"  r="1.5" fill="currentColor"/>
-                    <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
-                    <circle cx="12" cy="19" r="1.5" fill="currentColor"/>
-                  </svg>
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <app-data-table
+      [columns]="cols"
+      [rows]="users"
+      [paginate]="true"
+      [clickable]="true"
+      emptyIcon="users"
+      emptyTitle="No users found"
+      emptyMessage="Add a user to start managing your cooperative team."
+      emptyActionLabel="Add User"
+      emptyRoute="/cooperative/users/add-user"
+      (rowClick)="onRowClicked($any($event))">
 
-      <div class="pagination">
-        <span class="pagination-info">
-          Showing {{ ((currentPage-1)*itemsPerPage)+1 }} to
-          {{ currentPage*itemsPerPage > totalItems ? totalItems : currentPage*itemsPerPage }}
-          of {{ totalItems }} users
-        </span>
-        <div class="pagination-controls">
-          <button class="page-btn" [disabled]="currentPage === 1">‹</button>
-          <button class="page-btn active">1</button>
-          <button class="page-btn">2</button>
-          <button class="page-btn">3</button>
-          <button class="page-btn" [disabled]="currentPage*itemsPerPage >= totalItems">›</button>
+      <ng-template appCell="name" let-row>
+        <div class="user-cell">
+          <div class="user-avatar">{{ getUserInitials($any(row).name) }}</div>
+          <span class="user-name">{{ $any(row).name }}</span>
         </div>
-      </div>
-    </div>
+      </ng-template>
+
+      <ng-template appCell="role" let-row>
+        <app-badge [variant]="getRoleBadgeVariant($any(row).role)" size="sm">{{ $any(row).role }}</app-badge>
+      </ng-template>
+
+      <ng-template appCell="actions" let-row>
+        <div class="actions-cell">
+          <button class="action-btn" (click)="viewUser($any(row), $event)" title="View user">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M12 5C7 5 2.73 8.11 1 12.5 2.73 16.89 7 20 12 20s9.27-3.11 11-7.5C21.27 8.11 17 5 12 5z" stroke="currentColor" stroke-width="1.8"/>
+              <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/>
+            </svg>
+          </button>
+          <button class="action-btn" (click)="moreActions($any(row), $event)" title="More actions">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="5"  r="1.5" fill="currentColor"/>
+              <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+              <circle cx="12" cy="19" r="1.5" fill="currentColor"/>
+            </svg>
+          </button>
+        </div>
+      </ng-template>
+
+    </app-data-table>
+
 
   </div>
 </div>

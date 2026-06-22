@@ -7,6 +7,8 @@ import { finalize } from 'rxjs/operators';
 import { ToastService } from '../../../../core/services/toast.service';
 import { BadgeComponent } from '../../../../shared/components/badge/badge';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
+import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
+import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
@@ -43,6 +45,8 @@ interface RequestForm {
     RouterModule,
     BadgeComponent,
     ButtonComponent,
+    DataTableComponent,
+    CellDirective,
     InputComponent,
     ModalComponent,
     PageHeaderComponent,
@@ -52,6 +56,17 @@ interface RequestForm {
   styleUrl: './request-stock.component.css',
 })
 export class RequestStockComponent implements OnInit {
+  cols: TableColumn[] = [
+    { key: 'itemName',              header: 'ITEM NAME',     class: 'item-name-cell' },
+    { key: 'category',              header: 'CATEGORY' },
+    { key: 'quantity',              header: 'QTY',           class: 'qty-cell' },
+    { key: 'urgency',               header: 'URGENCY' },
+    { key: 'submittedAt',           header: 'SUBMITTED',     class: 'date-cell' },
+    { key: 'preferredDeliveryDate', header: 'DELIVERY DATE', class: 'date-cell' },
+    { key: 'status',                header: 'STATUS' },
+    { key: 'actions',               header: 'ACTIONS',       width: '60px' },
+  ];
+
   // ── Form state ────────────────────────────────────────────────────────────
   form: RequestForm = this.emptyForm();
   submitting = false;

@@ -15,9 +15,43 @@
   margin-top: 2px;
 }
 
-/* Cooperative shows 5 KPI cards; allow them to shrink slightly on smaller screens */
+/* KPI summary row — 5 cards for the cooperative view */
 .kpi-grid {
+  display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.kpi-card {
+  background: var(--surface-lowest);
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: 0 2px 8px rgba(32, 11, 38, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.kpi-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted-purple);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.kpi-card h2 {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--secondary);
+  margin: 0;
+  line-height: 1.1;
+}
+
+.kpi-card small {
+  font-size: 12px;
+  color: var(--muted-purple);
 }
 
 /* Required field marker inside edit form */

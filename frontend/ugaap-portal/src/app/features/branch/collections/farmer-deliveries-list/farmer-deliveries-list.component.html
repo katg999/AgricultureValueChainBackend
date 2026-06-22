@@ -15,7 +15,6 @@
 
   <div class="page-header">
     <div>
-      <h1>Farmers</h1>
       <p *ngIf="batchDelivery">
         Farmers who delivered in {{ batchDelivery.id }} — {{ batchDelivery.branchName }}, {{ batchDelivery.commodity }}.
       </p>
@@ -183,15 +182,18 @@
             </td>
           </tr> -->
 
-          <!-- <tr *ngIf="paginatedFarmerDeliveries.length === 0"> -->
-            <!-- colspan adjusts automatically when the Grade column is added or removed. -->
-            <!-- <td [attr.colspan]="pricingService.useGrades ? 13 : 12" class="empty-state">
-              {{ batchDelivery ? 'No farmers have delivered in this batch yet.' : 'No farmer deliveries recorded yet.' }}
+          <tr *ngIf="paginatedFarmerDeliveries.length === 0">
+            <td [attr.colspan]="pricingService.useGrades ? 13 : 12">
+              <app-empty-state
+                icon="farmer"
+                [title]="batchDelivery ? 'No deliveries in this batch' : 'No farmer deliveries yet'"
+                [message]="batchDelivery ? 'No farmers have delivered in this batch yet.' : 'Farmer deliveries recorded at this branch will appear here.'">
+              </app-empty-state>
             </td>
           </tr>
         </tbody>
       </table>
-    </div> -->
+    </div>
 
     <!-- <div class="pagination-section" *ngIf="totalCount > itemsPerPage">
       <span class="pagination-info">Showing {{ startIndex }}–{{ endIndex }} of {{ totalCount }}</span>

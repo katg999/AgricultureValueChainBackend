@@ -89,11 +89,11 @@
       }
     </div>
   } @empty {
-    <div class="table-card">
-      <div class="empty-state">
-        No eligible farmers for this batch (check commodity / branch filter).
-      </div>
-    </div>
+    <app-empty-state
+      icon="farmer"
+      title="No farmers in this batch"
+      message="No farmers matched the commodity and branch filters for this batch.">
+    </app-empty-state>
   }
 
 </div>

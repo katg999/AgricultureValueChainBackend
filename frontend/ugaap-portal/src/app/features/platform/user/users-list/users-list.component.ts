@@ -5,10 +5,10 @@ import { FormsModule } from '@angular/forms';
 
 // Shared components
 import { StatsCardComponent } from '../../../../shared/components/stats-card/stats-card.component';
-import { TableComponent, TableColumn } from '../../../../shared/components/table/table.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
-import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
+import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
+import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
 
 /**
  * User interface
@@ -57,10 +57,10 @@ type BadgeVariant = 'info' | 'active' | 'pending' | 'inactive' | 'suspended' |
     RouterModule,
     FormsModule,
     StatsCardComponent,
-    // TableComponent,
     BadgeComponent,
     ButtonComponent,
-    EmptyStateComponent
+    DataTableComponent,
+    CellDirective,
   ],
   templateUrl: './users-list.component.html',
   styleUrls: ['./users-list.component.css']
@@ -103,17 +103,14 @@ export class UsersListComponent implements OnInit {
     'Mubende Warehouse Central'
   ];
 
-  /**
-   * Table columns configuration
-   */
-  tableColumns: TableColumn[] = [
-    { key: 'name', label: 'NAME', sortable: true },
-    { key: 'email', label: 'EMAIL', sortable: true },
-    { key: 'phone', label: 'PHONE NUMBER', sortable: false },
-    { key: 'role', label: 'ROLE', sortable: true },
-    { key: 'organization', label: 'ORGANISATION', sortable: true },
-    { key: 'lastLogin', label: 'LAST LOGIN', sortable: true },
-    { key: 'actions', label: 'ACTIONS', sortable: false }
+  userCols: TableColumn[] = [
+    { key: 'name',         header: 'NAME' },
+    { key: 'email',        header: 'EMAIL' },
+    { key: 'phone',        header: 'PHONE NUMBER' },
+    { key: 'role',         header: 'ROLE' },
+    { key: 'organization', header: 'ORGANISATION' },
+    { key: 'lastLogin',    header: 'LAST LOGIN' },
+    { key: 'actions',      header: 'ACTIONS', width: '80px' },
   ];
 
   /**
@@ -158,25 +155,38 @@ export class UsersListComponent implements OnInit {
     }
   ];
 
-  /**
-   * Loading state
-   */
-  isLoading = false;
-
-  /**
-   * Current page
-   */
   currentPage = 1;
+  readonly itemsPerPage = 5;
 
-  /**
-   * Total items
-   */
-  totalItems = 12;
+  get filteredUsers(): User[] {
+    const q = this.searchQuery.trim().toLowerCase();
+    if (!q) return this.users;
+    return this.users.filter(u =>
+      u.name.toLowerCase().includes(q) ||
+      u.email.toLowerCase().includes(q) ||
+      u.role.toLowerCase().includes(q) ||
+      u.organization.toLowerCase().includes(q),
+    );
+  }
 
-  /**
-   * Items per page
-   */
-  itemsPerPage = 4;
+  get paginatedUsers(): User[] {
+    const start = (this.currentPage - 1) * this.itemsPerPage;
+    return this.filteredUsers.slice(start, start + this.itemsPerPage);
+  }
+
+  get totalItems(): number { return this.filteredUsers.length; }
+
+  get startIndex(): number { return this.totalItems === 0 ? 0 : (this.currentPage - 1) * this.itemsPerPage + 1; }
+
+  get endIndex(): number { return Math.min(this.currentPage * this.itemsPerPage, this.totalItems); }
+
+  get pagesArray(): number[] {
+    return Array.from({ length: Math.max(Math.ceil(this.totalItems / this.itemsPerPage), 1) }, (_, i) => i + 1);
+  }
+
+  goToPage(page: number): void { this.currentPage = page; }
+  prevPage(): void { if (this.currentPage > 1) this.currentPage--; }
+  nextPage(): void { if (this.endIndex < this.totalItems) this.currentPage++; }
 
   constructor(
     private router: Router,
@@ -212,8 +222,7 @@ export class UsersListComponent implements OnInit {
    * Handle search
    */
   onSearch(): void {
-    console.log('Search:', this.searchQuery);
-    // TODO: Implement search
+    this.currentPage = 1;
   }
 
   /**

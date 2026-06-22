@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subject, takeUntil } from 'rxjs';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 
 import { Season } from '../../branch/collections/branch.delivery.model';
 import { BatchRecord, BatchStatus } from '../../branch/finance/batch.model';
@@ -39,7 +40,7 @@ export interface BranchSummary {
 @Component({
   selector: 'app-cooperative-finance',
   standalone: true,
-  imports: [CommonModule /*, StatCardComponent */],
+  imports: [CommonModule, EmptyStateComponent /*, StatCardComponent */],
   templateUrl: './cooperative-finance.component.html',
   styleUrls: ['./cooperative-finance.component.css'],
 })

@@ -3,12 +3,6 @@
 
 <div class="page">
 
-  <!-- page heading -->
-  <div class="page-header">
-    <h1 class="page-title">{{ isEditMode() ? 'Edit Grade' : 'Create New Grade' }}</h1>
-    <p class="page-subtitle">Define the quality parameters and identification for a new agricultural grade level.</p>
-  </div>
-
   <!-- error banner -->
   @if (error()) {
     <app-alert variant="error" [message]="error()!" />
