@@ -1,30 +1,26 @@
 <!--
-  Cooperative Onboarding
-  Layout: page title → horizontal stepper → single-step form card (inside admin layout)
-  5 steps: Identity · Address · Contact · Default Branch · Review
+  Cooperative Onboarding — numbered-section layout via app-form-shell + app-form-section.
+
+  Sections:
+    1. Identity Information  — cooperative name, reg number, default branch
+    2. Address Information   — physical address, country, P.O. Box, website
+    3. Contact Information   — contact person name, email, phone
+    4. Bank Account Details  — Pearl Bank (fixed), account name, number, branch
+    5. Cooperative Admin 1   — formerly Maker — full personal details + photo
+    6. Cooperative Admin 2   — formerly Checker — full personal details + photo
+    7. Review & Activate     — read-only summary + activate button
 -->
 
-<div class="onboarding-shell">
+<form [formGroup]="profileForm">
 
-  <!-- PAGE TITLE -->
-  <div class="page-header">
-    <span class="step-counter">Step {{ currentStep + 1 }} of {{ steps.length }}</span>
-  </div>
+  <app-form-shell title="New Cooperative"
+                  subtitle="Fill in all sections below, then activate when ready.">
 
-  <!-- STEPPER -->
-  <div class="onboarding-stepper">
-    <app-stepper [steps]="steps" [currentStep]="currentStep"></app-stepper>
-  </div>
+    <!-- ── 1. IDENTITY INFORMATION ── -->
+    <app-form-section [number]="1" title="Identity Information" iconName="building"
+                      desc="Official name, registration and primary branch">
 
-  <!-- CONTENT -->
-  <div class="onboarding-content">
-
-    <!-- ── STEP 0: COOPERATIVE IDENTITY ─────────────────────────────── -->
-    <form [formGroup]="profileForm" *ngIf="currentStep === 0">
-      <div class="form-card">
-        <h2 class="card-title">Cooperative Identity</h2>
-        <p class="card-subtitle">The official name and registration details for this cooperative</p>
-
+      <div class="fields-grid cols-2">
         <app-input
           label="Cooperative Name"
           type="text"
@@ -46,20 +42,32 @@
         </app-input>
       </div>
 
-      <div class="form-actions">
-        <button type="button" class="btn-ghost" (click)="saveProgress()" [disabled]="isSaving">
-          {{ isSaving ? 'Saving…' : 'Save & exit' }}
-        </button>
-        <app-button variant="primary" size="lg" (clicked)="nextStep()">Continue</app-button>
+      <div class="fields-grid cols-2 mt-16">
+        <app-input
+          label="Default Branch Name"
+          type="text"
+          placeholder="e.g., Main Office"
+          formControlName="defaultBranchName"
+          [required]="true"
+          hint="A starting branch created automatically on activation"
+          [error]="getFieldError('defaultBranchName')">
+        </app-input>
+
+        <app-input
+          label="Default Branch Location"
+          type="text"
+          placeholder="e.g., Mbale District"
+          formControlName="defaultBranchLocation"
+          hint="Geographic location of the default branch">
+        </app-input>
       </div>
-    </form>
+    </app-form-section>
 
-    <!-- ── STEP 1: ADDRESS ─────────────────────────────── -->
-    <form [formGroup]="profileForm" *ngIf="currentStep === 1">
-      <div class="form-card">
-        <h2 class="card-title">Address</h2>
-        <p class="card-subtitle">Where this cooperative is registered and based</p>
+    <!-- ── 2. ADDRESS INFORMATION ── -->
+    <app-form-section [number]="2" title="Address Information" iconName="location"
+                      desc="Where this cooperative is registered and based">
 
+      <div class="fields-grid cols-2">
         <app-input
           label="Physical Address"
           type="text"
@@ -76,159 +84,332 @@
           placeholder="e.g., Uganda"
           formControlName="country"
           [required]="true"
-          hint="Country where cooperative is registered"
+          hint="Country where the cooperative is registered"
           [error]="getFieldError('country')">
         </app-input>
-
-        <div class="form-row">
-          <app-input
-            label="P.O. Box"
-            type="text"
-            placeholder="e.g., P.O. Box 12345, Kampala"
-            formControlName="poBox"
-            hint="Postal address for official correspondence">
-          </app-input>
-
-          <app-input
-            label="Website URL"
-            type="text"
-            placeholder="e.g., https://bugisucoffee.co.ug"
-            formControlName="websiteUrl"
-            hint="Cooperative's official website if available">
-          </app-input>
-        </div>
       </div>
 
-      <div class="form-actions">
-        <button type="button" class="btn-ghost" (click)="saveProgress()" [disabled]="isSaving">
-          {{ isSaving ? 'Saving…' : 'Save & exit' }}
-        </button>
-        <div class="form-actions-right">
-          <button type="button" class="btn-secondary" (click)="previousStep()">Back</button>
-          <app-button variant="primary" size="lg" (clicked)="nextStep()">Continue</app-button>
-        </div>
-      </div>
-    </form>
-
-    <!-- ── STEP 2: DEFAULT BRANCH ──────────────────────────────── -->
-    <form [formGroup]="profileForm" *ngIf="currentStep === 2">
-      <div class="form-card">
-        <h2 class="card-title">Default Branch</h2>
-        <p class="card-subtitle">A starting branch for this cooperative's operations</p>
-
-        <app-alert variant="info">
-          <p>
-            <strong>ℹ️</strong> A default branch will be created automatically. You can add more
-            branches later.
-          </p>
-        </app-alert>
+      <div class="fields-grid cols-2 mt-16">
+        <app-input
+          label="P.O. Box"
+          type="text"
+          placeholder="e.g., P.O. Box 12345, Kampala"
+          formControlName="poBox"
+          hint="Postal address for official correspondence">
+        </app-input>
 
         <app-input
-          label="Default Branch Name"
+          label="Website URL"
           type="text"
-          placeholder="e.g., Main Office"
-          formControlName="defaultBranchName"
+          placeholder="e.g., https://bugisucoffee.co.ug"
+          formControlName="websiteUrl"
+          hint="Cooperative's official website if available">
+        </app-input>
+      </div>
+    </app-form-section>
+
+    <!-- ── 3. CONTACT INFORMATION ── -->
+    <app-form-section [number]="3" title="Contact Information" iconName="phone"
+                      desc="Primary point of contact for this cooperative">
+
+      <div class="fields-grid cols-3">
+        <app-input
+          label="Contact Person Name"
+          type="text"
+          placeholder="e.g., James Wekesa"
+          formControlName="contactPersonName"
+          hint="Name of the main administrative contact">
+        </app-input>
+
+        <app-input
+          label="Contact Email"
+          type="email"
+          placeholder="james.w@coop.ug"
+          formControlName="contactPersonEmail"
+          hint="Email used for cooperative correspondence"
+          [error]="getFieldError('contactPersonEmail')">
+        </app-input>
+
+        <app-input
+          label="Contact Phone"
+          type="tel"
+          placeholder="+256 700 000000"
+          formControlName="contactPersonPhone"
+          hint="Phone number for urgent communications">
+        </app-input>
+      </div>
+    </app-form-section>
+
+    <!-- ── 4. BANK ACCOUNT DETAILS ── -->
+    <app-form-section [number]="4" title="Bank Account Details" iconName="card"
+                      desc="Account from which farmer payments are disbursed">
+
+      <!-- Pearl Bank badge — fixed, not selectable -->
+      <div class="bank-badge">
+        <div class="bank-badge__icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="7" width="20" height="14" rx="2"/>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+          </svg>
+        </div>
+        <div class="bank-badge__text">
+          <span class="bank-badge__name">Pearl Bank</span>
+          <span class="bank-badge__sub">Formerly Post Bank Uganda · Fixed for all UGAAP cooperatives</span>
+        </div>
+        <span class="bank-badge__lock">FIXED</span>
+      </div>
+
+      <div class="fields-grid cols-2">
+        <app-input
+          label="Account Name"
+          type="text"
+          placeholder="e.g., Bugisu Cooperative Union Ltd"
+          formControlName="accountName"
           [required]="true"
-          hint="Primary branch that will be created automatically"
-          [error]="getFieldError('defaultBranchName')">
+          hint="Name as it appears on the bank account"
+          [error]="getFieldError('accountName')">
         </app-input>
 
         <app-input
-          label="Default Branch Location"
+          label="Account Number"
           type="text"
-          placeholder="e.g., Mbale District"
-          formControlName="defaultBranchLocation"
-          hint="Geographic location of the default branch">
+          placeholder="e.g., 9030012345678"
+          formControlName="accountNumber"
+          [required]="true"
+          hint="Digits only, 6–20 characters"
+          [error]="getFieldError('accountNumber')">
         </app-input>
       </div>
 
-      <div class="form-actions">
-        <button type="button" class="btn-ghost" (click)="saveProgress()" [disabled]="isSaving">
-          {{ isSaving ? 'Saving…' : 'Save & exit' }}
-        </button>
-        <div class="form-actions-right">
-          <button type="button" class="btn-secondary" (click)="previousStep()">Back</button>
-          <app-button variant="primary" size="lg" (clicked)="nextStep()">Continue</app-button>
-        </div>
-      </div>
-    </form>
-
-    <!-- ── STEP 3: BANK ACCOUNT DETAILS ──────────────────────── -->
-    <form [formGroup]="profileForm" *ngIf="currentStep === 3">
-      <div class="form-card">
-        <h2 class="card-title">Bank Account Details</h2>
-        <p class="card-subtitle">The account farmer payments will be disbursed from</p>
-
-        <!-- Fixed bank — all cooperatives on UGAAP bank with Pearl Bank -->
-        <div class="bank-badge">
-          <div class="bank-badge__icon">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="2" y="7" width="20" height="14" rx="2"/>
-              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-            </svg>
-          </div>
-          <div class="bank-badge__text">
-            <span class="bank-badge__name">Pearl Bank</span>
-            <span class="bank-badge__sub">Formerly Post Bank Uganda</span>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <app-input
-            label="Account Name"
-            type="text"
-            placeholder="e.g., Bugisu Cooperative Union Ltd"
-            formControlName="accountName"
-            [required]="true"
-            hint="Name as it appears on the bank account"
-            [error]="getFieldError('accountName')">
-          </app-input>
-
-          <app-input
-            label="Account Number"
-            type="text"
-            placeholder="e.g., 9030012345678"
-            formControlName="accountNumber"
-            [required]="true"
-            hint="Digits only, 6–20 characters"
-            [error]="getFieldError('accountNumber')">
-          </app-input>
-        </div>
-
+      <div class="fields-grid cols-2 mt-16">
         <app-input
-          label="Branch"
+          label="Bank Branch"
           type="text"
           placeholder="e.g., Mbale Branch"
           formControlName="bankBranch"
           hint="Pearl Bank branch where this account is held">
         </app-input>
       </div>
+    </app-form-section>
 
-      <div class="form-actions">
-        <button type="button" class="btn-ghost" (click)="saveProgress()" [disabled]="isSaving">
-          {{ isSaving ? 'Saving…' : 'Save & exit' }}
-        </button>
-        <div class="form-actions-right">
-          <button type="button" class="btn-secondary" (click)="previousStep()">Back</button>
-          <app-button variant="primary" size="lg" (clicked)="nextStep()">Review</app-button>
+    <!-- ── 5. COOPERATIVE ADMIN 1 (formerly Maker) ── -->
+    <app-form-section [number]="5" title="Cooperative Admin 1" iconName="user"
+                      desc="Primary admin — formerly known as Maker">
+
+      <div class="admin-photo-row">
+        <div class="input-group">
+          <div class="photo-header">
+            <label class="input-label">Profile Photo</label>
+            <span class="optional-badge">Optional</span>
+          </div>
+
+          <div class="photo-drop"
+               (dragover)="$event.preventDefault()"
+               (drop)="onAdmin1PhotoDrop($event)"
+               [class.photo-drop--has-image]="admin1Photo">
+
+            <div *ngIf="admin1Photo" class="photo-preview">
+              <img [src]="admin1Photo" alt="Admin 1 photo">
+              <button type="button" class="photo-remove" (click)="removeAdmin1Photo()"
+                      aria-label="Remove photo">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                  <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.8"
+                        stroke-linecap="round"/>
+                </svg>
+              </button>
+            </div>
+
+            <div *ngIf="!admin1Photo" class="photo-prompt">
+              <input type="file" id="admin1Photo" accept="image/*"
+                     (change)="onAdmin1PhotoSelect($event)" hidden>
+              <label for="admin1Photo" class="photo-prompt__label">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span>Click to upload</span>
+                <span class="photo-prompt__sub">JPG, PNG up to 5 MB</span>
+              </label>
+            </div>
+          </div>
         </div>
       </div>
-    </form>
 
-    <!-- ── STEP 4: REVIEW ───────────────────────────────── -->
-    <div *ngIf="currentStep === 4">
+      <div class="fields-grid cols-3 mt-16">
+        <app-input
+          label="Full Name"
+          type="text"
+          placeholder="e.g. John Okello"
+          formControlName="admin1FullName"
+          [required]="true"
+          hint="Full legal name"
+          [error]="getFieldError('admin1FullName')">
+        </app-input>
+
+        <app-input
+          label="Email Address"
+          type="email"
+          placeholder="john.o@coop.ug"
+          formControlName="admin1Email"
+          [required]="true"
+          hint="Used for login and notifications"
+          [error]="getFieldError('admin1Email')">
+        </app-input>
+
+        <app-input
+          label="Phone Number"
+          type="tel"
+          placeholder="+256 700 000000"
+          formControlName="admin1Phone"
+          [required]="true"
+          hint="For OTP verification"
+          [error]="getFieldError('admin1Phone')">
+        </app-input>
+      </div>
+
+      <div class="fields-grid cols-3 mt-16">
+        <app-input
+          label="Date of Birth"
+          type="date"
+          formControlName="admin1DateOfBirth"
+          hint="Format: YYYY-MM-DD">
+        </app-input>
+
+        <app-input
+          label="National ID Number"
+          type="text"
+          placeholder="CF9200000XXX"
+          formControlName="admin1NationalId">
+        </app-input>
+
+        <div class="input-group">
+          <label class="input-label">Gender</label>
+          <select title="gender" class="form-select" formControlName="admin1Gender">
+            <option *ngFor="let g of genderOptions" [value]="g">{{ g }}</option>
+          </select>
+        </div>
+      </div>
+    </app-form-section>
+
+    <!-- ── 6. COOPERATIVE ADMIN 2 (formerly Checker) ── -->
+    <app-form-section [number]="6" title="Cooperative Admin 2" iconName="users"
+                      desc="Secondary admin — formerly known as Checker">
+
+      <div class="admin-photo-row">
+        <div class="input-group">
+          <div class="photo-header">
+            <label class="input-label">Profile Photo</label>
+            <span class="optional-badge">Optional</span>
+          </div>
+
+          <div class="photo-drop"
+               (dragover)="$event.preventDefault()"
+               (drop)="onAdmin2PhotoDrop($event)"
+               [class.photo-drop--has-image]="admin2Photo">
+
+            <div *ngIf="admin2Photo" class="photo-preview">
+              <img [src]="admin2Photo" alt="Admin 2 photo">
+              <button type="button" class="photo-remove" (click)="removeAdmin2Photo()"
+                      aria-label="Remove photo">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                  <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.8"
+                        stroke-linecap="round"/>
+                </svg>
+              </button>
+            </div>
+
+            <div *ngIf="!admin2Photo" class="photo-prompt">
+              <input type="file" id="admin2Photo" accept="image/*"
+                     (change)="onAdmin2PhotoSelect($event)" hidden>
+              <label for="admin2Photo" class="photo-prompt__label">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span>Click to upload</span>
+                <span class="photo-prompt__sub">JPG, PNG up to 5 MB</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fields-grid cols-3 mt-16">
+        <app-input
+          label="Full Name"
+          type="text"
+          placeholder="e.g. Sarah Namubiru"
+          formControlName="admin2FullName"
+          [required]="true"
+          hint="Full legal name"
+          [error]="getFieldError('admin2FullName')">
+        </app-input>
+
+        <app-input
+          label="Email Address"
+          type="email"
+          placeholder="sarah.n@coop.ug"
+          formControlName="admin2Email"
+          [required]="true"
+          hint="Used for login and notifications"
+          [error]="getFieldError('admin2Email')">
+        </app-input>
+
+        <app-input
+          label="Phone Number"
+          type="tel"
+          placeholder="+256 700 000000"
+          formControlName="admin2Phone"
+          [required]="true"
+          hint="For OTP verification"
+          [error]="getFieldError('admin2Phone')">
+        </app-input>
+      </div>
+
+      <div class="fields-grid cols-3 mt-16">
+        <app-input
+          label="Date of Birth"
+          type="date"
+          formControlName="admin2DateOfBirth"
+          hint="Format: YYYY-MM-DD">
+        </app-input>
+
+        <app-input
+          label="National ID Number"
+          type="text"
+          placeholder="CF9200000XXX"
+          formControlName="admin2NationalId">
+        </app-input>
+
+        <div class="input-group">
+          <label class="input-label">Gender</label>
+          <select title="gender" class="form-select" formControlName="admin2Gender">
+            <option *ngFor="let g of genderOptions" [value]="g">{{ g }}</option>
+          </select>
+        </div>
+      </div>
+    </app-form-section>
+
+    <!-- ── 7. REVIEW & ACTIVATE ── -->
+    <app-form-section [number]="7" title="Review &amp; Activate" iconName="check"
+                      desc="Confirm all details before activating the cooperative">
 
       <div class="review-grid">
+
         <div class="review-card">
           <h3 class="review-card-title">Identity</h3>
           <div class="review-row">
             <span class="review-label">Cooperative Name</span>
-            <span class="review-value">{{ formValue.name }}</span>
+            <span class="review-value">{{ formValue.name || '—' }}</span>
           </div>
           <div class="review-row">
             <span class="review-label">Reg. Number</span>
-            <span class="review-value">{{ formValue.registrationNumber }}</span>
+            <span class="review-value">{{ formValue.registrationNumber || '—' }}</span>
+          </div>
+          <div class="review-row">
+            <span class="review-label">Default Branch</span>
+            <span class="review-value">{{ formValue.defaultBranchName || '—' }}</span>
           </div>
         </div>
 
@@ -236,19 +417,31 @@
           <h3 class="review-card-title">Address</h3>
           <div class="review-row">
             <span class="review-label">Physical Address</span>
-            <span class="review-value">{{ formValue.address }}</span>
+            <span class="review-value">{{ formValue.address || '—' }}</span>
           </div>
           <div class="review-row">
             <span class="review-label">Country</span>
-            <span class="review-value">{{ formValue.country }}</span>
+            <span class="review-value">{{ formValue.country || '—' }}</span>
           </div>
           <div class="review-row" *ngIf="formValue.poBox">
             <span class="review-label">P.O. Box</span>
             <span class="review-value">{{ formValue.poBox }}</span>
           </div>
-          <div class="review-row" *ngIf="formValue.websiteUrl">
-            <span class="review-label">Website</span>
-            <span class="review-value">{{ formValue.websiteUrl }}</span>
+        </div>
+
+        <div class="review-card">
+          <h3 class="review-card-title">Contact</h3>
+          <div class="review-row">
+            <span class="review-label">Contact Person</span>
+            <span class="review-value">{{ formValue.contactPersonName || '—' }}</span>
+          </div>
+          <div class="review-row">
+            <span class="review-label">Email</span>
+            <span class="review-value">{{ formValue.contactPersonEmail || '—' }}</span>
+          </div>
+          <div class="review-row">
+            <span class="review-label">Phone</span>
+            <span class="review-value">{{ formValue.contactPersonPhone || '—' }}</span>
           </div>
         </div>
 
@@ -260,58 +453,73 @@
           </div>
           <div class="review-row">
             <span class="review-label">Account Name</span>
-            <span class="review-value">{{ formValue.accountName }}</span>
+            <span class="review-value">{{ formValue.accountName || '—' }}</span>
           </div>
           <div class="review-row">
             <span class="review-label">Account Number</span>
-            <span class="review-value">{{ formValue.accountNumber }}</span>
-          </div>
-          <div class="review-row" *ngIf="formValue.mobileMoneyProvider">
-            <span class="review-label">Mobile Money</span>
-            <span class="review-value">{{ formValue.mobileMoneyProvider }} · {{ formValue.mobileMoneyNumber }}</span>
+            <span class="review-value">{{ formValue.accountNumber || '—' }}</span>
           </div>
         </div>
 
         <div class="review-card">
-          <h3 class="review-card-title">Default Branch</h3>
+          <h3 class="review-card-title">Admin 1</h3>
           <div class="review-row">
-            <span class="review-label">Branch Name</span>
-            <span class="review-value">{{ formValue.defaultBranchName }}</span>
+            <span class="review-label">Full Name</span>
+            <span class="review-value">{{ formValue.admin1FullName || '—' }}</span>
           </div>
-          <div class="review-row" *ngIf="formValue.defaultBranchLocation">
-            <span class="review-label">Location</span>
-            <span class="review-value">{{ formValue.defaultBranchLocation }}</span>
+          <div class="review-row">
+            <span class="review-label">Email</span>
+            <span class="review-value">{{ formValue.admin1Email || '—' }}</span>
+          </div>
+          <div class="review-row">
+            <span class="review-label">Phone</span>
+            <span class="review-value">{{ formValue.admin1Phone || '—' }}</span>
           </div>
         </div>
+
+        <div class="review-card">
+          <h3 class="review-card-title">Admin 2</h3>
+          <div class="review-row">
+            <span class="review-label">Full Name</span>
+            <span class="review-value">{{ formValue.admin2FullName || '—' }}</span>
+          </div>
+          <div class="review-row">
+            <span class="review-label">Email</span>
+            <span class="review-value">{{ formValue.admin2Email || '—' }}</span>
+          </div>
+          <div class="review-row">
+            <span class="review-label">Phone</span>
+            <span class="review-value">{{ formValue.admin2Phone || '—' }}</span>
+          </div>
+        </div>
+
       </div>
 
       <app-alert variant="error" *ngIf="errorMessage">
         <p>{{ errorMessage }}</p>
       </app-alert>
 
-      <div class="form-actions">
-        <button type="button" class="btn-ghost" (click)="saveProgress()" [disabled]="isSaving">
-          {{ isSaving ? 'Saving…' : 'Save & exit' }}
-        </button>
-        <div class="form-actions-right">
-          <button type="button" class="btn-secondary" (click)="previousStep()">Back</button>
-          <app-button
-            variant="primary"
-            size="lg"
-            (clicked)="openConfirmModal()"
-            [loading]="isLoading"
-            loadingText="Activating…">
-            Activate Cooperative
-          </app-button>
-        </div>
-      </div>
+    </app-form-section>
 
-    </div>
+  </app-form-shell>
 
-  </div><!-- /onboarding-content -->
-</div><!-- /onboarding-shell -->
+  <div class="form-actions">
+    <button type="button" class="btn-secondary" routerLink="/platform/cooperatives">
+      Cancel
+    </button>
+    <app-button
+      variant="primary"
+      size="lg"
+      (clicked)="openConfirmModal()"
+      [loading]="isLoading"
+      loadingText="Activating…">
+      Activate Cooperative
+    </app-button>
+  </div>
 
-<!-- Confirmation Modal -->
+</form>
+
+<!-- Confirmation modal -->
 <app-modal
   [isOpen]="showConfirmModal"
   title="Confirm Cooperative Activation"
@@ -319,11 +527,18 @@
   variant="warning"
   (closed)="closeConfirmModal()">
   <p>You are about to activate <strong>{{ formValue.name }}</strong>.</p>
-  <p>This will create a new tenant and cooperative account in the system.</p>
+  <p>This will create a new cooperative account and set up both admin users.</p>
   <p><strong>Continue?</strong></p>
-  <div class="modal-actions">
-    <button type="button" class="btn-secondary" (click)="closeConfirmModal()" [disabled]="isLoading">Cancel</button>
-    <app-button variant="primary" size="md" (clicked)="activateCooperative()" [loading]="isLoading" loadingText="Activating…">
+  <div class="modal-actions" footer>
+    <button type="button" class="btn-secondary" (click)="closeConfirmModal()" [disabled]="isLoading">
+      Cancel
+    </button>
+    <app-button
+      variant="primary"
+      size="md"
+      (clicked)="activateCooperative()"
+      [loading]="isLoading"
+      loadingText="Activating…">
       Yes, Activate
     </app-button>
   </div>

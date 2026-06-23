@@ -1,38 +1,16 @@
 <!--
-  Branch Onboarding — single-page form, no wizard steps.
-
-  Layout: page header → 2×2 card grid → single submit.
-  Row 1: Identity (left)  | Location (right)
-  Row 2: Address  (left)  | Manager  (right)
-
-  All fields are validated together when the user clicks "Register Branch".
-  Invalid fields are highlighted inline so nothing gets missed.
+  Branch Onboarding — numbered-section layout via app-form-shell + app-form-section.
+  All fields validated together on "Register Branch" click.
 -->
 
-<div class="onboarding-shell">
+<form [formGroup]="branchForm">
 
-  <!-- PAGE HEADER -->
-  <div class="page-header">
-    <div>
-      <h1 class="page-title">New Branch</h1>
-      <p class="page-subtitle">Fill in the details below, then register when ready.</p>
-    </div>
-  </div>
+  <app-form-shell title="New Branch" subtitle="Fill in all sections below, then register when ready.">
 
-  <form [formGroup]="branchForm">
-
-    <!--
-      Section grid: 2 columns, 4 cards auto-flow into 2 rows.
-      On mobile this collapses to a single column (see CSS).
-    -->
-    <div class="section-grid">
-
-      <!-- ── IDENTITY -->
-      <div class="form-card">
-        <h2 class="card-title">Identity</h2>
-        <p class="card-subtitle">Official name and unique code for this branch</p>
-
-        <!-- Human-readable name shown in reports and dashboards -->
+    <!-- ── 1. IDENTITY ── -->
+    <app-form-section [number]="1" title="Identity" iconName="building"
+                      desc="Official name and unique code for this branch">
+      <div class="fields-grid cols-2">
         <app-input
           label="Branch Name"
           type="text"
@@ -43,7 +21,6 @@
           [error]="getFieldError('branchName')">
         </app-input>
 
-        <!-- Short alphanumeric code — used as a unique identifier across the platform -->
         <app-input
           label="Registration Number"
           type="text"
@@ -54,13 +31,12 @@
           [error]="getFieldError('branchRegistrationNumber')">
         </app-input>
       </div>
+    </app-form-section>
 
-      <!-- ── LOCATION ───────────────────────────────────────── -->
-      <div class="form-card">
-        <h2 class="card-title">Location</h2>
-        <p class="card-subtitle">Where this branch operates</p>
-
-        <!-- Town or district the branch physically serves -->
+    <!-- ── 2. LOCATION ── -->
+    <app-form-section [number]="2" title="Location" iconName="location"
+                      desc="Where this branch operates">
+      <div class="fields-grid cols-4">
         <app-input
           label="Town / Area"
           type="text"
@@ -71,103 +47,89 @@
           [error]="getFieldError('location')">
         </app-input>
 
-        <!-- Region and country in a side-by-side row to save vertical space -->
-        <div class="form-row">
+        <div class="input-group">
+          <label class="input-label">Region <span class="required">*</span></label>
+          <select title="region" formControlName="region" class="form-select"
+                  [class.has-error]="branchForm.get('region')?.invalid && branchForm.get('region')?.touched">
+            <option value="" disabled>Select region</option>
+            <option value="Central Region">Central Region</option>
+            <option value="Eastern Region">Eastern Region</option>
+            <option value="Northern Region">Northern Region</option>
+            <option value="Western Region">Western Region</option>
+            <option value="South Western Region">South Western Region</option>
+          </select>
+          <span class="error-text"
+                *ngIf="branchForm.get('region')?.invalid && branchForm.get('region')?.touched">
+            Please select a region
+          </span>
+        </div>
 
-          <!-- Uganda has 4 administrative regions; select from the fixed list -->
-          <div class="input-group">
-            <label class="input-label">Region <span class="required">*</span></label>
-            <select
-              title="region"
-              formControlName="region"
-              class="form-select"
-              [class.has-error]="branchForm.get('region')?.invalid && branchForm.get('region')?.touched">
-              <option value="" disabled>Select region</option>
-              <option value="Central Region">Central Region</option>
-              <option value="Eastern Region">Eastern Region</option>
-              <option value="Northern Region">Northern Region</option>
-              <option value="Western Region">Western Region</option>
-              <option value="South Western Region">South Western Region</option>
-            </select>
-            <span class="error-text"
-              *ngIf="branchForm.get('region')?.invalid && branchForm.get('region')?.touched">
-              Please select a region
-            </span>
-          </div>
+        <div class="input-group">
+          <label class="input-label">Country <span class="required">*</span></label>
+          <select title="country" formControlName="country" class="form-select"
+                  [class.has-error]="branchForm.get('country')?.invalid && branchForm.get('country')?.touched">
+            <option value="" disabled>Select country</option>
+            <option value="Algeria">Algeria</option>
+            <option value="Angola">Angola</option>
+            <option value="Benin">Benin</option>
+            <option value="Botswana">Botswana</option>
+            <option value="Burkina Faso">Burkina Faso</option>
+            <option value="Burundi">Burundi</option>
+            <option value="Cabo Verde">Cabo Verde</option>
+            <option value="Cameroon">Cameroon</option>
+            <option value="Central African Republic">Central African Republic</option>
+            <option value="Chad">Chad</option>
+            <option value="Comoros">Comoros</option>
+            <option value="Congo, Democratic Republic of the">Congo, Dem. Rep.</option>
+            <option value="Congo, Republic of the">Congo, Republic</option>
+            <option value="Côte d'Ivoire">Côte d'Ivoire</option>
+            <option value="Djibouti">Djibouti</option>
+            <option value="Egypt">Egypt</option>
+            <option value="Equatorial Guinea">Equatorial Guinea</option>
+            <option value="Eritrea">Eritrea</option>
+            <option value="Eswatini">Eswatini</option>
+            <option value="Ethiopia">Ethiopia</option>
+            <option value="Gabon">Gabon</option>
+            <option value="Gambia">Gambia</option>
+            <option value="Ghana">Ghana</option>
+            <option value="Guinea">Guinea</option>
+            <option value="Guinea-Bissau">Guinea-Bissau</option>
+            <option value="Kenya">Kenya</option>
+            <option value="Lesotho">Lesotho</option>
+            <option value="Liberia">Liberia</option>
+            <option value="Libya">Libya</option>
+            <option value="Madagascar">Madagascar</option>
+            <option value="Malawi">Malawi</option>
+            <option value="Mali">Mali</option>
+            <option value="Mauritania">Mauritania</option>
+            <option value="Mauritius">Mauritius</option>
+            <option value="Morocco">Morocco</option>
+            <option value="Mozambique">Mozambique</option>
+            <option value="Namibia">Namibia</option>
+            <option value="Niger">Niger</option>
+            <option value="Nigeria">Nigeria</option>
+            <option value="Rwanda">Rwanda</option>
+            <option value="Sao Tome and Principe">Sao Tome and Principe</option>
+            <option value="Senegal">Senegal</option>
+            <option value="Seychelles">Seychelles</option>
+            <option value="Sierra Leone">Sierra Leone</option>
+            <option value="Somalia">Somalia</option>
+            <option value="South Africa">South Africa</option>
+            <option value="South Sudan">South Sudan</option>
+            <option value="Sudan">Sudan</option>
+            <option value="Tanzania">Tanzania</option>
+            <option value="Togo">Togo</option>
+            <option value="Tunisia">Tunisia</option>
+            <option value="Uganda">Uganda</option>
+            <option value="Zambia">Zambia</option>
+            <option value="Zimbabwe">Zimbabwe</option>
+          </select>
+          <span class="error-text"
+                *ngIf="branchForm.get('country')?.invalid && branchForm.get('country')?.touched">
+            Please select a country
+          </span>
+        </div>
 
-          <!-- Country list covers all African nations for cross-border operations -->
-          <div class="input-group">
-            <label class="input-label">Country <span class="required">*</span></label>
-            <select
-              title="country"
-              formControlName="country"
-              class="form-select"
-              [class.has-error]="branchForm.get('country')?.invalid && branchForm.get('country')?.touched">
-              <option value="" disabled>Select country</option>
-              <option value="Algeria">Algeria</option>
-              <option value="Angola">Angola</option>
-              <option value="Benin">Benin</option>
-              <option value="Botswana">Botswana</option>
-              <option value="Burkina Faso">Burkina Faso</option>
-              <option value="Burundi">Burundi</option>
-              <option value="Cabo Verde">Cabo Verde</option>
-              <option value="Cameroon">Cameroon</option>
-              <option value="Central African Republic">Central African Republic</option>
-              <option value="Chad">Chad</option>
-              <option value="Comoros">Comoros</option>
-              <option value="Congo, Democratic Republic of the">Congo, Dem. Rep.</option>
-              <option value="Congo, Republic of the">Congo, Republic</option>
-              <option value="Côte d'Ivoire">Côte d'Ivoire</option>
-              <option value="Djibouti">Djibouti</option>
-              <option value="Egypt">Egypt</option>
-              <option value="Equatorial Guinea">Equatorial Guinea</option>
-              <option value="Eritrea">Eritrea</option>
-              <option value="Eswatini">Eswatini</option>
-              <option value="Ethiopia">Ethiopia</option>
-              <option value="Gabon">Gabon</option>
-              <option value="Gambia">Gambia</option>
-              <option value="Ghana">Ghana</option>
-              <option value="Guinea">Guinea</option>
-              <option value="Guinea-Bissau">Guinea-Bissau</option>
-              <option value="Kenya">Kenya</option>
-              <option value="Lesotho">Lesotho</option>
-              <option value="Liberia">Liberia</option>
-              <option value="Libya">Libya</option>
-              <option value="Madagascar">Madagascar</option>
-              <option value="Malawi">Malawi</option>
-              <option value="Mali">Mali</option>
-              <option value="Mauritania">Mauritania</option>
-              <option value="Mauritius">Mauritius</option>
-              <option value="Morocco">Morocco</option>
-              <option value="Mozambique">Mozambique</option>
-              <option value="Namibia">Namibia</option>
-              <option value="Niger">Niger</option>
-              <option value="Nigeria">Nigeria</option>
-              <option value="Rwanda">Rwanda</option>
-              <option value="Sao Tome and Principe">Sao Tome and Principe</option>
-              <option value="Senegal">Senegal</option>
-              <option value="Seychelles">Seychelles</option>
-              <option value="Sierra Leone">Sierra Leone</option>
-              <option value="Somalia">Somalia</option>
-              <option value="South Africa">South Africa</option>
-              <option value="South Sudan">South Sudan</option>
-              <option value="Sudan">Sudan</option>
-              <option value="Tanzania">Tanzania</option>
-              <option value="Togo">Togo</option>
-              <option value="Tunisia">Tunisia</option>
-              <option value="Uganda">Uganda</option>
-              <option value="Zambia">Zambia</option>
-              <option value="Zimbabwe">Zimbabwe</option>
-            </select>
-            <span class="error-text"
-              *ngIf="branchForm.get('country')?.invalid && branchForm.get('country')?.touched">
-              Please select a country
-            </span>
-          </div>
-
-        </div><!-- /form-row (region | country) -->
-
-        <!-- The date this branch was officially established, used for audit history -->
         <app-input
           label="Established Date"
           type="date"
@@ -176,15 +138,13 @@
           hint="Date the branch was established"
           [error]="getFieldError('establishedDate')">
         </app-input>
+      </div>
+    </app-form-section>
 
-      </div><!-- /Location card -->
-
-      <!-- ── ADDRESS ─────────────────────────────────────────── -->
-      <div class="form-card">
-        <h2 class="card-title">Address</h2>
-        <p class="card-subtitle">Physical and postal address for the branch</p>
-
-        <!-- Used for deliveries, inspections and official correspondence -->
+    <!-- ── 3. ADDRESS ── -->
+    <app-form-section [number]="3" title="Address" iconName="home"
+                      desc="Physical and postal address for the branch">
+      <div class="fields-grid cols-2">
         <app-input
           label="Physical Address"
           type="text"
@@ -195,7 +155,6 @@
           [error]="getFieldError('address')">
         </app-input>
 
-        <!-- P.O. Box is the mailing address; different from the physical location -->
         <app-input
           label="P.O. Box"
           type="text"
@@ -206,13 +165,12 @@
           [error]="getFieldError('poBox')">
         </app-input>
       </div>
+    </app-form-section>
 
-      <!-- ── MANAGER ─────────────────────────────────────────── -->
-      <div class="form-card">
-        <h2 class="card-title">Branch Manager</h2>
-        <p class="card-subtitle">Primary contact for all branch operations and communications</p>
-
-        <!-- Legal name used for agreements, reports and system accounts -->
+    <!-- ── 4. BRANCH MANAGER ── -->
+    <app-form-section [number]="4" title="Branch Manager" iconName="user"
+                      desc="Primary contact for all branch operations">
+      <div class="fields-grid cols-3">
         <app-input
           label="Full Name"
           type="text"
@@ -223,62 +181,52 @@
           [error]="getFieldError('managerName')">
         </app-input>
 
-        <!-- Email and phone side by side — both required for platform communications -->
-        <div class="form-row">
-          <app-input
-            label="Email Address"
-            type="email"
-            placeholder="manager@example.com"
-            formControlName="managerEmail"
-            [required]="true"
-            hint="Active email used for branch communications"
-            [error]="getFieldError('managerEmail')">
-          </app-input>
+        <app-input
+          label="Email Address"
+          type="email"
+          placeholder="manager@example.com"
+          formControlName="managerEmail"
+          [required]="true"
+          hint="Active email used for branch communications"
+          [error]="getFieldError('managerEmail')">
+        </app-input>
 
-          <!-- Country code is required — e.g., +256 for Uganda -->
-          <app-input
-            label="Phone Number"
-            type="tel"
-            placeholder="+256 712 345 678"
-            formControlName="managerPhone"
-            [required]="true"
-            hint="Include country code (e.g., +256712345678)"
-            [error]="getFieldError('managerPhone')">
-          </app-input>
-        </div>
+        <app-input
+          label="Phone Number"
+          type="tel"
+          placeholder="+256 712 345 678"
+          formControlName="managerPhone"
+          [required]="true"
+          hint="Include country code (e.g., +256712345678)"
+          [error]="getFieldError('managerPhone')">
+        </app-input>
+      </div>
 
-      </div><!-- /Manager card -->
+      <!-- API error shown at bottom of last section -->
+      <app-alert variant="error" *ngIf="errorMessage" class="mt-16">
+        <p>{{ errorMessage }}</p>
+      </app-alert>
+    </app-form-section>
 
-    </div><!-- /section-grid -->
+  </app-form-shell>
 
-    <!-- Inline error shown when the API rejects the submission -->
-    <app-alert variant="error" *ngIf="errorMessage">
-      <p>{{ errorMessage }}</p>
-    </app-alert>
+  <div class="form-actions">
+    <button type="button" class="btn-secondary" routerLink="/cooperative/branches/dashboard">
+      Cancel
+    </button>
+    <app-button
+      variant="primary"
+      size="lg"
+      (clicked)="openConfirmModal()"
+      [loading]="isLoading"
+      loadingText="Registering…">
+      Register Branch
+    </app-button>
+  </div>
 
-    <!--
-      Actions: Cancel goes back to the branch list.
-      Register Branch validates all fields, then opens the confirm modal.
-    -->
-    <div class="form-actions">
-      <button type="button" class="btn-secondary" routerLink="/cooperative/branches/dashboard">
-        Cancel
-      </button>
-      <app-button
-        variant="primary"
-        size="lg"
-        (clicked)="openConfirmModal()"
-        [loading]="isLoading"
-        loadingText="Registering…">
-        Register Branch
-      </app-button>
-    </div>
+</form>
 
-  </form>
-
-</div><!-- /onboarding-shell -->
-
-<!-- Confirmation modal — only opens after all fields pass validation -->
+<!-- Confirmation modal -->
 <app-modal
   [isOpen]="showConfirmModal"
   title="Confirm Branch Registration"
@@ -290,7 +238,6 @@
     <strong>{{ formValue.managerName }}</strong> as branch manager.
   </p>
   <p><strong>Continue?</strong></p>
-  <!-- "footer" tells app-modal "I'm providing my own buttons — hide your built-in ones" -->
   <div class="modal-actions" footer>
     <button type="button" class="btn-secondary" (click)="closeConfirmModal()" [disabled]="isLoading">
       Cancel

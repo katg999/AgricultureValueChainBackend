@@ -1,15 +1,17 @@
 <!--
-  Farmer Registration — single-page card grid (mirrors branch onboarding layout).
-  No wizard/stepper. All sections are visible at once so the user can fill top to bottom.
+  Farmer Registration — numbered-section layout via app-form-shell + app-form-section.
+  Uses template-driven forms (ngModel) — no form group wrapper needed.
 
-  Layout: page header → 2×2 flush card grid → single submit button.
-  Row 1: Personal Details (left) | Farm Details   (right)
-  Row 2: Payment Method  (left) | Production      (right)
+  Sections:
+    1. Personal Details   — name, ID, phone, email, gender, DOB, photo
+    2. Farm Details       — location, village, GPS, irrigation, land area, ownership
+    3. Payment Method     — bank / Wendi wallet / mobile money
+    4. Production         — commodity, livestock
 -->
 
-<div class="onboarding-shell">
+<div class="farmer-register-wrap">
 
-  <!-- Loading spinner shown while an existing farmer's data is fetched in edit mode -->
+  <!-- Loading state while fetching farmer in edit mode -->
   <p *ngIf="loadingFarmer" class="loading-hint">
     <span class="loading-dot"></span>
     Loading farmer profile…
@@ -17,24 +19,15 @@
 
   <ng-container *ngIf="!loadingFarmer">
 
-    <!-- PAGE HEADER -->
-    <div class="page-header">
-      <h1 class="page-title">{{ isEditMode ? 'Edit Farmer Profile' : 'New Farmer' }}</h1>
-      <p class="page-subtitle">Fill in all sections below, then register when ready.</p>
-    </div>
+    <app-form-shell
+      [title]="isEditMode ? 'Edit Farmer Profile' : 'New Farmer'"
+      subtitle="Fill in all sections below, then register when ready.">
 
-    <!-- SECTION GRID: four cards auto-flow into 2 rows × 2 columns -->
-    <div class="section-grid">
+      <!-- ── 1. PERSONAL DETAILS ── -->
+      <app-form-section [number]="1" title="Personal Details" iconName="user"
+                        desc="Basic identity and contact information">
 
-      <!-- ── PERSONAL DETAILS ────────────────────────────────────────────── -->
-      <div class="form-card">
-        <div class="card-header">
-          <h2 class="card-title">Personal Details</h2>
-          <!-- Orange underline visually separates the heading from the fields below -->
-          <p class="card-subtitle">Basic identity and contact information</p>
-        </div>
-
-        <div class="field-row">
+        <div class="fields-grid cols-4">
           <app-input
             label="Full Name"
             placeholder="e.g. Sarah Namubiru"
@@ -50,20 +43,18 @@
             placeholder="e.g. CM95012A345B6C"
             type="text"
             [required]="true"
-            hint="14 characters: 2 letters · 5 digits · 1 letter · 3 digits · 1 letter · 1 digit · 1 letter"
+            hint="14 chars: 2 letters · 5 digits · 1 letter · 3 digits · 1 letter · 1 digit · 1 letter"
             [error]="formErrors['nationalIdNumber']"
             [(ngModel)]="form.nationalIdNumber"
             name="nationalIdNumber">
           </app-input>
-        </div>
 
-        <div class="field-row">
           <app-input
             label="Phone Number"
             placeholder="e.g. 0700000000"
             type="tel"
             [required]="true"
-            hint="Exactly 10 digits, no spaces or country code (e.g. 0700000000)"
+            hint="Exactly 10 digits, no spaces or country code"
             [error]="formErrors['phoneNumber']"
             [(ngModel)]="form.phoneNumber"
             name="phoneNumber">
@@ -80,7 +71,7 @@
           </app-input>
         </div>
 
-        <div class="field-row">
+        <div class="fields-grid cols-2 mt-16">
           <div class="input-group">
             <label class="input-label">Gender <span class="required-mark">*</span></label>
             <select title="select gender" [(ngModel)]="form.gender" name="gender" class="form-select">
@@ -98,8 +89,8 @@
           </app-input>
         </div>
 
-        <!-- Profile photo upload — optional, used for KYC verification -->
-        <div class="input-group">
+        <!-- Profile photo (full width) -->
+        <div class="input-group mt-16">
           <div class="photo-header">
             <label class="input-label">Profile Photo</label>
             <span class="optional-badge">Optional</span>
@@ -110,22 +101,17 @@
                (drop)="onPhotoDrop($event)"
                [class.photo-drop--has-image]="form.photoPreviewUrl">
 
-            <!-- Show the selected image when one has been uploaded -->
             <div *ngIf="form.photoPreviewUrl" class="photo-preview">
               <img [src]="form.photoPreviewUrl" alt="Farmer photo">
-              <button type="button" class="photo-remove" (click)="removeFarmerPhoto()"
-                      aria-label="Remove photo">
+              <button type="button" class="photo-remove" (click)="removeFarmerPhoto()" aria-label="Remove photo">
                 <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                  <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.8"
-                        stroke-linecap="round"/>
+                  <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                 </svg>
               </button>
             </div>
 
-            <!-- Upload prompt when no photo is selected yet -->
             <div *ngIf="!form.photoPreviewUrl" class="photo-prompt">
-              <input type="file" id="farmerPhoto" accept="image/*"
-                     (change)="onPhotoSelected($event)" hidden>
+              <input type="file" id="farmerPhoto" accept="image/*" (change)="onPhotoSelected($event)" hidden>
               <label for="farmerPhoto" class="photo-prompt__label">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"
@@ -141,17 +127,13 @@
           <p *ngIf="photoError" class="error-text">{{ photoError }}</p>
         </div>
 
-      </div><!-- /Personal Details -->
+      </app-form-section>
 
+      <!-- ── 2. FARM DETAILS ── -->
+      <app-form-section [number]="2" title="Farm Details" iconName="home"
+                        desc="Location, land size, and growing conditions">
 
-      <!-- ── FARM DETAILS ──────────────────────────────────────────────────── -->
-      <div class="form-card">
-        <div class="card-header">
-          <h2 class="card-title">Farm Details</h2>
-          <p class="card-subtitle">Location, land size, and growing conditions</p>
-        </div>
-
-        <div class="field-row">
+        <div class="fields-grid cols-4">
           <div class="input-group">
             <label class="input-label">Farm Location <span class="required-mark">*</span></label>
             <select title="select farm location" [(ngModel)]="form.farmLocation"
@@ -169,9 +151,7 @@
             [(ngModel)]="form.village"
             name="village">
           </app-input>
-        </div>
 
-        <div class="field-row">
           <app-input
             label="GPS Coordinates"
             placeholder="e.g. 0.3476 N, 32.5825 E"
@@ -190,10 +170,9 @@
           </div>
         </div>
 
-        <div class="field-row">
+        <div class="fields-grid cols-2 mt-16">
           <div class="input-group">
             <label class="input-label">Total Land Area (ha) <span class="required-mark">*</span></label>
-            <!-- Using a plain <input> here because app-input does not expose min/step props -->
             <input
               class="form-input"
               [class.input-error]="formErrors['totalLandArea']"
@@ -203,9 +182,7 @@
               placeholder="e.g. 5.5"
               min="0"
               step="0.1" />
-            <p *ngIf="formErrors['totalLandArea']" class="error-text">
-              {{ formErrors['totalLandArea'] }}
-            </p>
+            <p *ngIf="formErrors['totalLandArea']" class="error-text">{{ formErrors['totalLandArea'] }}</p>
           </div>
 
           <div class="input-group">
@@ -217,22 +194,15 @@
           </div>
         </div>
 
-      </div><!-- /Farm Details -->
+      </app-form-section>
 
+      <!-- ── 3. PAYMENT METHOD ── -->
+      <app-form-section [number]="3" title="Payment Method" iconName="card"
+                        desc="How this farmer receives disbursements">
 
-      <!-- ── PAYMENT METHOD ────────────────────────────────────────────────── -->
-      <div class="form-card">
-        <div class="card-header">
-          <h2 class="card-title">Payment Method</h2>
-          <p class="card-subtitle">How this farmer receives disbursements</p>
-        </div>
-
-        <!-- Three radio-style tiles — only one can be active at a time -->
         <div class="payment-tabs" role="radiogroup" aria-label="Payment type">
-          <label class="payment-tab"
-                 [class.payment-tab--active]="form.paymentMethod.type === 'bank'">
-            <input type="radio" name="paymentMethodType" value="bank"
-                   [(ngModel)]="form.paymentMethod.type">
+          <label class="payment-tab" [class.payment-tab--active]="form.paymentMethod.type === 'bank'">
+            <input type="radio" name="paymentMethodType" value="bank" [(ngModel)]="form.paymentMethod.type">
             <span class="payment-tab__icon">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M3 10h18M3 6l9-3 9 3M3 10v10a1 1 0 001 1h16a1 1 0 001-1V10"
@@ -243,10 +213,8 @@
             <span class="payment-tab__sub">12-digit account</span>
           </label>
 
-          <label class="payment-tab"
-                 [class.payment-tab--active]="form.paymentMethod.type === 'wendi_wallet'">
-            <input type="radio" name="paymentMethodType" value="wendi_wallet"
-                   [(ngModel)]="form.paymentMethod.type">
+          <label class="payment-tab" [class.payment-tab--active]="form.paymentMethod.type === 'wendi_wallet'">
+            <input type="radio" name="paymentMethodType" value="wendi_wallet" [(ngModel)]="form.paymentMethod.type">
             <span class="payment-tab__icon">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M20 7H4a2 2 0 00-2 2v8a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"
@@ -258,16 +226,12 @@
             <span class="payment-tab__sub">Linked to phone number</span>
           </label>
 
-          <label class="payment-tab"
-                 [class.payment-tab--active]="form.paymentMethod.type === 'mobile_money'">
-            <input type="radio" name="paymentMethodType" value="mobile_money"
-                   [(ngModel)]="form.paymentMethod.type">
+          <label class="payment-tab" [class.payment-tab--active]="form.paymentMethod.type === 'mobile_money'">
+            <input type="radio" name="paymentMethodType" value="mobile_money" [(ngModel)]="form.paymentMethod.type">
             <span class="payment-tab__icon">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <rect x="7" y="2" width="10" height="20" rx="2"
-                      stroke="currentColor" stroke-width="1.8"/>
-                <path d="M11 18h2" stroke="currentColor" stroke-width="2"
-                      stroke-linecap="round"/>
+                <rect x="7" y="2" width="10" height="20" rx="2" stroke="currentColor" stroke-width="1.8"/>
+                <path d="M11 18h2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
               </svg>
             </span>
             <span class="payment-tab__name">Mobile money</span>
@@ -275,14 +239,13 @@
           </label>
         </div>
 
-        <!-- Bank sub-form — conditionally rendered based on selected tab -->
+        <!-- Bank sub-form -->
         <ng-container *ngIf="form.paymentMethod.type === 'bank'">
-          <div class="field-row">
+          <div class="fields-grid cols-2 mt-16">
             <div class="input-group">
               <label class="input-label">Bank Name <span class="required-mark">*</span></label>
               <select title="select bank" [(ngModel)]="form.paymentMethod.bankName"
-                      name="bankName" class="form-select"
-                      [class.input-error]="formErrors['bankName']">
+                      name="bankName" class="form-select" [class.input-error]="formErrors['bankName']">
                 <option value="" disabled>Select a bank</option>
                 <option *ngFor="let bank of bankOptions" [value]="bank">{{ bank }}</option>
               </select>
@@ -300,7 +263,7 @@
             </app-input>
           </div>
 
-          <div class="field-row">
+          <div class="fields-grid cols-2 mt-16">
             <app-input
               label="Account Holder Name"
               placeholder="e.g. Sarah Namubiru"
@@ -324,12 +287,10 @@
           </div>
         </ng-container>
 
-        <!-- Wendi Wallet sub-form — number mirrors the phone number, same as mobile money -->
+        <!-- Wendi Wallet sub-form -->
         <ng-container *ngIf="form.paymentMethod.type === 'wendi_wallet'">
-          <div class="input-group">
+          <div class="input-group mt-16">
             <label class="input-label">Wendi Wallet Number</label>
-            <!-- Readonly: the wallet is registered against the farmer's phone number.
-                 The actual value is written to the model in onSave() before submission. -->
             <input title="Wendi wallet number" class="form-input readonly-input"
                    type="tel" [value]="form.phoneNumber" readonly>
             <p class="hint-text">Auto-filled from the phone number entered above</p>
@@ -338,76 +299,63 @@
 
         <!-- Mobile Money sub-form -->
         <ng-container *ngIf="form.paymentMethod.type === 'mobile_money'">
-          <div class="input-group">
+          <div class="input-group mt-16">
             <label class="input-label">Provider</label>
             <div class="provider-row">
-              <label class="radio-pill"
-                     [class.radio-pill--active]="form.paymentMethod.mobileMoneyProvider === 'mtn'">
-                <input type="radio" name="mmProvider" value="mtn"
-                       [(ngModel)]="form.paymentMethod.mobileMoneyProvider">
+              <label class="radio-pill" [class.radio-pill--active]="form.paymentMethod.mobileMoneyProvider === 'mtn'">
+                <input type="radio" name="mmProvider" value="mtn" [(ngModel)]="form.paymentMethod.mobileMoneyProvider">
                 MTN Mobile Money
               </label>
-              <label class="radio-pill"
-                     [class.radio-pill--active]="form.paymentMethod.mobileMoneyProvider === 'airtel'">
-                <input type="radio" name="mmProvider" value="airtel"
-                       [(ngModel)]="form.paymentMethod.mobileMoneyProvider">
+              <label class="radio-pill" [class.radio-pill--active]="form.paymentMethod.mobileMoneyProvider === 'airtel'">
+                <input type="radio" name="mmProvider" value="airtel" [(ngModel)]="form.paymentMethod.mobileMoneyProvider">
                 Airtel Money
               </label>
             </div>
           </div>
 
-          <div class="input-group">
+          <div class="input-group mt-16">
             <label class="input-label">Mobile Money Number</label>
-            <!-- Value mirrors the phone number from Personal Details — not editable here
-                 to avoid the user accidentally registering a different number -->
             <input title="Mobile money number" class="form-input readonly-input"
                    type="tel" [value]="form.phoneNumber" readonly>
             <p class="hint-text">Auto-filled from the phone number entered above</p>
           </div>
         </ng-container>
 
-      </div><!-- /Payment Method -->
+      </app-form-section>
 
+      <!-- ── 4. PRODUCTION ── -->
+      <app-form-section [number]="4" title="Production" iconName="globe"
+                        desc="Crops grown and livestock on the farm">
 
-      <!-- ── PRODUCTION ─────────────────────────────────────────────────────── -->
-      <div class="form-card">
-        <div class="card-header">
-          <h2 class="card-title">Production</h2>
-          <p class="card-subtitle">Crops grown and livestock on the farm</p>
+        <div class="fields-grid cols-2">
+          <app-input
+            label="Commodity to Deliver"
+            placeholder="e.g. Coffee, Maize, Beans…"
+            type="text"
+            hint="The main crop this farmer delivers — appears on their farmer record"
+            [(ngModel)]="form.production.commodity"
+            name="commodity">
+          </app-input>
+
+          <app-input
+            label="Livestock Kept"
+            placeholder="e.g. Cattle, Goats, Pigs…"
+            type="text"
+            hint="Animals kept on the farm — appears on the farmer's record"
+            [(ngModel)]="form.production.livestock"
+            name="livestock">
+          </app-input>
         </div>
 
-        <app-input
-          label="Commodity to Deliver"
-          placeholder="e.g. Coffee, Maize, Beans…"
-          type="text"
-          hint="The main crop this farmer delivers — appears on their farmer record"
-          [(ngModel)]="form.production.commodity"
-          name="commodity">
-        </app-input>
+        <!-- API error shown at bottom of last section -->
+        <div *ngIf="saveError" class="save-error mt-16" role="alert">{{ saveError }}</div>
 
-        <app-input
-          label="Livestock Kept"
-          placeholder="e.g. Cattle, Goats, Pigs…"
-          type="text"
-          hint="Animals kept on the farm — appears on the farmer's record"
-          [(ngModel)]="form.production.livestock"
-          name="livestock">
-        </app-input>
+      </app-form-section>
 
-      </div><!-- /Production -->
+    </app-form-shell>
 
-    </div><!-- /section-grid -->
-
-    <!-- API error shown when the server rejects the submission -->
-    <div *ngIf="saveError" class="save-error-banner" role="alert">
-      {{ saveError }}
-    </div>
-
-    <!-- FORM ACTIONS: Cancel navigates away; primary button submits the whole form -->
     <div class="form-actions">
-      <button type="button" class="btn-secondary" (click)="onCancel()">
-        Cancel
-      </button>
+      <button type="button" class="btn-secondary" (click)="onCancel()">Cancel</button>
       <app-button
         variant="primary"
         size="lg"
@@ -420,4 +368,4 @@
 
   </ng-container>
 
-</div><!-- /onboarding-shell -->
+</div>

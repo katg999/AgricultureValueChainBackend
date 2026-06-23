@@ -1,201 +1,35 @@
-/* ─────────────────────────────────────────────────────────────────────────────
-   Farmer Registration — single-page card-grid layout.
-   Mirrors branch-onboarding: flush 2×2 grid, generous padding, no wizard.
-───────────────────────────────────────────────────────────────────────────── */
+/* Farmer Register — shell + section layout from shared components + global styles.
+   This file only contains styles unique to the farmer form. */
 
-/* ── PAGE SHELL ── */
-.onboarding-shell {
-  max-width: 1040px;
-  margin: 0 auto;
-  padding: 40px 32px 72px;
-  font-family: var(--font-human, 'IBM Plex Sans', sans-serif);
-}
-
-/* ── PAGE HEADER ── */
-.page-header {
-  margin-bottom: 28px;
-}
-
-.page-title {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--secondary, #200B26);
-  margin: 0 0 4px;
-  line-height: 1.2;
-}
-
-.page-subtitle {
-  font-size: 13px;
-  color: #6B6B7B;
-  margin: 0;
-  line-height: 1.5;
-}
-
-/* ── 2×2 SECTION GRID ── */
-/*
-  gap: 0 — cards are flush (touching), no white gap between them.
-  The wrapper owns the single outer border; cards only draw their internal dividers.
-  overflow: hidden clips card backgrounds to the wrapper's rounded corners.
-  Without overflow: hidden, card backgrounds would bleed past the border-radius.
-*/
-.section-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0;
-  margin-bottom: 28px;
-  border: 1px solid #E8E6ED;
-  border-radius: 14px;
-  overflow: hidden;
-}
-
-/* ── FORM CARD ── */
-/*
-  Each card only draws borders toward its internal neighbours — not the outer edges.
-  display: flex + flex-direction: column + gap: 16px spaces all field rows uniformly
-  without needing manual margin-bottom on every child element.
-*/
-.form-card {
-  background: #ffffff;
-  border-right: 1px solid #E8E6ED;   /* vertical divider between left and right column */
-  border-bottom: 1px solid #E8E6ED;  /* horizontal divider between top and bottom row */
-  border-radius: 0;                   /* wrapper handles corner rounding, not individual cards */
-  padding: 28px 32px;
+/* ── Loading state ── */
+.loading-hint {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-/* Right-column cards are on the outer edge — no right divider needed */
-.form-card:nth-child(even) {
-  border-right: none;
-}
-
-/* Bottom-row cards are on the outer edge — no bottom divider needed */
-.form-card:nth-last-child(-n+2) {
-  border-bottom: none;
-}
-
-/* ── CARD HEADER ── */
-/*
-  Wrapping title + subtitle in a single .card-header div treats them as ONE flex item.
-  This means the 16px gap from .form-card only separates the header block from the
-  first field — not the title from the subtitle (which stays a tight 4px apart).
-*/
-.card-header {
-  /* no additional styles needed — just acts as a grouping wrapper */
-}
-
-.card-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--secondary, #200B26);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin: 0 0 4px;
-}
-
-/* The orange bottom border acts as a visual separator between heading and fields */
-.card-subtitle {
-  font-size: 13px;
+  align-items: center;
+  gap: 10px;
+  padding: 40px 32px;
   color: #6B6B7B;
-  margin: 0;
-  padding-bottom: 12px;
-  border-bottom: 2px solid var(--primary, #F25D27);
-}
-
-/* ── FIELD ROW (two inputs side by side inside a card) ── */
-/*
-  1fr 1fr splits the card width evenly between two inputs.
-  Without this, both inputs would stack vertically.
-*/
-.field-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-}
-
-/* ── INPUT GROUP (label + select + optional hint/error) ── */
-.input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.input-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--secondary, #200B26);
-}
-
-/* Red asterisk marks required fields */
-.required-mark {
-  color: #D92D20;
-  margin-left: 2px;
-}
-
-/* ── FORM CONTROLS ── */
-.form-input,
-.form-select {
-  font-family: var(--font-human, 'IBM Plex Sans', sans-serif);
   font-size: 14px;
-  padding: 11px 14px;
-  border: 1px solid #E8E6ED;
-  border-radius: 10px;
-  background: white;
-  color: var(--secondary, #200B26);
-  width: 100%;
-  box-sizing: border-box;
-  transition: border-color 0.15s, box-shadow 0.15s;
-  appearance: none;
-  -webkit-appearance: none;
 }
 
-/* Custom SVG chevron replaces the native dropdown arrow (hidden above via appearance: none) */
-.form-select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B6277' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  padding-right: 32px;
+.loading-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary, #F25D27);
+  animation: pulse 1s ease-in-out infinite;
 }
 
-.form-input:focus,
-.form-select:focus {
-  outline: none;
-  border-color: var(--primary, #F25D27);
-  box-shadow: 0 0 0 3px rgba(242, 93, 39, 0.12);
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
 }
 
-/* Red border signals to the user that this field has failed validation */
-.form-input.input-error,
-.form-select.input-error {
-  border-color: #D92D20;
-}
-
-/* Muted style communicates that this field is not editable */
-.readonly-input {
-  background: #FAF9FB;
-  color: #6B6277;
-  cursor: not-allowed;
-}
-
-.hint-text {
-  font-size: 12px;
-  color: #9C94A8;
-  margin: 0;
-  line-height: 1.5;
-}
-
-.error-text {
-  font-size: 12px;
-  color: #D92D20;
-  margin: 0;
-}
-
-/* ── PROFILE PHOTO UPLOAD ── */
+/* ── Photo upload zone ── */
 .photo-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: 5px;
 }
 
 .optional-badge {
@@ -209,11 +43,9 @@
   padding: 2px 6px;
 }
 
-/* Dashed border signals a droppable area to the user */
 .photo-drop {
   width: 100%;
-  max-width: 300px;
-  min-height: 130px;
+  min-height: 120px;
   border: 1.5px dashed #E8E6ED;
   border-radius: 10px;
   background: #FAF9FB;
@@ -229,17 +61,15 @@
   background: rgba(242, 93, 39, 0.04);
 }
 
-/* Switch to solid border once an image is loaded — dashed would look odd on a photo */
 .photo-drop--has-image {
   border-style: solid;
-  max-width: 300px;
-  height: 150px;
+  height: 160px;
 }
 
 .photo-preview {
   position: relative;
   width: 100%;
-  height: 150px;
+  height: 160px;
 }
 
 .photo-preview img {
@@ -248,7 +78,6 @@
   object-fit: cover;
 }
 
-/* Absolute positioned so the remove button floats over the image corner */
 .photo-remove {
   position: absolute;
   top: 8px;
@@ -258,7 +87,7 @@
   border-radius: 50%;
   border: none;
   background: rgba(32, 11, 38, 0.72);
-  color: #ffffff;
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -266,9 +95,7 @@
   transition: background 0.15s;
 }
 
-.photo-remove:hover {
-  background: #D92D20;
-}
+.photo-remove:hover { background: #D92D20; }
 
 .photo-prompt {
   display: flex;
@@ -290,13 +117,8 @@
   text-align: center;
 }
 
-.photo-prompt__label svg {
-  color: #9C94A8;
-}
-
-.photo-drop:hover .photo-prompt__label svg {
-  color: var(--primary, #F25D27);
-}
+.photo-prompt__label svg { color: #9C94A8; }
+.photo-drop:hover .photo-prompt__label svg { color: var(--primary, #F25D27); }
 
 .photo-prompt__sub {
   font-size: 11px;
@@ -304,198 +126,77 @@
   color: #9C94A8;
 }
 
-/* ── PAYMENT TABS ── */
-/*
-  Three equal-width tiles. The radio input is hidden — the entire <label>
-  is the clickable area. [class.payment-tab--active] mirrors the selection visually.
-*/
+/* ── Payment tabs ── */
 .payment-tabs {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.payment-tab {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  padding: 16px 10px 14px;
-  border: 1.5px solid #E8E6ED;
-  border-radius: 10px;
-  cursor: pointer;
-  background: #FAF9FB;
-  transition: border-color 0.15s, background 0.15s;
-  text-align: center;
-}
-
-/* Native radio is hidden; the styled label acts as the full interactive control */
-.payment-tab input[type="radio"] {
-  display: none;
-}
-
-.payment-tab:hover,
-.payment-tab--active {
-  border-color: var(--primary, #F25D27);
-  background: rgba(242, 93, 39, 0.04);
-}
-
-.payment-tab__icon {
-  color: #6B6277;
-  display: flex;
-}
-
-.payment-tab--active .payment-tab__icon {
-  color: var(--primary, #F25D27);
-}
-
-.payment-tab__name {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--secondary, #200B26);
-}
-
-.payment-tab__sub {
-  font-size: 10px;
-  color: #9C94A8;
-}
-
-/* ── PROVIDER RADIO PILLS ── */
-.provider-row {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
 }
 
+.payment-tab {
+  flex: 1;
+  min-width: 140px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 14px 12px;
+  border: 1.5px solid #E8E6ED;
+  border-radius: 12px;
+  background: #FAF9FB;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  text-align: center;
+}
+
+.payment-tab input[type="radio"] { display: none; }
+
+.payment-tab--active {
+  border-color: var(--primary, #F25D27);
+  background: rgba(242, 93, 39, 0.05);
+}
+
+.payment-tab__icon {
+  color: #9C94A8;
+  display: flex;
+}
+
+.payment-tab--active .payment-tab__icon { color: var(--primary, #F25D27); }
+
+.payment-tab__name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--secondary, #200B26);
+}
+
+.payment-tab__sub {
+  font-size: 11px;
+  color: #9C94A8;
+}
+
+/* ── Radio pills (mobile money provider) ── */
+.provider-row { display: flex; gap: 10px; flex-wrap: wrap; }
+
 .radio-pill {
   display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 9px 16px;
+  gap: 6px;
+  padding: 8px 16px;
   border: 1.5px solid #E8E6ED;
-  border-radius: 999px;
-  background: #FAF9FB;
+  border-radius: 20px;
   cursor: pointer;
   font-size: 13px;
-  color: var(--secondary, #200B26);
-  transition: border-color 0.15s, background 0.15s;
+  font-weight: 500;
+  color: #6B6B7B;
+  transition: border-color 0.15s, color 0.15s;
 }
 
-/* Same as payment-tab: native input hidden, styled label is the control */
-.radio-pill input[type="radio"] {
-  display: none;
-}
+.radio-pill input[type="radio"] { display: none; }
+.radio-pill--active { border-color: var(--primary, #F25D27); color: var(--primary, #F25D27); }
 
-.radio-pill:hover,
-.radio-pill--active {
-  border-color: var(--primary, #F25D27);
-  background: rgba(242, 93, 39, 0.04);
-}
-
-/* ── SAVE ERROR BANNER ── */
-/* Shown when the API returns an error after the user clicks Register */
-.save-error-banner {
-  padding: 12px 16px;
-  background: #fffafa;
-  border: 1px solid #f09595;
-  border-radius: 10px;
-  color: #b3261e;
-  font-size: 13px;
-  margin-bottom: 20px;
-}
-
-/* ── FORM ACTIONS ── */
-/* Cancel on the left, Register Farmer on the right */
-.form-actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
-}
-
-.btn-secondary {
-  background: #ffffff;
-  border: 1px solid #E8E6ED;
-  color: var(--secondary, #200B26);
-  font-family: var(--font-human, 'IBM Plex Sans', sans-serif);
-  font-size: 14px;
-  font-weight: 600;
-  padding: 11px 22px;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
-}
-
-.btn-secondary:hover {
-  border-color: var(--primary, #F25D27);
-}
-
-/* ── LOADING STATE ── */
-.loading-hint {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 13px;
-  color: #6B6277;
-  margin: 48px auto;
-}
-
-/* Pulsing dot gives visual feedback that something is loading */
-.loading-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--primary, #F25D27);
-  animation: pulse 1.2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 0.4; transform: scale(0.85); }
-  50%       { opacity: 1;   transform: scale(1.1); }
-}
-
-/* ── RESPONSIVE ── */
-@media (max-width: 720px) {
-  .onboarding-shell {
-    padding: 24px 16px 56px;
-  }
-
-  /* Stack 4 cards into a single column */
-  .section-grid {
-    grid-template-columns: 1fr;
-  }
-
-  /* In single column, every card is on the right edge — no right dividers needed */
-  .form-card {
-    border-right: none;
-  }
-
-  /* nth-last-child(-n+2) removes the bottom border from cards 3 and 4 in a 2-column grid.
-     In a single column, only the very last card should lose its bottom border —
-     so restore it on the 3rd card (2nd from last in a 4-card set). */
-  .form-card:nth-last-child(2) {
-    border-bottom: 1px solid #E8E6ED;
-  }
-
-  /* Two-column field rows collapse to one column inside cards on small screens */
-  .field-row {
-    grid-template-columns: 1fr;
-  }
-
-  /* Payment tabs stack vertically too */
-  .payment-tabs {
-    grid-template-columns: 1fr;
-  }
-
-  /* Reverse order so the primary action is on top when stacked */
-  .form-actions {
-    flex-direction: column-reverse;
-    align-items: stretch;
-  }
-
-  .form-actions app-button,
-  .form-actions .btn-secondary {
-    width: 100%;
-    text-align: center;
-  }
+/* ── Readonly wallet/mobile-money input ── */
+.readonly-input {
+  background: #F5F4F7;
+  color: #9C94A8;
+  cursor: not-allowed;
 }

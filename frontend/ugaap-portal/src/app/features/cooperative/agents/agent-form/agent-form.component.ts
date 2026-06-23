@@ -12,17 +12,12 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 
-import { FormWizardComponent, WizardStep } from '../../../../shared/components/form-wizard/form-wizard.component';
-import { InputComponent } from '../../../../shared/components/input/input.component';
-import { ButtonComponent } from '../../../../shared/components/button/button.component';
+import { FormShellComponent }   from '../../../../shared/components/form-wizard/form-wizard.component';
+import { FormSectionComponent } from '../../../../shared/components/form-section/form-section.component';
+import { InputComponent }       from '../../../../shared/components/input/input.component';
+import { ButtonComponent }      from '../../../../shared/components/button/button.component';
 import { ToastService } from '../../../../core/services/toast.service';
 import { AGENT_BRANCHES, AgentInput, AgentsService } from '../agents.service';
-
-/** Form controls validated before leaving each step */
-const STEP_FIELDS: string[][] = [
-  ['fullName', 'phone', 'email', 'nationalId'],
-  ['role', 'branchId'],
-];
 
 @Component({
   selector: 'app-agent-form',
@@ -31,7 +26,8 @@ const STEP_FIELDS: string[][] = [
     CommonModule,
     RouterModule,
     ReactiveFormsModule,
-    FormWizardComponent,
+    FormShellComponent,
+    FormSectionComponent,
     InputComponent,
     ButtonComponent,
   ],
@@ -52,12 +48,6 @@ export class AgentFormComponent implements OnInit {
   isSaving = false;
 
   readonly branches = AGENT_BRANCHES;
-
-  readonly steps: WizardStep[] = [
-    { label: 'Agent details' },
-    { label: 'Assignment' },
-  ];
-  currentStep = 0;
 
   ngOnInit(): void {
     this.agentId = this.route.snapshot.paramMap.get('id');
@@ -88,40 +78,6 @@ export class AgentFormComponent implements OnInit {
         branchId:   agent.branchId,
       });
     }
-  }
-
-  // ── Step navigation ───────────────────────────────────────────────────────
-
-  /** Moving forward validates the current step's controls first */
-  nextStep(): void {
-    if (!this.validateStep(this.currentStep)) return;
-    this.currentStep = Math.min(this.currentStep + 1, this.steps.length - 1);
-  }
-
-  prevStep(): void {
-    this.currentStep = Math.max(this.currentStep - 1, 0);
-  }
-
-  /** Sidebar clicks: backward always allowed, forward gated by validation */
-  goToStep(index: number): void {
-    if (index <= this.currentStep) {
-      this.currentStep = index;
-      return;
-    }
-    if (this.validateStep(this.currentStep)) {
-      this.currentStep = index;
-    }
-  }
-
-  private validateStep(step: number): boolean {
-    const fields = STEP_FIELDS[step] ?? [];
-    let valid = true;
-    for (const field of fields) {
-      const ctrl = this.agentForm.get(field);
-      ctrl?.markAsTouched();
-      if (ctrl?.invalid) valid = false;
-    }
-    return valid;
   }
 
   // ── Form helpers ──────────────────────────────────────────────────────────

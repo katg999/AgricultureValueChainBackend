@@ -6,6 +6,8 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { BranchService, BranchCreatePayload } from '../../../../core/services/branch.service';
 
 // Shared UI components used in the template
+import { FormShellComponent } from '../../../../shared/components/form-wizard/form-wizard.component';
+import { FormSectionComponent } from '../../../../shared/components/form-section/form-section.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
@@ -20,6 +22,8 @@ import { API_ENDPOINTS } from '../../../../core/constants/api-endpoints';
     CommonModule,
     RouterModule,
     ReactiveFormsModule,
+    FormShellComponent,
+    FormSectionComponent,
     InputComponent,
     ButtonComponent,
     ModalComponent,
