@@ -125,10 +125,14 @@
 }
 
 .input-label {
-  font-size: 13px;
+  /* Matches app-input's internal label exactly so all labels in the form look the same.
+     Without this, select labels were 13px mixed-case while app-input labels were 11px uppercase — visually jarring. */
+  font-size: 11px;
   font-weight: 600;
-  color: var(--secondary);
-  margin-bottom: 6px;
+  color: #6B6B7B;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 5px; /* matches app-input's gap: 5px between label and input */
 }
 
 /* Red asterisk marks required fields */
@@ -139,10 +143,12 @@
 
 .form-select {
   font-family: var(--font-human);
-  font-size: 14px;
-  padding: 11px 14px;
+  font-size: 13px; /* matches app-input's 13px font-size */
+  height: 40px; /* fixed height matches app-input exactly — without this selects sit ~2px shorter */
+  box-sizing: border-box; /* height includes padding so it doesn't overflow */
+  padding: 0 14px;
   border: 1px solid #E8E6ED;
-  border-radius: 10px;
+  border-radius: 8px; /* matches app-input's 8px — was 10px */
   background: white;
   color: var(--secondary);
   transition: border-color 0.15s;
