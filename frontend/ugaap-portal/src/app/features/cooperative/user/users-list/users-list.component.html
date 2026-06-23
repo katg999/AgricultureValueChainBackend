@@ -23,10 +23,10 @@
         <input type="text" placeholder="Search by name, ID or manager..."
           [(ngModel)]="searchQuery" (input)="onSearch()"/>
       </div>
-      <select class="filter-select" [(ngModel)]="selectedRole" (change)="onRoleFilterChange()">
+      <select title="filter-select" class="filter-select" [(ngModel)]="selectedRole" (change)="onRoleFilterChange()">
         <option *ngFor="let r of roleOptions" [value]="r">{{ r }}</option>
       </select>
-      <select class="filter-select" [(ngModel)]="selectedCooperation" (change)="onCooperationFilterChange()">
+      <select title="filter-cooperation" class="filter-select" [(ngModel)]="selectedCooperation" (change)="onCooperationFilterChange()">
         <option *ngFor="let c of cooperationOptions" [value]="c">{{ c }}</option>
       </select>
     </div>
