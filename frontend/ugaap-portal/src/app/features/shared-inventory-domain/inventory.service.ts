@@ -210,41 +210,98 @@ export class InventoryService {
   }
 
   listStock(scope: InventoryScope): Observable<StockItem[]> {
-    const url = scope === 'cooperative' ? API_ENDPOINTS.COOPERATIVE.INVENTORY : API_ENDPOINTS.BRANCH.INVENTORY;
+    // Tell the backend WHICH cooperative or branch we want stock for.
+    // The backend field names (cooperativeId, branchId) are used as query params.
+    const params: Record<string, string> = {};
+    const coopId   = this.session.cooperativeId();
+    const branchId = this.session.branchId();
+    if (scope === 'cooperative' && coopId)   params['cooperativeId'] = coopId;
+    if (scope === 'branch'      && branchId) params['branchId']      = branchId;
 
-    return this.http.get<StockItem[]>(`${url}/stock`).pipe(
+    // GET /api/input-stock/all → returns InputStockResponseDTO[]
+    // We map each item to our StockItem shape (field names differ between backend and frontend).
+    return this.http.get<any[]>(API_ENDPOINTS.INVENTORY_BACKEND.STOCK_ALL, { params }).pipe(
       timeout(8000),
+      map(items => items.map(raw => this.mapBackendStockToStockItem(raw))),
       tap(items => this.stockSubject.next(items)),
       catchError(() => of(this.filterStockForScope(scope))),
     );
   }
 
   addStockItem(payload: AddStockItemPayload): Observable<StockItem> {
-    return this.http.post<StockItem>(`${API_ENDPOINTS.COOPERATIVE.INVENTORY}/stock`, payload).pipe(
+    // The backend DTO uses different field names. We translate here before sending.
+    // Note: category, unit, batchReference are not yet in the backend InputStockDTO —
+    // they will be ignored by the backend until the DTO is extended.
+    // inputItemId is required (nullable=false in DB); we generate a placeholder UUID
+    // since the InputItem master catalogue isn't implemented in the frontend yet.
+    const body = {
+      itemName:         payload.itemName,
+      supplierName:     payload.supplierName,
+      quantity:         payload.quantity,
+      unitCost:         payload.unitPrice,        // frontend: unitPrice → backend: unitCost
+      minimumThreshold: payload.minThreshold,     // frontend: minThreshold → backend: minimumThreshold
+      receivedDate:     payload.receivedDate,
+      cooperativeId:    this.session.cooperativeId(),
+      branchId:         this.session.branchId(),
+      inputItemId:      crypto.randomUUID(),      // placeholder until InputItem catalogue is wired up
+    };
+
+    return this.http.post<any>(API_ENDPOINTS.INVENTORY_BACKEND.STOCK_CREATE, body).pipe(
       timeout(8000),
+      map(raw => this.mapBackendStockToStockItem(raw)),
       tap(item => this.stockSubject.next([item, ...this.stockSubject.value])),
       catchError(() => of(this.addMockStockItem(payload))),
     );
   }
 
   issueStockToBranch(payload: BranchStockIssuePayload): Observable<BranchDisbursement> {
-    return this.http.post<BranchDisbursement>(`${API_ENDPOINTS.COOPERATIVE.INVENTORY}/branch-issues`, payload).pipe(
+    // ── Why this uses mock data only ─────────────────────────────────────────
+    // The backend's POST /api/allocations/issue requires a farmerId (it throws if null).
+    // A coop→branch disbursement has no farmer — it goes directly to a branch.
+    // Until the backend adds a separate "branch disbursement" flow (or makes farmerId
+    // optional for cooperative-level issues), this stays on mock data.
+    // The catchError mock keeps the UI working in the meantime.
+    return this.http.post<BranchDisbursement>(
+      `${API_ENDPOINTS.COOPERATIVE.INVENTORY}/branch-issues`, payload,
+    ).pipe(
       timeout(8000),
-      tap(disbursement => this.branchDisbursementSubject.next([disbursement, ...this.branchDisbursementSubject.value])),
+      tap(d => this.branchDisbursementSubject.next([d, ...this.branchDisbursementSubject.value])),
       catchError(() => of(this.addMockBranchDisbursement(payload))),
     );
   }
 
   issueStockToFarmer(payload: FarmerStockIssuePayload): Observable<FarmerAllocation> {
-    return this.http.post<FarmerAllocation>(`${API_ENDPOINTS.BRANCH.INVENTORY}/farmer-allocations`, payload).pipe(
+    // The backend uses different field names and combines repaymentMethod + deductionRate
+    // into a single "replacementTerms" string. We build that string here.
+    const replacementTerms = `${payload.repaymentMethod} @ ${payload.deductionRate}%`;
+
+    const body = {
+      inputStockId:     payload.stockItemId,       // frontend: stockItemId → backend: inputStockId
+      farmerId:         payload.farmerId,
+      quantity:         payload.quantity,
+      season:           payload.season,
+      cooperativeId:    this.session.cooperativeId(),
+      branchId:         this.session.branchId(),
+      replacementTerms,                            // combined from repaymentMethod + deductionRate
+    };
+
+    return this.http.post<any>(API_ENDPOINTS.INVENTORY_BACKEND.ALLOCATION_ISSUE, body).pipe(
       timeout(8000),
-      tap(allocation => this.farmerAllocationSubject.next([allocation, ...this.farmerAllocationSubject.value])),
+      map(raw => this.mapBackendAllocationToFarmerAllocation(raw)),
+      tap(alloc => this.farmerAllocationSubject.next([alloc, ...this.farmerAllocationSubject.value])),
       catchError(() => of(this.addMockFarmerAllocation(payload))),
     );
   }
 
   listBranchDisbursements(): Observable<BranchDisbursement[]> {
-    return this.http.get<BranchDisbursement[]>(`${API_ENDPOINTS.COOPERATIVE.INVENTORY}/branch-issues`).pipe(
+    // ── Why this uses mock data only ─────────────────────────────────────────
+    // Branch disbursements (cooperative → branch) would be allocations without a
+    // farmerId. The backend currently rejects null farmerId on issue, so no real
+    // branch disbursement records exist in the database yet.
+    // This will be connected once the backend supports the coop→branch flow.
+    return this.http.get<BranchDisbursement[]>(
+      `${API_ENDPOINTS.COOPERATIVE.INVENTORY}/branch-issues`,
+    ).pipe(
       timeout(8000),
       tap(rows => this.branchDisbursementSubject.next(rows)),
       catchError(() => of([...this.branchDisbursementSubject.value])),
@@ -264,12 +321,23 @@ export class InventoryService {
   }
 
   listFarmerAllocations(): Observable<FarmerAllocation[]> {
+    const branchId = this.session.branchId();
     const snapshot = this.filterFarmerAllocationsForBranch();
-    return this.http.get<FarmerAllocation[]>(`${API_ENDPOINTS.BRANCH.INVENTORY}/farmer-allocations`).pipe(
+
+    // Without a branchId we can't ask the backend for the right records.
+    // Return the cached snapshot immediately so the UI isn't empty.
+    if (!branchId) return of(snapshot);
+
+    // GET /api/allocations/branch/{branchId} → InputAllocationResponseDTO[]
+    // The backend already filters to this branch, so we just map the response shape.
+    return this.http.get<any[]>(
+      API_ENDPOINTS.INVENTORY_BACKEND.ALLOCATIONS_BY_BRANCH(branchId),
+    ).pipe(
       timeout(8000),
+      map(rows => rows.map(raw => this.mapBackendAllocationToFarmerAllocation(raw))),
       tap(rows => this.farmerAllocationSubject.next(rows)),
       catchError(() => of(snapshot)),
-      startWith(snapshot),
+      startWith(snapshot),   // show cached data immediately while the HTTP call is in-flight
     );
   }
 
@@ -291,9 +359,14 @@ export class InventoryService {
   }
 
   submitStockRequest(payload: StockRequestPayload): Observable<StockRequest> {
-    // 2 s timeout — short so offline dev gets the mock response without a long wait.
+    // ── No backend endpoint yet ───────────────────────────────────────────────
+    // The StockRequest feature (branch requests cooperative stock) is not yet
+    // implemented on the backend. The HTTP call will fail → catchError returns the
+    // mock response so the UI keeps working.
+    // Timeout raised to 8 s so it doesn't appear to succeed before the real backend
+    // is wired up (a 2 s timeout that silently "succeeds" via mock is misleading).
     return this.http.post<StockRequest>(`${API_ENDPOINTS.BRANCH.INVENTORY}/stock-requests`, payload).pipe(
-      timeout(2000),
+      timeout(8000),
       tap(req => this.stockRequestSubject.next([req, ...this.stockRequestSubject.value])),
       catchError(() => of(this.addMockStockRequest(payload))),
     );
@@ -305,9 +378,11 @@ export class InventoryService {
       ? this.stockRequestSubject.value.filter(r => r.branchId === branchId)
       : [...this.stockRequestSubject.value];
 
-    // startWith shows data immediately; HTTP result replaces it once it arrives.
+    // No backend endpoint yet — falls back to cached/mock data.
+    // startWith shows data immediately; HTTP result will replace it once the
+    // stock-requests endpoint is added to the backend.
     return this.http.get<StockRequest[]>(`${API_ENDPOINTS.BRANCH.INVENTORY}/stock-requests`).pipe(
-      timeout(3000),
+      timeout(8000),
       tap(rows => this.stockRequestSubject.next(rows)),
       catchError(() => of(snapshot)),
       startWith(snapshot),
@@ -459,6 +534,94 @@ export class InventoryService {
     this.stockRequestSubject.next([request, ...this.stockRequestSubject.value]);
     return request;
   }
+
+  // ── Backend → Frontend response mappers ──────────────────────────────────
+  // The backend DTOs use different field names from our frontend interfaces.
+  // These private methods act as "translators" — they take the raw JSON the
+  // backend sends and reshape it into the objects our components expect.
+  // Any field missing from the backend gets a safe default so the UI never crashes.
+
+  private mapBackendStockToStockItem(raw: any): StockItem {
+    // The backend tracks two quantities:
+    //   quantity         = original amount received from supplier
+    //   availableQuantity = what's left after issuances (this is what we display)
+    const qty = raw.availableQuantity ?? raw.quantity ?? 0;
+    const min = raw.minimumThreshold  ?? 0;
+    const category = (raw.category ?? 'GENERAL').toUpperCase();
+
+    return {
+      id:            raw.id,
+      name:          raw.itemName,             // backend: itemName  → frontend: name
+      category,
+      categoryClass: category.toLowerCase(),   // derived — used for CSS class binding
+      quantity:      qty,                      // backend: availableQuantity → frontend: quantity
+      unit:          raw.unit ?? 'Units',      // not in backend DTO yet; default shown
+      unitPrice:     raw.unitCost ?? 0,        // backend: unitCost  → frontend: unitPrice
+      minThreshold:  min,                      // backend: minimumThreshold → frontend: minThreshold
+      stockStatus:   this.toStockStatus(qty, min),
+      branchIds:     raw.branchId ? [raw.branchId] : [],   // backend stores one branchId, we wrap it
+      branchNames:   [],                       // backend returns ID only; name lookup not yet done
+      season:        raw.season ?? '',         // not in backend DTO yet
+      updatedAt:     (raw.receivedDate ?? raw.createdAt ?? '').slice(0, 10),
+      supplierName:  raw.supplierName ?? '',
+      // Backend has shortCode (auto-generated reference); batchReference (supplier lot number)
+      // is not yet stored by the backend, so we use shortCode as the closest equivalent.
+      batchReference: raw.shortCode ?? '',
+    };
+  }
+
+  private mapBackendAllocationToFarmerAllocation(raw: any): FarmerAllocation {
+    const totalVal    = raw.totalValue        ?? 0;
+    const totalQty    = raw.quantity          ?? 0;
+    const recoveredQ  = raw.recoveredQuantity ?? 0;
+
+    // Outstanding = how much value is still owed.
+    // Formula: totalValue × fraction not yet recovered
+    const outstanding = totalQty > 0
+      ? totalVal * (1 - recoveredQ / totalQty)
+      : totalVal;
+
+    // Backend stores fullyRecovered flag. "overdue" would require a due-date
+    // concept that doesn't exist in the backend yet — we default to 'partial'.
+    const status: RecoveryStatus = raw.fullyRecovered ? 'settled' : 'partial';
+
+    return {
+      id:          raw.id,
+      stockItemId: raw.inputStockId ?? '',    // backend: inputStockId → frontend: stockItemId
+      farmerId:    raw.farmerId     ?? '',
+      farmerName:  raw.farmerName   ?? '',
+      branchId:    raw.branchId     ?? '',
+      branchName:  raw.branchName   ?? '',
+      itemName:    raw.itemName     ?? '',
+      itemType:    raw.itemType     ?? '',    // not stored on allocation yet; blank until backend adds it
+      quantity:    raw.quantity     ?? 0,
+      unit:        raw.unit         ?? 'Units', // not stored on allocation yet
+      totalValue:  totalVal,
+      issueDate:   (raw.issueDate ?? '').slice(0, 10),  // backend: LocalDateTime → we want date only
+      outstanding,
+      status,
+    };
+  }
+
+  // Used when the backend adds a coop→branch disbursement flow (farmerId becomes optional).
+  // Not called yet — included so the mapping logic is ready when the backend supports it.
+  private mapBackendAllocationToBranchDisbursement(raw: any): BranchDisbursement {
+    return {
+      id:          raw.id,
+      stockItemId: raw.inputStockId ?? '',    // backend: inputStockId → frontend: stockItemId
+      branchId:    raw.branchId     ?? '',
+      branchName:  raw.branchName   ?? '',
+      itemName:    raw.itemName     ?? '',
+      itemType:    raw.itemType     ?? '',
+      quantity:    raw.quantity     ?? 0,
+      unit:        raw.unit         ?? 'Units',
+      totalValue:  raw.totalValue   ?? 0,
+      issueDate:   (raw.issueDate ?? '').slice(0, 10),
+      // farmerAcknowledged=true means the branch has confirmed receipt → 'received'
+      status:      raw.farmerAcknowledged ? 'received' : 'issued',
+    };
+  }
+  // ─────────────────────────────────────────────────────────────────────────
 
   private toStockStatus(quantity: number, minThreshold: number): StockStatus {
     if (quantity <= 0) return 'out';

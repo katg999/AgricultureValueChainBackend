@@ -36,7 +36,7 @@ import { ChangeDetectorRef } from '@angular/core';
     CommonModule,
     RouterModule,
     ReactiveFormsModule,
-    LogoComponent,
+    //LogoComponent,
     InputComponent,
     ButtonComponent,
     InfoCardComponent,

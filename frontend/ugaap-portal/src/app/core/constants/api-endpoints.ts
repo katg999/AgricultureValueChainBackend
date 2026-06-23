@@ -120,7 +120,21 @@ export const API_ENDPOINTS = {
 
   USERS: `${BASE}/api/v1/access/users`,
 
-  // ── Access Control ──────────────────────────────────────────────────────────
+  // ── Inventory Service — real backend paths ──────────────────────────────────
+  // The COOPERATIVE.INVENTORY and BRANCH.INVENTORY constants above are the
+  // PLANNED gateway routes (not yet wired in the gateway config).
+  // These paths below are where the InventoryService microservice actually listens.
+  // The frontend uses these directly until the gateway routing is set up.
+  INVENTORY_BACKEND: {
+    STOCK_ALL:    `${BASE}/api/input-stock/all`,   // GET ?cooperativeId=X or ?branchId=X
+    STOCK_CREATE: `${BASE}/api/input-stock`,        // POST — add new stock
+    ALLOCATION_ISSUE:      `${BASE}/api/allocations/issue`,
+    ALLOCATIONS_BY_BRANCH: (branchId: string) => `${BASE}/api/allocations/branch/${branchId}`,
+    ALLOCATIONS_BY_COOP:   (coopId: string)   => `${BASE}/api/allocations/cooperative/${coopId}`,
+  },
+
+  // ── Access Control (Roles & Permissions) ───────────────────────────────────
+  // Scoped to the current cooperative; used by the User management feature
   ACCESS: {
     ROLES: `${BASE}/api/v1/access/roles`,
     ROLE_BY_ID: (id: string) => `${BASE}/api/v1/access/roles/${id}`,
