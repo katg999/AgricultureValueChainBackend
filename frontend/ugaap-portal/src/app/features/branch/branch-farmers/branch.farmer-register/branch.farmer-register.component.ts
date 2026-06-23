@@ -5,8 +5,8 @@ import { ActivatedRoute, Router }   from '@angular/router';
 import { permissionGuard } from '../../../../core/guards/permission.guard';
 
 
-import { ButtonComponent }  from '../../../../shared/components/button/button.component';
-import { InputComponent }   from '../../../../shared/components/input/input.component';
+import { ButtonComponent } from '../../../../shared/components/button/button.component';
+import { InputComponent } from '../../../../shared/components/input/input.component';
 import {
   FarmerProfile,
   FarmerRegistrationForm,
@@ -38,27 +38,37 @@ export class BranchFarmerRegisterComponent {
   currentStep = 0;
 
   // FIELD OPTIONS
-  readonly genderOptions        = ['Female', 'Male', 'Other', 'Prefer not to say'];
-  readonly irrigationOptions    = ['Rain-fed', 'Irrigation', 'Both'];
-  readonly locationOptions      = [
-    'Central Region', 'Eastern Region', 'Northern Region', 'Western Region',
+  readonly genderOptions = ['Female', 'Male', 'Other', 'Prefer not to say'];
+  readonly irrigationOptions = ['Rain-fed', 'Irrigation', 'Both'];
+  readonly locationOptions = [
+    'Central Region',
+    'Eastern Region',
+    'Northern Region',
+    'Western Region',
   ];
-  readonly landOwnershipOptions = ['Owned', 'Leased', 'Customary', 'Communal', 'Rented'];
-  readonly bankOptions          = [
-    'Stanbic Bank', 'Centenary Bank', 'DFCU Bank', 'Bank of Africa',
-    'Equity Bank', 'Absa Bank', 'Post Bank', 'Finance Trust Bank', 'Other',
+  readonly landOwnershipOptions = ['Owned', 'Leased', 'Communal', 'Family Land'];
+  readonly bankOptions = [
+    'Stanbic Bank',
+    'Centenary Bank',
+    'DFCU Bank',
+    'Bank of Africa',
+    'Equity Bank',
+    'Absa Bank',
+    'Post Bank',
+    'Finance Trust Bank',
+    'Other',
   ];
-  readonly farmImageUrl      = 'assets/images/farm-aerial.jpg';
+  readonly farmImageUrl = 'assets/images/farm-aerial.jpg';
   readonly maxPhotoSizeBytes = 2 * 1024 * 1024;
 
   // ─────────────────────────────────────────
   // COMPONENT STATE
   // ─────────────────────────────────────────
-  isEditMode    = false;
+  isEditMode = false;
   farmerId: string | null = null;
   loadingFarmer = false;
-  photoError    = '';
-  isSaving      = false;
+  photoError = '';
+  isSaving = false;
   saveError: string | null = null;
   formErrors: Record<string, string> = {};
 
@@ -66,34 +76,34 @@ export class BranchFarmerRegisterComponent {
   // FORM MODEL
   // ─────────────────────────────────────────
   form: FarmerRegistrationForm = {
-    fullName:          '',
-    emailAddress:      '',
-    phoneNumber:       '',
-    dateOfBirth:       '',
-    nationalIdNumber:  '',
-    gender:            'Female',
-    photoPreviewUrl:   '',
-    farmLocation:      'Central Region',
-    village:           '',
-    gpsCoordinates:    '',
-    totalLandArea:     null,
-    irrigationSource:  'Rain-fed',
+    fullName: '',
+    emailAddress: '',
+    phoneNumber: '',
+    dateOfBirth: '',
+    nationalIdNumber: '',
+    gender: 'Female',
+    photoPreviewUrl: '',
+    farmLocation: 'Central Region',
+    village: '',
+    gpsCoordinates: '',
+    totalLandArea: null,
+    irrigationSource: 'Rain-fed',
     landOwnershipType: 'Owned',
     production: {
       commodity: '',
       livestock: '',
     },
     cooperativeGroup: '',
-    assignedBranch:   '',
+    assignedBranch: '',
     paymentMethod: {
-      type:                  'mobile_money',
-      bankName:              '',
-      bankBranch:            '',
+      type: 'mobile_money',
+      bankName: '',
+      bankBranch: '',
       bankAccountHolderName: '',
-      bankAccountNumber:     '',
-      wendiWalletNumber:     '',
-      mobileMoneyProvider:   'mtn',
-      mobileMoneyPhone:      '',
+      bankAccountNumber: '',
+      wendiWalletNumber: '',
+      mobileMoneyProvider: 'mtn',
+      mobileMoneyPhone: '',
     },
   };
 
@@ -101,10 +111,10 @@ export class BranchFarmerRegisterComponent {
   // CONSTRUCTOR
   // ─────────────────────────────────────────
   constructor(
-    private router:        Router,
-    private route:         ActivatedRoute,
+    private router: Router,
+    private route: ActivatedRoute,
     private farmerService: FarmerService,
-    private session:       SessionService,
+    private session: SessionService,
   ) {}
 
   // ─────────────────────────────────────────
@@ -168,7 +178,7 @@ export class BranchFarmerRegisterComponent {
   goToStep(index: number): void {
     if (index < this.currentStep) {
       this.currentStep = index;
-      this.formErrors  = {};
+      this.formErrors = {};
       this.scrollTop();
     }
   }
@@ -211,8 +221,7 @@ export class BranchFarmerRegisterComponent {
     }
     const reader = new FileReader();
     reader.onload = () => {
-      this.form.photoPreviewUrl =
-        typeof reader.result === 'string' ? reader.result : '';
+      this.form.photoPreviewUrl = typeof reader.result === 'string' ? reader.result : '';
     };
     reader.readAsDataURL(file);
   }
@@ -230,23 +239,17 @@ export class BranchFarmerRegisterComponent {
     const f = this.form;
 
     switch (this.currentStep) {
-
       case 0: // Personal Details
-        if (!f.fullName.trim())
-          this.formErrors['fullName'] = 'Full name is required.';
+        if (!f.fullName.trim()) this.formErrors['fullName'] = 'Full name is required.';
         if (!f.nationalIdNumber.trim())
           this.formErrors['nationalIdNumber'] = 'National ID number is required.';
-        if (!f.phoneNumber.trim())
-          this.formErrors['phoneNumber'] = 'Phone number is required.';
-        if (!f.emailAddress.trim())
-          this.formErrors['emailAddress'] = 'Email address is required.';
-        if (!f.dateOfBirth)
-          this.formErrors['dateOfBirth'] = 'Date of birth is required.';
+        if (!f.phoneNumber.trim()) this.formErrors['phoneNumber'] = 'Phone number is required.';
+        if (!f.emailAddress.trim()) this.formErrors['emailAddress'] = 'Email address is required.';
+        if (!f.dateOfBirth) this.formErrors['dateOfBirth'] = 'Date of birth is required.';
         break;
 
       case 1: // Farm Specifications
-        if (!f.village.trim())
-          this.formErrors['village'] = 'Village / Town is required.';
+        if (!f.village.trim()) this.formErrors['village'] = 'Village / Town is required.';
         if (f.totalLandArea === null || f.totalLandArea <= 0)
           this.formErrors['totalLandArea'] = 'Total land area is required.';
         break;
@@ -254,10 +257,8 @@ export class BranchFarmerRegisterComponent {
       case 2: // Payment Method
         const pm = f.paymentMethod;
         if (pm.type === 'bank') {
-          if (!pm.bankName)
-            this.formErrors['bankName'] = 'Please select a bank.';
-          if (!pm.bankBranch.trim())
-            this.formErrors['bankBranch'] = 'Bank branch is required.';
+          if (!pm.bankName) this.formErrors['bankName'] = 'Please select a bank.';
+          if (!pm.bankBranch.trim()) this.formErrors['bankBranch'] = 'Bank branch is required.';
           if (!pm.bankAccountHolderName.trim())
             this.formErrors['bankAccountHolderName'] = 'Account holder name is required.';
           if (!/^\d{12}$/.test(pm.bankAccountNumber))
@@ -278,28 +279,21 @@ export class BranchFarmerRegisterComponent {
    */
   private validateForm(): boolean {
     this.formErrors = {};
-    const f  = this.form;
+    const f = this.form;
     const pm = f.paymentMethod;
 
-    if (!f.fullName.trim())
-      this.formErrors['fullName'] = 'Full name is required.';
+    if (!f.fullName.trim()) this.formErrors['fullName'] = 'Full name is required.';
     if (!f.nationalIdNumber.trim())
       this.formErrors['nationalIdNumber'] = 'National ID number is required.';
-    if (!f.phoneNumber.trim())
-      this.formErrors['phoneNumber'] = 'Phone number is required.';
-    if (!f.emailAddress.trim())
-      this.formErrors['emailAddress'] = 'Email address is required.';
-    if (!f.dateOfBirth)
-      this.formErrors['dateOfBirth'] = 'Date of birth is required.';
-    if (!f.village.trim())
-      this.formErrors['village'] = 'Village / Town is required.';
+    if (!f.phoneNumber.trim()) this.formErrors['phoneNumber'] = 'Phone number is required.';
+    if (!f.emailAddress.trim()) this.formErrors['emailAddress'] = 'Email address is required.';
+    if (!f.dateOfBirth) this.formErrors['dateOfBirth'] = 'Date of birth is required.';
+    if (!f.village.trim()) this.formErrors['village'] = 'Village / Town is required.';
     if (f.totalLandArea === null || f.totalLandArea <= 0)
       this.formErrors['totalLandArea'] = 'Total land area is required.';
     if (pm.type === 'bank') {
-      if (!pm.bankName)
-        this.formErrors['bankName'] = 'Please select a bank.';
-      if (!pm.bankBranch.trim())
-        this.formErrors['bankBranch'] = 'Bank branch is required.';
+      if (!pm.bankName) this.formErrors['bankName'] = 'Please select a bank.';
+      if (!pm.bankBranch.trim()) this.formErrors['bankBranch'] = 'Bank branch is required.';
       if (!pm.bankAccountHolderName.trim())
         this.formErrors['bankAccountHolderName'] = 'Account holder name is required.';
       if (!/^\d{12}$/.test(pm.bankAccountNumber))
@@ -330,14 +324,15 @@ export class BranchFarmerRegisterComponent {
       this.form.paymentMethod.wendiWalletNumber = this.form.phoneNumber;
     }
 
-    this.isSaving  = true;
+    this.isSaving = true;
     this.saveError = null;
 
     const payload: FarmerRegistrationForm = {
       ...this.form,
-      branchId:       this.session.branchId() ?? undefined,
-      cooperativeId:  this.session.cooperativeId() ?? undefined,
+      branchId: this.session.branchId() ?? undefined,
+      cooperativeId: this.session.cooperativeId() ?? undefined,
       assignedBranch: this.session.branchId() || '',
+      cooperativeGroup: this.session.tenantId() || '',
     };
 
     if (this.isEditMode && this.farmerId) {
@@ -346,8 +341,8 @@ export class BranchFarmerRegisterComponent {
           this.isSaving = false;
           this.router.navigate(['/branch/farmers/list']);
         },
-        error: err => {
-          this.isSaving  = false;
+        error: (err) => {
+          this.isSaving = false;
           this.saveError = err?.error?.message ?? 'Failed to update farmer. Please try again.';
         },
       });
@@ -359,8 +354,8 @@ export class BranchFarmerRegisterComponent {
         this.isSaving = false;
         this.router.navigate(['/branch/farmers/list']);
       },
-      error: err => {
-        this.isSaving  = false;
+      error: (err) => {
+        this.isSaving = false;
         this.saveError = err?.error?.message ?? 'Failed to register farmer. Please try again.';
       },
     });
@@ -371,34 +366,34 @@ export class BranchFarmerRegisterComponent {
   // ─────────────────────────────────────────
   private populateForm(profile: FarmerProfile): void {
     this.form = {
-      fullName:          profile.fullName,
-      emailAddress:      profile.emailAddress,
-      phoneNumber:       profile.phoneNumber,
-      dateOfBirth:       profile.dateOfBirth,
-      nationalIdNumber:  profile.nationalIdNumber,
-      gender:            profile.gender,
-      photoPreviewUrl:   profile.photoUrl,
-      farmLocation:      profile.farmLocation,
-      village:           profile.village,
-      gpsCoordinates:    profile.farm.gpsCoordinates,
-      totalLandArea:     profile.farm.totalLandArea,
-      irrigationSource:  profile.farm.irrigationSource,
+      fullName: profile.fullName,
+      emailAddress: profile.emailAddress,
+      phoneNumber: profile.phoneNumber,
+      dateOfBirth: profile.dateOfBirth,
+      nationalIdNumber: profile.nationalIdNumber,
+      gender: profile.gender,
+      photoPreviewUrl: profile.photoUrl,
+      farmLocation: profile.farmLocation,
+      village: profile.village,
+      gpsCoordinates: profile.farm.gpsCoordinates,
+      totalLandArea: profile.farm.totalLandArea,
+      irrigationSource: profile.farm.irrigationSource,
       landOwnershipType: profile.farm.landOwnershipType,
       production: {
         commodity: profile.farm.primaryCrops[0] ?? '',
         livestock: profile.farm.livestock.join(', '),
       },
       cooperativeGroup: profile.groupCredit.cooperativeGroup,
-      assignedBranch:   profile.registration.assignedBranch,
+      assignedBranch: profile.registration.assignedBranch,
       paymentMethod: profile.paymentMethod ?? {
-        type:                  'mobile_money',
-        bankName:              '',
-        bankBranch:            '',
+        type: 'mobile_money',
+        bankName: '',
+        bankBranch: '',
         bankAccountHolderName: '',
-        bankAccountNumber:     '',
-        wendiWalletNumber:     '',
-        mobileMoneyProvider:   'mtn',
-        mobileMoneyPhone:      profile.phoneNumber,
+        bankAccountNumber: '',
+        wendiWalletNumber: '',
+        mobileMoneyProvider: 'mtn',
+        mobileMoneyPhone: profile.phoneNumber,
       },
     };
   }

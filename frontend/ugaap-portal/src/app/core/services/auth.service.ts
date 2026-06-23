@@ -26,16 +26,15 @@ export class AuthService {
   login(payload: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(API_ENDPOINTS.AUTH.LOGIN, payload).pipe(
       tap((res) => {
-        const user = {
+        this.session.setSession(res.data.accessToken, res.data.refreshToken, {
           id: res.data.userId,
           fullName: res.data.username,
           email: res.data.email,
           phone: '',
           role: res.data.roles?.[0] ?? '',
           permissions: [],
-        };
-
-        this.session.setSession(res.data.accessToken, res.data.refreshToken, user);
+          // tenantId/branchId/cooperativeId decoded automatically from JWT in setSession
+        });
       }),
     );
   }
