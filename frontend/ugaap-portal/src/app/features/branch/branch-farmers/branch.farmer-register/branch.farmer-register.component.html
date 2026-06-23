@@ -47,9 +47,10 @@
 
           <app-input
             label="National ID Number"
-            placeholder="12345678901234"
+            placeholder="e.g. CM95012A345B6C"
             type="text"
             [required]="true"
+            hint="14 characters: 2 letters · 5 digits · 1 letter · 3 digits · 1 letter · 1 digit · 1 letter"
             [error]="formErrors['nationalIdNumber']"
             [(ngModel)]="form.nationalIdNumber"
             name="nationalIdNumber">
@@ -59,10 +60,10 @@
         <div class="field-row">
           <app-input
             label="Phone Number"
-            placeholder="+256 700 000000"
+            placeholder="e.g. 0700000000"
             type="tel"
             [required]="true"
-            hint="Valid MTN or Airtel Uganda number required"
+            hint="Exactly 10 digits, no spaces or country code (e.g. 0700000000)"
             [error]="formErrors['phoneNumber']"
             [(ngModel)]="form.phoneNumber"
             name="phoneNumber">

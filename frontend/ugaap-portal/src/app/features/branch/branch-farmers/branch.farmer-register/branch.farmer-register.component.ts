@@ -62,6 +62,15 @@ export class BranchFarmerRegisterComponent {
   readonly maxPhotoSizeBytes = 2 * 1024 * 1024;
 
   // ─────────────────────────────────────────
+  // VALIDATION PATTERNS
+  // ─────────────────────────────────────────
+  // Exactly 10 digits — no country code prefix, no spaces
+  private readonly phoneRegex = /^\d{10}$/;
+  // 14-char Uganda NIN: 2 letters · 5 digits · 1 letter · 3 digits · 1 letter · 1 digit · 1 letter
+  // Example: CM95012A345B6C — case-insensitive so lower-case input still passes
+  private readonly nationalIdRegex = /^[A-Za-z]{2}\d{5}[A-Za-z]\d{3}[A-Za-z]\d[A-Za-z]$/;
+
+  // ─────────────────────────────────────────
   // COMPONENT STATE
   // ─────────────────────────────────────────
   isEditMode = false;
@@ -241,11 +250,29 @@ export class BranchFarmerRegisterComponent {
     switch (this.currentStep) {
       case 0: // Personal Details
         if (!f.fullName.trim()) this.formErrors['fullName'] = 'Full name is required.';
-        if (!f.nationalIdNumber.trim())
+
+        if (!f.nationalIdNumber.trim()) {
           this.formErrors['nationalIdNumber'] = 'National ID number is required.';
-        if (!f.phoneNumber.trim()) this.formErrors['phoneNumber'] = 'Phone number is required.';
+        } else if (!this.nationalIdRegex.test(f.nationalIdNumber.trim())) {
+          this.formErrors['nationalIdNumber'] = 'Must be 14 characters, e.g. CM95012A345B6C.';
+        }
+
+        if (!f.phoneNumber.trim()) {
+          this.formErrors['phoneNumber'] = 'Phone number is required.';
+        } else if (!this.phoneRegex.test(f.phoneNumber.trim())) {
+          this.formErrors['phoneNumber'] = 'Phone number must be exactly 10 digits (e.g. 0700000000).';
+        }
+
         if (!f.emailAddress.trim()) this.formErrors['emailAddress'] = 'Email address is required.';
-        if (!f.dateOfBirth) this.formErrors['dateOfBirth'] = 'Date of birth is required.';
+
+        if (!f.dateOfBirth) {
+          this.formErrors['dateOfBirth'] = 'Date of birth is required.';
+        } else {
+          const dobYear = new Date(f.dateOfBirth).getFullYear();
+          if (dobYear >= new Date().getFullYear()) {
+            this.formErrors['dateOfBirth'] = 'Date of birth cannot be in the current year or future.';
+          }
+        }
         break;
 
       case 1: // Farm Specifications
@@ -283,11 +310,30 @@ export class BranchFarmerRegisterComponent {
     const pm = f.paymentMethod;
 
     if (!f.fullName.trim()) this.formErrors['fullName'] = 'Full name is required.';
-    if (!f.nationalIdNumber.trim())
+
+    if (!f.nationalIdNumber.trim()) {
       this.formErrors['nationalIdNumber'] = 'National ID number is required.';
-    if (!f.phoneNumber.trim()) this.formErrors['phoneNumber'] = 'Phone number is required.';
+    } else if (!this.nationalIdRegex.test(f.nationalIdNumber.trim())) {
+      this.formErrors['nationalIdNumber'] = 'Must be 14 characters, e.g. CM95012A345B6C.';
+    }
+
+    if (!f.phoneNumber.trim()) {
+      this.formErrors['phoneNumber'] = 'Phone number is required.';
+    } else if (!this.phoneRegex.test(f.phoneNumber.trim())) {
+      this.formErrors['phoneNumber'] = 'Phone number must be exactly 10 digits (e.g. 0700000000).';
+    }
+
     if (!f.emailAddress.trim()) this.formErrors['emailAddress'] = 'Email address is required.';
-    if (!f.dateOfBirth) this.formErrors['dateOfBirth'] = 'Date of birth is required.';
+
+    if (!f.dateOfBirth) {
+      this.formErrors['dateOfBirth'] = 'Date of birth is required.';
+    } else {
+      const dobYear = new Date(f.dateOfBirth).getFullYear();
+      if (dobYear >= new Date().getFullYear()) {
+        this.formErrors['dateOfBirth'] = 'Date of birth cannot be in the current year or future.';
+      }
+    }
+
     if (!f.village.trim()) this.formErrors['village'] = 'Village / Town is required.';
     if (f.totalLandArea === null || f.totalLandArea <= 0)
       this.formErrors['totalLandArea'] = 'Total land area is required.';
