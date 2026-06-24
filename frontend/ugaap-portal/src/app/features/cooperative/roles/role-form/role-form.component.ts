@@ -70,19 +70,75 @@ export class RoleFormComponent implements OnInit {
     this.roleId = this.route.snapshot.paramMap.get('id');
     this.isEditMode = !!this.roleId;
 
-    this.roleForm = this.fb.group({
-      name:        ['', Validators.required],
-      description: ['', Validators.required],
-      tenantId:    ['', Validators.required],
-      fullName:    ['', Validators.required],
-      email:       ['', [Validators.required, Validators.email]],
-      phone:       ['', [Validators.required, Validators.pattern(/^\+\d{1,3}\d{4,14}$/)]],
-    });
+    if (this.isEditMode) {
+      // Edit mode: only name + description (tenantId is set at creation and cannot change)
+      this.roleForm = this.fb.group({
+        name:        ['', Validators.required],
+        description: ['', Validators.required],
+      });
 
-    const state = this.router.getCurrentNavigation()?.extras?.state ?? history.state;
-    if (state?.tenantId) {
-      this.roleForm.patchValue({ tenantId: state.tenantId });
+      // Pre-fill immediately from navigation state (works even without a backend).
+      // When the backend is live, loadRoleData() will overwrite with fresh API data.
+      const state = history.state;
+      if (state?.role) {
+        this.roleForm.patchValue({
+          name:        state.role.name,
+          description: state.role.description,
+        });
+      }
+
+      this.loadRoleData();
+    } else {
+      // Create mode: role details + first user account
+      this.roleForm = this.fb.group({
+        name:        ['', Validators.required],
+        description: ['', Validators.required],
+        tenantId:    ['', Validators.required],
+        fullName:    ['', Validators.required],
+        email:       ['', [Validators.required, Validators.email]],
+        phone:       ['', [Validators.required, Validators.pattern(/^\+\d{1,3}\d{4,14}$/)]],
+      });
+      const state = this.router.getCurrentNavigation()?.extras?.state ?? history.state;
+      if (state?.tenantId) {
+        this.roleForm.patchValue({ tenantId: state.tenantId });
+      }
     }
+  }
+
+  // ── Data loading (edit mode) ──────────────────────────────────────────────
+
+  loadRoleData(): void {
+    if (!this.roleId) return;
+    this.http.get<any>(API_ENDPOINTS.ACCESS.ROLE_BY_ID(this.roleId)).subscribe({
+      next: (role) => {
+        this.roleForm.patchValue({
+          name: role.name,
+          description: role.description,
+          tenantId: role.tenantId,
+        });
+        this.loadRolePermissions();
+      },
+      error: (err) => {
+        this.errorMessage = err?.error?.message ?? 'Failed to load role data';
+      },
+    });
+  }
+
+  loadRolePermissions(): void {
+    if (!this.roleId) return;
+    this.http.get<any[]>(API_ENDPOINTS.ACCESS.ROLE_PERMISSIONS(this.roleId)).subscribe({
+      next: (permissions) => {
+        const ids = permissions.map(p =>
+          typeof p === 'string'
+            ? p
+            : `${String(p.module).toLowerCase()}.${String(p.action).toLowerCase()}`,
+        );
+        this.selectedPermissions.set(ids);
+      },
+      error: (err) => {
+        this.errorMessage = err?.error?.message ?? 'Failed to load permissions';
+      },
+    });
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
@@ -139,9 +195,14 @@ export class RoleFormComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = '';
 
-    const { name, description, tenantId, fullName, email, phone } = this.roleForm.value;
+    if (this.isEditMode) {
+      this.updateRole();
+      return;
+    }
 
-    this.http.post<any>(API_ENDPOINTS.ACCESS.ROLES, { name, description, tenantId }).subscribe({
+    const { name, description, fullName, email, phone } = this.roleForm.value;
+
+    this.http.post<any>(API_ENDPOINTS.ACCESS.ROLES, { name, description }).subscribe({
       next: (roleRes) => {
         const createdRoleId = roleRes.roleId;
 
@@ -151,7 +212,7 @@ export class RoleFormComponent implements OnInit {
           next: () => {
             const state = history.state;
             this.http.post<any>(API_ENDPOINTS.ACCESS.USERS, {
-              fullName, email, phone, tenantId,
+              fullName, email, phone,
               branchId: state?.branchId ?? '',
               roleId: createdRoleId,
             }).subscribe({
@@ -188,6 +249,38 @@ export class RoleFormComponent implements OnInit {
         const msg = err?.error?.message ?? 'Failed to save the role. Please try again.';
         this.errorMessage = msg;
         this.toast.error('Save failed', msg);
+      },
+    });
+  }
+
+  // ── Update (edit mode) ────────────────────────────────────────────────────
+
+  private updateRole(): void {
+    const { name, description } = this.roleForm.value;
+
+    this.http.put<any>(API_ENDPOINTS.ACCESS.ROLE_BY_ID(this.roleId!), { name, description }).subscribe({
+      next: () => {
+        this.http.post<any>(API_ENDPOINTS.ACCESS.ROLE_PERMISSIONS(this.roleId!), {
+          permissions: this.toBackendPermissions(),
+        }).subscribe({
+          next: () => {
+            this.isLoading = false;
+            this.toast.success('Role updated', `"${name}" has been updated successfully.`);
+            this.router.navigate(['/cooperative/roles']);
+          },
+          error: (err) => {
+            this.isLoading = false;
+            const msg = err?.error?.message ?? 'Role updated but permissions could not be saved.';
+            this.errorMessage = msg;
+            this.toast.error('Permissions failed', msg);
+          },
+        });
+      },
+      error: (err) => {
+        this.isLoading = false;
+        const msg = err?.error?.message ?? 'Failed to update the role. Please try again.';
+        this.errorMessage = msg;
+        this.toast.error('Update failed', msg);
       },
     });
   }

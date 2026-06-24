@@ -1,2 +1,5 @@
-/* Platform role form — all layout comes from app-form-shell, app-form-section,
-   and the global FORM LAYOUT KIT in styles.css. Nothing component-specific here. */
+.page {
+  background: var(--surface-low);
+  font-family: var(--font-human);
+  min-height: 100%;
+}

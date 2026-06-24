@@ -1,3 +1,5 @@
+<div class="page">
+
 <!-- GENERATED CREDENTIALS CARD — shown after successful role + user creation -->
 <div class="credentials-shell" *ngIf="generatedCredentials">
   <div class="credentials-card">
@@ -58,7 +60,7 @@
 
     <app-form-shell
       [title]="isEditMode ? 'Edit Role' : 'Create Role'"
-      subtitle="Define the role, create its first user, and assign permissions.">
+      [subtitle]="isEditMode ? 'Update the role details and permissions.' : 'Define the role, create its first user, and assign permissions.'">
 
       <!-- ── 1. ROLE DETAILS ── -->
       <app-form-section [number]="1" title="Role Details" iconName="shield"
@@ -74,7 +76,7 @@
             formControlName="name">
           </app-input>
 
-          <div class="input-group">
+          <!-- <div class="input-group">
             <app-input
               label="Tenant ID"
               placeholder="e.g. ugaap-farmers"
@@ -84,7 +86,7 @@
               formControlName="tenantId">
             </app-input>
             <p class="field-hint">Pre-filled from onboarding context</p>
-          </div>
+          </div>-->
         </div>
 
         <div class="input-group mt-16">
@@ -101,8 +103,8 @@
         </div>
       </app-form-section>
 
-      <!-- ── 2. USER DETAILS ── -->
-      <app-form-section [number]="2" title="User Details" iconName="user"
+      <!-- ── 2. USER DETAILS (create only) ── -->
+      <app-form-section *ngIf="!isEditMode" [number]="2" title="User Details" iconName="user"
                         desc="First account created with this role">
 
         <div class="fields-grid cols-3">
@@ -144,8 +146,8 @@
         </div>
       </app-form-section>
 
-      <!-- ── 3. PERMISSIONS ── -->
-      <app-form-section [number]="3" title="Permissions" iconName="list"
+      <!-- ── 2 (edit) / 3 (create). PERMISSIONS ── -->
+      <app-form-section [number]="isEditMode ? 2 : 3" title="Permissions" iconName="list"
                         [desc]="permissionsDesc">
 
         <app-permission-tabs scope="cooperative" [(selected)]="selectedPermissions">
@@ -165,3 +167,5 @@
 
   </form>
 </ng-container>
+
+</div>
