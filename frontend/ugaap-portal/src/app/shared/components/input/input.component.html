@@ -33,7 +33,8 @@
       [value]="value"
       (input)="onInput($event)"
       (blur)="onBlur()"
-      [class.input-password]="type === 'password'"/>
+      [class.input-password]="type === 'password'"
+      [style.text-transform]="uppercase ? 'uppercase' : null"/>
 
     <!-- Password visibility toggle button -->
     <button

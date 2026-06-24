@@ -24,6 +24,14 @@ export const ROLES_ROUTES: Routes = [
         .then(m => m.RolesListComponent),
       
   },
+  {
+    path: ':id',
+    title: 'Roles Details' + ' | UGAAP',
+    loadComponent: () =>
+      import('./role-detail/role-detail.component')
+        .then(m => m.RoleDetailComponent),
+      
+  },
 
   // Create role
   // URL: /platform/roles/role-form

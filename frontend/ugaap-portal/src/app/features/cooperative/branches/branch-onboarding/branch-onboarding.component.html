@@ -17,6 +17,7 @@
           placeholder="e.g., Kasese District Branch"
           formControlName="branchName"
           [required]="true"
+          [uppercase]="true"
           hint="Official name as it will appear in records"
           [error]="getFieldError('branchName')">
         </app-input>
@@ -27,6 +28,7 @@
           placeholder="e.g., KAS001"
           formControlName="branchRegistrationNumber"
           [required]="true"
+          [uppercase]="true"
           hint="Uppercase letters and numbers only (e.g., KAS001)"
           [error]="getFieldError('branchRegistrationNumber')">
         </app-input>
@@ -43,6 +45,7 @@
           placeholder="e.g., Kasese Town"
           formControlName="location"
           [required]="true"
+          [uppercase]="true"
           hint="Town, district or area where the branch is based"
           [error]="getFieldError('location')">
         </app-input>
@@ -151,6 +154,7 @@
           placeholder="Street, plot number and landmarks"
           formControlName="address"
           [required]="true"
+          [uppercase]="true"
           hint="Full physical address used for deliveries and official visits"
           [error]="getFieldError('address')">
         </app-input>
@@ -161,6 +165,7 @@
           placeholder="e.g., P.O. Box 456, Kasese"
           formControlName="poBox"
           [required]="true"
+          [uppercase]="true"
           hint="Postal address for official correspondence"
           [error]="getFieldError('poBox')">
         </app-input>
@@ -177,6 +182,7 @@
           placeholder="Manager's full legal name"
           formControlName="managerName"
           [required]="true"
+          [uppercase]="true"
           hint="As it appears on official records"
           [error]="getFieldError('managerName')">
         </app-input>
