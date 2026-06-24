@@ -5,6 +5,7 @@ import com.ugaap.membership.dto.MemberDto;
 import com.ugaap.membership.service.MemberService;
 import com.ugaap.shared.security.UgaapSecurityContext; // look here
 import lombok.RequiredArgsConstructor;
+import com.ugaap.membership.dto.FarmerSearchResultDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -82,5 +83,11 @@ public class MemberController {
             @PathVariable String memberId) {
         memberService.deactivateMember(memberId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<FarmerSearchResultDTO>> searchFarmers(
+            @RequestParam String query) {
+        return ResponseEntity.ok(memberService.searchFarmers(query));
     }
 }

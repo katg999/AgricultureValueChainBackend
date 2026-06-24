@@ -18,19 +18,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class FarmerSearchResultDTO {
 
-    private UUID id;
-    private String branch;
-    private String farmerName;
-    private String commodity;
-    private String unitOfMeasure;
-    private Double volume;
-    private Double estimatedValueUgx;
-    private String season;
-    private String status;
-
-    private OffsetDateTime createdAt;
-    private String repaymentRule;
-    private String name;
-    private UUID farmerId;
+    private String memberId;
+    private String fullName;
 
 }

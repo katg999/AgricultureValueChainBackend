@@ -3,6 +3,7 @@ package com.ugaap.membership.service;
 
 import com.ugaap.membership.Entity.Cooperative;
 import com.ugaap.membership.Entity.Member;
+import com.ugaap.membership.dto.FarmerSearchResultDTO;
 import com.ugaap.membership.dto.MemberDto;
 import com.ugaap.membership.repository.CooperativeRepository;
 import com.ugaap.membership.repository.MemberRepository;
@@ -242,6 +243,19 @@ public class MemberService {
                 .build();
     }
 
+
+
+    @Transactional(readOnly = true)
+    public List<FarmerSearchResultDTO> searchFarmers(String query) {
+        return memberRepository
+                .searchFarmersByName(query, Member.MemberStatus.ACTIVE)
+                .stream()
+                .map(m -> FarmerSearchResultDTO.builder()
+                        .memberId(m.getMemberId().toString())
+                        .fullName(m.getFullName())
+                        .build())
+                .toList();
+    }
 
 
 }
