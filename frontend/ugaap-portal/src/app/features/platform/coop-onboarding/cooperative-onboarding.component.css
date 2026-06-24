@@ -131,55 +131,36 @@
   color: #fff;
 }
 
-/* ── REVIEW GRID ── */
-.review-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  margin-bottom: 20px;
-}
-
-.review-card {
-  background: #FAFAF9;
+/* ── REVIEW SECTIONS CARD — mirrors form's .sections-card inside the modal ── */
+.review-sections-card {
   border: 1px solid #E8E6ED;
-  border-radius: 12px;
-  padding: 18px 20px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #ffffff;
+  /* pulls the card flush against the modal-body edges so sections don't look double-inset */
+  margin: -8px -16px 8px;
 }
 
-.review-card-title {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  margin: 0 0 12px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #F0EEF2;
-}
-
-.review-row {
+/* Each labelled field in the review — label on top, value below */
+.review-field {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 5px 0;
-  border-bottom: 1px solid #F7F6F8;
+  gap: 4px;
 }
 
-.review-row:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.review-label {
+.review-field-label {
   font-size: 11px;
-  color: #9C94A8;
+  font-weight: 600;
+  color: #9B9BAB;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.review-value {
+.review-field-value {
   font-size: 13px;
   font-weight: 600;
-  color: var(--secondary);
-  overflow-wrap: anywhere;
+  color: var(--secondary, #200B26);
+  word-break: break-word;
 }
 
 /* ── MODAL ACTIONS ── */
@@ -191,12 +172,8 @@
 }
 
 /* ── RESPONSIVE ── */
-@media (max-width: 900px) {
-  .review-grid { grid-template-columns: repeat(2, 1fr); }
-}
-
 @media (max-width: 680px) {
-  .review-grid { grid-template-columns: 1fr; }
+  .review-sections-card { margin: -8px -8px 8px; }
   .modal-actions { flex-direction: column; }
   .modal-actions app-button,
   .modal-actions .btn-secondary { width: 100%; }
