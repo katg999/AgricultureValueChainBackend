@@ -197,43 +197,37 @@
     <app-form-section [number]="5" title="Cooperative Admin 1" iconName="user"
                       desc="Primary admin — formerly known as Maker">
 
-      <div class="admin-photo-row">
-        <div class="input-group">
-          <div class="photo-header">
-            <label class="input-label">Profile Photo</label>
-            <span class="optional-badge">Optional</span>
-          </div>
-
-          <div class="photo-drop"
-               (dragover)="$event.preventDefault()"
-               (drop)="onAdmin1PhotoDrop($event)"
-               [class.photo-drop--has-image]="admin1Photo">
-
-            <div *ngIf="admin1Photo" class="photo-preview">
-              <img [src]="admin1Photo" alt="Admin 1 photo">
-              <button type="button" class="photo-remove" (click)="removeAdmin1Photo()"
-                      aria-label="Remove photo">
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                  <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.8"
-                        stroke-linecap="round"/>
-                </svg>
-              </button>
-            </div>
-
-            <div *ngIf="!admin1Photo" class="photo-prompt">
-              <input type="file" id="admin1Photo" accept="image/*"
-                     (change)="onAdmin1PhotoSelect($event)" hidden>
-              <label for="admin1Photo" class="photo-prompt__label">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                <span>Click to upload</span>
-                <span class="photo-prompt__sub">JPG, PNG up to 5 MB</span>
-              </label>
-            </div>
-          </div>
+      <div class="input-group">
+        <div class="photo-header">
+          <label class="input-label">Profile Photo</label>
+          <span class="optional-badge">Optional</span>
         </div>
+
+        <div class="photo-input-row">
+          <input type="file" id="admin1Photo" accept="image/*"
+                 (change)="onAdmin1PhotoSelect($event)" hidden>
+
+          <input type="text" class="form-input photo-filename"
+                 [value]="admin1PhotoName"
+                 placeholder="No file chosen"
+                 readonly>
+
+          <label for="admin1Photo"
+                 class="btn-upload"
+                 (dragover)="$event.preventDefault()"
+                 (drop)="onAdmin1PhotoDrop($event)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"
+                    stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+            </svg>
+            Upload
+          </label>
+
+          <button *ngIf="admin1Photo" type="button" class="btn-photo-clear"
+                  (click)="removeAdmin1Photo()" aria-label="Remove photo">✕</button>
+        </div>
+
+        <p class="hint-text">JPG, PNG up to 5 MB</p>
       </div>
 
       <div class="fields-grid cols-3 mt-16">
@@ -296,43 +290,37 @@
     <app-form-section [number]="6" title="Cooperative Admin 2" iconName="users"
                       desc="Secondary admin — formerly known as Checker">
 
-      <div class="admin-photo-row">
-        <div class="input-group">
-          <div class="photo-header">
-            <label class="input-label">Profile Photo</label>
-            <span class="optional-badge">Optional</span>
-          </div>
-
-          <div class="photo-drop"
-               (dragover)="$event.preventDefault()"
-               (drop)="onAdmin2PhotoDrop($event)"
-               [class.photo-drop--has-image]="admin2Photo">
-
-            <div *ngIf="admin2Photo" class="photo-preview">
-              <img [src]="admin2Photo" alt="Admin 2 photo">
-              <button type="button" class="photo-remove" (click)="removeAdmin2Photo()"
-                      aria-label="Remove photo">
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                  <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.8"
-                        stroke-linecap="round"/>
-                </svg>
-              </button>
-            </div>
-
-            <div *ngIf="!admin2Photo" class="photo-prompt">
-              <input type="file" id="admin2Photo" accept="image/*"
-                     (change)="onAdmin2PhotoSelect($event)" hidden>
-              <label for="admin2Photo" class="photo-prompt__label">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                <span>Click to upload</span>
-                <span class="photo-prompt__sub">JPG, PNG up to 5 MB</span>
-              </label>
-            </div>
-          </div>
+      <div class="input-group">
+        <div class="photo-header">
+          <label class="input-label">Profile Photo</label>
+          <span class="optional-badge">Optional</span>
         </div>
+
+        <div class="photo-input-row">
+          <input type="file" id="admin2Photo" accept="image/*"
+                 (change)="onAdmin2PhotoSelect($event)" hidden>
+
+          <input type="text" class="form-input photo-filename"
+                 [value]="admin2PhotoName"
+                 placeholder="No file chosen"
+                 readonly>
+
+          <label for="admin2Photo"
+                 class="btn-upload"
+                 (dragover)="$event.preventDefault()"
+                 (drop)="onAdmin2PhotoDrop($event)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"
+                    stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+            </svg>
+            Upload
+          </label>
+
+          <button *ngIf="admin2Photo" type="button" class="btn-photo-clear"
+                  (click)="removeAdmin2Photo()" aria-label="Remove photo">✕</button>
+        </div>
+
+        <p class="hint-text">JPG, PNG up to 5 MB</p>
       </div>
 
       <div class="fields-grid cols-3 mt-16">

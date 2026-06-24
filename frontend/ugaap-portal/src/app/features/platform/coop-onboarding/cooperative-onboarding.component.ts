@@ -40,6 +40,8 @@ export class CooperativeOnboardingComponent implements OnInit {
   // Admin photo previews — stored as base64 strings, not part of the FormGroup
   admin1Photo = '';
   admin2Photo = '';
+  admin1PhotoName = '';
+  admin2PhotoName = '';
 
   // Modal + loading state
   showConfirmModal = false;
@@ -120,7 +122,7 @@ export class CooperativeOnboardingComponent implements OnInit {
     if (file) this.handleAdminPhoto(file, 1);
   }
 
-  removeAdmin1Photo(): void { this.admin1Photo = ''; }
+  removeAdmin1Photo(): void { this.admin1Photo = ''; this.admin1PhotoName = ''; }
 
   // ── Photo handling — Admin 2 ──────────────────────────────────────────────
 
@@ -136,11 +138,14 @@ export class CooperativeOnboardingComponent implements OnInit {
     if (file) this.handleAdminPhoto(file, 2);
   }
 
-  removeAdmin2Photo(): void { this.admin2Photo = ''; }
+  removeAdmin2Photo(): void { this.admin2Photo = ''; this.admin2PhotoName = ''; }
 
   private handleAdminPhoto(file: File, which: 1 | 2): void {
     const maxBytes = 5 * 1024 * 1024; // 5 MB
     if (!['image/jpeg', 'image/png'].includes(file.type) || file.size > maxBytes) return;
+
+    if (which === 1) this.admin1PhotoName = file.name;
+    else             this.admin2PhotoName = file.name;
 
     const reader = new FileReader();
     reader.onload = () => {
