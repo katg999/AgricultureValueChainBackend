@@ -38,7 +38,7 @@ import { CommonModule } from '@angular/common';
       display: block;
       max-width: 1040px;
       margin: 0 auto;
-      padding: 40px 32px 0;
+      padding: 24px 0 0;
       font-family: var(--font-human, 'Inter', sans-serif);
     }
 
@@ -68,7 +68,7 @@ import { CommonModule } from '@angular/common';
     }
 
     @media (max-width: 680px) {
-      :host { padding: 24px 16px 0; }
+      :host { padding: 16px 0 0; }
     }
   `],
 })

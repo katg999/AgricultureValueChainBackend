@@ -15,6 +15,7 @@ import { ButtonComponent }      from '../../../shared/components/button/button.c
 import { ModalComponent }       from '../../../shared/components/modal/modal.component';
 import { AlertComponent }       from '../../../shared/components/alert/alert.component';
 import { CooperativeService }   from '../../../core/services/cooperative.service';
+import { ToastService }         from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-cooperative-onboarding',
@@ -56,6 +57,7 @@ export class CooperativeOnboardingComponent implements OnInit {
     private router: Router,
     private cooperativeService: CooperativeService,
     private titleService: Title,
+    private toast: ToastService,
   ) {}
 
   ngOnInit(): void {
@@ -180,7 +182,6 @@ export class CooperativeOnboardingComponent implements OnInit {
 
     this.isLoading = true;
     this.errorMessage = '';
-    this.showConfirmModal = false;
 
     const v = this.profileForm.value;
 
@@ -228,13 +229,19 @@ export class CooperativeOnboardingComponent implements OnInit {
     this.cooperativeService.createCooperative(payload).subscribe({
       next: () => {
         this.isLoading = false;
+        this.showConfirmModal = false;
+        this.toast.success(
+          'Cooperative activated',
+          `${v.name} has been registered and both admin accounts created.`,
+        );
         this.router.navigate(['/platform/cooperatives']);
       },
       error: (err) => {
         this.isLoading = false;
         console.error('Create cooperative failed:', err);
-        this.errorMessage =
-          err?.error?.message ?? 'Failed to activate cooperative. Please try again.';
+        const message = err?.error?.message ?? 'Failed to activate cooperative. Please try again.';
+        this.errorMessage = message;
+        this.toast.error('Activation failed', message);
       },
     });
   }

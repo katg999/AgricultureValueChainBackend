@@ -1,5 +1,4 @@
-.page-container {
-  padding: 32px 16px;
+﻿.page-container {
   background: var(--surface-low);
   min-height: 100%;
   max-width: 860px;

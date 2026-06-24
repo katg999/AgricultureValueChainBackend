@@ -1,10 +1,9 @@
-:host { display: block; font-family: var(--font-human); }
+﻿:host { display: block; font-family: var(--font-human); }
 .mono { font-family: var(--font-technical); }
 
 /* ── PAGE ── */
 .cf-page {
   min-height: 100vh;
-  padding: 24px;
   background: var(--surface-low);
   color: var(--secondary);
 }
@@ -229,6 +228,5 @@
 }
 
 @media (max-width: 768px) {
-  .cf-page  { padding: 16px; }
-  .cf-title { font-size: 22px; }
+  .cf-page  {  .cf-title { font-size: 22px; }
 }

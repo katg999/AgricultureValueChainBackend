@@ -1,7 +1,6 @@
-   /*PAGE LAYOUT*/
+﻿   /*PAGE LAYOUT*/
 
 .delivery-page {
-  padding: 24px;
   background: var(--surface-low);
   min-height: 100vh;
   font-family: var(--font-human);
@@ -556,13 +555,7 @@ tbody tr:hover {
   }
 }
 
-@media (max-width: 768px) {
-
-  .delivery-page {
-    padding: 16px;
-  }
-
-  .page-header h1 {
+@media (max-width: 768px) {  .page-header h1 {
     font-size: 22px;
   }
 
