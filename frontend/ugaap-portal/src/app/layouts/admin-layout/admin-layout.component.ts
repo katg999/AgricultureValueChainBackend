@@ -24,13 +24,14 @@ import { SessionService }                          from '../../core/services/ses
 import { DashboardConfigService, NavItem, UserLevel } from '../../core/services/dashboard-config.service';
 import { PermissionsService }                      from '../../core/services/permissions.service';
 import { AuthService }                             from '../../core/services/auth.service';
-import { SidebarComponent } from '../../shared/components/sidebar/sidebar.component';
-import { ToastComponent }   from '../../shared/components/toast/toast.component';
+import { SidebarComponent }  from '../../shared/components/sidebar/sidebar.component';
+import { ToastComponent }    from '../../shared/components/toast/toast.component';
+import { PageBodyComponent } from '../../shared/components/page-body/page-body.component';
 
 @Component({
   selector: 'app-admin-layout',
   standalone: true,
-  imports: [RouterOutlet, SidebarComponent, ToastComponent],
+  imports: [RouterOutlet, SidebarComponent, ToastComponent, PageBodyComponent],
   templateUrl: './admin-layout.component.html',
   styleUrl:    './admin-layout.component.scss',
 })

@@ -1,5 +1,4 @@
-.page-container {
-  padding: 32px 16px;
+﻿.page-container {
   background: var(--surface-low);
   min-height: 100%;
 }
@@ -292,12 +291,7 @@
   padding: 48px !important;
 }
 
-@media (max-width: 900px) {
-  .page-container {
-    padding: 16px;
-  }
-
-  .summary-cards app-stat-card {
+@media (max-width: 900px) {  .summary-cards app-stat-card {
     min-width: calc(50% - 7px);
     flex: none;
   }

@@ -1,5 +1,4 @@
-.sessions-page {
-  padding: 24px;
+﻿.sessions-page {
   background: var(--surface-low);
   min-height: 100vh;
   font-family: var(--font-human);
@@ -212,12 +211,7 @@ select:focus {
 
 /* ── Responsive ────────────────────────────────────────────────────────────── */
 
-@media (max-width: 768px) {
-  .sessions-page {
-    padding: 16px;
-  }
-
-  table {
+@media (max-width: 768px) {  table {
     min-width: 560px;
   }
 

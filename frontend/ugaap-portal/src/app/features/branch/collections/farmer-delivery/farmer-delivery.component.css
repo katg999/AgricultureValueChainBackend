@@ -1,9 +1,8 @@
-/* =========================================================
+﻿/* =========================================================
    ADD FARMER DELIVERY — PAGE SHELL
    ========================================================= */
 
 .afd-page {
-  padding: 24px;
   background: var(--surface-low);
   min-height: 100vh;
   font-family: var(--font-human);
@@ -472,12 +471,7 @@ button:disabled {
    RESPONSIVE
    ========================================================= */
 
-@media (max-width: 768px) {
-  .afd-page {
-    padding: 16px;
-  }
-
-  .afd-modal {
+@media (max-width: 768px) {  .afd-modal {
     padding: 24px 20px;
   }
 
