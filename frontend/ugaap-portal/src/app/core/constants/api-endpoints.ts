@@ -59,7 +59,7 @@ export const API_ENDPOINTS = {
     SESSION_CONFIG: `${BASE}/cooperative/session-config`,
     SEASON_CONFIG: `${BASE}/cooperative/season-config`,
 
-    PAYMENT_BATCHES: `${BASE}/api/v1/settlements/batches`, 
+    PAYMENT_BATCHES: `${BASE}/api/v1/settlements/batches`,
     PAYMENT_FARMERS: `${BASE}/api/v1/settlements/farmers`,
 
     // Inventory Service (Staged Next Deployment)
@@ -87,6 +87,18 @@ export const API_ENDPOINTS = {
     BY_ID: (id: string) => `${BASE}/api/v1/branches/${id}`,
   },
 
+  // ── Members (Farmer registration — membership-service) ───────────────────────
+  MEMBERS: {
+    REGISTER: `${BASE}/api/v1/members`,
+    BY_ID: (id: string) => `${BASE}/api/v1/members/${id}`,
+    LIST: (tenantId: string, branchId?: string) =>
+      branchId
+        ? `${BASE}/api/v1/members?tenantId=${tenantId}&branchId=${branchId}`
+        : `${BASE}/api/v1/members?tenantId=${tenantId}`,
+  },
+
+  // ── Branch Staff ────────────────────────────────────────────────────────────
+  // Scoped to a single branch (X-Branch-ID header set by interceptor)
   // ── Branch Staff operations ──────────────────────────────────────────────────
   BRANCH: {
     DASHBOARD: `${BASE}/api/v1/branches/dashboard`,
@@ -100,7 +112,6 @@ export const API_ENDPOINTS = {
     FARMER_DELIVERY_BY_ID: (id: string) => `${BASE}/branch/farmer-deliveries/${id}`,
     // Backward-compat alias (some components/services may reference this old key)
     FARMER_DELIVERIES_BY_ID: (id: string) => `${BASE}/branch/farmer-deliveries/${id}`,
-
 
     // Farmer Registry Lookup (FarmerController)
     FARMERS: `${BASE}/api/v1/farmers/search`,
@@ -120,7 +131,21 @@ export const API_ENDPOINTS = {
 
   USERS: `${BASE}/api/v1/access/users`,
 
-  // ── Access Control ──────────────────────────────────────────────────────────
+  // ── Inventory Service — real backend paths ──────────────────────────────────
+  // The COOPERATIVE.INVENTORY and BRANCH.INVENTORY constants above are the
+  // PLANNED gateway routes (not yet wired in the gateway config).
+  // These paths below are where the InventoryService microservice actually listens.
+  // The frontend uses these directly until the gateway routing is set up.
+  INVENTORY_BACKEND: {
+    STOCK_ALL:    `${BASE}/api/input-stock/all`,   // GET ?cooperativeId=X or ?branchId=X
+    STOCK_CREATE: `${BASE}/api/input-stock`,        // POST — add new stock
+    ALLOCATION_ISSUE:      `${BASE}/api/allocations/issue`,
+    ALLOCATIONS_BY_BRANCH: (branchId: string) => `${BASE}/api/allocations/branch/${branchId}`,
+    ALLOCATIONS_BY_COOP:   (coopId: string)   => `${BASE}/api/allocations/cooperative/${coopId}`,
+  },
+
+  // ── Access Control (Roles & Permissions) ───────────────────────────────────
+  // Scoped to the current cooperative; used by the User management feature
   ACCESS: {
     ROLES: `${BASE}/api/v1/access/roles`,
     ROLE_BY_ID: (id: string) => `${BASE}/api/v1/access/roles/${id}`,
@@ -129,9 +154,6 @@ export const API_ENDPOINTS = {
     USER_BY_ID: (id: string) => `${BASE}/api/v1/access/users/${id}`,
   },
 } as const;
-
-
-
 
 // // ─────────────────────────────────────────────────────────────────────────────
 // // core/constants/api-endpoints.ts

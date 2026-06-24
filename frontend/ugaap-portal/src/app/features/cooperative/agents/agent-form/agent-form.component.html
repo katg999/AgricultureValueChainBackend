@@ -1,21 +1,24 @@
-<app-form-wizard
-  [title]="isEditMode ? 'Edit agent' : 'Register agent'"
-  [steps]="steps"
-  [currentStep]="currentStep"
-  (stepSelected)="goToStep($event)">
+<!--
+  Agent Form (Register / Edit) — numbered-section layout via app-form-shell + app-form-section.
 
-  <form [formGroup]="agentForm" (ngSubmit)="saveAgent()">
+  Sections:
+    1. Agent Details  — full name, national ID, phone, email
+    2. Assignment     — role, branch
+-->
 
-    <!-- ── STEP 0: Agent details ── -->
-    <section *ngIf="currentStep === 0" class="form-panel" aria-labelledby="step0-heading">
-      <div class="panel-header">
-        <h2 id="step0-heading" class="panel-title">Agent details</h2>
-        <p class="panel-sub">Identity and contact information</p>
-      </div>
+<form [formGroup]="agentForm" (ngSubmit)="saveAgent()">
 
-      <div class="field-grid field-grid--2">
+  <app-form-shell
+    [title]="isEditMode ? 'Edit Agent' : 'Register Agent'"
+    [subtitle]="isEditMode ? 'Update the details below and save.' : 'Fill in both sections below, then register the agent.'">
+
+    <!-- ── 1. AGENT DETAILS ── -->
+    <app-form-section [number]="1" title="Agent Details" iconName="user"
+                      desc="Identity and contact information">
+
+      <div class="fields-grid cols-4">
         <app-input
-          label="Full name"
+          label="Full Name"
           placeholder="e.g. Moses Byaruhanga"
           type="text"
           [required]="true"
@@ -31,23 +34,19 @@
           [error]="getFieldError('nationalId')"
           formControlName="nationalId">
         </app-input>
-      </div>
-
-      <div class="field-grid field-grid--2">
-        <div class="field-stack">
-          <app-input
-            label="Phone number"
-            placeholder="+256712345678"
-            type="tel"
-            [required]="true"
-            [error]="getFieldError('phone')"
-            formControlName="phone">
-          </app-input>
-          <p class="field-hint">Include country code</p>
-        </div>
 
         <app-input
-          label="Email address"
+          label="Phone Number"
+          placeholder="+256712345678"
+          type="tel"
+          [required]="true"
+          hint="Include country code"
+          [error]="getFieldError('phone')"
+          formControlName="phone">
+        </app-input>
+
+        <app-input
+          label="Email Address"
           placeholder="e.g. moses@cooperative.ug"
           type="email"
           [required]="true"
@@ -55,18 +54,15 @@
           formControlName="email">
         </app-input>
       </div>
-    </section>
+    </app-form-section>
 
-    <!-- ── STEP 1: Assignment ── -->
-    <section *ngIf="currentStep === 1" class="form-panel" aria-labelledby="step1-heading">
-      <div class="panel-header">
-        <h2 id="step1-heading" class="panel-title">Assignment</h2>
-        <p class="panel-sub">Role and the branch this agent works under</p>
-      </div>
+    <!-- ── 2. ASSIGNMENT ── -->
+    <app-form-section [number]="2" title="Assignment" iconName="briefcase"
+                      desc="Role and the branch this agent works under">
 
-      <div class="field-grid field-grid--2">
+      <div class="fields-grid cols-2">
         <div class="field-group">
-          <label class="field-label">Agent role <span class="required-mark">*</span></label>
+          <label class="field-label">Agent Role <span class="required-mark">*</span></label>
           <select title="select agent role" class="form-select" formControlName="role">
             <option value="field_agent">Field Agent</option>
             <option value="collection_clerk">Collection Clerk</option>
@@ -88,43 +84,21 @@
           </p>
         </div>
       </div>
-    </section>
+    </app-form-section>
 
-    <!-- ── Bottom nav ── -->
-    <div class="form-nav">
-      <app-button variant="ghost" size="md" type="button" (clicked)="cancel()">
-        Cancel
-      </app-button>
+  </app-form-shell>
 
-      <div class="form-nav__right">
-        <app-button
-          *ngIf="currentStep > 0"
-          variant="ghost"
-          size="md"
-          type="button"
-          (clicked)="prevStep()">
-          ← Back
-        </app-button>
+  <div class="form-actions">
+    <button type="button" class="btn-secondary" (click)="cancel()">
+      Cancel
+    </button>
+    <app-button
+      variant="primary"
+      size="lg"
+      type="submit"
+      [disabled]="isSaving">
+      {{ isSaving ? 'Saving…' : (isEditMode ? 'Save Changes' : 'Register Agent') }}
+    </app-button>
+  </div>
 
-        <app-button
-          *ngIf="currentStep < steps.length - 1"
-          variant="primary"
-          size="md"
-          type="button"
-          (clicked)="nextStep()">
-          Next →
-        </app-button>
-
-        <app-button
-          *ngIf="currentStep === steps.length - 1"
-          variant="primary"
-          size="md"
-          type="submit"
-          [disabled]="isSaving">
-          {{ isSaving ? 'Saving…' : (isEditMode ? 'Save changes' : 'Register agent') }}
-        </app-button>
-      </div>
-    </div>
-
-  </form>
-</app-form-wizard>
+</form>

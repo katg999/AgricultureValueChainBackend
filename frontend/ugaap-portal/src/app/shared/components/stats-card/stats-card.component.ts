@@ -158,9 +158,9 @@ export class StatsCardComponent implements OnChanges {
    */
   getValueFontSize(): string {
     const len = (this.displayValue ?? '').length;
-    if (len <= 6) return '28px';
-    if (len <= 9) return '20px';
-    return '16px';
+    if (len <= 6) return '22px';
+    if (len <= 9) return '17px';
+    return '14px';
   }
 
   // ── Click handler ─────────────────────────────────────────────────────────

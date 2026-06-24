@@ -1,7 +1,5 @@
-/**
- * Branch Onboarding — sits inside the admin layout (sidebar visible).
- * Content centered at a balanced width, no overlay.
- */
+/* Branch Onboarding — all layout from app-form-shell, app-form-section, and global styles.
+   Only modal actions are component-specific. */
 
 /* ── SHELL ──────────────────────────────────────────────── */
 .onboarding-shell {
@@ -251,50 +249,13 @@
 /* ── MODAL ACTIONS ──────────────────────────────────────── */
 .modal-actions {
   display: flex;
-  gap: 12px;
   justify-content: flex-end;
-  margin-top: 24px;
+  gap: 10px;
+  width: 100%;
 }
 
-/* ── RESPONSIVE ─────────────────────────────────────────── */
 @media (max-width: 680px) {
-  .onboarding-shell {
-    padding: 20px 16px 48px;
-  }
-
-  .page-header {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .form-card {
-    padding: 20px 18px;
-  }
-
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-
-  .review-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .form-actions {
-    flex-direction: column-reverse;
-  }
-
-  .form-actions app-button,
-  .form-actions .btn-secondary {
-    width: 100%;
-    text-align: center;
-  }
-
-  .modal-actions {
-    flex-direction: column;
-  }
-
+  .modal-actions { flex-direction: column; }
   .modal-actions app-button,
-  .modal-actions .btn-secondary {
-    width: 100%;
-  }
+  .modal-actions .btn-secondary { width: 100%; }
 }

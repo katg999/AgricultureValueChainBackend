@@ -3,10 +3,10 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
 
-// Shared components
+
+import { FormSectionComponent } from '../../../../shared/components/form-section/form-section.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
-import { InfoCardComponent } from '../../../../shared/components/info-card/info-card.component';
 import { ToggleSwitchComponent } from '../../../../shared/components/toggle-switch/toggle-switch.component';
 import { PasswordStrengthComponent } from '../../../../shared/components/password-strength/password-strength.component';
 import { AlertComponent } from '../../../../shared/components/alert/alert.component';
@@ -43,12 +43,13 @@ import { ToastService }   from '../../../../core/services/toast.service';
     RouterModule,
     ReactiveFormsModule,
     FormsModule,
+  
+    FormSectionComponent,
     InputComponent,
     ButtonComponent,
-    InfoCardComponent,
     ToggleSwitchComponent,
     PasswordStrengthComponent,
-    AlertComponent
+    AlertComponent,
   ],
   templateUrl: './add-user.component.html',
   styleUrls: ['./add-user.component.css']

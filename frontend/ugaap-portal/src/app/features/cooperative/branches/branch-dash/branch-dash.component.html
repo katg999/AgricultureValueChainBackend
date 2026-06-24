@@ -2,12 +2,21 @@
 <div class="page">
   <div class="page-container">
     <!-- Page Header -->
+    <!--
+      justify-content: space-between on .page-header pushes the two children apart.
+      Left child: title block. Right child: button.
+      Without a left child the button just sits at the left edge with nothing to push against.
+    -->
     <div class="page-header">
+      <div class="header-content">
+        <h1 class="page-title">Branches</h1>
+        <p class="page-subtitle">Manage and monitor your branch network</p>
+      </div>
       <app-button
-      variant="primary" 
-      size="md" 
-      (click)="RegisterBranch()">
-        + Register branch
+        variant="primary"
+        size="md"
+        (click)="RegisterBranch()">
+        + Register Branch
       </app-button>
     </div>
 

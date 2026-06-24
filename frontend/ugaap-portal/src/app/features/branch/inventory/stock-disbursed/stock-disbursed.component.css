@@ -26,8 +26,8 @@
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 14px;
-  margin-bottom: 20px;
+  gap: 8px;
+  margin-bottom: 12px;
   align-items: stretch;
 }
 

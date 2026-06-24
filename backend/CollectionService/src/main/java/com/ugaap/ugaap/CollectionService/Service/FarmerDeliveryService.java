@@ -397,11 +397,12 @@ public class FarmerDeliveryService {
         return dto;
     }
 
-    public Page<FarmerDelivery> getAllPaginatedWithSpec(Specification<FarmerDelivery> spec, Pageable sanitizedPageable) {
-        return null;
+    public Page<FarmerDelivery> getAllPaginatedWithSpec(
+            Specification<FarmerDelivery> spec, Pageable pageable) {
+        return farmerDeliveryRepository.findAll(spec, pageable);
     }
 
-    public FarmerDeliveryDTO convertToDTO(FarmerDelivery farmerDelivery) {
-        return null;
+    public FarmerDeliveryDTO convertToDTO(FarmerDelivery delivery) {
+        return mapToDTO(delivery);
     }
 }

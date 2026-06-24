@@ -47,7 +47,7 @@
   margin: 0;
 }
 
-/* Stats Grid */
+/* Stats Grid — 4 equal columns so all cards always sit in one row on desktop */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -410,7 +410,8 @@
 }
 
 /* Responsive Design */
-@media (max-width: 1200px) {
+@media (max-width: 1100px) {
+  /* 4 compact cards start overlapping below ~1100px — drop to 2×2 */
   .stats-grid {
     grid-template-columns: repeat(1,1fr);
   }

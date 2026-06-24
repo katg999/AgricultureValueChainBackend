@@ -71,9 +71,9 @@
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  margin-bottom: 24px;
-  align-items: stretch; /* all cards in the row grow to the tallest */
+  gap: 10px;
+  margin-bottom: 14px;
+  align-items: stretch;
 }
 
 /* ── Two-Column Grid ─────────────────────────────────────────────────────── */

@@ -5,10 +5,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
+
 /**
  * Enterprise configuration layer managing cross-service HTTP client configurations.
  */
 @Configuration
+
 public class RestTemplateConfig {
 
     /**

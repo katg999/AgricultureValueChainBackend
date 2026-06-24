@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { permissionGuard } from '../../../core/guards/permission.guard';
 
 export const BRANCH_FARMERS_ROUTES: Routes = [
   {
@@ -17,10 +18,12 @@ export const BRANCH_FARMERS_ROUTES: Routes = [
       ),
   },
 
+
   // Farmer Registration (new) and Edit (with :id)
   {
     path: 'register',
-    data: { title: 'Register Farmer' },
+    canActivate: [permissionGuard],
+    data: { title: 'Register Farmer', permissionModule: 'farmers' },
     loadComponent: () =>
       import('./branch.farmer-register/branch.farmer-register.component').then(
         (m) => m.BranchFarmerRegisterComponent,
@@ -28,7 +31,8 @@ export const BRANCH_FARMERS_ROUTES: Routes = [
   },
   {
     path: 'register/:id',
-    data: { title: 'Edit Farmer' },
+    canActivate: [permissionGuard],
+    data: { title: 'Edit Farmer', permissionModule: 'farmers' },
     loadComponent: () =>
       import('./branch.farmer-register/branch.farmer-register.component').then(
         (m) => m.BranchFarmerRegisterComponent,

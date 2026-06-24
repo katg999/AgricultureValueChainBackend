@@ -220,9 +220,9 @@ export interface StatCardData {
     .stat-content { margin-top: auto; }
 
     .stat-label {
-      font-size: 11px;
+      font-size: 10px;
       color: #6B7280;
-      margin-bottom: 2px;
+      margin-bottom: 1px;
       line-height: 1.4;
     }
 

@@ -94,7 +94,7 @@ export class BranchFarmerListComponent implements OnInit, OnDestroy {
   }
 
   onAddFarmer(): void {
-    this.router.navigate(['./register'], { relativeTo: this.route }).then((success) => {
+    this.router.navigate(['../register'], { relativeTo: this.route }).then((success) => {
       console.log('Navigation result:', success);
       console.log('Current URL after nav:', this.router.url);
     });
@@ -138,13 +138,14 @@ export class BranchFarmerListComponent implements OnInit, OnDestroy {
     const q = filter.searchQuery.trim().toLowerCase();
     if (!q) return farmers;
 
-    return farmers.filter((farmer) =>
-      farmer.id.toLowerCase().includes(q) ||
-      farmer.name.toLowerCase().includes(q) ||
-      farmer.branch.toLowerCase().includes(q) ||
-      farmer.primaryCommodity.toLowerCase().includes(q) ||
-      farmer.status.toLowerCase().includes(q) ||
-      farmer.stage.toLowerCase().includes(q),
+    return farmers.filter(
+      (farmer) =>
+        farmer.id.toLowerCase().includes(q) ||
+        farmer.name.toLowerCase().includes(q) ||
+        farmer.branch.toLowerCase().includes(q) ||
+        farmer.primaryCommodity.toLowerCase().includes(q) ||
+        farmer.status.toLowerCase().includes(q) ||
+        farmer.stage.toLowerCase().includes(q),
     );
   }
 }
