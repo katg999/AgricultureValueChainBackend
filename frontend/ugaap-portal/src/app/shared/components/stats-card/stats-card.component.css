@@ -37,7 +37,6 @@
 .stats-card * {
   box-sizing: border-box;
 }
-
 /* ── Variant left borders ──────────────────────────────────────────────── */
 
 .variant-default { border-left-color: #E5E7EB; }
@@ -86,7 +85,7 @@
   min-height: 18px;
 }
 
-/* ── Status badge ───────────────────────────────────────────────────────── */
+/* Status badge */
 
 .status-badge {
   font-size: 10px;
@@ -189,7 +188,7 @@
   text-overflow: ellipsis;
 }
 
-/* ── Responsive ─────────────────────────────────────────────────────────── */
+
 
 @media (max-width: 768px) {
   .stats-card {

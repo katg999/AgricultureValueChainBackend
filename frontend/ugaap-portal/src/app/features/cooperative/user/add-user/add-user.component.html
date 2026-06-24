@@ -5,10 +5,10 @@
     2. Account Access   — role, password, OTP toggle, warning alert
 -->
 
-<form [formGroup]="userForm" (ngSubmit)="saveUser()">
-
-  <app-form-shell title="Add New User"
-                  subtitle="Create a cooperative user account with access settings.">
+<div class="page">
+  <div class="page-container">
+    
+    <form [formGroup]="userForm" (ngSubmit)="saveUser()">
 
     <!-- ── 1. PERSONAL DETAILS ── -->
     <app-form-section [number]="1" title="Personal Details" iconName="user"
@@ -119,7 +119,7 @@
       </app-alert>
     </app-form-section>
 
-  </app-form-shell>
+  
 
   <div class="form-actions">
     <button type="button" class="btn-secondary" (click)="cancel()">Cancel</button>

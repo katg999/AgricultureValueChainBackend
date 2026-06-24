@@ -26,7 +26,7 @@ public class FarmerDelivery {
     private String branch; // Added: Tracks physical operating branches (e.g., "BR-MBL")
 
     @Column(name = "farmer_id")
-    private UUID farmerId; // Modified: Nullable now since ID isn't entered directly on the form payload
+    private String farmerId; // Modified: Nullable now since ID isn't entered directly on the form payload
 
     @Column(name = "farmer_name", nullable = false)
     private String farmerName;

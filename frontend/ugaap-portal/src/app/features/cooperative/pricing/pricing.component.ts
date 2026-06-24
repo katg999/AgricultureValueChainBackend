@@ -28,6 +28,7 @@ export interface PricingRule {
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './pricing.component.html',
+  styles: [`.page-header { display: flex; justify-content: flex-end; margin-bottom: 24px; }`],
 })
 export class PricingComponent implements OnInit {
 
