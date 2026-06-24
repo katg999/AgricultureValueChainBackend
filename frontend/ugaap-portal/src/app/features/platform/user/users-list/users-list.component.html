@@ -20,36 +20,38 @@
 
     <!-- Statistics Cards -->
     <div class="stats-grid">
-      <app-stats-card
-        label="Total Users"
-        [value]="480"
-        trend="+12%"
-        icon="users"
-        variant="default">
-      </app-stats-card>
+      <app-stat-card [delay]="0" [data]="{
+        label: 'Total Users',
+        value: 480,
+        icon: 'users',
+        trend: '+12%',
+        trendUp: true
+      }"></app-stat-card>
 
-      <app-stats-card
-        label="Active Users"
-        [value]="304"
-        trend="+12%"
-        icon="check"
-        variant="success">
-      </app-stats-card>
+      <app-stat-card [delay]="80" [data]="{
+        label: 'Active Users',
+        value: 304,
+        icon: 'check',
+        trend: '+12%',
+        trendUp: true,
+        status: 'active'
+      }"></app-stat-card>
 
-      <app-stats-card
-        label="Inactive Farmers"
-        [value]="103"
-        trend="+12%"
-        icon="alert"
-        variant="warning">
-      </app-stats-card>
+      <app-stat-card [delay]="160" [data]="{
+        label: 'Inactive Users',
+        value: 103,
+        icon: 'alert',
+        trend: '+12%',
+        trendUp: false,
+        status: 'warning'
+      }"></app-stat-card>
 
-      <app-stats-card
-        label="Locked Accounts"
-        [value]="3"
-        icon="alert"
-        variant="danger">
-      </app-stats-card>
+      <app-stat-card [delay]="240" [data]="{
+        label: 'Locked Accounts',
+        value: 3,
+        icon: 'alert',
+        status: 'critical'
+      }"></app-stat-card>
     </div>
 
     <!-- Filters and Search -->

@@ -6,7 +6,7 @@
 /* ── Page header ──────────────────────────────────────────────────────────── */
 .page-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: flex-start;
   margin-bottom: 20px;
   gap: 16px;

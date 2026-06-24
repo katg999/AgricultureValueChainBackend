@@ -4,7 +4,6 @@ import { RouterModule, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
 
 // Shared components
-import { LogoComponent } from '../../../../shared/components/logo/logo.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { InfoCardComponent } from '../../../../shared/components/info-card/info-card.component';
@@ -44,7 +43,6 @@ import { ToastService }   from '../../../../core/services/toast.service';
     RouterModule,
     ReactiveFormsModule,
     FormsModule,
-    LogoComponent,
     InputComponent,
     ButtonComponent,
     InfoCardComponent,

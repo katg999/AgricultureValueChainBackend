@@ -21,11 +21,11 @@
 /* Page Header */
 .page-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   flex-wrap: wrap;
   gap: 20px;
-  margin-bottom: 32px;
+  /* margin-bottom: 32px; */
 }
 
 .header-content {
@@ -52,7 +52,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 20px;
-  margin-bottom: 32px;
+  /* margin-bottom: 32px; */
 }
 
 /* Filter Bar */
@@ -412,7 +412,7 @@
 /* Responsive Design */
 @media (max-width: 1200px) {
   .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(1,1fr);
   }
 }
 

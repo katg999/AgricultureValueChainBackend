@@ -16,7 +16,7 @@
 .page-header {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
+  justify-content: flex-end;
   margin-bottom: 32px;
 }
 

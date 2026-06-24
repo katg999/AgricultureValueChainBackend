@@ -13,34 +13,35 @@
 
     <!-- Statistics Cards Grid -->
     <div class="stats-grid">
-      <app-stats-card
-        label="Total Active Branches"
-        [value]="totalActiveBranches"
-        icon="building"
-        variant="success"
-      ></app-stats-card>
-      <app-stats-card
-        label="Total Collection Centres"
-        [value]="totalCentres"
-        icon="box"
-        variant="default"
-      ></app-stats-card>
-      <app-stats-card
-        label="Total Farmer Base"
-        [value]="totalFarmers"
-        icon="users"
-        trend="+8%"
-        trendType="positive"
-        variant="success"
-      ></app-stats-card>
-      <app-stats-card
-        label="Assigned Field Agents"
-        [value]="assignedAgents"
-        icon="farmer"
-        trend="+12 this month"
-        trendType="positive"
-        variant="default"
-      ></app-stats-card>
+      <app-stat-card [delay]="0" [data]="{
+        label: 'Total Active Branches',
+        value: totalActiveBranches,
+        icon: 'building',
+        status: 'active'
+      }"></app-stat-card>
+
+      <app-stat-card [delay]="80" [data]="{
+        label: 'Total Collection Centres',
+        value: totalCentres,
+        icon: 'box'
+      }"></app-stat-card>
+
+      <app-stat-card [delay]="160" [data]="{
+        label: 'Total Farmer Base',
+        value: totalFarmers,
+        icon: 'users',
+        trend: '+8%',
+        trendUp: true,
+        status: 'active'
+      }"></app-stat-card>
+
+      <app-stat-card [delay]="240" [data]="{
+        label: 'Assigned Field Agents',
+        value: assignedAgents,
+        icon: 'farmer',
+        trend: '+12 this month',
+        trendUp: true
+      }"></app-stat-card>
     </div>
 
     <!-- Branch Network Table with Pagination -->

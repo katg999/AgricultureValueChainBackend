@@ -4,7 +4,7 @@ import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
 // Shared components
-import { StatsCardComponent } from '../../../../shared/components/stats-card/stats-card.component';
+import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
@@ -56,7 +56,7 @@ type BadgeVariant = 'info' | 'active' | 'pending' | 'inactive' | 'suspended' |
     CommonModule,
     RouterModule,
     FormsModule,
-    StatsCardComponent,
+    StatCardComponent,
     BadgeComponent,
     ButtonComponent,
     DataTableComponent,

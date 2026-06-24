@@ -1,6 +1,6 @@
 .page {
   background: var(--surface-low);
-  padding: 40px 20px;
+  padding: 20px 20px;
   font-family: var(--font-human);
   min-height: 100%;
 }
@@ -15,12 +15,11 @@
   align-items: center;
   justify-content: flex-end;
   gap: 16px;
-  margin-bottom: 24px;
+  margin-bottom: 12px;
   flex-wrap: wrap;
 }
 
-/* Search */
-.search-bar { margin-bottom: 20px; }
+
 
 .search-input-wrap {
   position: relative;

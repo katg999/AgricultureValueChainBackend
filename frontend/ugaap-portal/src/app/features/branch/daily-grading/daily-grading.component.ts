@@ -31,6 +31,7 @@ export interface DailyGradingEntry {
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './daily-grading.component.html',
+  styles: [`.page-header { display: flex; justify-content: flex-end; margin-bottom: 24px; }`],
 })
 export class DailyGradingComponent implements OnInit {
 

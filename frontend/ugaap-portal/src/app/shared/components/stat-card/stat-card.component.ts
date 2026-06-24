@@ -132,11 +132,11 @@ export interface StatCardData {
     /* ── Card shell ────────────────────────────────────────────────────────── */
     .stat-card {
       background: white;
-      border-radius: 12px;
-      padding: 14px 16px;
+      border-radius: 10px;
+      padding: 10px 12px;
       border: 1px solid #E5E7EB;
       border-left: 4px solid #E5E7EB;
-      min-height: 110px;
+      min-height: 90px;
       height: 100%;
       box-sizing: border-box;
       display: flex;
@@ -168,23 +168,23 @@ export interface StatCardData {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      min-height: 36px;
+      min-height: 28px;
     }
 
     /* ── Icon box ──────────────────────────────────────────────────────────── */
     .stat-icon {
-      width: 36px;
-      height: 36px;
+      width: 28px;
+      height: 28px;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 8px;
+      border-radius: 6px;
       flex-shrink: 0;
     }
 
     .stat-icon svg {
-      width: 18px;
-      height: 18px;
+      width: 14px;
+      height: 14px;
     }
 
     /* Icon background tinted to match status */
@@ -195,9 +195,9 @@ export interface StatCardData {
 
     /* ── Status badge pill ─────────────────────────────────────────────────── */
     .status-badge {
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 700;
-      padding: 4px 10px;
+      padding: 2px 7px;
       border-radius: 20px;
       letter-spacing: 0.5px;
       font-family: 'IBM Plex Mono', monospace;
@@ -209,7 +209,7 @@ export interface StatCardData {
     .badge-placeholder {
       display: block;
       width: 1px;
-      height: 22px;
+      height: 18px;
     }
 
     .badge-active   { background: #D1FAE5; color: #065F46; }
@@ -233,7 +233,7 @@ export interface StatCardData {
       font-weight: 700;
       color: #200B26;
       line-height: 1;
-      height: 28px;
+      height: 22px;
       display: flex;
       align-items: flex-end;
       font-family: 'IBM Plex Mono', 'Inter', sans-serif;
@@ -254,11 +254,11 @@ export interface StatCardData {
     .stat-trend {
       display: flex;
       align-items: center;
-      gap: 6px;
-      font-size: 11px;
-      margin-top: 4px;
-      min-height: 16px;
-      height: 16px;
+      gap: 4px;
+      font-size: 10px;
+      margin-top: 2px;
+      min-height: 13px;
+      height: 13px;
     }
 
     .trend-indicator { font-weight: 600; }
@@ -286,10 +286,10 @@ export interface StatCardData {
 
     /* ── Responsive ────────────────────────────────────────────────────────── */
     @media (max-width: 640px) {
-      .stat-card { padding: 12px 14px; min-height: 90px; }
-      .stat-icon { width: 30px; height: 30px; }
-      .stat-icon svg { width: 15px; height: 15px; }
-      .stat-header { min-height: 30px; }
+      .stat-card { padding: 8px 10px; min-height: 76px; }
+      .stat-icon { width: 24px; height: 24px; }
+      .stat-icon svg { width: 12px; height: 12px; }
+      .stat-header { min-height: 24px; }
     }
   `]
 })
@@ -421,9 +421,9 @@ export class StatCardComponent implements OnInit, OnDestroy {
    */
   getValueFontSize(): string {
     const len = String(this.displayValue).length;
-    if (len <= 6) return '22px';
-    if (len <= 9) return '17px';
-    return '14px';
+    if (len <= 6) return '18px';
+    if (len <= 9) return '14px';
+    return '12px';
   }
 
   /**
