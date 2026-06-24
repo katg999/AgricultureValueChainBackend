@@ -131,36 +131,54 @@
   color: #fff;
 }
 
-/* ── REVIEW SECTIONS CARD — mirrors form's .sections-card inside the modal ── */
-.review-sections-card {
-  border: 1px solid #E8E6ED;
-  border-radius: 14px;
-  overflow: hidden;
-  background: #ffffff;
-  /* pulls the card flush against the modal-body edges so sections don't look double-inset */
-  margin: -8px -16px 8px;
+/* ── REVIEW LAYOUT — open 2-column summary, no card borders ── */
+.review-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 28px;
+  margin-bottom: 16px;
 }
 
-/* Each labelled field in the review — label on top, value below */
-.review-field {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
+/* No card chrome — just whitespace between groups */
 
-.review-field-label {
+.review-group-title {
   font-size: 11px;
-  font-weight: 600;
-  color: #9B9BAB;
+  font-weight: 700;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  color: var(--secondary, #200B26);
+  margin: 0 0 6px;
 }
 
-.review-field-value {
-  font-size: 13px;
+/* Thin line only under the section title */
+.review-divider {
+  border: none;
+  border-top: 1px solid #E8E6ED;
+  margin: 0 0 8px;
+}
+
+/* One row: grey label left, bold value right — no row borders, just spacing */
+.review-row-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  padding: 3px 0;
+}
+
+.rl {
+  font-size: 11px;
+  color: #9C94A8;
+  flex-shrink: 0;
+}
+
+.rv {
+  font-size: 12px;
   font-weight: 600;
   color: var(--secondary, #200B26);
+  text-align: right;
   word-break: break-word;
+  min-width: 0;
 }
 
 /* ── MODAL ACTIONS ── */
@@ -173,7 +191,7 @@
 
 /* ── RESPONSIVE ── */
 @media (max-width: 680px) {
-  .review-sections-card { margin: -8px -8px 8px; }
+  .review-layout { grid-template-columns: 1fr; }
   .modal-actions { flex-direction: column; }
   .modal-actions app-button,
   .modal-actions .btn-secondary { width: 100%; }

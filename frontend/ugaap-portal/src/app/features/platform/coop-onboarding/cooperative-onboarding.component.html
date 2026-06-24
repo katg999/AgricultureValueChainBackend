@@ -109,38 +109,7 @@
       </div>
     </app-form-section>
 
-    <!-- ── 3. CONTACT INFORMATION ── -->
-    <app-form-section [number]="3" title="Contact Information" iconName="phone"
-                      desc="Primary point of contact for this cooperative">
-
-      <div class="fields-grid cols-3">
-        <app-input
-          label="Contact Person Name"
-          type="text"
-          placeholder="e.g., James Wekesa"
-          formControlName="contactPersonName"
-          hint="Name of the main administrative contact">
-        </app-input>
-
-        <app-input
-          label="Contact Email"
-          type="email"
-          placeholder="james.w@coop.ug"
-          formControlName="contactPersonEmail"
-          hint="Email used for cooperative correspondence"
-          [error]="getFieldError('contactPersonEmail')">
-        </app-input>
-
-        <app-input
-          label="Contact Phone"
-          type="tel"
-          placeholder="+256 700 000000"
-          formControlName="contactPersonPhone"
-          hint="Phone number for urgent communications">
-        </app-input>
-      </div>
-    </app-form-section>
-
+    
     <!-- ── 4. BANK ACCOUNT DETAILS ── -->
     <app-form-section [number]="4" title="Bank Account Details" iconName="card"
                       desc="Account from which farmer payments are disbursed">
@@ -408,116 +377,110 @@
   [closeOnEsc]="!isLoading"
   (closed)="closeConfirmModal()">
 
-  <!-- White bordered card that mirrors the form's sections-card -->
-  <div class="review-sections-card">
+  <!-- 2-column compact summary grid — label/value rows, no form chrome -->
+  <div class="review-layout">
 
-    <app-form-section [number]="1" title="Identity Information" iconName="building"
-                      desc="Cooperative name and registration">
-      <div class="fields-grid cols-3">
-        <div class="review-field">
-          <span class="review-field-label">Cooperative Name</span>
-          <span class="review-field-value">{{ formValue.name || '—' }}</span>
-        </div>
-        <div class="review-field">
-          <span class="review-field-label">Reg. Number</span>
-          <span class="review-field-value">{{ formValue.registrationNumber || '—' }}</span>
-        </div>
-        <div class="review-field">
-          <span class="review-field-label">Default Branch</span>
-          <span class="review-field-value">{{ formValue.defaultBranchName || '—' }}</span>
-        </div>
+    <div class="review-group">
+      <h4 class="review-group-title">Identity</h4>
+      <hr class="review-divider">
+      <div class="review-row-item">
+        <span class="rl">Cooperative Name</span>
+        <span class="rv">{{ formValue.name || '—' }}</span>
       </div>
-    </app-form-section>
+      <div class="review-row-item">
+        <span class="rl">Reg. Number</span>
+        <span class="rv">{{ formValue.registrationNumber || '—' }}</span>
+      </div>
+      <div class="review-row-item">
+        <span class="rl">Default Branch</span>
+        <span class="rv">{{ formValue.defaultBranchName || '—' }}</span>
+      </div>
+    </div>
 
-    <app-form-section [number]="2" title="Address Information" iconName="location"
-                      desc="Registered location">
-      <div class="fields-grid cols-3">
-        <div class="review-field">
-          <span class="review-field-label">Physical Address</span>
-          <span class="review-field-value">{{ formValue.address || '—' }}</span>
-        </div>
-        <div class="review-field">
-          <span class="review-field-label">Country</span>
-          <span class="review-field-value">{{ formValue.country || '—' }}</span>
-        </div>
-        <div class="review-field">
-          <span class="review-field-label">P.O. Box</span>
-          <span class="review-field-value">{{ formValue.poBox || '—' }}</span>
-        </div>
+    <div class="review-group">
+      <h4 class="review-group-title">Address</h4>
+      <hr class="review-divider">
+      <div class="review-row-item">
+        <span class="rl">Physical Address</span>
+        <span class="rv">{{ formValue.address || '—' }}</span>
       </div>
-    </app-form-section>
+      <div class="review-row-item">
+        <span class="rl">Country</span>
+        <span class="rv">{{ formValue.country || '—' }}</span>
+      </div>
+      <div class="review-row-item">
+        <span class="rl">P.O. Box</span>
+        <span class="rv">{{ formValue.poBox || '—' }}</span>
+      </div>
+    </div>
 
-    <app-form-section [number]="3" title="Contact Information" iconName="phone"
-                      desc="Primary contact person">
-      <div class="fields-grid cols-3">
-        <div class="review-field">
-          <span class="review-field-label">Contact Person</span>
-          <span class="review-field-value">{{ formValue.contactPersonName || '—' }}</span>
-        </div>
-        <div class="review-field">
-          <span class="review-field-label">Email</span>
-          <span class="review-field-value">{{ formValue.contactPersonEmail || '—' }}</span>
-        </div>
-        <div class="review-field">
-          <span class="review-field-label">Phone</span>
-          <span class="review-field-value">{{ formValue.contactPersonPhone || '—' }}</span>
-        </div>
+    <div class="review-group">
+      <h4 class="review-group-title">Contact</h4>
+      <hr class="review-divider">
+      <div class="review-row-item">
+        <span class="rl">Contact Person</span>
+        <span class="rv">{{ formValue.contactPersonName || '—' }}</span>
       </div>
-    </app-form-section>
+      <div class="review-row-item">
+        <span class="rl">Email</span>
+        <span class="rv">{{ formValue.contactPersonEmail || '—' }}</span>
+      </div>
+      <div class="review-row-item">
+        <span class="rl">Phone</span>
+        <span class="rv">{{ formValue.contactPersonPhone || '—' }}</span>
+      </div>
+    </div>
 
-    <app-form-section [number]="4" title="Bank Account Details" iconName="card"
-                      desc="Pearl Bank disbursement account">
-      <div class="fields-grid cols-3">
-        <div class="review-field">
-          <span class="review-field-label">Bank</span>
-          <span class="review-field-value">Pearl Bank{{ formValue.bankBranch ? ' · ' + formValue.bankBranch : '' }}</span>
-        </div>
-        <div class="review-field">
-          <span class="review-field-label">Account Name</span>
-          <span class="review-field-value">{{ formValue.accountName || '—' }}</span>
-        </div>
-        <div class="review-field">
-          <span class="review-field-label">Account Number</span>
-          <span class="review-field-value">{{ formValue.accountNumber || '—' }}</span>
-        </div>
+    <div class="review-group">
+      <h4 class="review-group-title">Bank Account</h4>
+      <hr class="review-divider">
+      <div class="review-row-item">
+        <span class="rl">Bank</span>
+        <span class="rv">Pearl Bank{{ formValue.bankBranch ? ' · ' + formValue.bankBranch : '' }}</span>
       </div>
-    </app-form-section>
+      <div class="review-row-item">
+        <span class="rl">Account Name</span>
+        <span class="rv">{{ formValue.accountName || '—' }}</span>
+      </div>
+      <div class="review-row-item">
+        <span class="rl">Account Number</span>
+        <span class="rv">{{ formValue.accountNumber || '—' }}</span>
+      </div>
+    </div>
 
-    <app-form-section [number]="5" title="Cooperative Admin 1" iconName="user"
-                      desc="Primary admin account">
-      <div class="fields-grid cols-3">
-        <div class="review-field">
-          <span class="review-field-label">Full Name</span>
-          <span class="review-field-value">{{ formValue.admin1FullName || '—' }}</span>
-        </div>
-        <div class="review-field">
-          <span class="review-field-label">Email</span>
-          <span class="review-field-value">{{ formValue.admin1Email || '—' }}</span>
-        </div>
-        <div class="review-field">
-          <span class="review-field-label">Phone</span>
-          <span class="review-field-value">{{ formValue.admin1Phone || '—' }}</span>
-        </div>
+    <div class="review-group">
+      <h4 class="review-group-title">Admin 1</h4>
+      <hr class="review-divider">
+      <div class="review-row-item">
+        <span class="rl">Full Name</span>
+        <span class="rv">{{ formValue.admin1FullName || '—' }}</span>
       </div>
-    </app-form-section>
+      <div class="review-row-item">
+        <span class="rl">Email</span>
+        <span class="rv">{{ formValue.admin1Email || '—' }}</span>
+      </div>
+      <div class="review-row-item">
+        <span class="rl">Phone</span>
+        <span class="rv">{{ formValue.admin1Phone || '—' }}</span>
+      </div>
+    </div>
 
-    <app-form-section [number]="6" title="Cooperative Admin 2" iconName="users"
-                      desc="Secondary admin account">
-      <div class="fields-grid cols-3">
-        <div class="review-field">
-          <span class="review-field-label">Full Name</span>
-          <span class="review-field-value">{{ formValue.admin2FullName || '—' }}</span>
-        </div>
-        <div class="review-field">
-          <span class="review-field-label">Email</span>
-          <span class="review-field-value">{{ formValue.admin2Email || '—' }}</span>
-        </div>
-        <div class="review-field">
-          <span class="review-field-label">Phone</span>
-          <span class="review-field-value">{{ formValue.admin2Phone || '—' }}</span>
-        </div>
+    <div class="review-group">
+      <h4 class="review-group-title">Admin 2</h4>
+      <hr class="review-divider">
+      <div class="review-row-item">
+        <span class="rl">Full Name</span>
+        <span class="rv">{{ formValue.admin2FullName || '—' }}</span>
       </div>
-    </app-form-section>
+      <div class="review-row-item">
+        <span class="rl">Email</span>
+        <span class="rv">{{ formValue.admin2Email || '—' }}</span>
+      </div>
+      <div class="review-row-item">
+        <span class="rl">Phone</span>
+        <span class="rv">{{ formValue.admin2Phone || '—' }}</span>
+      </div>
+    </div>
 
   </div>
 
