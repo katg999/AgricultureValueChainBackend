@@ -132,11 +132,11 @@ export interface StatCardData {
     /* ── Card shell ────────────────────────────────────────────────────────── */
     .stat-card {
       background: white;
-      border-radius: 8px;
+      border-radius: 10px;
       padding: 10px 12px;
       border: 1px solid #E5E7EB;
       border-left: 4px solid #E5E7EB;
-      min-height: 82px;
+      min-height: 90px;
       height: 100%;
       box-sizing: border-box;
       display: flex;
@@ -257,8 +257,8 @@ export interface StatCardData {
       gap: 4px;
       font-size: 10px;
       margin-top: 2px;
-      min-height: 14px;
-      height: 14px;
+      min-height: 13px;
+      height: 13px;
     }
 
     .trend-indicator { font-weight: 600; }
@@ -286,7 +286,7 @@ export interface StatCardData {
 
     /* ── Responsive ────────────────────────────────────────────────────────── */
     @media (max-width: 640px) {
-      .stat-card { padding: 8px 10px; min-height: 70px; }
+      .stat-card { padding: 8px 10px; min-height: 76px; }
       .stat-icon { width: 24px; height: 24px; }
       .stat-icon svg { width: 12px; height: 12px; }
       .stat-header { min-height: 24px; }

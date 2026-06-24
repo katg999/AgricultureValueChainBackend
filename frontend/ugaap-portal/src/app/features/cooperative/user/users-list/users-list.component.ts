@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
-import { StatsCardComponent } from '../../../../shared/components/stats-card/stats-card.component';
+import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
 import { BadgeComponent }     from '../../../../shared/components/badge/badge';
 import { ButtonComponent }    from '../../../../shared/components/button/button.component';
 import { ToastService }       from '../../../../core/services/toast.service';
@@ -27,7 +27,7 @@ type BadgeVariant = 'info' | 'active' | 'pending' | 'inactive' | 'suspended' |
 @Component({
   selector: 'app-users-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, StatsCardComponent, BadgeComponent, ButtonComponent, DataTableComponent, CellDirective],
+  imports: [CommonModule, RouterModule, FormsModule, StatCardComponent, BadgeComponent, ButtonComponent, DataTableComponent, CellDirective],
   templateUrl: './users-list.component.html',
   styleUrls: ['./users-list.component.css'],
 })

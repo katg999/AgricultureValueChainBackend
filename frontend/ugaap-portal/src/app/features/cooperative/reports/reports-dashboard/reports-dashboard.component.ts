@@ -5,7 +5,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import Chart from 'chart.js/auto';
-import { StatsCardComponent } from '../../../../shared/components/stats-card/stats-card.component';
+import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
 import { TableComponent, TableColumn } from '../../../../shared/components/table/table.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
@@ -73,7 +73,7 @@ type BadgeVariant = 'active' | 'pending' | 'inactive' | 'suspended' | 'overdue' 
   standalone: true,
   imports: [
     CommonModule, FormsModule,
-    StatsCardComponent, TableComponent, BadgeComponent,
+    StatCardComponent, TableComponent, BadgeComponent,
     ButtonComponent, ChartCardComponent, TabNavComponent,
     ExportDropdownComponent, CustomReportBuilderComponent,
   ],

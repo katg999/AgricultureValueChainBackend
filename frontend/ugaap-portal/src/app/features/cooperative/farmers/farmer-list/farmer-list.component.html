@@ -1,14 +1,7 @@
 <!-- async pipe subscribes to farmers$ and auto-unsubscribes on destroy.
      "as farmers" exposes the full list for KPI methods (newRegistrations, portfolioAtRisk). -->
 <div class="page-shell" *ngIf="farmers$ | async as farmers">
-  <div class="top-header">
-    <div class="header-content">
-      <p class="subtitle">
-        Pending approval:
-        <span class="highlight-count">{{ newRegistrations(farmers) }}</span>
-      </p>
-    </div>
-  </div>
+  
 
   <div class="filters-section">
     <div class="search-wrapper">

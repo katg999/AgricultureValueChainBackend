@@ -5,7 +5,7 @@ import { RouterModule} from '@angular/router';
 import { Router } from '@angular/router';
 
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
-import { StatsCardComponent } from '../../../../shared/components/stats-card/stats-card.component';
+import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
 import { ToastService }      from '../../../../core/services/toast.service';
 import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
 import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
@@ -36,7 +36,7 @@ interface ActivityItem {
     FormsModule,
     RouterModule,
     ButtonComponent,
-    StatsCardComponent,
+    StatCardComponent,
     DataTableComponent,
     CellDirective,
   ],

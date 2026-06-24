@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
 
-import { FormShellComponent } from '../../../../shared/components/form-wizard/form-wizard.component';
+
 import { FormSectionComponent } from '../../../../shared/components/form-section/form-section.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
@@ -43,7 +43,7 @@ import { ToastService }   from '../../../../core/services/toast.service';
     RouterModule,
     ReactiveFormsModule,
     FormsModule,
-    FormShellComponent,
+  
     FormSectionComponent,
     InputComponent,
     ButtonComponent,
