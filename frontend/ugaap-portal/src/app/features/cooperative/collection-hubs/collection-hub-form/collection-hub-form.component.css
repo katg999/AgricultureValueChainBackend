@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Collection Hub Form — mirrors branch-onboarding.component.css exactly.
  * Sits inside the admin layout (sidebar visible), content centred at 800 px.
  */
@@ -7,7 +7,6 @@
 .onboarding-shell {
   max-width: 800px;
   margin: 0 auto;
-  padding: 32px 24px 64px;
   font-family: var(--font-human);
 }
 
@@ -277,12 +276,7 @@
 }
 
 /* ── RESPONSIVE ─────────────────────────────────────────── */
-@media (max-width: 680px) {
-  .onboarding-shell {
-    padding: 20px 16px 48px;
-  }
-
-  .page-header {
+@media (max-width: 680px) {  .page-header {
     flex-direction: column;
     gap: 8px;
   }

@@ -65,6 +65,7 @@ export class BranchFarmerRegisterComponent {
   farmerId: string | null = null;
   loadingFarmer = false;
   photoError = '';
+  photoFileName = '';
   isSaving = false;
   saveError: string | null = null;
   formErrors: Record<string, string> = {};
@@ -148,6 +149,7 @@ export class BranchFarmerRegisterComponent {
   // ─────────────────────────────────────────
   removeFarmerPhoto(): void {
     this.form.photoPreviewUrl = '';
+    this.photoFileName = '';
     this.photoError = '';
   }
 
@@ -167,14 +169,17 @@ export class BranchFarmerRegisterComponent {
     this.photoError = '';
     if (!['image/jpeg', 'image/png'].includes(file.type)) {
       this.form.photoPreviewUrl = '';
+      this.photoFileName = '';
       this.photoError = 'Please upload a JPG or PNG image.';
       return;
     }
     if (file.size > this.maxPhotoSizeBytes) {
       this.form.photoPreviewUrl = '';
+      this.photoFileName = '';
       this.photoError = 'Photo must be 2 MB or smaller.';
       return;
     }
+    this.photoFileName = file.name;
     const reader = new FileReader();
     reader.onload = () => {
       this.form.photoPreviewUrl = typeof reader.result === 'string' ? reader.result : '';

@@ -1,7 +1,6 @@
-/* features/branch/dashboard/dashboard.component.css */
+﻿/* features/branch/dashboard/dashboard.component.css */
 
 .branch-dashboard {
-  padding: 24px;
   max-width: 1400px;
   margin: 0 auto;
 }
@@ -229,7 +228,6 @@
 }
 
 @media (max-width: 640px) {
-  .branch-dashboard { padding: 16px; }
-  .dashboard-header { flex-direction: column; gap: 16px; }
+  .branch-dashboard {  .dashboard-header { flex-direction: column; gap: 16px; }
   .stats-grid { grid-template-columns: 1fr; }
 }
