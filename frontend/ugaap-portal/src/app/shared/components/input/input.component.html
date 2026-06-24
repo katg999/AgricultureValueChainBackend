@@ -33,6 +33,7 @@
       [value]="value"
       (input)="onInput($event)"
       (blur)="onBlur()"
+      [attr.inputmode]="numbersOnly ? 'numeric' : null"
       [class.input-password]="type === 'password'"
       [style.text-transform]="uppercase ? 'uppercase' : null"/>
 

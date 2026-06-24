@@ -8,6 +8,7 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 import { RoleCardComponent, RoleCardData } from '../../../../shared/components/role-card/role-card.component';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
+import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
 import { ToastService } from '../../../../core/services/toast.service';
 /**
  * Roles List Component
@@ -38,8 +39,8 @@ import { ToastService } from '../../../../core/services/toast.service';
     ButtonComponent,
     RoleCardComponent,
     DataTableComponent,
+    CellDirective,
     EmptyStateComponent,
-    
   ],
   templateUrl: './roles-list.component.html',
   styleUrls: ['./roles-list.component.css']

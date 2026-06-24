@@ -64,7 +64,7 @@ export class RoleDetailComponent implements OnInit {
   }
 
   viewUser(user: AssignedUser): void {
-    this.router.navigate(['/platform/users', user.id]);
+    this.router.navigate(['/platform/users/user', user.id]);
   }
 
   private mockUsersForRole(role: RoleCardData): AssignedUser[] {
