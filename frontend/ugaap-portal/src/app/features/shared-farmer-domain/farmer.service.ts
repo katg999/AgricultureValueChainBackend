@@ -66,7 +66,11 @@ import { USE_MOCK } from '../../core/mock/mock-config';
   providedIn: 'root',
 })
 export class FarmerService {
-  private readonly farmersSubject = new BehaviorSubject<FarmerListItem[]>([...MOCK_FARMER_LIST]);
+  // Seed with mock data only when mock mode is on.
+  // When USE_MOCK = false the store starts empty and fills from the API.
+  private readonly farmersSubject = new BehaviorSubject<FarmerListItem[]>(
+    USE_MOCK ? [...MOCK_FARMER_LIST] : [],
+  );
   readonly farmers$ = this.farmersSubject.asObservable();
 
   constructor(
@@ -116,8 +120,8 @@ export class FarmerService {
       map((res) => (res?.data ?? res) as FarmerListItem[]),
       map((farmers) => farmers.map((m) => this._toListItem(m))),
       tap((farmers) => this._mergeFarmers(farmers)),
-      catchError(() => of(mockSnapshot)),
-      startWith(mockSnapshot),
+      // In real mode let errors surface instead of silently returning stale mock data.
+      catchError((err) => { throw err; }),
     );
   }
 
@@ -134,7 +138,7 @@ export class FarmerService {
       .get<FarmerListItem[]>(API_ENDPOINTS.COOPERATIVE.FARMERS, params ? { params } : undefined)
       .pipe(
         tap((farmers) => this._emitFarmers(farmers)),
-        catchError(() => of([...this.farmersSubject.value])),
+        catchError((err) => { throw err; }),
       );
   }
 
@@ -150,9 +154,8 @@ export class FarmerService {
     return this.http.get<any>(url).pipe(
       map((res) => res?.data ?? res),
       timeout(5000),
-      catchError(() => of(mockProfile)),
-      startWith(mockProfile),
-      take(1),
+      // Let the error surface in real mode — don't silently swap in mock data.
+      catchError((err) => { throw err; }),
     );
   }
 
