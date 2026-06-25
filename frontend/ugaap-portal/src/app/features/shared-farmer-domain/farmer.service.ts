@@ -59,7 +59,8 @@ import type {
   FarmerListItem,
   FarmerRegistrationForm,
 } from '../../core/models/farmer.model';
-import { MOCK_FARMER_LIST, buildMockFarmerProfile } from './farmer.mock';
+import { MOCK_FARMER_LIST, MOCK_COOPERATIVES, buildMockFarmerProfile } from './farmer.mock';
+import { USE_MOCK } from '../../core/mock/mock-config';
 
 @Injectable({
   providedIn: 'root',
@@ -78,6 +79,8 @@ export class FarmerService {
    * Returns the slim list view used in farmer table.
    */
   list(): Observable<FarmerListItem[]> {
+    // Mock mode: skip the network and return local data immediately.
+    if (USE_MOCK) return of([...MOCK_FARMER_LIST]);
     return this._isBranchUser() ? this.listForBranch() : this.listForCooperative();
   }
 
@@ -101,6 +104,9 @@ export class FarmerService {
       ? this._farmersForBranch(this.farmersSubject.value, branchId)
       : this.farmersSubject.value;
 
+    // Mock mode: return only farmers that belong to this branch.
+    if (USE_MOCK) return of(mockSnapshot);
+
     const tenantId = this.session.tenantId() ?? '';
     if (!tenantId) return of(mockSnapshot);
 
@@ -120,6 +126,8 @@ export class FarmerService {
    * Returns farmers across the current cooperative.
    */
   listForCooperative(cooperativeId = this.session.cooperativeId()): Observable<FarmerListItem[]> {
+    // Mock mode: return the full in-memory list.
+    if (USE_MOCK) return of([...this.farmersSubject.value]);
     const params = cooperativeId ? new HttpParams().set('cooperativeId', cooperativeId) : undefined;
 
     return this.http
@@ -135,8 +143,10 @@ export class FarmerService {
    * Returns full farmer profile.
    */
   getById(id: string): Observable<FarmerProfile> {
-    const url = API_ENDPOINTS.MEMBERS.BY_ID(id);
     const mockProfile = buildMockFarmerProfile(id);
+    // Mock mode: build the profile from local data without a network call.
+    if (USE_MOCK) return of(mockProfile);
+    const url = API_ENDPOINTS.MEMBERS.BY_ID(id);
     return this.http.get<any>(url).pipe(
       map((res) => res?.data ?? res),
       timeout(5000),
@@ -168,6 +178,8 @@ export class FarmerService {
    * Used in cooperative/branch dropdowns.
    */
   getCooperatives(): Observable<Cooperative[]> {
+    // Mock mode: return hardcoded cooperatives from farmer.mock.ts.
+    if (USE_MOCK) return of(MOCK_COOPERATIVES as Cooperative[]);
     return this.http.get<Cooperative[]>(API_ENDPOINTS.COOPERATIVE.ALL);
   }
 
@@ -256,6 +268,9 @@ export class FarmerService {
       formData.append('photo', payload.photoFile, payload.photoFile.name);
     }
 
+    // Mock mode: create a fake farmer entry locally without hitting the API.
+    if (USE_MOCK) return of(this._createMockFarmer(payload));
+
     return this.http.post<FarmerProfile>(API_ENDPOINTS.MEMBERS.REGISTER, formData).pipe(
       timeout(15000),
       tap((profile) => this._upsertFarmer(this._listItemFromProfile(profile, payload))),
@@ -286,9 +301,16 @@ export class FarmerService {
       formData.append('photo', form.photoFile, form.photoFile.name);
     }
 
+    // Mock mode: update the in-memory store and return the mock profile.
+    if (USE_MOCK) {
+      const item = this.farmersSubject.value.find((f) => f.id === id);
+      if (item) this._upsertFarmer({ ...item, name: form.fullName });
+      return of(buildMockFarmerProfile(id));
+    }
+
     return this.http
       .put<FarmerProfile>(
-        API_ENDPOINTS.MEMBERS.BY_ID(id), // ← was BRANCH.FARMER_BY_ID(id)
+        API_ENDPOINTS.MEMBERS.BY_ID(id),
         formData,
       )
       .pipe(
@@ -315,6 +337,8 @@ export class FarmerService {
    * Approves a farmer.
    */
   approve(id: string): Observable<FarmerProfile> {
+    // Mock mode: flip the status locally so the UI reflects the change immediately.
+    if (USE_MOCK) return of(this._updateMockStatus(id, 'Active'));
     return this.http.patch<FarmerProfile>(API_ENDPOINTS.COOPERATIVE.FARMER_APPROVE(id), {}).pipe(
       tap((profile) => this._upsertFarmer(this._listItemFromProfile(profile))),
       catchError(() => of(this._updateMockStatus(id, 'Active'))),
@@ -325,6 +349,8 @@ export class FarmerService {
    * Rejects a farmer.
    */
   reject(id: string): Observable<FarmerProfile> {
+    // Mock mode: flip the status locally.
+    if (USE_MOCK) return of(this._updateMockStatus(id, 'Rejected'));
     return this.http.patch<FarmerProfile>(API_ENDPOINTS.COOPERATIVE.FARMER_REJECT(id), {}).pipe(
       tap((profile) => this._upsertFarmer(this._listItemFromProfile(profile))),
       catchError(() => of(this._updateMockStatus(id, 'Rejected'))),

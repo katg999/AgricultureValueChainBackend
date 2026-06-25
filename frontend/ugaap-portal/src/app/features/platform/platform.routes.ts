@@ -59,18 +59,8 @@ export const PLATFORM_ROUTES: Routes = [
 
     },
 
-   // ── Maker-checker approval flow ─────────────────────────────────────────────
-  {
-    path: 'maker-checker',
-    title: 'Maker-Checker Approvals' + ' | UGAAP',
-    loadComponent: () =>
-      import('./maker-checker-creation/maker-checker-creation.component')
-        .then(m => m.MakerCheckerCreationComponent),
-     
-  },
-  
 
-  
+
 
   // ── System Settings ───────────────────────────────────────────────────────
   // Platform-wide configuration (placeholder — full page to be built)

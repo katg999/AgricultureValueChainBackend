@@ -4,6 +4,33 @@ import {
   FarmerStatus,
 } from '../../core/models/farmer.model';
 
+// ── Mock cooperatives ─────────────────────────────────────────────────────────
+// Returned by getCooperatives() when mock mode is on.
+// Add more entries here to test dropdown behaviour with multiple cooperatives.
+// (Shape mirrors the Cooperative interface in farmer.service.ts)
+export const MOCK_COOPERATIVES: Array<{
+  id: string;
+  name: string;
+  branches: Array<{ id: string; name: string; cooperativeId: string }>;
+}> = [
+  {
+    id: 'COOP-UG-001',
+    name: 'Bugisu Coffee Farmers Cooperative',
+    branches: [
+      { id: 'BR-MBL', name: 'Mbale Branch',   cooperativeId: 'COOP-UG-001' },
+      { id: 'BR-JIN', name: 'Jinja Branch',    cooperativeId: 'COOP-UG-001' },
+    ],
+  },
+  {
+    id: 'COOP-UG-002',
+    name: 'Banyankole Kweterana',
+    branches: [
+      { id: 'BR-MBA', name: 'Mbarara Branch',  cooperativeId: 'COOP-UG-002' },
+      { id: 'BR-KLA', name: 'Kampala Central', cooperativeId: 'COOP-UG-002' },
+    ],
+  },
+];
+
 export const MOCK_FARMER_LIST: FarmerListItem[] = [
   {
     id: 'UG-F-01001',
