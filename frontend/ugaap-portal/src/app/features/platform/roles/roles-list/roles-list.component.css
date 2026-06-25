@@ -6,6 +6,7 @@
 .page {
   min-height: 100vh;
   background: var(--surface-low);
+  padding: 16px 16px;
   font-family: var(--font-human);
 }
 
@@ -22,7 +23,8 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  margin-bottom: 32px;
+  gap: 16px;
+  margin-bottom: 8px;
 }
 
 .header-content {
@@ -46,9 +48,7 @@
    SEARCH BAR
     */
 
-.search-bar {
-  margin-bottom: 32px;
-}
+
 
 .search-input {
   position: relative;

@@ -38,6 +38,7 @@
           placeholder="e.g., COOP/2024/001"
           formControlName="registrationNumber"
           [required]="true"
+          [uppercase]="true"
           hint="Official cooperative registration number"
           [error]="getFieldError('registrationNumber')">
         </app-input>
@@ -147,6 +148,7 @@
           placeholder="e.g., 9030012345678"
           formControlName="accountNumber"
           [required]="true"
+          [numbersOnly]="true"
           hint="Digits only, 6–20 characters"
           [error]="getFieldError('accountNumber')">
         </app-input>
