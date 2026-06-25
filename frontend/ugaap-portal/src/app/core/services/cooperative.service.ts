@@ -13,19 +13,31 @@ export interface CooperativeBankDetails {
   mobileMoneyNumber?: string;
 }
 
+export interface CooperativeAdminRequest {
+  fullName: string;
+  email: string;
+  phone: string;
+  dateOfBirth?: string;
+  nationalId?: string;
+  gender?: string;
+  photoBase64?: string | null;
+}
+
 export interface CreateCooperativeRequest {
   name: string;
   registrationNumber: string;
   address: string;
-  contactPersonName: string;
-  contactPersonPhone: string;
-  contactPersonEmail: string;
+  contactPersonName?: string;
+  contactPersonPhone?: string;
+  contactPersonEmail?: string;
   poBox?: string;
   websiteUrl?: string;
   country: string;
   defaultBranchName: string;
   defaultBranchLocation?: string;
   bankDetails?: CooperativeBankDetails;
+  admin1?: CooperativeAdminRequest;
+  admin2?: CooperativeAdminRequest;
 }
 
 @Injectable({ providedIn: 'root' })

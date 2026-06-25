@@ -7,6 +7,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Title } from '@angular/platform-browser';
+import { finalize, timeout, TimeoutError } from 'rxjs';
 
 import { FormShellComponent }   from '../../../shared/components/form-wizard/form-wizard.component';
 import { FormSectionComponent } from '../../../shared/components/form-section/form-section.component';
@@ -80,11 +81,6 @@ export class CooperativeOnboardingComponent implements OnInit {
       country:    ['', Validators.required],
       poBox:      [''],
       websiteUrl: [''],
-
-      // Section 3 — Contact
-      contactPersonName:  [''],
-      contactPersonEmail: ['', Validators.email],
-      contactPersonPhone: [''],
 
       // Section 4 — Bank Account (fixed to Pearl Bank)
       bankName:      ['Pearl Bank'],
@@ -192,9 +188,6 @@ export class CooperativeOnboardingComponent implements OnInit {
       country:            v.country,
       poBox:              v.poBox,
       websiteUrl:         v.websiteUrl,
-      contactPersonName:  v.contactPersonName,
-      contactPersonPhone: v.contactPersonPhone,
-      contactPersonEmail: v.contactPersonEmail,
       defaultBranchName:     v.defaultBranchName,
       defaultBranchLocation: v.defaultBranchLocation,
 
@@ -226,9 +219,11 @@ export class CooperativeOnboardingComponent implements OnInit {
       },
     };
 
-    this.cooperativeService.createCooperative(payload).subscribe({
+    this.cooperativeService.createCooperative(payload).pipe(
+      timeout(30_000),
+      finalize(() => { this.isLoading = false; }),
+    ).subscribe({
       next: () => {
-        this.isLoading = false;
         this.showConfirmModal = false;
         this.toast.success(
           'Cooperative activated',
@@ -237,16 +232,33 @@ export class CooperativeOnboardingComponent implements OnInit {
         this.router.navigate(['/platform/cooperatives']);
       },
       error: (err) => {
-        this.isLoading = false;
-        console.error('Create cooperative failed:', err);
-        const message = err?.error?.message ?? 'Failed to activate cooperative. Please try again.';
-        this.errorMessage = message;
-        this.toast.error('Activation failed', message);
+        this.errorMessage = this.resolveErrorMessage(err);
       },
     });
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
+
+  private resolveErrorMessage(err: any): string {
+    if (err instanceof TimeoutError) {
+      return 'The server took too long to respond. Check that the backend is running and try again.';
+    }
+    const serverMsg: string | undefined = err?.error?.message || err?.error?.error;
+    switch (err?.status) {
+      case 0:
+        return 'Cannot reach the server. Check that the backend is running and try again.';
+      case 400:
+        return serverMsg ?? 'Some fields were rejected by the server. Review your entries and try again.';
+      case 409:
+        return serverMsg ?? 'A cooperative with this name or registration number already exists.';
+      case 422:
+        return serverMsg ?? 'Validation failed — make sure all required fields are filled in correctly.';
+      case 500:
+        return 'The server encountered an unexpected error. Try again, or contact support if this keeps happening.';
+      default:
+        return serverMsg ?? 'Activation failed. Please review your details and try again.';
+    }
+  }
 
   getFieldError(fieldName: string): string {
     const control = this.profileForm.get(fieldName);

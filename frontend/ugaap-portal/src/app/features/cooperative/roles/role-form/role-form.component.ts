@@ -77,17 +77,19 @@ export class RoleFormComponent implements OnInit {
         description: ['', Validators.required],
       });
 
-      // Pre-fill immediately from navigation state (works even without a backend).
-      // When the backend is live, loadRoleData() will overwrite with fresh API data.
       const state = history.state;
       if (state?.role) {
+        // Pre-fill from navigation state — works without a backend.
+        // TODO (backend integration): also call this.loadRoleData() here
+        // so fresh API data (including permissions) overlays the state data.
         this.roleForm.patchValue({
           name:        state.role.name,
           description: state.role.description,
         });
+      } else {
+        // Navigated directly to /edit URL — no state, must load from API.
+        this.loadRoleData();
       }
-
-      this.loadRoleData();
     } else {
       // Create mode: role details + first user account
       this.roleForm = this.fb.group({
