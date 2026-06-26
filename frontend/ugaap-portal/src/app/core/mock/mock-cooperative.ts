@@ -1,0 +1,278 @@
+// ── Cooperative-level mock data ───────────────────────────────────────────────
+//
+// Covers: cooperatives, roles, pricing config, season config, delivery session
+// config, grade config, reports, and cooperative-wide payment batch records.
+// ─────────────────────────────────────────────────────────────────────────────
+
+import { SeasonWindow } from '../models/season-config.model';
+import { DeliverySessionWindow } from '../models/delivery-session.model';
+import { BatchRecord } from '../../features/branch/finance/batch.model';
+
+// ── Cooperatives ──────────────────────────────────────────────────────────────
+
+export const MOCK_COOPERATIVES = [
+  {
+    id: 'COOP-UG-001',
+    name: 'Bugisu Coffee Farmers Cooperative',
+    branches: [
+      { id: 'BR-MBL', name: 'Mbale Branch',   cooperativeId: 'COOP-UG-001' },
+      { id: 'BR-JIN', name: 'Jinja Branch',    cooperativeId: 'COOP-UG-001' },
+    ],
+  },
+  {
+    id: 'COOP-UG-002',
+    name: 'Banyankole Kweterana',
+    branches: [
+      { id: 'BR-MBA', name: 'Mbarara Branch',  cooperativeId: 'COOP-UG-002' },
+      { id: 'BR-KLA', name: 'Kampala Central', cooperativeId: 'COOP-UG-002' },
+    ],
+  },
+];
+
+// ── System roles ──────────────────────────────────────────────────────────────
+// Same 5 roles used by both platform and cooperative role-detail views.
+
+export const MOCK_ROLES = [
+  { id: '1', name: 'Platform Admin',    description: 'Full system access with all permissions',           permissionsCount: 48, usersCount: 12, isSystem: true,  createdAt: '2023-01-15' },
+  { id: '2', name: 'Cooperative Admin', description: 'Manage cooperative operations and members',         permissionsCount: 32, usersCount: 45, isSystem: true,  createdAt: '2023-01-15' },
+  { id: '3', name: 'Logistics Manager', description: 'Manage inventory, shipments, and logistics',        permissionsCount: 24, usersCount: 18, isSystem: false, createdAt: '2023-03-20' },
+  { id: '4', name: 'Accountant',        description: 'Financial reporting and transaction management',     permissionsCount: 16, usersCount: 8,  isSystem: false, createdAt: '2023-04-10' },
+  { id: '5', name: 'Field Officer',     description: 'On-ground data collection and farmer registration', permissionsCount: 12, usersCount: 67, isSystem: false, createdAt: '2024-02-05' },
+];
+
+// ── Cooperative pricing config ─────────────────────────────────────────────────
+// Used by CooperativePricingService to seed grade options, flat prices, multipliers.
+
+export const GRADE_OPTIONS = [
+  { code: 'A', name: 'Premium'   },
+  { code: 'B', name: 'Standard'  },
+  { code: 'C', name: 'Low Grade' },
+  { code: 'R', name: 'Rejected'  },
+];
+
+export const DEFAULT_FLAT_PRICES = [
+  { commodity: 'Maize',  pricePerKg: 2_500 },
+  { commodity: 'Coffee', pricePerKg: 6_000 },
+  { commodity: 'Beans',  pricePerKg: 2_500 },
+  { commodity: 'Rice',   pricePerKg: 3_500 },
+];
+
+export const GRADE_MULTIPLIERS = [
+  { code: 'A', name: 'Premium',   mult: 1.30 },
+  { code: 'B', name: 'Standard',  mult: 1.00 },
+  { code: 'C', name: 'Low Grade', mult: 0.70 },
+  { code: 'R', name: 'Rejected',  mult: 0.00 },
+];
+
+export const ALL_BRANCH_IDS: string[] = [
+  'BR-KLA', 'BR-JIN', 'BR-MBA', 'BR-FTP',
+  'BR-ADJ', 'BR-GUL', 'BR-MBL', 'BR-KIB', 'BR-LIR', 'BR-MBA2',
+];
+
+// ── Season configuration ──────────────────────────────────────────────────────
+
+export const DEFAULT_SEASON_WINDOWS: SeasonWindow[] = [
+  { type: 'Wet Season', label: 'Wet Season', startMonth: 3, endMonth: 8 },  // Mar–Aug
+  { type: 'Dry Season', label: 'Dry Season', startMonth: 9, endMonth: 2 },  // Sep–Feb
+];
+
+// ── Delivery session configuration ────────────────────────────────────────────
+
+export const DEFAULT_SESSION_WINDOWS: DeliverySessionWindow[] = [
+  { id: 'morning',   label: 'Morning',   startHour: 6,  endHour: 9  },
+  { id: 'midday',    label: 'Midday',    startHour: 9,  endHour: 12 },
+  { id: 'afternoon', label: 'Afternoon', startHour: 12, endHour: 18 },
+];
+
+// ── Grade configuration ───────────────────────────────────────────────────────
+// Used as fallback in GradeConfigComponent when the API is unavailable.
+
+export const MOCK_GRADES = [
+  { id: '1', name: 'Premium',   code: 'A', description: 'Highest quality, clean, dry, no defects', createdAt: '15 Jan 2024', branchCount: 3 },
+  { id: '2', name: 'Standard',  code: 'B', description: 'Good quality with minor defects allowed',  createdAt: '15 Jan 2024', branchCount: 2 },
+  { id: '3', name: 'Low Grade', code: 'C', description: 'Below average, moisture content issues',   createdAt: '15 Jan 2024', branchCount: 1 },
+  { id: '4', name: 'Rejected',  code: 'R', description: 'Does not meet minimum standards',          createdAt: '15 Jan 2024', branchCount: 0 },
+];
+
+export const MOCK_BRANCH_GRADE_SUMMARIES = [
+  {
+    id: 'b1', name: 'Kasese Main Branch', region: 'Western Region',
+    avgPrice: 7350, gradeCount: 2,
+    grades: [
+      { name: 'Premium',  code: 'A', pricePerKg: 8500 },
+      { name: 'Standard', code: 'B', pricePerKg: 6200 },
+    ],
+  },
+  {
+    id: 'b2', name: 'Kasese North Branch', region: 'Western Region',
+    avgPrice: 7150, gradeCount: 1,
+    grades: [
+      { name: 'Premium', code: 'A', pricePerKg: 8200 },
+    ],
+  },
+  {
+    id: 'b3', name: 'Mbarara Central', region: 'Western Region',
+    avgPrice: 7550, gradeCount: 1,
+    grades: [
+      { name: 'Standard', code: 'B', pricePerKg: 6100 },
+    ],
+  },
+];
+
+// ── Reports — deliveries ──────────────────────────────────────────────────────
+
+export const MOCK_REPORT_DELIVERIES_DATA = [
+  { branch: 'Hoima',   farmer: 'Okello John',     date: '2026-05-15', quantity: 12.4, grade: 'A', value: '3,720,000',  status: 'Graded'  },
+  { branch: 'Masindi', farmer: 'Mugisha Peter',    date: '2026-05-14', quantity: 8.6,  grade: 'B', value: '2,150,000',  status: 'Paid'    },
+  { branch: 'Gulu',    farmer: 'Nakato Sarah',     date: '2026-05-14', quantity: 15.2, grade: 'A', value: '4,560,000',  status: 'Graded'  },
+  { branch: 'Lira',    farmer: 'Apio Grace',       date: '2026-05-13', quantity: 7.8,  grade: 'C', value: '1,560,000',  status: 'Pending' },
+  { branch: 'Mbale',   farmer: 'Otim Charles',     date: '2026-05-13', quantity: 10.5, grade: 'A', value: '3,150,000',  status: 'Paid'    },
+  { branch: 'Hoima',   farmer: 'Lubega James',     date: '2026-05-12', quantity: 14.1, grade: 'B', value: '3,525,000',  status: 'Graded'  },
+  { branch: 'Masindi', farmer: 'Namukasa Ruth',    date: '2026-05-12', quantity: 6.3,  grade: 'A', value: '1,890,000',  status: 'Pending' },
+  { branch: 'Gulu',    farmer: 'Ogenga Patrick',   date: '2026-05-11', quantity: 19.7, grade: 'A', value: '5,910,000',  status: 'Paid'    },
+  { branch: 'Lira',    farmer: 'Kamukama Denis',   date: '2026-05-11', quantity: 9.2,  grade: 'B', value: '2,300,000',  status: 'Graded'  },
+  { branch: 'Soroti',  farmer: 'Atukunda Mary',    date: '2026-05-10', quantity: 11.8, grade: 'A', value: '3,540,000',  status: 'Pending' },
+];
+
+// ── Reports — grading ─────────────────────────────────────────────────────────
+
+export const MOCK_REPORT_GRADING_DATA = [
+  { branch: 'Hoima',   gradeA: 129, gradeB: 56, gradeC: 18, rejected: 12, total: 215, qualityScore: 87 },
+  { branch: 'Masindi', gradeA: 64,  gradeB: 48, gradeC: 21, rejected: 9,  total: 142, qualityScore: 82 },
+  { branch: 'Gulu',    gradeA: 44,  gradeB: 32, gradeC: 14, rejected: 8,  total: 98,  qualityScore: 78 },
+  { branch: 'Lira',    gradeA: 39,  gradeB: 28, gradeC: 12, rejected: 8,  total: 87,  qualityScore: 75 },
+  { branch: 'Mbale',   gradeA: 34,  gradeB: 24, gradeC: 10, rejected: 8,  total: 76,  qualityScore: 73 },
+  { branch: 'Soroti',  gradeA: 28,  gradeB: 20, gradeC: 9,  rejected: 7,  total: 64,  qualityScore: 70 },
+];
+
+// ── Reports — payments ────────────────────────────────────────────────────────
+
+export const MOCK_REPORT_PAYMENTS_DATA = [
+  { farmer: 'Okello John',     branch: 'Hoima',   delivered: 24.5, value: '7,350,000',  paid: '7,350,000',  outstanding: '0',          status: 'Settled' },
+  { farmer: 'Mugisha Peter',   branch: 'Masindi', delivered: 21.3, value: '5,325,000',  paid: '3,000,000',  outstanding: '2,325,000',  status: 'Partial' },
+  { farmer: 'Nakato Sarah',    branch: 'Gulu',    delivered: 18.7, value: '5,610,000',  paid: '5,610,000',  outstanding: '0',          status: 'Settled' },
+  { farmer: 'Apio Grace',      branch: 'Lira',    delivered: 16.2, value: '3,240,000',  paid: '0',          outstanding: '3,240,000',  status: 'Pending' },
+  { farmer: 'Otim Charles',    branch: 'Mbale',   delivered: 14.8, value: '4,440,000',  paid: '4,440,000',  outstanding: '0',          status: 'Settled' },
+  { farmer: 'Lubega James',    branch: 'Hoima',   delivered: 13.6, value: '3,400,000',  paid: '2,000,000',  outstanding: '1,400,000',  status: 'Partial' },
+  { farmer: 'Ogenga Patrick',  branch: 'Gulu',    delivered: 11.2, value: '3,360,000',  paid: '0',          outstanding: '3,360,000',  status: 'Overdue' },
+  { farmer: 'Kamukama Denis',  branch: 'Soroti',  delivered: 9.8,  value: '2,940,000',  paid: '2,940,000',  outstanding: '0',          status: 'Settled' },
+];
+
+// ── Reports — members ─────────────────────────────────────────────────────────
+
+export const MOCK_REPORT_MEMBERS_DATA = [
+  { name: 'Okello John',    branch: 'Hoima',   registered: '2023-03-15', deliveries: 8, totalValue: '24,000,000', lastActive: '2026-05-15', status: 'Active'   },
+  { name: 'Mugisha Peter',  branch: 'Masindi', registered: '2022-11-20', deliveries: 6, totalValue: '15,000,000', lastActive: '2026-05-14', status: 'Active'   },
+  { name: 'Nakato Sarah',   branch: 'Gulu',    registered: '2023-06-10', deliveries: 5, totalValue: '18,000,000', lastActive: '2026-05-14', status: 'Active'   },
+  { name: 'Apio Grace',     branch: 'Lira',    registered: '2024-01-05', deliveries: 3, totalValue: '9,000,000',  lastActive: '2026-04-20', status: 'Inactive' },
+  { name: 'Otim Charles',   branch: 'Mbale',   registered: '2022-08-22', deliveries: 7, totalValue: '21,000,000', lastActive: '2026-05-13', status: 'Active'   },
+  { name: 'Lubega James',   branch: 'Hoima',   registered: '2023-09-12', deliveries: 6, totalValue: '18,000,000', lastActive: '2026-05-12', status: 'Active'   },
+  { name: 'Ogenga Patrick', branch: 'Gulu',    registered: '2021-05-03', deliveries: 9, totalValue: '28,000,000', lastActive: '2026-05-11', status: 'Active'   },
+  { name: 'Kamukama Denis', branch: 'Soroti',  registered: '2023-07-18', deliveries: 4, totalValue: '12,000,000', lastActive: '2026-05-10', status: 'Active'   },
+  { name: 'Atukunda Mary',  branch: 'Soroti',  registered: '2024-02-28', deliveries: 2, totalValue: '6,000,000',  lastActive: '2026-04-30', status: 'Inactive' },
+  { name: 'Namukasa Ruth',  branch: 'Masindi', registered: '2023-11-08', deliveries: 5, totalValue: '15,500,000', lastActive: '2026-05-08', status: 'Active'   },
+];
+
+// ── Custom report view data ───────────────────────────────────────────────────
+// Keyed by report dataSource; used as fallback when the API is unavailable.
+
+export const MOCK_CUSTOM_REPORT_DATA: Record<string, any[]> = {
+  deliveries: [
+    { branch: 'Hoima',   farmer: 'Okello John',     date: '2026-05-15', deliveryId: 'DEL-001', quantity: 12.4, grade: 'A', gradeCode: 'A1', value: '3,720,000', paymentStatus: 'Paid',    gradedBy: 'Mugisha S.', status: 'Graded'  },
+    { branch: 'Masindi', farmer: 'Mugisha Peter',    date: '2026-05-14', deliveryId: 'DEL-002', quantity: 8.6,  grade: 'B', gradeCode: 'B2', value: '2,150,000', paymentStatus: 'Paid',    gradedBy: 'Nakato R.',  status: 'Paid'    },
+    { branch: 'Gulu',    farmer: 'Nakato Sarah',     date: '2026-05-14', deliveryId: 'DEL-003', quantity: 15.2, grade: 'A', gradeCode: 'A2', value: '4,560,000', paymentStatus: 'Pending', gradedBy: 'Otim A.',    status: 'Graded'  },
+    { branch: 'Lira',    farmer: 'Apio Grace',       date: '2026-05-13', deliveryId: 'DEL-004', quantity: 7.8,  grade: 'C', gradeCode: 'C1', value: '1,560,000', paymentStatus: 'Pending', gradedBy: 'Lubega P.',  status: 'Pending' },
+    { branch: 'Mbale',   farmer: 'Otim Charles',     date: '2026-05-13', deliveryId: 'DEL-005', quantity: 10.5, grade: 'A', gradeCode: 'A1', value: '3,150,000', paymentStatus: 'Paid',    gradedBy: 'Ogen C.',    status: 'Paid'    },
+    { branch: 'Hoima',   farmer: 'Lubega James',     date: '2026-05-12', deliveryId: 'DEL-006', quantity: 14.1, grade: 'B', gradeCode: 'B1', value: '3,525,000', paymentStatus: 'Pending', gradedBy: 'Mugisha S.', status: 'Graded'  },
+    { branch: 'Soroti',  farmer: 'Atukunda Mary',    date: '2026-05-11', deliveryId: 'DEL-007', quantity: 11.8, grade: 'A', gradeCode: 'A2', value: '3,540,000', paymentStatus: 'Paid',    gradedBy: 'Apio T.',    status: 'Paid'    },
+  ],
+  grading: [
+    { branch: 'Hoima',   gradeA: 129, gradeB: 56, gradeC: 18, rejected: 12, total: 215, qualityScore: 87, gradedBy: 'Mugisha S.' },
+    { branch: 'Masindi', gradeA: 64,  gradeB: 48, gradeC: 21, rejected: 9,  total: 142, qualityScore: 82, gradedBy: 'Nakato R.'  },
+    { branch: 'Gulu',    gradeA: 44,  gradeB: 32, gradeC: 14, rejected: 8,  total: 98,  qualityScore: 78, gradedBy: 'Otim A.'    },
+    { branch: 'Lira',    gradeA: 39,  gradeB: 28, gradeC: 12, rejected: 8,  total: 87,  qualityScore: 75, gradedBy: 'Lubega P.'  },
+    { branch: 'Mbale',   gradeA: 34,  gradeB: 24, gradeC: 10, rejected: 8,  total: 76,  qualityScore: 73, gradedBy: 'Ogen C.'    },
+    { branch: 'Soroti',  gradeA: 28,  gradeB: 20, gradeC: 9,  rejected: 7,  total: 64,  qualityScore: 70, gradedBy: 'Apio T.'    },
+  ],
+  payments: [
+    { farmer: 'Okello John',     branch: 'Hoima',   delivered: 24.5, value: '7,350,000', paid: '7,350,000', outstanding: '0',          status: 'Settled' },
+    { farmer: 'Mugisha Peter',   branch: 'Masindi', delivered: 21.3, value: '5,325,000', paid: '3,000,000', outstanding: '2,325,000',  status: 'Partial' },
+    { farmer: 'Nakato Sarah',    branch: 'Gulu',    delivered: 18.7, value: '5,610,000', paid: '5,610,000', outstanding: '0',          status: 'Settled' },
+    { farmer: 'Apio Grace',      branch: 'Lira',    delivered: 16.2, value: '3,240,000', paid: '0',          outstanding: '3,240,000',  status: 'Pending' },
+    { farmer: 'Otim Charles',    branch: 'Mbale',   delivered: 14.8, value: '4,440,000', paid: '4,440,000', outstanding: '0',          status: 'Settled' },
+    { farmer: 'Kamukama Denis',  branch: 'Soroti',  delivered: 12.1, value: '3,630,000', paid: '2,000,000', outstanding: '1,630,000',  status: 'Partial' },
+  ],
+  members: [
+    { name: 'Okello John',   branch: 'Hoima',   registered: '2023-03-15', deliveries: 8, totalValue: '24,000,000', lastActive: '2026-05-15', status: 'Active'   },
+    { name: 'Mugisha Peter', branch: 'Masindi', registered: '2022-11-20', deliveries: 6, totalValue: '15,000,000', lastActive: '2026-05-14', status: 'Active'   },
+    { name: 'Nakato Sarah',  branch: 'Gulu',    registered: '2023-06-10', deliveries: 5, totalValue: '18,000,000', lastActive: '2026-05-14', status: 'Active'   },
+    { name: 'Apio Grace',    branch: 'Lira',    registered: '2024-01-05', deliveries: 3, totalValue: '9,000,000',  lastActive: '2026-04-20', status: 'Inactive' },
+    { name: 'Otim Charles',  branch: 'Mbale',   registered: '2022-08-22', deliveries: 7, totalValue: '21,000,000', lastActive: '2026-05-13', status: 'Active'   },
+  ],
+};
+
+// ── Cooperative-level payment batch records ────────────────────────────────────
+// Used by BatchService (cooperative finance view) as seed data.
+
+export const MOCK_COOPERATIVE_BATCHES: BatchRecord[] = [
+  {
+    id: 'B-001',
+    batchName: 'August 2024 Coffee Run',
+    branchId: 'BR-MBL',
+    season: 'Wet Season',
+    farmerCount: 14,
+    grossAmount: 5_600_000,
+    deductions: 800_000,
+    netPayable: 4_800_000,
+    status: 'processed',
+    createdAt: new Date('2024-09-01'),
+  },
+  {
+    id: 'B-002',
+    batchName: 'September Maize — Mbarara',
+    branchId: 'BR-MBA',
+    season: 'Wet Season',
+    farmerCount: 22,
+    grossAmount: 8_800_000,
+    deductions: 1_320_000,
+    netPayable: 7_480_000,
+    status: 'pending',
+    createdAt: new Date('2024-09-28'),
+  },
+  {
+    id: 'B-003',
+    batchName: 'Dry Season Sesame Batch',
+    branchId: 'BR-GUL',
+    season: 'Dry Season',
+    farmerCount: 9,
+    grossAmount: 3_150_000,
+    deductions: 315_000,
+    netPayable: 2_835_000,
+    status: 'settled',
+    createdAt: new Date('2024-10-05'),
+  },
+  {
+    id: 'B-004',
+    batchName: 'Kiboga Vanilla Q4',
+    branchId: 'BR-KIB',
+    season: 'Dry Season',
+    farmerCount: 6,
+    grossAmount: 9_000_000,
+    deductions: 900_000,
+    netPayable: 8_100_000,
+    status: 'pending',
+    createdAt: new Date('2024-10-12'),
+  },
+  {
+    id: 'B-005',
+    batchName: 'Lira Sesame October',
+    branchId: 'BR-LIR',
+    season: 'Dry Season',
+    farmerCount: 18,
+    grossAmount: 6_300_000,
+    deductions: 630_000,
+    netPayable: 5_670_000,
+    status: 'pending',
+    createdAt: new Date('2024-10-18'),
+  },
+];

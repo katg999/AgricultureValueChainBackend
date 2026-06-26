@@ -1,4 +1,5 @@
 import { Season } from '../../features/branch/collections/branch.delivery.model';
+export { DEFAULT_SEASON_WINDOWS } from '../mock/mock-cooperative';
 
 export interface SeasonWindow {
   type: Season;
@@ -11,11 +12,6 @@ export interface SeasonStatus {
   isOpen: boolean;
   activeType: Season | null;
 }
-
-export const DEFAULT_SEASON_WINDOWS: SeasonWindow[] = [
-  { type: 'Wet Season', label: 'Wet Season', startMonth: 3, endMonth: 8 },   // Mar–Aug
-  { type: 'Dry Season', label: 'Dry Season', startMonth: 9, endMonth: 2 },   // Sep–Feb
-];
 
 // Index 0 is intentionally blank so MONTH_NAMES[1] === 'January'.
 export const MONTH_NAMES = [
