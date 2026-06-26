@@ -73,7 +73,7 @@ export class BranchOnboardingComponent implements OnInit {
 
       // Address
       address: ['', [Validators.required, Validators.minLength(10)]],
-      poBox: ['', [Validators.required, Validators.minLength(5)]],
+      poBox: ['', [Validators.required, Validators.minLength(5), Validators.pattern(/^[A-Za-z0-9\s.,\-\/]+$/)]],
 
       // Manager
       managerName: ['', [Validators.required, Validators.minLength(3)]],
@@ -131,6 +131,8 @@ export class BranchOnboardingComponent implements OnInit {
         return 'Only uppercase letters and numbers allowed (e.g., KAS001)';
       if (fieldName === 'managerPhone')
         return 'Include country code (e.g., +256712345678)';
+      if (fieldName === 'poBox')
+        return 'Only letters, numbers, spaces, periods, commas, and hyphens allowed';
       return 'Invalid format';
     }
     if (control.errors['minlength']) {
