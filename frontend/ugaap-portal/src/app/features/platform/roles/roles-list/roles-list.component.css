@@ -52,7 +52,7 @@
 
 .search-input {
   position: relative;
-  max-width: 500px;
+  flex: 1; /* expand to fill available space beside the button */
 }
 
 .search-icon {
@@ -133,6 +133,6 @@
   }
 
   .search-input {
-    max-width: 100%;
+    width: 100%;
   }
 }
