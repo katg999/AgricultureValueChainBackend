@@ -1,58 +1,50 @@
 import { Routes } from '@angular/router';
 
-// Platform-scoped user management routes.
-// Mounted at /platform/users via platform.routes.ts → { path: 'users', loadChildren: ... }
-// All imports are relative to THIS file's location (features/platform/user/).
-
 export const ROLES_ROUTES: Routes = [
 
-    {
+  {
     path: '',
-    title: 'Roles List' + ' | UGAAP',
+    title: 'Roles List | UGAAP',
+    data: { title: 'Roles & Permissions', subtitle: 'Manage who can do what across the platform' },
     loadComponent: () =>
       import('./roles-list/roles-list.component')
         .then(m => m.RolesListComponent),
-   
   },
-    // Roles list
-  // URL: /platform/roles/roles-list
+
   {
     path: 'roles-list',
-    title: 'Roles List' + ' | UGAAP',
+    title: 'Roles List | UGAAP',
+    data: { title: 'Roles & Permissions', subtitle: 'Manage who can do what across the platform' },
     loadComponent: () =>
       import('./roles-list/roles-list.component')
         .then(m => m.RolesListComponent),
-      
   },
+
+  {
+    path: 'role-form',
+    title: 'Create Role | UGAAP',
+    data: { title: 'Create Role', subtitle: 'Define a new role and its permissions' },
+    loadComponent: () =>
+      import('./role-form/role-form.component')
+        .then(m => m.RoleFormComponent),
+  },
+
+  {
+    path: 'role-form/:id',
+    title: 'Edit Role | UGAAP',
+    data: { title: 'Edit Role', subtitle: 'Update role permissions and settings' },
+    loadComponent: () =>
+      import('./role-form/role-form.component')
+        .then(m => m.RoleFormComponent),
+  },
+
   {
     path: ':id',
-    title: 'Roles Details' + ' | UGAAP',
+    title: 'Role Details | UGAAP',
+    data: { title: 'Role Details', subtitle: 'Users and permissions for this role' },
     loadComponent: () =>
       import('./role-detail/role-detail.component')
         .then(m => m.RoleDetailComponent),
-      
-  },
-
-  // Create role
-  // URL: /platform/roles/role-form
-  {
-    path: 'role-form',
-    title: 'Create Role' + ' | UGAAP',
-    loadComponent: () =>
-      import('./role-form/role-form.component')
-        .then(m => m.RoleFormComponent),
-      
-  },
-
-  // Edit role
-  // URL: /platform/roles/role-form/:id
-  {
-    path: 'role-form/:id',
-    title: 'Edit Role' + ' | UGAAP',
-    loadComponent: () =>
-      import('./role-form/role-form.component')
-        .then(m => m.RoleFormComponent),
-      
   },
 
 ];

@@ -1,11 +1,13 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
 // Shared components
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
-import { RoleCardComponent, RoleCardData } from '../../../../shared/components/role-card/role-card.component';
+import { InputComponent } from '../../../../shared/components/input/input.component';
+import { StatCardComponent, StatCardData } from '../../../../shared/components/stat-card/stat-card.component';
+import { RoleCardData } from '../../../../shared/components/role-card/role-card.component';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
 import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
@@ -37,7 +39,8 @@ import { ToastService } from '../../../../core/services/toast.service';
     RouterModule,
     FormsModule,
     ButtonComponent,
-    RoleCardComponent,
+    InputComponent,
+    StatCardComponent,
     DataTableComponent,
     CellDirective,
     EmptyStateComponent,
@@ -48,6 +51,7 @@ import { ToastService } from '../../../../core/services/toast.service';
 export class RolesListComponent {
 
   searchQuery = '';
+  stats: StatCardData[] = [];
 
   cols: TableColumn[] = [
     { key: 'name',             header: 'Role' },
@@ -105,6 +109,45 @@ export class RolesListComponent {
     },
   ];
 
+  private buildStats(): StatCardData[] {
+    const systemCount = this.roles.filter(r => r.isSystem).length;
+    const customCount = this.roles.filter(r => !r.isSystem).length;
+    const totalUsers  = this.roles.reduce((sum, r) => sum + r.usersCount, 0);
+    return [
+      {
+        label:  'Total Roles',
+        value:  this.roles.length,
+        icon:   'shield',
+        trend:  'All role definitions',
+        status: 'active',
+      },
+      {
+        label:  'System Roles',
+        value:  systemCount,
+        icon:   'settings',
+        trend:  'Built-in · read-only',
+        status: 'active',
+      },
+      {
+        label:  'Custom Roles',
+        value:  customCount,
+        icon:   'clipboard',
+        trend:  'Editable by admins',
+        status: 'active',
+      },
+      {
+        label:     'Users Assigned',
+        value:     totalUsers,
+        icon:      'users',
+        trend:     'Tap to view all users',
+        trendUp:   true,
+        status:    'active',
+        clickable: true,
+        route:     '/platform/users',
+      },
+    ];
+  }
+
   get filteredRoles(): RoleCardData[] {
     const q = this.searchQuery.trim().toLowerCase();
     if (!q) return this.roles;
@@ -116,7 +159,9 @@ export class RolesListComponent {
 
   private toast = inject(ToastService);
 
-  constructor(private router: Router) {}
+  constructor(private router: Router) {
+    this.stats = this.buildStats();
+  }
 
   createNewRole(): void {
     this.router.navigate(['/platform/roles/create']);
@@ -144,6 +189,7 @@ export class RolesListComponent {
     }
     if (confirm(`Delete the "${role.name}" role? This cannot be undone.`)) {
       this.roles = this.roles.filter(r => r.id !== role.id);
+      this.stats = this.buildStats();
       this.toast.success('Role deleted', `"${role.name}" has been removed.`);
     }
   }

@@ -7,6 +7,7 @@ import { Title } from '@angular/platform-browser';
 // Shared components
 import { TableComponent, TableColumn } from '../../../shared/components/table/table.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
+import { StatCardComponent, StatCardData } from '../../../shared/components/stat-card/stat-card.component';
 
 /**
  * Cooperative interface
@@ -19,7 +20,7 @@ interface Cooperative {
   branches: number;
   activeFarmers: number;
   season: string;
-  status: 'active' | 'pending' | 'suspended';
+  status: 'active' | 'pending' | 'suspended' | 'rejected' | 'deleted';
   onboardingProgress: number;
   lastActivity: string;
 }
@@ -50,7 +51,8 @@ interface Cooperative {
     RouterModule,
     FormsModule,
     TableComponent,
-    ButtonComponent
+    ButtonComponent,
+    StatCardComponent,
   ],
   templateUrl: './cooperatives-list.component.html',
   styleUrls: ['./cooperatives-list.component.css']
@@ -121,13 +123,64 @@ export class CooperativesListComponent implements OnInit {
       status: 'active',
       onboardingProgress: 100,
       lastActivity: '45 mins ago'
-    }
+    },
+    {
+      id: 'COOP-KE-031',
+      name: 'Meru Farmers Alliance',
+      code: 'COOP-KE-031',
+      country: 'Kenya',
+      branches: 5,
+      activeFarmers: 0,
+      season: '—',
+      status: 'rejected',
+      onboardingProgress: 40,
+      lastActivity: '3 days ago'
+    },
+    {
+      id: 'COOP-TZ-018',
+      name: 'Kilimanjaro Growers Co-op',
+      code: 'COOP-TZ-018',
+      country: 'Tanzania',
+      branches: 3,
+      activeFarmers: 0,
+      season: '—',
+      status: 'rejected',
+      onboardingProgress: 20,
+      lastActivity: '1 week ago'
+    },
+    {
+      id: 'COOP-UG-007',
+      name: 'Lango Cotton Cooperative',
+      code: 'COOP-UG-007',
+      country: 'Uganda',
+      branches: 0,
+      activeFarmers: 0,
+      season: '—',
+      status: 'deleted',
+      onboardingProgress: 0,
+      lastActivity: '2 weeks ago'
+    },
+    {
+      id: 'COOP-KE-009',
+      name: 'Nakuru Dairy Farmers Union',
+      code: 'COOP-KE-009',
+      country: 'Kenya',
+      branches: 0,
+      activeFarmers: 0,
+      season: '—',
+      status: 'deleted',
+      onboardingProgress: 0,
+      lastActivity: '1 month ago'
+    },
   ];
 
   /**
    * Filtered data for display
    */
   filteredCooperatives: Cooperative[] = [];
+
+  /** Summary stat cards — computed once, updated after any mutation */
+  stats: StatCardData[] = [];
 
   /**
    * Search query
@@ -159,8 +212,45 @@ export class CooperativesListComponent implements OnInit {
 
   ngOnInit(): void {
     this.titleService.setTitle('Cooperatives List | UGAAP');
-    // Initialize filtered data
     this.filteredCooperatives = [...this.cooperatives];
+    this.stats = this.buildStats();
+  }
+
+  private buildStats(): StatCardData[] {
+    const count = (s: Cooperative['status']) =>
+      this.cooperatives.filter(c => c.status === s).length;
+    return [
+      {
+        label:  'Active',
+        value:  count('active'),
+        icon:   'check',
+        trend:  'Fully onboarded',
+        trendUp: true,
+        status: 'active',
+      },
+      {
+        label:   'Pending Review',
+        value:   count('pending'),
+        icon:    'clock',
+        trend:   'Awaiting approval',
+        trendUp: false,
+        status:  'warning',
+      },
+      {
+        label:   'Rejected',
+        value:   count('rejected'),
+        icon:    'alert',
+        trend:   'Requires follow-up',
+        trendUp: false,
+        status:  'critical',
+      },
+      {
+        label:  'Deleted',
+        value:  count('deleted'),
+        icon:   'settings',
+        trend:  'Archived records',
+      },
+    ];
   }
 
   /**
@@ -302,30 +392,22 @@ export class CooperativesListComponent implements OnInit {
    */
   getStatusVariant(status: string): 'active' | 'pending' | 'suspended' {
     switch (status) {
-      case 'active':
-        return 'active';
-      case 'pending':
-        return 'pending';
-      case 'suspended':
-        return 'suspended';
-      default:
-        return 'pending';
+      case 'active':    return 'active';
+      case 'pending':   return 'pending';
+      case 'rejected':  return 'suspended';
+      case 'deleted':   return 'suspended';
+      default:          return 'pending';
     }
   }
 
-  /**
-   * Get display text for status
-   */
   getStatusText(status: string): string {
     switch (status) {
-      case 'active':
-        return 'ACTIVE';
-      case 'pending':
-        return 'PENDING SETUP';
-      case 'suspended':
-        return 'SUSPENDED';
-      default:
-        return status.toUpperCase();
+      case 'active':    return 'ACTIVE';
+      case 'pending':   return 'PENDING SETUP';
+      case 'suspended': return 'SUSPENDED';
+      case 'rejected':  return 'REJECTED';
+      case 'deleted':   return 'DELETED';
+      default:          return status.toUpperCase();
     }
   }
 

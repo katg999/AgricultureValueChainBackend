@@ -228,5 +228,5 @@
 }
 
 @media (max-width: 768px) {
-  .cf-page  {  .cf-title { font-size: 22px; }
+  .cf-page .cf-title { font-size: 22px; }
 }

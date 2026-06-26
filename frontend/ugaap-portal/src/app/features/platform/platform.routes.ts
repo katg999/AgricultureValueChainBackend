@@ -11,73 +11,58 @@ export const PLATFORM_ROUTES: Routes = [
   // ── Dashboard ─────────────────────────────────────────────────────────────
   {
     path: 'dashboard',
-    title: 'Dashboard' + ' | UGAAP',
+    title: 'Dashboard | UGAAP',
+    data: { title: 'Dashboard', subtitle: 'Platform overview and key performance indicators' },
     loadComponent: () =>
       import('./dashboard/platform-dashboard.component')
         .then(m => m.PlatformDashboardComponent),
-   
   },
 
   // ── Cooperatives ─────────────────────────────────────────────────────────
-  // List of all cooperatives on the platform
   {
     path: 'cooperatives',
-    title: 'Cooperatives' + ' | UGAAP',
+    title: 'Cooperatives | UGAAP',
+    data: { title: 'Cooperatives', subtitle: 'Monitor and manage all registered organisations' },
     loadComponent: () =>
       import('./cooperatives-list/cooperatives-list.component')
         .then(m => m.CooperativesListComponent),
-     
-
   },
 
   // Onboarding wizard — reached via "Add organisation" button
   {
     path: 'cooperatives/onboard',
-    title: 'Cooperative Onboarding' + ' | UGAAP',
+    title: 'Cooperative Onboarding | UGAAP',
+    data: { title: 'New Cooperative', subtitle: 'Register a new organisation on the platform' },
     loadComponent: () =>
       import('./coop-onboarding/cooperative-onboarding.component')
         .then(m => m.CooperativeOnboardingComponent),
-      
   },
 
   // ── Users ─────────────────────────────────────────────────────────────────
-  // Platform-scoped user management (list, add, details, roles)
   {
     path: 'users',
-    title: 'User Management' + ' | UGAAP',
+    title: 'User Management | UGAAP',
+    data: { title: 'User Management', subtitle: 'Manage platform users and access rights' },
     loadChildren: () =>
       import('./user/user.routes').then(m => m.USER_ROUTES),
-    
   },
-   {
-      path: 'roles',
-      title: 'Role Management' + ' | UGAAP',
-      loadChildren: () =>
-        import('./roles/roles.routes').then(m => m.ROLES_ROUTES),
-     
 
+  // ── Roles ─────────────────────────────────────────────────────────────────
+  {
+    path: 'roles',
+    title: 'Role Management | UGAAP',
+    data: { title: 'Roles & Permissions', subtitle: 'Manage who can do what across the platform' },
+    loadChildren: () =>
+      import('./roles/roles.routes').then(m => m.ROLES_ROUTES),
+  },
 
-    },
-
-   // ── Maker-checker approval flow ─────────────────────────────────────────────
+  // ── Maker-checker approval flow ───────────────────────────────────────────
   {
     path: 'maker-checker',
-    title: 'Maker-Checker Approvals' + ' | UGAAP',
+    title: 'Maker-Checker Approvals | UGAAP',
+    data: { title: 'Maker-Checker', subtitle: 'Review and approve pending actions' },
     loadComponent: () =>
       import('./maker-checker-creation/maker-checker-creation.component')
         .then(m => m.MakerCheckerCreationComponent),
-     
   },
-  
-
-  
-
-  // ── System Settings ───────────────────────────────────────────────────────
-  // Platform-wide configuration (placeholder — full page to be built)
-  // {
-  //   path: 'settings',
-  //   loadComponent: () =>
-  //     import('./settings/platform-settings.component')
-  //       .then(m => m.PlatformSettingsComponent),
-  // },
 ];

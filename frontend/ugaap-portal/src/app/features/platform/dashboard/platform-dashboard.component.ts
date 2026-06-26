@@ -85,6 +85,34 @@ export class PlatformDashboardComponent implements OnInit {
       status:    'critical',
       clickable: true,
     },
+    {
+      label:     'Pending Cooperatives',
+      value:     '8',
+      icon:      'clipboard',
+      trend:     'Awaiting review',
+      trendUp:   false,
+      status:    'warning',
+      clickable: true,
+      route:     '/platform/cooperatives',
+    },
+    {
+      label:     'Rejected Cooperatives',
+      value:     '3',
+      icon:      'alert',
+      trend:     'Requires follow-up',
+      trendUp:   false,
+      status:    'critical',
+      clickable: true,
+      route:     '/platform/cooperatives',
+    },
+    {
+      label:     'Deleted Cooperatives',
+      value:     '5',
+      icon:      'settings',
+      trend:     'Archived records',
+      trendUp:   false,
+      clickable: false,
+    },
   ];
 
   // ── Onboarding pipeline ───────────────────────────────────────────────────
