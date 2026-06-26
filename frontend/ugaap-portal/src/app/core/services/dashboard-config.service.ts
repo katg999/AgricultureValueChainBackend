@@ -94,8 +94,8 @@ const PLATFORM_ADMIN_CONFIG: DashboardConfig = {
 
     // Role & permission management
     { label: 'Roles',              icon: 'roles',    route: '/platform/roles/roles-list', permissionModule: 'roles'       },
-    // Platform-wide configuration
-    { label: 'System Settings',    icon: 'settings', route: '/platform/settings',        permissionModule: 'settings'     },
+    // Platform-wide configuration — hidden until feature is ready
+    // { label: 'System Settings',    icon: 'settings', route: '/platform/settings',        permissionModule: 'settings'     },
   ],
 };
 
