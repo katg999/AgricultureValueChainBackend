@@ -1,36 +1,43 @@
 import { Routes } from '@angular/router';
+import { permissionGuard } from '../../../core/guards/permission.guard';
+
 export const INVENTORY_ROUTES: Routes = [
   {
     path: 'add-stock-item',
-    data: { title: 'Add Stock Item' },
+    canActivate: [permissionGuard],
+    data: { title: 'Add Stock Item', permissions: ['inventory.receive'] },
     loadComponent: () =>
       import('./add-stock-item/add-stock-item.component')
         .then(m => m.AddStockItemComponent)
   },
   {
     path: 'current-stock',
-    data: { title: 'Current Stock' },
+    canActivate: [permissionGuard],
+    data: { title: 'Current Stock', permissions: ['inventory.view'] },
     loadComponent: () =>
       import('./current-stock/current-stock.component')
         .then(m => m.CurrentStockComponent)
   },
   {
     path: 'issue-stock',
-    data: { title: 'Issue Stock' },
+    canActivate: [permissionGuard],
+    data: { title: 'Issue Stock', permissions: ['inventory.issue'] },
     loadComponent: () =>
       import('./issue-stock/issue-stock.component')
         .then(m => m.IssueStockComponent)
   },
   {
     path: 'stock-disbursed',
-    data: { title: 'Stock Disbursed' },
+    canActivate: [permissionGuard],
+    data: { title: 'Stock Disbursed', permissions: ['inventory.disburse'] },
     loadComponent: () =>
       import('./stock-disbursed/stock-disbursed.component')
         .then(m => m.StockDisbursedComponent)
   },
   {
     path: 'request-stock',
-    data: { title: 'Request Stock' },
+    canActivate: [permissionGuard],
+    data: { title: 'Request Stock', permissions: ['inventory.request'] },
     loadComponent: () =>
       import('./request-stock/request-stock.component')
         .then(m => m.RequestStockComponent)

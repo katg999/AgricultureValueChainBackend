@@ -1,6 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { FormGroup } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ToastService } from './toast.service';
+import { PermissionsService } from './permissions.service';
+import { DashboardConfigService } from './dashboard-config.service';
 
 /**
  * Shared service for consistent form submission feedback across all forms.
@@ -14,7 +17,10 @@ import { ToastService } from './toast.service';
 @Injectable({ providedIn: 'root' })
 export class FormFeedbackService {
 
-  private toast = inject(ToastService);
+  private toast       = inject(ToastService);
+  private permissions = inject(PermissionsService);
+  private dashboard   = inject(DashboardConfigService);
+  private router      = inject(Router);
 
   /** Show a success toast after a save completes. */
   success(title: string, detail?: string): void {
@@ -38,6 +44,24 @@ export class FormFeedbackService {
    */
   fieldError(invalidLabels: string[]): void {
     this._warnFields(invalidLabels);
+  }
+
+  /**
+   * Guard an in-page action by permission.
+   * Returns true if the user may proceed.
+   * If not: shows a warning toast and redirects to their level's dashboard.
+   *
+   * Usage:
+   *   onApproveClick() {
+   *     if (!this.feedback.requirePermission('farmers.approve')) return;
+   *     // proceed
+   *   }
+   */
+  requirePermission(permission: string): boolean {
+    if (this.permissions.hasAny([permission])) return true;
+    this.toast.warning('Access denied', 'You do not have permission to perform this action.');
+    this.router.navigate([this.dashboard.homeRoute()]);
+    return false;
   }
 
   /** Show an error toast for an HTTP or API failure. */

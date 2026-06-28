@@ -1,6 +1,4 @@
 ﻿.page-container {
-  background: var(--surface-low);
-  min-height: 100%;
   max-width: 860px;
   margin: 0 auto;
   display: flex;

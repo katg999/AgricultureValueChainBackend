@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { permissionGuard } from '../../../core/guards/permission.guard';
 
 export const BRANCH_COLLECTIONS_ROUTES: Routes = [
 
@@ -8,53 +9,59 @@ export const BRANCH_COLLECTIONS_ROUTES: Routes = [
     pathMatch: 'full',
   },
 
-  // Branch delivery batches list
+  // Delivery list — read access
   {
     path: 'deliveries',
-    data: { title: 'Deliveries' },
+    canActivate: [permissionGuard],
+    data: { title: 'Deliveries', permissions: ['collections.view'] },
     loadComponent: () =>
       import('./branch.delivery-list/branch.delivery.list.component')
         .then(m => m.BranchDeliveriesComponent),
   },
 
-  // Every farmer who has delivered at this branch
+  // All farmers who have delivered at this branch
   {
     path: 'farmers',
-    data: { title: 'Farmer Deliveries' },
+    canActivate: [permissionGuard],
+    data: { title: 'Farmer Deliveries', permissions: ['collections.view'] },
     loadComponent: () =>
       import('./farmer-deliveries-list/farmer-deliveries-list.component')
         .then(m => m.FarmerDeliveriesListComponent),
   },
 
-  // Add farmer delivery (full-page form, navigated to from the branch list button)
+  // Record new delivery
   {
     path: 'deliveries/add',
-    data: { title: 'Record Delivery' },
+    canActivate: [permissionGuard],
+    data: { title: 'Record Delivery', permissions: ['collections.record'] },
     loadComponent: () =>
       import('./farmer-delivery/farmer-delivery.component')
         .then(m => m.AddFarmerDeliveryComponent),
   },
 
-  // Edit farmer delivery
+  // Correct an existing delivery
   {
     path: 'deliveries/edit/:id',
-    data: { title: 'Edit Delivery' },
+    canActivate: [permissionGuard],
+    data: { title: 'Edit Delivery', permissions: ['collections.edit'] },
     loadComponent: () =>
       import('./farmer-delivery/farmer-delivery.component')
         .then(m => m.AddFarmerDeliveryComponent),
   },
 
-  // View farmer deliveries for a specific batch
+  // Delivery detail view
   {
     path: 'deliveries/:id',
-    data: { title: 'Delivery Details' },
+    canActivate: [permissionGuard],
+    data: { title: 'Delivery Details', permissions: ['collections.view'] },
     loadComponent: () =>
       import('./farmer-delivery/farmer-delivery.component')
         .then(m => m.FarmerDeliveriesComponent),
   },
   {
     path: 'deliveries/:id/farmer-disbursements',
-    data: { title: 'Farmer Disbursements' },
+    canActivate: [permissionGuard],
+    data: { title: 'Farmer Disbursements', permissions: ['collections.view'] },
     loadComponent: () =>
       import('./farmer-delivery/farmer-delivery.component')
         .then(m => m.FarmerDeliveriesComponent),
@@ -62,8 +69,8 @@ export const BRANCH_COLLECTIONS_ROUTES: Routes = [
 
   // Legacy paths used by the branch dashboard — redirect to canonical routes
   { path: 'farmer-deliveries/create', redirectTo: 'deliveries/add', pathMatch: 'full' },
-  { path: 'farmer-delivery/create', redirectTo: 'deliveries/add', pathMatch: 'full' },
-  { path: 'farmer-deliveries', redirectTo: 'deliveries', pathMatch: 'full' },
+  { path: 'farmer-delivery/create',   redirectTo: 'deliveries/add', pathMatch: 'full' },
+  { path: 'farmer-deliveries',        redirectTo: 'deliveries',     pathMatch: 'full' },
 
   {
     path: '**',
