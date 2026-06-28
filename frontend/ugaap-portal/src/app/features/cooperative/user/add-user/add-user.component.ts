@@ -110,7 +110,7 @@ export class AddUserComponent implements OnInit {
       email:       ['', [Validators.required, Validators.email]],
       phone:       ['', [Validators.pattern(/^\+256\s?\d{3}\s?\d{3}\s?\d{3}$/)]],
       dateOfBirth: [''],
-      nationalId:  [''],
+      nationalId:  ['', Validators.pattern(/^[A-Z0-9]{14}$/)],
       gender:      ['Female'],
 
       // Account Access
@@ -144,8 +144,9 @@ export class AddUserComponent implements OnInit {
       if (control.errors['required'])   return 'This field is required';
       if (control.errors['email'])      return 'Invalid email address';
       if (control.errors['minlength'])  return 'Password must be at least 8 characters';
-      if (control.errors['pattern'] && fieldName === 'phone') {
-        return 'Use format: +256 700 000 000';
+      if (control.errors['pattern']) {
+        if (fieldName === 'phone') return 'Use format: +256 700 000 000';
+        if (fieldName === 'nationalId') return 'Must be exactly 14 alphanumeric characters';
       }
     }
     if (fieldName === 'confirmPassword' && this.userForm.errors?.['passwordMismatch']) {

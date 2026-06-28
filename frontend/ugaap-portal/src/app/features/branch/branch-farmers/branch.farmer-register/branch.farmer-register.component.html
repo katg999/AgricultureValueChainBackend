@@ -43,7 +43,8 @@
             placeholder="e.g. CM95012A345B6C"
             type="text"
             [required]="true"
-            hint="14 chars: 2 letters · 5 digits · 1 letter · 3 digits · 1 letter · 1 digit · 1 letter"
+            [uppercase]="true"
+            hint="14 alphanumeric characters"
             [error]="formErrors['nationalIdNumber']"
             [(ngModel)]="form.nationalIdNumber"
             name="nationalIdNumber">

@@ -108,7 +108,7 @@ export class AddUserComponent implements OnInit {
       email: ['okeyo@gmail.com', [Validators.required, Validators.email]],
       phone: ['', [Validators.required, Validators.pattern(/^\+256\s?\d{3}\s?\d{3}\s?\d{3}$/)]],
       dateOfBirth: [''], // Optional, but if provided must be valid date
-      nationalId: [''],
+      nationalId: ['', Validators.pattern(/^[A-Z0-9]{14}$/)],
       gender: ['Female'],
 
       // Account Access
@@ -144,6 +144,7 @@ export class AddUserComponent implements OnInit {
       if (control.errors['minLength']) return 'Password must be at least 8 characters';
       if (control.errors['pattern']) {
         if (fieldName === 'phone') return 'Invalid phone format. Use: +256 700 000000';
+        if (fieldName === 'nationalId') return 'Must be exactly 14 alphanumeric characters';
       }
     }
     

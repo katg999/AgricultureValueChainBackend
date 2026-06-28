@@ -57,7 +57,7 @@ export class AgentFormComponent implements OnInit {
       fullName:   ['', Validators.required],
       phone:      ['', [Validators.required, Validators.pattern(/^\+\d{1,3}\d{4,14}$/)]],
       email:      ['', [Validators.required, Validators.email]],
-      nationalId: ['', Validators.required],
+      nationalId: ['', [Validators.required, Validators.pattern(/^[A-Z0-9]{14}$/)]],
       role:       ['field_agent', Validators.required],
       branchId:   ['', Validators.required],
     });
@@ -87,8 +87,10 @@ export class AgentFormComponent implements OnInit {
     if (ctrl?.touched && ctrl?.errors) {
       if (ctrl.errors['required']) return 'This field is required';
       if (ctrl.errors['email']) return 'Please enter a valid email address';
-      if (ctrl.errors['pattern'] && field === 'phone')
-        return 'Include country code (e.g. +256712345678)';
+      if (ctrl.errors['pattern']) {
+        if (field === 'phone') return 'Include country code (e.g. +256712345678)';
+        if (field === 'nationalId') return 'Must be exactly 14 alphanumeric characters';
+      }
     }
     return '';
   }

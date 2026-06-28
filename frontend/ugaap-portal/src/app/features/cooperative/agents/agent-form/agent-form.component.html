@@ -31,6 +31,8 @@
           placeholder="e.g. CM900421003XKE"
           type="text"
           [required]="true"
+          [uppercase]="true"
+          hint="14 alphanumeric characters"
           [error]="getFieldError('nationalId')"
           formControlName="nationalId">
         </app-input>

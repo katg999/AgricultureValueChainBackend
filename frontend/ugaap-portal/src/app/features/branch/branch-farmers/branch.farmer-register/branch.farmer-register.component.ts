@@ -54,9 +54,8 @@ export class BranchFarmerRegisterComponent {
   // ─────────────────────────────────────────
   // Exactly 10 digits — no country code prefix, no spaces
   private readonly phoneRegex = /^\d{10}$/;
-  // 14-char Uganda NIN: 2 letters · 5 digits · 1 letter · 3 digits · 1 letter · 1 digit · 1 letter
-  // Example: CM95012A345B6C — case-insensitive so lower-case input still passes
-  private readonly nationalIdRegex = /^[A-Za-z]{2}\d{5}[A-Za-z]\d{3}[A-Za-z]\d[A-Za-z]$/;
+  // Exactly 14 uppercase alphanumeric characters — input is auto-uppercased before validation
+  private readonly nationalIdRegex = /^[A-Z0-9]{14}$/;
 
   // ─────────────────────────────────────────
   // COMPONENT STATE
@@ -201,7 +200,7 @@ export class BranchFarmerRegisterComponent {
     if (!f.nationalIdNumber.trim()) {
       this.formErrors['nationalIdNumber'] = 'National ID number is required.';
     } else if (!this.nationalIdRegex.test(f.nationalIdNumber.trim())) {
-      this.formErrors['nationalIdNumber'] = 'Must be 14 characters, e.g. CM95012A345B6C.';
+      this.formErrors['nationalIdNumber'] = 'Must be exactly 14 alphanumeric characters.';
     }
 
     if (!f.phoneNumber.trim()) {

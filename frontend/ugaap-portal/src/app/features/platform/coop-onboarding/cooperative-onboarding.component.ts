@@ -93,7 +93,7 @@ export class CooperativeOnboardingComponent implements OnInit {
       admin1Email:       ['', [Validators.required, Validators.email]],
       admin1Phone:       ['', Validators.required],
       admin1DateOfBirth: [''],
-      admin1NationalId:  [''],
+      admin1NationalId:  ['', Validators.pattern(/^[A-Z0-9]{14}$/)],
       admin1Gender:      ['Female'],
 
       // Section 6 — Admin 2 (formerly Checker)
@@ -101,7 +101,7 @@ export class CooperativeOnboardingComponent implements OnInit {
       admin2Email:       ['', [Validators.required, Validators.email]],
       admin2Phone:       ['', Validators.required],
       admin2DateOfBirth: [''],
-      admin2NationalId:  [''],
+      admin2NationalId:  ['', Validators.pattern(/^[A-Z0-9]{14}$/)],
       admin2Gender:      ['Female'],
     });
   }
@@ -265,8 +265,11 @@ export class CooperativeOnboardingComponent implements OnInit {
     if (control?.touched && control?.errors) {
       if (control.errors['required']) return 'This field is required';
       if (control.errors['email'])    return 'Invalid email format';
-      if (control.errors['pattern'] && fieldName === 'accountNumber')
-        return 'Account number must be 6–20 digits';
+      if (control.errors['pattern']) {
+        if (fieldName === 'accountNumber') return 'Account number must be 6–20 digits';
+        if (fieldName === 'admin1NationalId' || fieldName === 'admin2NationalId')
+          return 'Must be exactly 14 alphanumeric characters';
+      }
     }
     return '';
   }

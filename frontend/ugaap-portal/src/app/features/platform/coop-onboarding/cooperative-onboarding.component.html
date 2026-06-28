@@ -245,7 +245,10 @@
         <app-input
           label="National ID Number"
           type="text"
-          placeholder="CF9200000XXX"
+          placeholder="e.g. CM95012A345B6C"
+          [uppercase]="true"
+          hint="14 alphanumeric characters"
+          [error]="getFieldError('admin1NationalId')"
           formControlName="admin1NationalId">
         </app-input>
 
@@ -338,7 +341,10 @@
         <app-input
           label="National ID Number"
           type="text"
-          placeholder="CF9200000XXX"
+          placeholder="e.g. CM95012A345B6C"
+          [uppercase]="true"
+          hint="14 alphanumeric characters"
+          [error]="getFieldError('admin2NationalId')"
           formControlName="admin2NationalId">
         </app-input>
 

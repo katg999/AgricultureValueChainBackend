@@ -61,8 +61,11 @@
         <app-input
           label="National ID number"
           type="text"
-          placeholder="CF9200000XXX"
-          formControlName="nationalId">
+          placeholder="e.g. CM95012A345B6C"
+          formControlName="nationalId"
+          [uppercase]="true"
+          hint="Optional — 14 alphanumeric characters if provided"
+          [error]="getFieldError('nationalId')">
         </app-input>
       </div>
     </app-form-section>
