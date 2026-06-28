@@ -9,6 +9,9 @@ import { Component } from '@angular/core';
       display: block;
       padding: 16px;
       box-sizing: border-box;
+      background: var(--surface-low);
+      min-height: 100%;
+      font-family: var(--font-human);
     }
   `],
 })

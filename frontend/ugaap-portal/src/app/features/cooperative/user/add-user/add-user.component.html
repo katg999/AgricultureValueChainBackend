@@ -129,14 +129,53 @@
     <app-button
       type="submit"
       variant="primary"
-      size="lg"
-      [loading]="isLoading"
-      loadingText="Saving…">
-      Save user
+      size="lg">
+      Review &amp; Save
     </app-button>
   </div>
 
 </form>
+
+<!-- ── REVIEW & CONFIRM MODAL ── -->
+<app-modal
+  [isOpen]="showConfirmModal"
+  title="Review & Confirm"
+  subtitle="Check the details below before creating this user."
+  size="lg"
+  [closeOnBackdrop]="!isLoading"
+  [closeOnEsc]="!isLoading"
+  (closed)="showConfirmModal = false">
+
+  <div class="review-layout">
+    <div class="review-group">
+      <h4 class="review-group-title">Personal Details</h4>
+      <hr class="review-divider">
+      <div class="review-row-item"><span class="rl">Full Name</span><span class="rv">{{ userForm.value.fullName || '—' }}</span></div>
+      <div class="review-row-item"><span class="rl">Email</span><span class="rv">{{ userForm.value.email || '—' }}</span></div>
+      <div class="review-row-item"><span class="rl">Phone</span><span class="rv">{{ userForm.value.phone || '—' }}</span></div>
+      <div class="review-row-item"><span class="rl">National ID</span><span class="rv">{{ userForm.value.nationalId || '—' }}</span></div>
+      <div class="review-row-item"><span class="rl">Gender</span><span class="rv">{{ userForm.value.gender || '—' }}</span></div>
+      <div class="review-row-item"><span class="rl">Date of Birth</span><span class="rv">{{ userForm.value.dateOfBirth || '—' }}</span></div>
+    </div>
+
+    <div class="review-group">
+      <h4 class="review-group-title">Account Access</h4>
+      <hr class="review-divider">
+      <div class="review-row-item"><span class="rl">Role</span><span class="rv">{{ userForm.value.role || '—' }}</span></div>
+      <div class="review-row-item"><span class="rl">Temporary Password</span><span class="rv">••••••</span></div>
+    </div>
+  </div>
+
+  <div class="modal-actions" footer>
+    <button type="button" class="btn-secondary" [disabled]="isLoading" (click)="showConfirmModal = false">
+      Edit
+    </button>
+    <app-button variant="primary" size="md" [loading]="isLoading" loadingText="Saving…" (clicked)="onConfirmSave()">
+      Create User
+    </app-button>
+  </div>
+
+</app-modal>
 
 <!-- ═══════════════════════════════════════════════════════════
      CREDENTIALS POPUP — shown after user is created successfully

@@ -475,10 +475,6 @@
 
   </div>
 
-  <app-alert variant="error" *ngIf="errorMessage">
-    <p>{{ errorMessage }}</p>
-  </app-alert>
-
   <div class="modal-actions" footer>
     <button type="button" class="btn-secondary" (click)="closeConfirmModal()" [disabled]="isLoading">
       Edit

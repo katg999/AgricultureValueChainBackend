@@ -97,10 +97,48 @@
     <app-button
       variant="primary"
       size="lg"
-      type="submit"
-      [disabled]="isSaving">
-      {{ isSaving ? 'Saving…' : (isEditMode ? 'Save Changes' : 'Register Agent') }}
+      type="submit">
+      {{ isEditMode ? 'Save Changes' : 'Register Agent' }}
     </app-button>
   </div>
 
 </form>
+
+<!-- ── REVIEW & CONFIRM MODAL ── -->
+<app-modal
+  [isOpen]="showConfirmModal"
+  title="Review & Confirm"
+  subtitle="Check the details below before saving."
+  size="lg"
+  [closeOnBackdrop]="!isSaving"
+  [closeOnEsc]="!isSaving"
+  (closed)="showConfirmModal = false">
+
+  <div class="review-layout">
+    <div class="review-group">
+      <h4 class="review-group-title">Agent Details</h4>
+      <hr class="review-divider">
+      <div class="review-row-item"><span class="rl">Full Name</span><span class="rv">{{ agentForm.value.fullName || '—' }}</span></div>
+      <div class="review-row-item"><span class="rl">National ID</span><span class="rv">{{ agentForm.value.nationalId || '—' }}</span></div>
+      <div class="review-row-item"><span class="rl">Phone</span><span class="rv">{{ agentForm.value.phone || '—' }}</span></div>
+      <div class="review-row-item"><span class="rl">Email</span><span class="rv">{{ agentForm.value.email || '—' }}</span></div>
+    </div>
+
+    <div class="review-group">
+      <h4 class="review-group-title">Assignment</h4>
+      <hr class="review-divider">
+      <div class="review-row-item"><span class="rl">Role</span><span class="rv">{{ reviewRoleLabel }}</span></div>
+      <div class="review-row-item"><span class="rl">Branch</span><span class="rv">{{ reviewBranchName }}</span></div>
+    </div>
+  </div>
+
+  <div class="modal-actions" footer>
+    <button type="button" class="btn-secondary" [disabled]="isSaving" (click)="showConfirmModal = false">
+      Edit
+    </button>
+    <app-button variant="primary" size="md" [loading]="isSaving" loadingText="Saving…" (clicked)="onConfirmSave()">
+      {{ isEditMode ? 'Save Changes' : 'Register Agent' }}
+    </app-button>
+  </div>
+
+</app-modal>

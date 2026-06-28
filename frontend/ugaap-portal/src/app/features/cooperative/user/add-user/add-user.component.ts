@@ -10,7 +10,9 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 import { ToggleSwitchComponent } from '../../../../shared/components/toggle-switch/toggle-switch.component';
 import { PasswordStrengthComponent } from '../../../../shared/components/password-strength/password-strength.component';
 import { AlertComponent } from '../../../../shared/components/alert/alert.component';
-import { ToastService }   from '../../../../core/services/toast.service';
+import { ToastService }          from '../../../../core/services/toast.service';
+import { FormFeedbackService }   from '../../../../core/services/form-feedback.service';
+import { ModalComponent }        from '../../../../shared/components/modal/modal.component';
 
 /**
  * Add New User Component
@@ -50,6 +52,7 @@ import { ToastService }   from '../../../../core/services/toast.service';
     ToggleSwitchComponent,
     PasswordStrengthComponent,
     AlertComponent,
+    ModalComponent,
   ],
   templateUrl: './add-user.component.html',
   styleUrls: ['./add-user.component.css']
@@ -83,13 +86,24 @@ export class AddUserComponent implements OnInit {
   ];
 
   isLoading = false;
+  showConfirmModal = false;
 
   /** Shown after a successful save — contains the credentials to display */
   showCredentials = false;
   createdCredentials: { name: string; email: string; password: string } | null = null;
   showCreatedPassword = false;
 
-  private toast = inject(ToastService);
+  private toast     = inject(ToastService);
+  private feedback  = inject(FormFeedbackService);
+
+  private readonly fieldLabels: Record<string, string> = {
+    fullName:        'Full Name',
+    email:           'Email Address',
+    phone:           'Phone Number',
+    role:            'Role',
+    tempPassword:    'Temporary Password',
+    confirmPassword: 'Confirm Password',
+  };
 
   constructor(
     private fb: FormBuilder,
@@ -178,28 +192,27 @@ export class AddUserComponent implements OnInit {
     });
   }
 
-  /**
-   * Save user
-   */
   saveUser(): void {
     if (this.userForm.invalid) {
       this.userForm.markAllAsTouched();
-      this.toast.warning(
-        'Form has errors',
-        'Please fill in Name, Email and Password (min 8 characters) before saving.',
-      );
+      this.feedback.formError(this.userForm, this.fieldLabels);
       return;
     }
 
-    // Validate date format if provided
     const dob = this.userForm.get('dateOfBirth')?.value;
     if (dob && !this.isValidDate(dob)) {
-      this.toast.error('Invalid date', 'Date of birth must be in YYYY-MM-DD format.');
+      this.feedback.fieldError(['Date of Birth (invalid format, use YYYY-MM-DD)']);
       return;
     }
 
-    // this.isLoading = true;
-     this.router.navigate(['/cooperative/users']);
+    this.showConfirmModal = true;
+  }
+
+  onConfirmSave(): void {
+    this.showConfirmModal = false;
+    // Replace with real HTTP call when endpoint is ready
+    this.feedback.success('User created', `${this.userForm.value.fullName} has been added successfully.`);
+    this.router.navigate(['/cooperative/users']);
    
 
     // const userData = {

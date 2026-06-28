@@ -11,6 +11,8 @@ import { ButtonComponent }      from '../../../../shared/components/button/butto
 import { ToggleSwitchComponent } from '../../../../shared/components/toggle-switch/toggle-switch.component';
 import { PasswordStrengthComponent } from '../../../../shared/components/password-strength/password-strength.component';
 import { AlertComponent }       from '../../../../shared/components/alert/alert.component';
+import { ModalComponent }       from '../../../../shared/components/modal/modal.component';
+import { FormFeedbackService }  from '../../../../core/services/form-feedback.service';
 
 /**
  * Add New User Component
@@ -50,6 +52,7 @@ import { AlertComponent }       from '../../../../shared/components/alert/alert.
     ToggleSwitchComponent,
     PasswordStrengthComponent,
     AlertComponent,
+    ModalComponent,
   ],
   templateUrl: './add-user.component.html',
   styleUrls: ['./add-user.component.css']
@@ -88,10 +91,21 @@ export class AddUserComponent implements OnInit {
    * Loading state
    */
   isLoading = false;
+  showConfirmModal = false;
+
+  private readonly fieldLabels: Record<string, string> = {
+    fullName:        'Full Name',
+    email:           'Email Address',
+    phone:           'Phone Number',
+    role:            'Role',
+    tempPassword:    'Temporary Password',
+    confirmPassword: 'Confirm Password',
+  };
 
   constructor(
     private fb: FormBuilder,
     private router: Router,
+    private feedback: FormFeedbackService,
   ) {}
 
   ngOnInit(): void {
@@ -171,42 +185,32 @@ export class AddUserComponent implements OnInit {
 
   }
 
-  /**
-   * Save user
-   */
   saveUser(): void {
     if (this.userForm.invalid) {
       this.userForm.markAllAsTouched();
-      return; // stop here if the form isn't ready!
-
-    }
-
-
-    // Validate date format if provided
-    const dob = this.userForm.get('dateOfBirth')?.value;
-    if (dob && !this.isValidDate(dob)) {
-      alert('Invalid date format. Please use YYYY-MM-DD');
+      this.feedback.formError(this.userForm, this.fieldLabels);
       return;
     }
 
+    const dob = this.userForm.get('dateOfBirth')?.value;
+    if (dob && !this.isValidDate(dob)) {
+      this.feedback.fieldError(['Date of Birth (invalid format, use YYYY-MM-DD)']);
+      return;
+    }
+
+    this.showConfirmModal = true;
+  }
+
+  onConfirmSave(): void {
+    this.showConfirmModal = false;
     this.isLoading = true;
 
-    const userData = {
-      ...this.userForm.value,
-      sendWelcomeEmail: this.sendWelcomeEmail,
-      requireOTP: this.requireOTP,
-      // Format date consistently for DB
-      dateOfBirth: this.userForm.value.dateOfBirth ? 
-      this.formatDateForDB(this.userForm.value.dateOfBirth) : null
-    };
+    // Replace with real HTTP call when endpoint is ready
+    // this.userService.create({ ...this.userForm.value }).subscribe({ ... });
 
-    console.log('Saving user:', userData);
-  
-
-    // Simulate API calletTimeout(() => {
-    //   this.isLoading = false;
-    //   this.router.navigate(['/platform/users']);
-    // }, 2000);
+    this.feedback.success('User created', `${this.userForm.value.fullName} has been added successfully.`);
+    this.isLoading = false;
+    this.router.navigate(['/platform/users']);
   }
 
   /**

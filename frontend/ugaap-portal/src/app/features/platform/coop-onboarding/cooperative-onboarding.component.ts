@@ -7,7 +7,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Title } from '@angular/platform-browser';
-import { finalize, timeout, TimeoutError } from 'rxjs';
+import { finalize, timeout } from 'rxjs';
 
 import { FormShellComponent }   from '../../../shared/components/form-wizard/form-wizard.component';
 import { FormSectionComponent } from '../../../shared/components/form-section/form-section.component';
@@ -15,8 +15,9 @@ import { InputComponent }       from '../../../shared/components/input/input.com
 import { ButtonComponent }      from '../../../shared/components/button/button.component';
 import { ModalComponent }       from '../../../shared/components/modal/modal.component';
 import { AlertComponent }       from '../../../shared/components/alert/alert.component';
-import { CooperativeService }   from '../../../core/services/cooperative.service';
-import { ToastService }         from '../../../core/services/toast.service';
+import { CooperativeService }      from '../../../core/services/cooperative.service';
+import { ToastService }            from '../../../core/services/toast.service';
+import { FormFeedbackService }     from '../../../core/services/form-feedback.service';
 
 @Component({
   selector: 'app-cooperative-onboarding',
@@ -48,7 +49,22 @@ export class CooperativeOnboardingComponent implements OnInit {
   // Modal + loading state
   showConfirmModal = false;
   isLoading = false;
-  errorMessage = '';
+
+  private readonly fieldLabels: Record<string, string> = {
+    name:                  'Cooperative Name',
+    registrationNumber:    'Registration Number',
+    defaultBranchName:     'Default Branch Name',
+    address:               'Address',
+    country:               'Country',
+    accountName:           'Account Name',
+    accountNumber:         'Account Number',
+    admin1FullName:        'Admin 1 Full Name',
+    admin1Email:           'Admin 1 Email',
+    admin1Phone:           'Admin 1 Phone',
+    admin2FullName:        'Admin 2 Full Name',
+    admin2Email:           'Admin 2 Email',
+    admin2Phone:           'Admin 2 Phone',
+  };
 
   // Gender options shared by both admin sections
   readonly genderOptions = ['Female', 'Male', 'Other', 'Prefer not to say'];
@@ -59,6 +75,7 @@ export class CooperativeOnboardingComponent implements OnInit {
     private cooperativeService: CooperativeService,
     private titleService: Title,
     private toast: ToastService,
+    private feedback: FormFeedbackService,
   ) {}
 
   ngOnInit(): void {
@@ -159,6 +176,7 @@ export class CooperativeOnboardingComponent implements OnInit {
   openConfirmModal(): void {
     if (this.profileForm.invalid) {
       this.profileForm.markAllAsTouched();
+      this.feedback.formError(this.profileForm, this.fieldLabels);
       return;
     }
     this.showConfirmModal = true;
@@ -173,11 +191,11 @@ export class CooperativeOnboardingComponent implements OnInit {
   activateCooperative(): void {
     if (this.profileForm.invalid) {
       this.profileForm.markAllAsTouched();
+      this.feedback.formError(this.profileForm, this.fieldLabels);
       return;
     }
 
     this.isLoading = true;
-    this.errorMessage = '';
 
     const v = this.profileForm.value;
 
@@ -232,35 +250,14 @@ export class CooperativeOnboardingComponent implements OnInit {
         this.router.navigate(['/platform/cooperatives']);
       },
       error: (err) => {
-        this.errorMessage = this.resolveErrorMessage(err);
+        this.feedback.serverError(err);
       },
     });
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
-  private resolveErrorMessage(err: any): string {
-    if (err instanceof TimeoutError) {
-      return 'The server took too long to respond. Check that the backend is running and try again.';
-    }
-    const serverMsg: string | undefined = err?.error?.message || err?.error?.error;
-    switch (err?.status) {
-      case 0:
-        return 'Cannot reach the server. Check that the backend is running and try again.';
-      case 400:
-        return serverMsg ?? 'Some fields were rejected by the server. Review your entries and try again.';
-      case 409:
-        return serverMsg ?? 'A cooperative with this name or registration number already exists.';
-      case 422:
-        return serverMsg ?? 'Validation failed — make sure all required fields are filled in correctly.';
-      case 500:
-        return 'The server encountered an unexpected error. Try again, or contact support if this keeps happening.';
-      default:
-        return serverMsg ?? 'Activation failed. Please review your details and try again.';
-    }
-  }
-
-  getFieldError(fieldName: string): string {
+getFieldError(fieldName: string): string {
     const control = this.profileForm.get(fieldName);
     if (control?.touched && control?.errors) {
       if (control.errors['required']) return 'This field is required';
