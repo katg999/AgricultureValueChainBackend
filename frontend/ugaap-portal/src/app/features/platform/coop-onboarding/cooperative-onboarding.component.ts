@@ -31,7 +31,7 @@ import { FormFeedbackService }     from '../../../core/services/form-feedback.se
     InputComponent,
     ButtonComponent,
     ModalComponent,
-    AlertComponent,
+    //AlertComponent,
   ],
   templateUrl: './cooperative-onboarding.component.html',
   styleUrls: ['./cooperative-onboarding.component.css'],

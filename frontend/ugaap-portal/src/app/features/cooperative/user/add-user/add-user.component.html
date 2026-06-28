@@ -234,7 +234,7 @@
           <span class="cred-value cred-value--pw">
             {{ showCreatedPassword ? createdCredentials.password : '••••••••••••' }}
           </span>
-          <button class="cred-copy-btn" type="button"
+          <button title="Toggle password visibility" class="cred-copy-btn" type="button"
             (click)="showCreatedPassword = !showCreatedPassword"
             [title]="showCreatedPassword ? 'Hide password' : 'Show password'">
             <svg *ngIf="!showCreatedPassword" width="15" height="15" viewBox="0 0 24 24" fill="none"
