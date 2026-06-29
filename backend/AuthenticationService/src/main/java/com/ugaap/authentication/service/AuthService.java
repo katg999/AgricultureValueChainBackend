@@ -6,6 +6,7 @@ import com.ugaap.authentication.Entity.Session;
 import com.ugaap.authentication.Repository.AuditLogRepository;
 import com.ugaap.authentication.Repository.CredentialsRepository;
 import com.ugaap.authentication.Repository.SessionRepository;
+import com.ugaap.authentication.service.EmailService;
 import com.ugaap.authentication.dto.*;
 import com.ugaap.shared.client.MembershipServiceClient;
 import com.ugaap.shared.config.AppProperties;
@@ -20,6 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -42,6 +44,7 @@ public class AuthService {
     private final AuditLogRepository      auditLogRepository;
     private final JwtUtil                 jwtUtil;
     private final AppProperties           appProperties;
+    private final EmailService emailService;
     private final PasswordEncoder         passwordEncoder;
     private final StringRedisTemplate     redisTemplate;
     private final MembershipServiceClient membershipServiceClient;
@@ -100,10 +103,13 @@ public class AuthService {
                 5,
                 TimeUnit.MINUTES
         );
-
-        // 8. Send OTP email
-        // TODO: replace with real emailService.send() once wired
-        log.info("LOGIN OTP for {} : {}", credentials.getEmail(), otp);
+        // TODO: replace with real emailService.send() once wired(Send OTP email)
+        try {
+            emailService.sendOtp(credentials.getEmail(), otp);
+        } catch (IOException e) {
+            log.error("Failed to send OTP email to {}: {}", credentials.getEmail(), e.getMessage());
+            throw new AuthException("Failed to send OTP email. Please try again.");
+        }
 
         saveAuditLog(credentials.getUserId(), credentials.getEmail(),
                 AuditLog.EventType.LOGIN, ip, userAgent, true,
