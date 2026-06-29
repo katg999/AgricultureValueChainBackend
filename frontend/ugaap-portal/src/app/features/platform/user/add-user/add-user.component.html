@@ -1,10 +1,9 @@
 <!--
-  Add New User — two-section form using app-form-shell / app-form-section
-  to match the visual style of all other platform forms.
+  Add New User — two-section form using app-form-shell / app-form-section.
 
   Sections:
     1. Personal Details — name, email, phone, DOB, national ID, gender
-    2. Account Access   — role, temporary password, toggles
+    2. Account Access   — role, OTP toggle
 -->
 
 <form [formGroup]="userForm" (ngSubmit)="saveUser()">
@@ -78,7 +77,7 @@
 
     <!-- ── 2. ACCOUNT ACCESS ── -->
     <app-form-section [number]="2" title="Account Access" iconName="lock"
-                      desc="Role, credentials and login settings">
+                      desc="Role and login settings">
 
       <div class="fields-grid cols-2">
         <div class="input-group">
@@ -91,31 +90,6 @@
         </div>
       </div>
 
-      <div class="fields-grid cols-2 mt-16">
-        <app-input
-          label="Temporary Password"
-          type="password"
-          placeholder="••••••••"
-          formControlName="tempPassword"
-          [required]="true"
-          [error]="getFieldError('tempPassword')">
-        </app-input>
-
-        <app-input
-          label="Confirm Temporary Password"
-          type="password"
-          placeholder="••••••••"
-          formControlName="confirmPassword"
-          [required]="true"
-          [error]="getFieldError('confirmPassword')">
-        </app-input>
-      </div>
-
-      <div class="mt-16">
-        <app-password-strength [password]="currentPassword" [showLabel]="true">
-        </app-password-strength>
-      </div>
-
       <div class="mt-16">
         <app-toggle-switch
           label="Require OTP verification on first login"
@@ -126,8 +100,9 @@
       </div>
 
       <div class="mt-16">
-        <app-alert variant="warning">
-          <p>This user will be prompted to change their temporary password on first login. Ensure the phone number is correct — it is used for OTP delivery.</p>
+        <app-alert variant="info">
+          <p>A welcome email with login instructions will be sent to the email address above.
+             Ensure the phone number is correct — it is used for OTP delivery.</p>
         </app-alert>
       </div>
 
@@ -171,7 +146,7 @@
       <h4 class="review-group-title">Account Access</h4>
       <hr class="review-divider">
       <div class="review-row-item"><span class="rl">Role</span><span class="rv">{{ userForm.value.role || '—' }}</span></div>
-      <div class="review-row-item"><span class="rl">Temporary Password</span><span class="rv">••••••</span></div>
+      <div class="review-row-item"><span class="rl">Password</span><span class="rv">Sent via welcome email</span></div>
     </div>
   </div>
 
