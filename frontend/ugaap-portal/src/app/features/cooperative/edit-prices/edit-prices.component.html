@@ -102,27 +102,29 @@
 
       @for (row of flatPrices(); track row.commodity) {
         <div class="commodity-card">
-          <div class="cc-header">
+          <div class="cc-left">
+            <span class="cc-avatar">{{ row.commodity[0] }}</span>
             <span class="cc-name">{{ row.commodity }}</span>
+          </div>
+          <div class="cc-right">
+            @if (canEditCommodityPrices) {
+              <input type="number" class="price-input cc-input"
+                title="Price for {{ row.commodity }}"
+                [(ngModel)]="row.pricePerKg" min="0" step="50" />
+            } @else {
+              <span class="cc-price-display">{{ row.pricePerKg | number:'1.0-0' }}</span>
+            }
+            <span class="cc-unit">UGX / KG</span>
             @if (canEditCommodityPrices) {
               <button type="button" class="remove-commodity-btn"
                 title="Remove {{ row.commodity }}"
                 (click)="removeCommodity(row.commodity)">&times;</button>
             }
           </div>
-          <div class="cc-divider"></div>
-          @if (canEditCommodityPrices) {
-            <input type="number" class="price-input cc-input"
-              title="Price for {{ row.commodity }}"
-              [(ngModel)]="row.pricePerKg" min="0" step="50" />
-          } @else {
-            <span class="cc-price-display">{{ row.pricePerKg | number:'1.0-0' }}</span>
-          }
-          <span class="cc-unit">UGX / KG</span>
         </div>
       }
 
-      <!-- Dashed "add" card — only for users who can edit -->
+      <!-- Add row — only for users who can edit -->
       @if (canEditCommodityPrices) {
         @if (!showAddForm) {
           <button type="button" class="commodity-card commodity-card--add"
@@ -132,25 +134,31 @@
           </button>
         } @else {
           <div class="commodity-card commodity-card--add-open">
-            <input type="text" class="price-input cc-input"
-              [(ngModel)]="newCommodityName"
-              placeholder="Name…"
-              (input)="addCommodityError = ''"
-              (keyup.enter)="addCommodity()" />
-            <input type="number" class="price-input cc-input"
-              [(ngModel)]="newCommodityPrice"
-              placeholder="Price / KG"
-              min="0" step="50"
-              (keyup.enter)="addCommodity()" />
-            <div class="cc-add-actions">
-              <button type="button" class="add-commodity-btn" (click)="addCommodity()">Add</button>
-              <button type="button" class="cc-cancel-btn"
-                (click)="showAddForm = false; addCommodityError = ''">✕</button>
+            <div class="cc-left">
+              <span class="cc-avatar cc-avatar--ghost">+</span>
+              <input type="text" class="price-input cc-name-input"
+                [(ngModel)]="newCommodityName"
+                placeholder="Commodity name…"
+                (input)="addCommodityError = ''"
+                (keyup.enter)="addCommodity()" />
             </div>
-            @if (addCommodityError) {
-              <p class="add-commodity-error">{{ addCommodityError }}</p>
-            }
+            <div class="cc-right">
+              <input type="number" class="price-input cc-input"
+                [(ngModel)]="newCommodityPrice"
+                placeholder="0"
+                min="0" step="50"
+                (keyup.enter)="addCommodity()" />
+              <span class="cc-unit">UGX / KG</span>
+              <div class="cc-add-actions">
+                <button type="button" class="add-commodity-btn" (click)="addCommodity()">Add</button>
+                <button type="button" class="cc-cancel-btn"
+                  (click)="showAddForm = false; addCommodityError = ''">✕</button>
+              </div>
+            </div>
           </div>
+          @if (addCommodityError) {
+            <p class="add-commodity-error">{{ addCommodityError }}</p>
+          }
         }
       }
 

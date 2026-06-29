@@ -113,10 +113,9 @@ const COOPERATIVE_ADMIN_CONFIG: DashboardConfig = {
       route: '/cooperative/organisation-setup',
       permissionModule: 'organisation',
       children: [
-        { label: 'Organisation Profile', icon: '', route: '/cooperative/profile',        permissions: ['organisation.view']      },
-        { label: 'Branches',             icon: '', route: '/cooperative/branches',       permissions: ['branches.view']          },
-        { label: 'Collection Hubs',      icon: '', route: '/cooperative/collection-hubs', permissions: ['collection_hubs.view'] },
-        { label: 'Bank Accounts',        icon: '', route: '/cooperative/bank-accounts',  permissions: ['organisation.bank.view'] },
+        { label: 'Organisation Profile', icon: '', route: '/cooperative/profile',          permissions: ['organisation.view']    },
+        { label: 'Branches',             icon: '', route: '/cooperative/branches',         permissions: ['branches.view']        },
+        { label: 'Collection Hubs',      icon: '', route: '/cooperative/collection-hubs',  permissions: ['collection_hubs.view'] },
       ],
     },
 

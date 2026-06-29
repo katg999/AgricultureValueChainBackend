@@ -1,17 +1,4 @@
-<div class="farmers-page" *ngIf="farmerDeliveries$ | async as pageData">
-
-  <nav class="breadcrumb" aria-label="Breadcrumb">
-    <span class="link" (click)="goToBranchDeliveries()">
-      {{ fromContext === 'cooperative' ? 'Cooperative Deliveries' : 'Branch Deliveries' }}
-    </span>
-    <span class="sep">›</span>
-    <ng-container *ngIf="batchDelivery">
-      <span class="link" (click)="clearBatchFilter()">Farmers</span>
-      <span class="sep">›</span>
-      <span class="current">{{ batchDelivery.id }}</span>
-    </ng-container>
-    <span class="current" *ngIf="!batchDelivery">Farmers</span>
-  </nav>
+<div class="farmers-page" *ngIf="farmerDeliveries$ | async as farmers">
 
   <div class="page-header">
     <div>
@@ -25,83 +12,48 @@
     </button>
   </div>
 
-  <div class="table-card">
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th>Farmer ID</th>
-            <th>Name</th>
-            <th>Commodity</th>
-            <th *ngIf="pricingService.useGrades">Grade</th>
-            <th>Volume</th>
-            <th>Unit Price</th>
-            <th>Gross Value</th>
-            <th>Season</th>
-            <th>Session</th>
-            <th>Status</th>
-          </tr>
-        </thead>
+  <app-data-table
+    [columns]="columns"
+    [rows]="farmers"
+    [paginate]="true"
+    emptyIcon="users"
+    emptyTitle="No farmer deliveries yet"
+    [emptyMessage]="batchDelivery ? 'No farmers have delivered in this batch yet.' : 'No farmer deliveries have been recorded at this branch.'">
 
-        <tbody>
-          <tr *ngFor="let farmer of $any(pageData).content; trackBy: trackByFarmerDeliveryId">
-            <td class="mono">{{ farmer.id }}</td>
-            <td class="fw-600">{{ farmer.farmerName }}</td>
-            <td>{{ farmer.commodity }}</td>
-            <td *ngIf="pricingService.useGrades">{{ farmer.notes || '&mdash;' }}</td>
-            <td>{{ farmer.volume | number }} KG</td>
-            <td>{{ farmer.estimatedValue && farmer.volume ? (formatUGX(farmer.estimatedValue / farmer.volume) + '/KG') : '&mdash;' }}</td>
-            <td>UGX {{ formatUGX(farmer.estimatedValue) }}</td>
-            <td>{{ farmer.season }}</td>
-            <td>{{ sessionLabel(farmer.session) }}</td>
-            <td>
-              <span class="status-badge" [ngClass]="statusClass(farmer.status)">
-                {{ farmer.status }}
-              </span>
-            </td>
-          </tr>
+    <ng-template appCell="id" let-row>
+      <span class="mono">{{ $any(row).id }}</span>
+    </ng-template>
 
-          <tr *ngIf="$any(pageData).content.length === 0">
-            <td [attr.colspan]="pricingService.useGrades ? 10 : 9" class="empty-state">
-              {{ batchDelivery ? 'No farmers have delivered in this batch yet.' : 'No farmer deliveries recorded yet.' }}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <ng-template appCell="farmerName" let-row>
+      <span class="fw-600">{{ $any(row).farmerName }}</span>
+    </ng-template>
 
-    <div class="pagination-section" *ngIf="$any(pageData).totalElements > $any(pageData).size">
-      <span class="pagination-info">
-        Showing Page {{ $any(pageData).number + 1 }} of {{ $any(pageData).totalPages }} 
-        ({{ $any(pageData).totalElements }} items total)
+    <ng-template appCell="grade" let-row>
+      {{ $any(row).grade || '&mdash;' }}
+    </ng-template>
+
+    <ng-template appCell="volume" let-row>
+      {{ $any(row).volume | number }} KG
+    </ng-template>
+
+    <ng-template appCell="unitPrice" let-row>
+      {{ $any(row).unitPrice ? (formatUGX($any(row).unitPrice) + '/KG') : '&mdash;' }}
+    </ng-template>
+
+    <ng-template appCell="estimatedValue" let-row>
+      UGX {{ formatUGX($any(row).estimatedValue) }}
+    </ng-template>
+
+    <ng-template appCell="session" let-row>
+      {{ sessionLabel($any(row).session) }}
+    </ng-template>
+
+    <ng-template appCell="status" let-row>
+      <span class="status-badge" [ngClass]="statusClass($any(row).status)">
+        {{ $any(row).status }}
       </span>
-      <div class="pagination-controls">
-        <button 
-          type="button" 
-          class="btn secondary-action-btn" 
-          (click)="goToPage($any(pageData).number - 1)" 
-          [disabled]="$any(pageData).number === 0">
-          Previous
-        </button>
-        
-        <button
-          type="button"
-          class="btn primary-action-btn">
-          {{ $any(pageData).number + 1 }}
-        </button>
+    </ng-template>
 
-        <button 
-          type="button" 
-          class="btn secondary-action-btn" 
-          (click)="goToPage($any(pageData).number + 1)" 
-          [disabled]="($any(pageData).number + 1) >= $any(pageData).totalPages">
-          Next
-        </button>
-      </div>
-    </div>
-  </div>
+  </app-data-table>
 
 </div>
-
-
-

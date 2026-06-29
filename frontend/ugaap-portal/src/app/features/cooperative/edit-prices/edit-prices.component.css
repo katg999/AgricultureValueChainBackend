@@ -2,9 +2,15 @@
 
 .page {
   max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 32px 48px;
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+
+@media (max-width: 768px) {
+  .page { padding: 16px 16px 32px; }
 }
 
 /* ── heading ──────────────────────────────────────────────── */
@@ -216,123 +222,144 @@
 
 /* ── commodity card grid ──────────────────────────────────── */
 
-/* 2 columns; single column on small screens. */
 .commodity-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
-}
-
-@media (max-width: 480px) {
-  .commodity-grid { grid-template-columns: 1fr; }
-}
-
-.commodity-card {
-  background: #fff;
-  border: 1px solid #E5E7EB;
-  border-left: 4px solid var(--primary);  /* stat-card accent stripe */
-  border-radius: 12px;
-  padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+/* Horizontal row card */
+.commodity-card {
+  background: #fff;
+  border: 1px solid #E5E7EB;
+  border-left: 4px solid var(--primary);
+  border-radius: 10px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  transition: box-shadow 0.15s;
 }
 
 .commodity-card:hover {
-  box-shadow: 0 6px 20px rgba(242, 93, 39, 0.14);
-  transform: translateY(-2px);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
 }
 
-/* Header row: commodity name + remove button */
-.cc-header {
+/* Left: avatar + commodity name */
+.cc-left {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  min-height: 20px;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
 }
 
-/* Matches stat-card .stat-label */
-.cc-name {
-  font-size: 11px;
-  font-weight: 600;
-  color: #6B7280;
+.cc-avatar {
+  width: 36px;
+  height: 36px;
+  background: #FFF5F1;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--primary);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  flex-shrink: 0;
 }
 
-.cc-divider {
-  display: none; /* replaced by spacing via gap */
+.cc-avatar--ghost {
+  background: #F4F3F5;
+  color: #9CA3AF;
 }
 
-/* Matches stat-card .stat-value */
-.cc-price-display {
-  font-family: 'IBM Plex Mono', 'Courier New', monospace;
-  font-size: 28px;
-  font-weight: 700;
+.cc-name {
+  font-size: 14px;
+  font-weight: 600;
   color: #200B26;
-  line-height: 1.1;
-  letter-spacing: -0.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Full-width price input inside the card — styled like the value */
+/* Right: price input + unit + remove */
+.cc-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
 .cc-input {
-  width: 100%;
-  box-sizing: border-box;
-  font-family: 'IBM Plex Mono', 'Courier New', monospace;
-  font-size: 24px;
+  width: 120px;
+  font-family: var(--font-technical);
+  font-size: 15px;
   font-weight: 700;
   color: #200B26;
-  text-align: left;
+  text-align: right;
   background: #F9FAFB;
   border: 1px solid #E5E7EB;
   border-radius: 8px;
-  padding: 10px 12px;
-  letter-spacing: -0.5px;
+  padding: 8px 12px;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
 }
 
 .cc-input:focus {
   background: #fff;
   border-color: var(--primary);
-  outline: none;
 }
 
-/* Matches stat-card .stat-trend */
+.cc-name-input {
+  width: 200px;
+  font-family: var(--font-human);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  color: #200B26;
+}
+
+.cc-price-display {
+  font-family: var(--font-technical);
+  font-size: 15px;
+  font-weight: 700;
+  color: #200B26;
+  min-width: 80px;
+  text-align: right;
+}
+
 .cc-unit {
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.04em;
-  color: #6B7280;
+  color: #9CA3AF;
   text-transform: uppercase;
-  margin-top: auto;
+  white-space: nowrap;
 }
 
-/* Dashed "add" card — no left accent, just a ghost outline */
+/* Dashed "add" row */
 .commodity-card--add {
-  border: 2px dashed #D5D3DC;
-  border-left: 2px dashed #D5D3DC;
+  border: 1.5px dashed #D5D3DC;
+  border-left: 1.5px dashed #D5D3DC;
   background: transparent;
   box-shadow: none;
   cursor: pointer;
-  align-items: center;
   justify-content: center;
-  gap: 6px;
-  min-height: 118px;
-  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+  gap: 8px;
+  transition: border-color 0.15s, background 0.15s;
 }
 
 .commodity-card--add:hover {
   border-color: var(--primary);
-  border-left-color: var(--primary);
   background: #FFF5F0;
   box-shadow: none;
-  transform: translateY(-2px);
 }
 
 .cc-add-icon {
-  font-size: 26px;
-  font-weight: 300;
+  font-size: 18px;
+  font-weight: 400;
   color: #C8C6D0;
   line-height: 1;
   transition: color 0.15s;
@@ -341,7 +368,7 @@
 .commodity-card--add:hover .cc-add-icon { color: var(--primary); }
 
 .cc-add-label {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: #8A8799;
   transition: color 0.15s;
@@ -349,17 +376,16 @@
 
 .commodity-card--add:hover .cc-add-label { color: var(--primary); }
 
-/* Expanded add card (form state) */
+/* Expanded add row */
 .commodity-card--add-open {
-  border: 2px dashed var(--primary);
-  border-left: 2px dashed var(--primary);
-  background: #FFF5F0;
+  border: 1.5px dashed var(--primary);
+  background: #FFFBF9;
   box-shadow: none;
 }
 
 .cc-add-actions {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
 }
 

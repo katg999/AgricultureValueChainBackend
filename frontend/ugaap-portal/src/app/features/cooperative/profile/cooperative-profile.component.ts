@@ -10,7 +10,7 @@ import { ButtonComponent }       from '../../../shared/components/button/button.
 import { ToggleSwitchComponent } from '../../../shared/components/toggle-switch/toggle-switch.component';
 import { HasPermissionDirective } from '../../../shared/directives/has-permission.directive';
 import { ToastService }          from '../../../core/services/toast.service';
-import { CooperativeBankDetails } from '../../../core/services/cooperative.service';
+import { CooperativeBankAccount } from '../../../core/services/cooperative.service';
 import { CooperativePricingService } from '../../../core/services/cooperative-pricing.service';
 
 interface CooperativeProfile {
@@ -20,9 +20,6 @@ interface CooperativeProfile {
   country: string;
   poBox: string;
   websiteUrl: string;
-  contactPersonName: string;
-  contactPersonPhone: string;
-  contactPersonEmail: string;
   memberSince: string;
   status: 'active' | 'suspended';
 }
@@ -75,21 +72,21 @@ export class CooperativeProfileComponent implements OnInit {
     country: 'Uganda',
     poBox: 'P.O. Box 547, Mbale',
     websiteUrl: 'https://bugishu.coop',
-    contactPersonName: 'James Wabwire',
-    contactPersonPhone: '+256772889911',
-    contactPersonEmail: 'admin@bugishu.coop',
     memberSince: '2024-03-18',
     status: 'active',
   };
 
-  bankDetails: CooperativeBankDetails = {
-    bankName: 'Stanbic Bank Uganda',
-    bankBranch: 'Mbale Branch',
-    accountName: 'Bugishu Cooperative Union Ltd',
-    accountNumber: '9030012345678',
-    mobileMoneyProvider: 'MTN MoMo',
-    mobileMoneyNumber: '+256772889911',
-  };
+  // ── Bank accounts — replace with GET /cooperative/profile/bank-accounts ───
+  bankAccounts: CooperativeBankAccount[] = [
+    {
+      id: '1',
+      bankName: 'Stanbic Bank Uganda',
+      bankBranch: 'Mbale Branch',
+      accountName: 'Bugishu Cooperative Union Ltd',
+      accountNumber: '9030012345678',
+      isPrimary: true,
+    },
+  ];
 
   // ── Operational modules ────────────────────────────────────────────────────
 
@@ -133,46 +130,93 @@ export class CooperativeProfileComponent implements OnInit {
     }, 800);
   }
 
-  // ── Bank details ───────────────────────────────────────────────────────────
+  // ── Bank accounts ──────────────────────────────────────────────────────────
 
-  isEditingBank = false;
-  isSaving      = false;
+  showAccountForm   = false;
+  editingAccountId: string | null = null;  // null = adding new
+  isSavingAccount   = false;
 
-  bankForm = this.fb.group({
-    bankName:            ['', Validators.required],
-    bankBranch:          [''],
-    accountName:         ['', Validators.required],
-    accountNumber:       ['', [Validators.required, Validators.pattern(/^\d{6,20}$/)]],
-    mobileMoneyProvider: [''],
-    mobileMoneyNumber:   [''],
+  accountForm = this.fb.group({
+    bankName:      ['', Validators.required],
+    bankBranch:    [''],
+    accountName:   ['', Validators.required],
+    accountNumber: ['', [Validators.required, Validators.pattern(/^\d{6,20}$/)]],
   });
 
-  startEditingBank(): void {
-    this.bankForm.patchValue(this.bankDetails);
-    this.isEditingBank = true;
+  maskNumber(n: string): string {
+    return n.length > 4 ? '•'.repeat(n.length - 4) + n.slice(-4) : n;
   }
 
-  cancelEditingBank(): void { this.isEditingBank = false; }
-
-  saveBankDetails(): void {
-    if (this.bankForm.invalid) { this.bankForm.markAllAsTouched(); return; }
-    // Replace with: PUT /cooperative/profile/bank-details
-    this.bankDetails  = this.bankForm.value as CooperativeBankDetails;
-    this.isEditingBank = false;
-    this.toast.success('Bank details updated', 'New disbursements will use the updated account.');
+  openAddAccountForm(): void {
+    this.editingAccountId = null;
+    this.accountForm.reset();
+    this.showAccountForm = true;
   }
 
-  getBankFieldError(field: string): string {
-    const ctrl = this.bankForm.get(field);
+  openEditAccountForm(account: CooperativeBankAccount): void {
+    this.editingAccountId = account.id;
+    this.accountForm.patchValue(account);
+    this.showAccountForm = true;
+  }
+
+  cancelAccountForm(): void {
+    this.showAccountForm   = false;
+    this.editingAccountId  = null;
+    this.accountForm.reset();
+  }
+
+  saveAccount(): void {
+    if (this.accountForm.invalid) { this.accountForm.markAllAsTouched(); return; }
+    const val = this.accountForm.value;
+
+    if (this.editingAccountId) {
+      // Replace with: PUT /cooperative/profile/bank-accounts/:id
+      this.bankAccounts = this.bankAccounts.map(a =>
+        a.id === this.editingAccountId ? { ...a, ...val } : a,
+      ) as CooperativeBankAccount[];
+      this.toast.success('Account updated', 'Bank account details have been saved.');
+    } else {
+      // Replace with: POST /cooperative/profile/bank-accounts
+      const isFirst = this.bankAccounts.length === 0;
+      const added: CooperativeBankAccount = {
+        id:            Date.now().toString(),
+        bankName:      val.bankName!,
+        bankBranch:    val.bankBranch || undefined,
+        accountName:   val.accountName!,
+        accountNumber: val.accountNumber!,
+        isPrimary:     isFirst,  // first account auto-becomes primary
+      };
+      this.bankAccounts = [...this.bankAccounts, added];
+      this.toast.success('Account added', isFirst ? 'Set as primary account.' : 'Bank account saved.');
+    }
+
+    this.cancelAccountForm();
+  }
+
+  setPrimary(id: string): void {
+    // Replace with: PATCH /cooperative/profile/bank-accounts/:id/primary
+    this.bankAccounts = this.bankAccounts.map(a => ({ ...a, isPrimary: a.id === id }));
+    this.toast.success('Primary account updated', 'Farmer disbursements will use this account.');
+  }
+
+  deleteAccount(account: CooperativeBankAccount): void {
+    if (account.isPrimary) {
+      this.toast.error('Cannot delete primary account', 'Set another account as primary first.');
+      return;
+    }
+    if (confirm(`Delete the "${account.bankName}" account ending in ${account.accountNumber.slice(-4)}?`)) {
+      // Replace with: DELETE /cooperative/profile/bank-accounts/:id
+      this.bankAccounts = this.bankAccounts.filter(a => a.id !== account.id);
+      this.toast.success('Account removed', 'Bank account has been deleted.');
+    }
+  }
+
+  getAccountFieldError(field: string): string {
+    const ctrl = this.accountForm.get(field);
     if (ctrl?.touched && ctrl?.errors) {
       if (ctrl.errors['required']) return 'This field is required';
       if (ctrl.errors['pattern'])  return 'Account number must be 6–20 digits';
     }
     return '';
-  }
-
-  get maskedAccountNumber(): string {
-    const n = this.bankDetails.accountNumber;
-    return n.length > 4 ? '•'.repeat(n.length - 4) + n.slice(-4) : n;
   }
 }

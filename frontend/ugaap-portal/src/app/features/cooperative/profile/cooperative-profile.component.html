@@ -11,107 +11,136 @@
   <!-- ORGANISATION -->
   <app-info-card title="ORGANISATION">
     <dl class="detail-list">
-      <div class="detail-item">
-        <dt>Cooperative name</dt>
-        <dd>{{ profile.name }}</dd>
-      </div>
-      <div class="detail-item">
-        <dt>Registration number</dt>
-        <dd class="mono">{{ profile.registrationNumber }}</dd>
-      </div>
-      <div class="detail-item">
-        <dt>Address</dt>
-        <dd>{{ profile.address }}</dd>
-      </div>
-      <div class="detail-item">
-        <dt>Country</dt>
-        <dd>{{ profile.country }}</dd>
-      </div>
-      <div class="detail-item">
-        <dt>P.O. Box</dt>
-        <dd>{{ profile.poBox }}</dd>
-      </div>
-      <div class="detail-item">
-        <dt>Website</dt>
-        <dd>{{ profile.websiteUrl }}</dd>
-      </div>
-      <div class="detail-item">
-        <dt>Member since</dt>
-        <dd class="mono">{{ profile.memberSince }}</dd>
-      </div>
-    </dl>
-  </app-info-card>
-
-  <!-- CONTACT PERSON -->
-  <app-info-card title="CONTACT PERSON">
-    <dl class="detail-list">
-      <div class="detail-item">
-        <dt>Name</dt>
-        <dd>{{ profile.contactPersonName }}</dd>
-      </div>
-      <div class="detail-item">
-        <dt>Phone</dt>
-        <dd class="mono">{{ profile.contactPersonPhone }}</dd>
-      </div>
-      <div class="detail-item">
-        <dt>Email</dt>
-        <dd>{{ profile.contactPersonEmail }}</dd>
-      </div>
-    </dl>
-  </app-info-card>
-
-  <!-- BANK DETAILS -->
-  <app-info-card title="BANK DETAILS">
-
-    <ng-container *ngIf="!isEditingBank">
-      <dl class="detail-list">
         <div class="detail-item">
-          <dt>Bank</dt>
-          <dd>{{ bankDetails.bankName }}</dd>
+          <dt>Cooperative name</dt>
+          <dd>{{ profile.name }}</dd>
         </div>
         <div class="detail-item">
-          <dt>Branch</dt>
-          <dd>{{ bankDetails.bankBranch || '—' }}</dd>
+          <dt>Registration number</dt>
+          <dd class="mono">{{ profile.registrationNumber }}</dd>
         </div>
         <div class="detail-item">
-          <dt>Account name</dt>
-          <dd>{{ bankDetails.accountName }}</dd>
+          <dt>Address</dt>
+          <dd>{{ profile.address }}</dd>
         </div>
         <div class="detail-item">
-          <dt>Account number</dt>
-          <dd class="mono">{{ maskedAccountNumber }}</dd>
+          <dt>Country</dt>
+          <dd>{{ profile.country }}</dd>
         </div>
         <div class="detail-item">
-          <dt>Mobile money</dt>
-          <dd>
-            {{ bankDetails.mobileMoneyProvider ? bankDetails.mobileMoneyProvider + ' · ' + bankDetails.mobileMoneyNumber : '—' }}
-          </dd>
+          <dt>P.O. Box</dt>
+          <dd>{{ profile.poBox }}</dd>
+        </div>
+        <div class="detail-item">
+          <dt>Website</dt>
+          <dd>{{ profile.websiteUrl }}</dd>
+        </div>
+        <div class="detail-item">
+          <dt>Member since</dt>
+          <dd class="mono">{{ profile.memberSince }}</dd>
         </div>
       </dl>
-      <div class="card-actions">
-        <app-button
-          *hasPermission="'organisation.edit'"
-          variant="secondary" size="md" type="button"
-          (clicked)="startEditingBank()">
-          Edit bank details
-        </app-button>
-      </div>
-    </ng-container>
+    </app-info-card>
 
-    <form *ngIf="isEditingBank" [formGroup]="bankForm" (ngSubmit)="saveBankDetails()">
-      <div class="form-grid">
-        <app-input label="Bank name"      type="text" formControlName="bankName"      [required]="true" [error]="getBankFieldError('bankName')"></app-input>
-        <app-input label="Bank branch"    type="text" formControlName="bankBranch"></app-input>
-        <app-input label="Account name"   type="text" formControlName="accountName"   [required]="true" [error]="getBankFieldError('accountName')"></app-input>
-        <app-input label="Account number" type="text" formControlName="accountNumber" [required]="true" hint="Digits only, 6–20 characters" [error]="getBankFieldError('accountNumber')"></app-input>
-        <app-input label="Mobile money provider" type="text" formControlName="mobileMoneyProvider" hint="Optional — MTN, Airtel, etc."></app-input>
-        <app-input label="Mobile money number"   type="text" formControlName="mobileMoneyNumber"></app-input>
+    <!-- BANK ACCOUNTS -->
+  <app-info-card title="BANK ACCOUNTS">
+
+    <!-- Empty state -->
+    <p *ngIf="bankAccounts.length === 0 && !showAccountForm" class="accounts-empty">
+      No bank accounts added yet. Add one to enable farmer disbursements.
+    </p>
+
+    <!-- Account cards grid -->
+    <div *ngIf="bankAccounts.length > 0" class="accounts-grid">
+      <div
+        *ngFor="let account of bankAccounts"
+        class="account-card"
+        [class.account-card--primary]="account.isPrimary">
+
+        <div class="account-card-header">
+          <div class="account-bank-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="10" width="18" height="11" rx="2"/>
+              <path d="M3 10l9-7 9 7"/>
+              <line x1="12" y1="10" x2="12" y2="21"/>
+              <line x1="7"  y1="14" x2="7"  y2="21"/>
+              <line x1="17" y1="14" x2="17" y2="21"/>
+            </svg>
+          </div>
+          <span *ngIf="account.isPrimary" class="account-badge">Primary</span>
+        </div>
+
+        <div class="account-card-body">
+          <p class="account-bank-name">{{ account.bankName }}</p>
+          <p class="account-name">{{ account.accountName }}</p>
+          <p class="account-number mono">{{ maskNumber(account.accountNumber) }}</p>
+          <p *ngIf="account.bankBranch" class="account-branch">{{ account.bankBranch }}</p>
+        </div>
+
+        <div class="account-card-actions" *hasPermission="'organisation.edit'">
+          <button
+            *ngIf="!account.isPrimary"
+            class="acct-btn acct-btn--set-primary"
+            type="button"
+            (click)="setPrimary(account.id)">
+            Set primary
+          </button>
+          <button
+            class="acct-btn acct-btn--icon"
+            type="button"
+            title="Edit account"
+            (click)="openEditAccountForm(account)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+          </button>
+          <button
+            class="acct-btn acct-btn--icon acct-btn--danger"
+            type="button"
+            title="Delete account"
+            [disabled]="account.isPrimary"
+            (click)="deleteAccount(account)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6l-1 14H6L5 6"/>
+              <path d="M10 11v6M14 11v6"/>
+              <path d="M9 6V4h6v2"/>
+            </svg>
+          </button>
+        </div>
+
       </div>
-      <div class="card-actions">
-        <app-button variant="ghost"   size="md" type="button" (clicked)="cancelEditingBank()">Cancel</app-button>
-        <app-button variant="primary" size="md" type="submit" [loading]="isSaving" loadingText="Saving...">Save bank details</app-button>
-      </div>
-    </form>
+    </div>
+
+    <!-- Add button (hidden while form is open) -->
+    <div *ngIf="!showAccountForm" class="card-actions">
+      <app-button
+        *hasPermission="'organisation.edit'"
+        variant="secondary" size="md" iconLeft="+"
+        (clicked)="openAddAccountForm()">
+        Add bank account
+      </app-button>
+    </div>
+
+    <!-- Inline add / edit form -->
+    <div *ngIf="showAccountForm" class="account-form-wrapper">
+      <h4 class="account-form-title">{{ editingAccountId ? 'Edit account' : 'New bank account' }}</h4>
+      <form [formGroup]="accountForm" (ngSubmit)="saveAccount()">
+        <div class="form-grid">
+          <app-input label="Bank name"      type="text" formControlName="bankName"      [required]="true" [error]="getAccountFieldError('bankName')"></app-input>
+          <app-input label="Bank branch"    type="text" formControlName="bankBranch"    hint="Optional"></app-input>
+          <app-input label="Account name"   type="text" formControlName="accountName"   [required]="true" [error]="getAccountFieldError('accountName')"></app-input>
+          <app-input label="Account number" type="text" formControlName="accountNumber" [required]="true" hint="Digits only, 6–20 characters" [error]="getAccountFieldError('accountNumber')"></app-input>
+        </div>
+        <div class="card-actions">
+          <app-button variant="ghost"   size="md" type="button" (clicked)="cancelAccountForm()">Cancel</app-button>
+          <app-button variant="primary" size="md" type="submit">
+            {{ editingAccountId ? 'Save changes' : 'Add account' }}
+          </app-button>
+        </div>
+      </form>
+    </div>
 
   </app-info-card>
 

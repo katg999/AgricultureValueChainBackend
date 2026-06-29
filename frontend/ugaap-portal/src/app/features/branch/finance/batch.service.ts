@@ -4,7 +4,7 @@
 
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { BatchRecord, BatchStatus } from './batch.model';
+import { BatchRecord, BatchStatus } from '../../cooperative/finance/batch-record.model';
 import { MOCK_COOPERATIVE_BATCHES } from '../../../core/mock/mock-cooperative';
 
 // providedIn: 'root' means Angular creates ONE shared instance of this class

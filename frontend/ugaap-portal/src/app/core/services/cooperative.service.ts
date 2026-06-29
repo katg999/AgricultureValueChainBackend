@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
 
-/** Settlement details for farmer payment disbursements */
+/** Legacy single-account shape — kept for CreateCooperativeRequest onboarding payload */
 export interface CooperativeBankDetails {
   bankName: string;
   bankBranch?: string;
@@ -11,6 +11,16 @@ export interface CooperativeBankDetails {
   accountNumber: string;
   mobileMoneyProvider?: string;
   mobileMoneyNumber?: string;
+}
+
+/** One entry in a cooperative's list of bank accounts */
+export interface CooperativeBankAccount {
+  id: string;
+  bankName: string;
+  bankBranch?: string;
+  accountName: string;
+  accountNumber: string;
+  isPrimary: boolean;
 }
 
 export interface CooperativeAdminRequest {

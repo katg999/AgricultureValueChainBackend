@@ -19,9 +19,9 @@ export const INVENTORY_ROUTES: Routes = [
         .then(m => m.CurrentStockComponent)
   },
   {
-    path: 'issue-stock',
+    path: 'issue-input',
     canActivate: [permissionGuard],
-    data: { title: 'Issue Stock', permissions: ['inventory.issue'] },
+    data: { title: 'Issue Input', permissions: ['inventory.issue'] },
     loadComponent: () =>
       import('./issue-stock/issue-stock.component')
         .then(m => m.IssueStockComponent)

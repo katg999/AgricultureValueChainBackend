@@ -6,31 +6,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { FarmerListItem, FarmerProfile, FarmerStatus } from '../models/farmer.model';
-
-// ── Cooperatives (used by farmer registration dropdowns) ──────────────────────
-
-export const MOCK_COOPERATIVES: Array<{
-  id: string;
-  name: string;
-  branches: Array<{ id: string; name: string; cooperativeId: string }>;
-}> = [
-  {
-    id: 'COOP-UG-001',
-    name: 'Bugisu Coffee Farmers Cooperative',
-    branches: [
-      { id: 'BR-MBL', name: 'Mbale Branch',   cooperativeId: 'COOP-UG-001' },
-      { id: 'BR-JIN', name: 'Jinja Branch',    cooperativeId: 'COOP-UG-001' },
-    ],
-  },
-  {
-    id: 'COOP-UG-002',
-    name: 'Banyankole Kweterana',
-    branches: [
-      { id: 'BR-MBA', name: 'Mbarara Branch',  cooperativeId: 'COOP-UG-002' },
-      { id: 'BR-KLA', name: 'Kampala Central', cooperativeId: 'COOP-UG-002' },
-    ],
-  },
-];
+export { MOCK_COOPERATIVES } from './mock-cooperative';
 
 // ── Farmer list (shown in the farmer directory) ────────────────────────────────
 
@@ -39,7 +15,7 @@ export const MOCK_FARMER_LIST: FarmerListItem[] = [
   { id: 'UG-F-01002', name: 'Moses Okello',   branchId: 'BR-GUL', branch: 'Gulu Branch',     primaryCommodity: 'Maize',  creditLimit: '900,000',   balance: '450,000',  status: 'Pending',   stage: 'Verified'   },
   { id: 'UG-F-01003', name: 'Sarah Namutebi', branchId: 'BR-JIN', branch: 'Jinja Branch',    primaryCommodity: 'Vanilla',creditLimit: '2,100,000', balance: '260,000',  status: 'Active',    stage: 'Financed'   },
   { id: 'UG-F-01004', name: 'Peter Mugisha',  branchId: 'BR-MBA', branch: 'Mbarara Branch',  primaryCommodity: 'Coffee', creditLimit: '1,200,000', balance: '0',        status: 'Active',    stage: 'Verified'   },
-  { id: 'UG-F-01005', name: 'Grace Atim',     branchId: 'BR-MBL', branch: 'Mbale Branch',    primaryCommodity: 'Beans',  creditLimit: '800,000',   balance: '150,000',  status: 'Rejected',  stage: 'Registered' },
+  { id: 'UG-F-01005', name: 'Grace Atim',     branchId: 'BR-MBL', branch: 'Mbale West',    primaryCommodity: 'Beans',  creditLimit: '800,000',   balance: '150,000',  status: 'Rejected',  stage: 'Registered' },
   { id: 'UG-F-01006', name: 'Daniel Kato',    branchId: 'BR-KLA', branch: 'Kampala Central', primaryCommodity: 'Maize',  creditLimit: '1,100,000', balance: '210,000',  status: 'Suspended', stage: 'Financed'   },
   // Mbale West — match dev mock session (BR-MBL)
   { id: 'UG-F-01007', name: 'Dennis Ojok',    branchId: 'BR-MBL', branch: 'Mbale West',      primaryCommodity: 'Maize',  creditLimit: '950,000',   balance: '430,000',  status: 'Active',    stage: 'Financed'   },

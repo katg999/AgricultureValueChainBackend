@@ -49,24 +49,6 @@ export const BRANCH_COLLECTIONS_ROUTES: Routes = [
         .then(m => m.AddFarmerDeliveryComponent),
   },
 
-  // Delivery detail view
-  {
-    path: 'deliveries/:id',
-    canActivate: [permissionGuard],
-    data: { title: 'Delivery Details', permissions: ['collections.view'] },
-    loadComponent: () =>
-      import('./farmer-delivery/farmer-delivery.component')
-        .then(m => m.FarmerDeliveriesComponent),
-  },
-  {
-    path: 'deliveries/:id/farmer-disbursements',
-    canActivate: [permissionGuard],
-    data: { title: 'Farmer Disbursements', permissions: ['collections.view'] },
-    loadComponent: () =>
-      import('./farmer-delivery/farmer-delivery.component')
-        .then(m => m.FarmerDeliveriesComponent),
-  },
-
   // Legacy paths used by the branch dashboard — redirect to canonical routes
   { path: 'farmer-deliveries/create', redirectTo: 'deliveries/add', pathMatch: 'full' },
   { path: 'farmer-delivery/create',   redirectTo: 'deliveries/add', pathMatch: 'full' },

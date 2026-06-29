@@ -6,7 +6,7 @@
 
 import { SeasonWindow } from '../models/season-config.model';
 import { DeliverySessionWindow } from '../models/delivery-session.model';
-import { BatchRecord } from '../../features/branch/finance/batch.model';
+import { BatchRecord } from '../../features/cooperative/finance/batch-record.model';
 
 // ── Cooperatives ──────────────────────────────────────────────────────────────
 

@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { permissionGuard } from '../../core/guards/permission.guard';
+import { permissionGuard } from '../../../core/guards/permission.guard';
 
 export const INVENTORY_ROUTES: Routes = [
   {

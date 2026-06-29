@@ -25,6 +25,7 @@ import { MOCK_PAYMENT_FARMERS } from '../../../../core/mock/mock-farmer';
 const BRANCH_NAMES: Record<string, string> = {
   'BR-MBL': 'Mbale West',
   'BR-KAS': 'Kasese',
+  'BR-MBA': 'Mbarara Branch',
 };
 
 // providedIn: 'root' = one shared instance for the whole app
@@ -32,7 +33,7 @@ const BRANCH_NAMES: Record<string, string> = {
 export class PaymentBatchService {
   // Tracks the next ID to use when creating a batch locally (while no real API exists).
   // Starts at 4 because the seed data already uses 1, 2, 3.
-  private nextBatchId = 4;
+  private nextBatchId = 5; // seed data uses BATCH-001..BATCH-004
 
   // Farmer seed sourced from core/mock/mock-farmer.ts — cast satisfies FarmerRecord[].
   private readonly farmerSeed: FarmerRecord[] = MOCK_PAYMENT_FARMERS as FarmerRecord[];
