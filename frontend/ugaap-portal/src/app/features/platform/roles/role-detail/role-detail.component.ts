@@ -6,6 +6,7 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 import { RoleCardData } from '../../../../shared/components/role-card/role-card.component';
 import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
 import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
+import { MOCK_ROLES } from '../../../../core/mock/mock-cooperative';
 
 interface AssignedUser {
   id: string;
@@ -37,14 +38,7 @@ export class RoleDetailComponent implements OnInit {
     { key: 'assignedAt', header: 'Assigned', class: 'muted' },
   ];
 
-  // Shared mock roles — same data as roles-list
-  private readonly allRoles: RoleCardData[] = [
-    { id: '1', name: 'Platform Admin',      description: 'Full system access with all permissions',           permissionsCount: 48, usersCount: 12, isSystem: true,  createdAt: '2023-01-15' },
-    { id: '2', name: 'Cooperative Admin',   description: 'Manage cooperative operations and members',         permissionsCount: 32, usersCount: 45, isSystem: true,  createdAt: '2023-01-15' },
-    { id: '3', name: 'Logistics Manager',   description: 'Manage inventory, shipments, and logistics',        permissionsCount: 24, usersCount: 18, isSystem: false, createdAt: '2023-03-20' },
-    { id: '4', name: 'Accountant',          description: 'Financial reporting and transaction management',     permissionsCount: 16, usersCount: 8,  isSystem: false, createdAt: '2023-04-10' },
-    { id: '5', name: 'Field Officer',       description: 'On-ground data collection and farmer registration', permissionsCount: 12, usersCount: 67, isSystem: false, createdAt: '2024-02-05' },
-  ];
+  private readonly allRoles: RoleCardData[] = MOCK_ROLES as RoleCardData[];
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id') ?? '';

@@ -126,7 +126,7 @@
         </div>
         <div class="bank-badge__text">
           <span class="bank-badge__name">Pearl Bank</span>
-          <span class="bank-badge__sub">Formerly Post Bank Uganda · Fixed for all UGAAP cooperatives</span>
+          <span class="bank-badge__sub">Tentatively fixed for all UGAAP cooperatives</span>
         </div>
         <span class="bank-badge__lock">FIXED</span>
       </div>
@@ -245,7 +245,10 @@
         <app-input
           label="National ID Number"
           type="text"
-          placeholder="CF9200000XXX"
+          placeholder="e.g. CM95012A345B6C"
+          [uppercase]="true"
+          hint="14 alphanumeric characters"
+          [error]="getFieldError('admin1NationalId')"
           formControlName="admin1NationalId">
         </app-input>
 
@@ -338,7 +341,10 @@
         <app-input
           label="National ID Number"
           type="text"
-          placeholder="CF9200000XXX"
+          placeholder="e.g. CM95012A345B6C"
+          [uppercase]="true"
+          hint="14 alphanumeric characters"
+          [error]="getFieldError('admin2NationalId')"
           formControlName="admin2NationalId">
         </app-input>
 
@@ -417,23 +423,6 @@
     </div>
 
     <div class="review-group">
-      <h4 class="review-group-title">Contact</h4>
-      <hr class="review-divider">
-      <div class="review-row-item">
-        <span class="rl">Contact Person</span>
-        <span class="rv">{{ formValue.contactPersonName || '—' }}</span>
-      </div>
-      <div class="review-row-item">
-        <span class="rl">Email</span>
-        <span class="rv">{{ formValue.contactPersonEmail || '—' }}</span>
-      </div>
-      <div class="review-row-item">
-        <span class="rl">Phone</span>
-        <span class="rv">{{ formValue.contactPersonPhone || '—' }}</span>
-      </div>
-    </div>
-
-    <div class="review-group">
       <h4 class="review-group-title">Bank Account</h4>
       <hr class="review-divider">
       <div class="review-row-item">
@@ -485,10 +474,6 @@
     </div>
 
   </div>
-
-  <app-alert variant="error" *ngIf="errorMessage">
-    <p>{{ errorMessage }}</p>
-  </app-alert>
 
   <div class="modal-actions" footer>
     <button type="button" class="btn-secondary" (click)="closeConfirmModal()" [disabled]="isLoading">

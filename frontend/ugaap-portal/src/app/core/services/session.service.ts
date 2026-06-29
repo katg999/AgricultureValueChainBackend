@@ -2,18 +2,7 @@ import { Injectable, signal, computed } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthUser } from '../models/auth.model';
 import { environment } from '../../../environments/environment';
-
-const DEV_MOCK_USER: AuthUser = {
-  id: 'DEV-COOP-001',
-  fullName: 'Demo Cooperative Admin',
-  email: 'admin@ugaap.dev',
-  phone: '0700000001',
-  role: 'cooperative_admin',
-  tenantId: 'dev-tenant',
-  cooperativeId: 'COOP-001',
-  branchId: 'BR-MBL', // Mbale West — has the most seed delivery data
-  permissions: [],
-};
+import { DEV_MOCK_USER } from '../mock/mock-auth';
 
 const KEYS = {
   ACCESS_TOKEN: 'ugaap_access_token',

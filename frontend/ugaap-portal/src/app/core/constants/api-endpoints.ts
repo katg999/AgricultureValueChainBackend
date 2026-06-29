@@ -22,10 +22,6 @@ export const API_ENDPOINTS = {
     RESEND_OTP: `${BASE}/auth/resend-otp`,
   },
 
-  MAKER_CHECKER: {
-    SETUP: `${BASE}/api/v1/maker-checker/setup`,
-  },
-
   // ── Platform Admin ──────────────────────────────────────────────────────────
   PLATFORM: {
     COOPERATIVES: `${BASE}/api/v1/cooperatives`,
