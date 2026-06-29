@@ -1,318 +1,215 @@
-<!-- edit-prices.component.html -->
+<!-- edit-prices.component.html
+     Unified commodity pricing page for cooperative admins.
+     One table that switches between two datasets via the grade mode toggle. -->
+
 <div class="page">
 
+  <!-- ── Page header ──────────────────────────────────────────────────────── -->
   <div class="page-header">
-  <!-- ── Page heading ──────────────────────────────────────────────────── -->
-  <!-- <div class="page-header">
     <div>
-      <h1 class="page-title">Cooperative Pricing</h1>
+      <h1 class="page-title">Commodity Prices</h1>
       <p class="page-subtitle">
-        Configure how commodity prices are assigned to farmer deliveries.
-        Changes take effect on the next delivery recorded.
+        Set the prices paid to farmers for commodities delivered at your branches.
+        {{ gradeMode() ? 'Grade mode is ON — prices vary by quality grade.' : 'Flat mode — one price per commodity.' }}
       </p>
     </div>
-    <button class="btn-back" (click)="router.navigate(['/cooperative/grade-config'])">
-      &larr; Back to Grading
-    </button>
-  </div> -->
+    <app-button variant="primary" size="md" (clicked)="openAdd()">
+      + Add Price
+    </app-button>
+  </div>
 
-  @if (error()) {
-    <div class="error-bar">{{ error() }}</div>
-  }
-
-  <!-- ── Grade mode toggle ──────────────────────────────────────────────── -->
-  <!-- This single switch controls the entire cooperative's pricing mode.
-       All branches are affected — think carefully before switching. -->
+  <!-- ── Grade mode toggle card ────────────────────────────────────────────── -->
+  <!-- Flipping this toggle switches which dataset is shown in the table below.
+       The two datasets (flat rows and grade rows) are stored separately — no data is lost when toggling. -->
   <div class="section-card">
     <div class="toggle-row">
       <div>
         <h2 class="sec-title">Grade-Based Pricing</h2>
         <p class="toggle-desc">
-          <strong>OFF</strong> — one flat price per commodity for the whole cooperative.<br>
-          <strong>ON</strong> &nbsp;— prices vary by commodity, grade, and branch (richer, more accurate).
+          <strong>OFF</strong> — one flat price per commodity (e.g. Maize = 2,500 UGX/kg for all grades).<br>
+          <strong>ON</strong> &nbsp;— prices vary by commodity and quality grade (e.g. Grade A Maize = 3,250 UGX/kg).<br>
+          Each row can apply to <em>All Branches</em> or a specific branch — branch-specific rows
+          override the cooperative-wide price for that branch.
         </p>
       </div>
       <label class="toggle-switch" title="Toggle grade-based pricing">
         <input
           type="checkbox"
-          [checked]="useGrades"
-          (change)="toggleGrades()"
+          [checked]="gradeMode()"
+          (change)="toggleMode()"
           aria-label="Enable grade-based pricing" />
-        <span class="toggle-track">
-          <span class="toggle-thumb"></span>
-        </span>
+        <span class="toggle-track"><span class="toggle-thumb"></span></span>
       </label>
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════════════════════════════════
-       MODE: FLAT COMMODITY PRICES  (shown when grade mode is OFF)
-       ══════════════════════════════════════════════════════════════════════ -->
+  <!-- ── Pricing table ─────────────────────────────────────────────────────── -->
+  <!-- columns getter adds/removes the Grade column based on gradeMode().
+       activeRows getter switches between the flat and grade datasets. -->
+  <app-data-table
+    [columns]="columns"
+    [rows]="activeRows"
+    [paginate]="true"
+    emptyIcon="tag"
+    emptyTitle="No prices set yet"
+    [emptyMessage]="gradeMode()
+      ? 'Add a grade + commodity price entry to get started.'
+      : 'Add a flat commodity price entry to get started.'">
 
-  @if (!useGrades && canViewCommodityPrices) {
-  <div class="section-card">
-    <div class="section-heading">
-      <span class="sec-icon sec-icon--orange">
-        <!-- UGX coin icon -->
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-          stroke="#F25D27" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="12" y1="1" x2="12" y2="23"/>
-          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-        </svg>
+    <!-- Grade column: code pill (e.g. "A") + grade name (e.g. "Premium") -->
+    <ng-template appCell="grade" let-row>
+      <div class="grade-cell">
+        <span class="code-pill">{{ $any(row).gradeCode }}</span>
+        <span class="grade-name">{{ $any(row).gradeName }}</span>
+      </div>
+    </ng-template>
+
+    <!-- Price column: formatted number + UGX/kg label -->
+    <ng-template appCell="pricePerKg" let-row>
+      <span class="price-val">{{ formatUGX($any(row).pricePerKg) }}</span>
+      <span class="price-unit"> UGX/kg</span>
+    </ng-template>
+
+    <!-- Branch column: "All Branches" badge (grey) or specific branch name (orange) -->
+    <ng-template appCell="branch" let-row>
+      <span class="branch-badge"
+        [class.branch-badge--all]="$any(row).branch === 'all'"
+        [class.branch-badge--specific]="$any(row).branch !== 'all'">
+        {{ branchLabel($any(row).branch) }}
       </span>
-      <h2 class="sec-title">Flat Commodity Prices</h2>
-    </div>
-    <!-- Branch selector: pick a branch to set its own flat prices, or leave as
-         "All branches" to edit the cooperative-wide default. -->
-    <div class="flat-branch-picker">
-      <label class="field-label">Assign prices to</label>
-      <div class="select-wrap">
-        <select  title="Select a branch" class="branch-select"
-          [ngModel]="selectedFlatBranch()"
-          (ngModelChange)="onFlatBranchChange($event)">
-          <option value="">All branches (cooperative default)</option>
-          @for (b of branches(); track b.id) {
-            <option [value]="b.id">{{ b.name }}</option>
-          }
-        </select>
-        <svg class="select-chevron" width="14" height="14" viewBox="0 0 24 24"
-          fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="6 9 12 15 18 9"/>
-        </svg>
-      </div>
-      <!-- Context hint beneath the dropdown -->
-      @if (selectedFlatBranch()) {
-        <p class="flat-context-hint flat-context-hint--branch">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+    </ng-template>
+
+    <!-- Date columns: format the stored YYYY-MM-DD string -->
+    <ng-template appCell="effectiveFrom" let-row>
+      {{ $any(row).effectiveFrom | date:'d MMM y' }}
+    </ng-template>
+
+    <ng-template appCell="effectiveTo" let-row>
+      {{ $any(row).effectiveTo | date:'d MMM y' }}
+    </ng-template>
+
+    <!-- Actions column: edit + delete icon buttons per row -->
+    <ng-template appCell="actions" let-row>
+      <div class="row-actions">
+        <button class="action-btn" title="Edit this price entry" (click)="openEdit($any(row))">
+          <!-- Pencil icon -->
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
-            <line x1="12" y1="16" x2="12.01" y2="16"/>
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
           </svg>
-          Editing prices for this branch only. Other branches keep their own prices or the cooperative default.
-        </p>
-      } @else {
-        <p class="flat-context-hint">
-          These prices apply to all branches that have no branch-specific override set.
-        </p>
-      }
-    </div>
-
-    <div class="commodity-grid">
-
-      @for (row of flatPrices(); track row.commodity) {
-        <div class="commodity-card">
-          <div class="cc-left">
-            <span class="cc-avatar">{{ row.commodity[0] }}</span>
-            <span class="cc-name">{{ row.commodity }}</span>
-          </div>
-          <div class="cc-right">
-            @if (canEditCommodityPrices) {
-              <input type="number" class="price-input cc-input"
-                title="Price for {{ row.commodity }}"
-                [(ngModel)]="row.pricePerKg" min="0" step="50" />
-            } @else {
-              <span class="cc-price-display">{{ row.pricePerKg | number:'1.0-0' }}</span>
-            }
-            <span class="cc-unit">UGX / KG</span>
-            @if (canEditCommodityPrices) {
-              <button type="button" class="remove-commodity-btn"
-                title="Remove {{ row.commodity }}"
-                (click)="removeCommodity(row.commodity)">&times;</button>
-            }
-          </div>
-        </div>
-      }
-
-      <!-- Add row — only for users who can edit -->
-      @if (canEditCommodityPrices) {
-        @if (!showAddForm) {
-          <button type="button" class="commodity-card commodity-card--add"
-            (click)="showAddForm = true">
-            <span class="cc-add-icon">+</span>
-            <span class="cc-add-label">Add commodity</span>
-          </button>
-        } @else {
-          <div class="commodity-card commodity-card--add-open">
-            <div class="cc-left">
-              <span class="cc-avatar cc-avatar--ghost">+</span>
-              <input type="text" class="price-input cc-name-input"
-                [(ngModel)]="newCommodityName"
-                placeholder="Commodity name…"
-                (input)="addCommodityError = ''"
-                (keyup.enter)="addCommodity()" />
-            </div>
-            <div class="cc-right">
-              <input type="number" class="price-input cc-input"
-                [(ngModel)]="newCommodityPrice"
-                placeholder="0"
-                min="0" step="50"
-                (keyup.enter)="addCommodity()" />
-              <span class="cc-unit">UGX / KG</span>
-              <div class="cc-add-actions">
-                <button type="button" class="add-commodity-btn" (click)="addCommodity()">Add</button>
-                <button type="button" class="cc-cancel-btn"
-                  (click)="showAddForm = false; addCommodityError = ''">✕</button>
-              </div>
-            </div>
-          </div>
-          @if (addCommodityError) {
-            <p class="add-commodity-error">{{ addCommodityError }}</p>
-          }
-        }
-      }
-
-    </div>
-
-    @if (canEditCommodityPrices) {
-      <div class="page-actions">
-        <app-button
-          variant="primary"
-          [loading]="savingFlat()"
-          loadingText="Saving..."
-          (clicked)="saveFlatPrices()">
-          Save Flat Prices
-        </app-button>
-      </div>
-    }
-  </div>
-  } <!-- end flat mode section -->
-
-       <!-- MODE: PER-BRANCH, PER-COMMODITY, PER-GRADE PRICES  (grade mode ON) -->
-
-  @if (useGrades) {
-  <div class="section-card">
-    <div class="section-heading">
-      <span class="sec-icon sec-icon--orange">
-        <!-- Branch building icon -->
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-          stroke="#F25D27" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="2" y="7" width="20" height="14" rx="2"/>
-          <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-        </svg>
-      </span>
-      <h2 class="sec-title">Grade &amp; Commodity Prices by Branch</h2>
-    </div>
-    <p class="section-note">
-      Select a branch, then set the price for each commodity &times; grade combination.
-      Branch staff see these prices auto-filled when recording a delivery.
-    </p>
-
-    <!-- Branch selector -->
-    <div class="branch-picker">
-      <label class="field-label">Branch</label>
-      <div class="select-wrap">
-        <select
-          title="Select a branch"
-          class="branch-select"
-          [ngModel]="selectedBranch()"
-          (ngModelChange)="onBranchChange($event)">
-          <option value="">Choose a branch…</option>
-          @for (b of branches(); track b.id) {
-            <option [value]="b.id">{{ b.name }} &mdash; {{ b.region }}</option>
-          }
-        </select>
-        <svg class="select-chevron" width="14" height="14" viewBox="0 0 24 24"
-          fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="6 9 12 15 18 9"/>
-        </svg>
-      </div>
-    </div>
-
-    <!-- Loading state while fetching branch prices -->
-    @if (selectedBranch() && gradePrices().length === 0) {
-      <div class="state-msg">Loading prices for this branch…</div>
-    }
-
-    <!-- Grade × commodity price table -->
-    @if (gradePrices().length > 0) {
-
-      <!-- Commodity filter: lets the cooperative admin focus on one crop at a time
-           instead of scrolling through all 44 rows (11 commodities × 4 grades). -->
-      <div class="filter-row">
-        <label class="field-label" title="Filter by commodity">Filter by commodity</label>
-        <div class="select-wrap">
-          <select  title="Filter by commodity" class="branch-select" [(ngModel)]="gradeCommodityFilter">
-            <option value="">All commodities</option>
-            @for (c of uniqueCommodities(); track c) {
-              <option [value]="c">{{ c }}</option>
-            }
-          </select>
-          <svg class="select-chevron" width="14" height="14" viewBox="0 0 24 24"
-            fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="6 9 12 15 18 9"/>
-          </svg>
-        </div>
-      </div>
-
-      <table class="price-table">
-        <thead>
-          <tr>
-            <th>COMMODITY</th>
-            <th>GRADE</th>
-            <th>CODE</th>
-            <th>PRICE (UGX/KG)</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (row of filteredGradePrices(); track row.id) {
-            <tr>
-              <td class="grade-name">{{ row.commodity }}</td>
-              <td>{{ row.gradeName }}</td>
-              <td><span class="code-pill">{{ row.gradeCode }}</span></td>
-              <td>
-                <input
-                  type="number"
-                  class="price-input"
-                  [(ngModel)]="row.pricePerKg"
-                  min="0"
-                  step="50"
-                  title="Price per kg for {{ row.commodity }} {{ row.gradeName }}"
-                  aria-label="Price per kg for {{ row.commodity }} {{ row.gradeName }}" />
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-
-      <!-- Quick actions -->
-      <div class="quick-actions">
-        <span class="qa-label">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+        </button>
+        <button class="action-btn action-btn--danger" title="Delete this price entry" (click)="deleteRow($any(row))">
+          <!-- Trash icon -->
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6l-1 14H6L5 6"/>
+            <path d="M10 11v6"/><path d="M14 11v6"/>
+            <path d="M9 6V4h6v2"/>
           </svg>
-          Quick Actions
-        </span>
-        <div class="qa-btns">
-          <button class="qa-btn qa-btn--outline" (click)="increaseAllByPercent()">
-            Increase All by %
-          </button>
-          <button class="qa-btn" (click)="resetGradePrices()">
-            Reset to Saved
-          </button>
-        </div>
+        </button>
       </div>
-    }
-  </div>
+    </ng-template>
 
-  <!-- Save / cancel row — only shown once a branch has been selected and prices loaded. -->
-  @if (gradePrices().length > 0) {
-    <div class="page-actions">
-      <button class="btn-cancel" (click)="router.navigate(['/cooperative/grade-config'])">
-        Cancel
-      </button>
-      <app-button
-        variant="primary"
-        [loading]="saving()"
-        loadingText="Saving..."
-        (clicked)="saveGradePrices()">
-        Save Grade Prices
-      </app-button>
-    </div>
-  }
-  } <!-- end grade mode section -->
+  </app-data-table>
 
 </div>
+
+<!-- ── Add / Edit modal ──────────────────────────────────────────────────────── -->
+<!-- The same modal is used for both adding and editing.
+     editingId() being null means we are adding; a non-null value means editing that row. -->
+<app-modal
+  [isOpen]="showModal()"
+  [title]="modalTitle"
+  [subtitle]="modalSubtitle"
+  size="md"
+  [closeOnBackdrop]="!isSaving()"
+  [closeOnEsc]="!isSaving()"
+  (closed)="closeModal()">
+
+  <form [formGroup]="form" class="modal-form">
+
+    <!-- Commodity: always shown in both flat and grade modes -->
+    <app-input
+      label="Commodity"
+      type="text"
+      placeholder="e.g. Maize, Coffee, Beans"
+      formControlName="commodity"
+      [required]="true"
+      hint="Type the commodity name exactly as it appears on delivery records"
+      [error]="getFieldError('commodity')">
+    </app-input>
+
+    <!-- Grade dropdown: only shown when grade mode is ON.
+         Options come from the separately configured grade definitions. -->
+    <div class="input-group" *ngIf="gradeMode()">
+      <label class="input-label">Grade <span class="required">*</span></label>
+      <select class="form-select" formControlName="gradeCode" title="Grade">
+        <option value="" disabled>Select a grade</option>
+        <option *ngFor="let g of gradeOptions" [value]="g.code">
+          {{ g.name }} ({{ g.code }})
+        </option>
+      </select>
+      <span class="hint-text">Grades are defined in the Grade Configuration section.</span>
+      <span class="field-error" *ngIf="getFieldError('gradeCode')">{{ getFieldError('gradeCode') }}</span>
+    </div>
+
+    <!-- Price: number field, must be greater than 0 -->
+    <app-input
+      label="Price per kg (UGX)"
+      type="number"
+      placeholder="e.g. 2500"
+      formControlName="pricePerKg"
+      [required]="true"
+      [error]="getFieldError('pricePerKg')">
+    </app-input>
+
+    <!-- Branch: choose cooperative-wide default or a specific branch -->
+    <div class="input-group">
+      <label class="input-label">Apply To <span class="required">*</span></label>
+      <select class="form-select" formControlName="branch" title="Branch scope">
+        <option *ngFor="let b of branchOptions" [value]="b.id">{{ b.name }}</option>
+      </select>
+      <span class="hint-text">
+        "All Branches" sets a cooperative-wide default.
+        A specific branch price overrides "All Branches" for that branch only.
+      </span>
+    </div>
+
+    <!-- Effective dates: defines when this price is valid -->
+    <div class="fields-grid cols-2">
+      <app-input
+        label="Effective From"
+        type="date"
+        formControlName="effectiveFrom"
+        [required]="true"
+        [error]="getFieldError('effectiveFrom')">
+      </app-input>
+      <app-input
+        label="Effective To"
+        type="date"
+        formControlName="effectiveTo"
+        [required]="true"
+        [error]="getFieldError('effectiveTo')">
+      </app-input>
+    </div>
+
+  </form>
+
+  <!-- Modal footer: cancel + primary action button -->
+  <div class="modal-actions" footer>
+    <button type="button" class="btn-secondary" [disabled]="isSaving()" (click)="closeModal()">
+      Cancel
+    </button>
+    <app-button
+      variant="primary"
+      size="md"
+      [loading]="isSaving()"
+      loadingText="Saving…"
+      (clicked)="save()">
+      {{ editingId() ? 'Update Price' : 'Add Price' }}
+    </app-button>
+  </div>
+
+</app-modal>
