@@ -26,13 +26,18 @@ import { AlertComponent } from '../../../../shared/components/alert/alert.compon
 import { FarmerDeliveryService } from '../farmer.delivery.service';
 import { FarmerDelivery } from '../farmer.delivery.model';
 import { ALL_DELIVERY_SESSIONS, DeliverySession, Season } from '../branch.delivery.model';
-import { CooperativePricingService, GradeOption } from '../../../../core/services/cooperative-pricing.service';
+import { FarmerService } from '../../../../core/services/farmer.service';
+import {
+  CooperativePricingService,
+  GradeOption,
+} from '../../../../core/services/cooperative-pricing.service';
 
 export interface Farmer {
   id: string;
   name: string;
   phone: string;
   branch: string;
+  branchId: string | null;
   currentSeason: Season;
   currentSession?: DeliverySession;
 }
@@ -78,6 +83,7 @@ export function positiveNumberValidator(): ValidatorFn {
 export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
   deliveryForm!: FormGroup;
   selectedFarmer: Farmer | null = null;
+  isSearching = false;
 
   allFarmers: Farmer[] = [];
   filteredFarmers: Farmer[] = [];
@@ -92,14 +98,22 @@ export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
 
   readonly branches = Object.values(BRANCH_NAMES);
   readonly commodities = [
-    'Maize', 'Coffee', 'Beans', 'Rice',
-    'Sunflower', 'Cassava', 'Tea', 'Sesame',
-    'Vanilla', 'Sorghum', 'Millet',
+    'Maize',
+    'Coffee',
+    'Beans',
+    'Rice',
+    'Sunflower',
+    'Cassava',
+    'Tea',
+    'Sesame',
+    'Vanilla',
+    'Sorghum',
+    'Millet',
   ];
   readonly seasonOptions: Season[] = ['Wet Season', 'Dry Season'];
 
   get sessionOptions(): DeliverySession[] {
-    return ALL_DELIVERY_SESSIONS.filter(s => !this.sessionConfig.isSessionPassed(s));
+    return ALL_DELIVERY_SESSIONS.filter((s) => !this.sessionConfig.isSessionPassed(s));
   }
 
   get isSeasonBlocked(): boolean {
@@ -130,12 +144,13 @@ export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
     private readonly sessionConfig: DeliverySessionConfigService,
     private readonly seasonConfig: SeasonConfigService,
     public readonly pricingService: CooperativePricingService,
+    private readonly farmerService: FarmerService,
   ) {}
 
   ngOnInit(): void {
     this.buildForm();
 
-    this.pricingService.useGrades$.pipe(takeUntil(this.destroy$)).subscribe(v => {
+    this.pricingService.useGrades$.pipe(takeUntil(this.destroy$)).subscribe((v) => {
       this.useGrades = v;
       this.updateGradeValidators();
       this.cdr.markForCheck();
@@ -143,14 +158,12 @@ export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
 
     this.watchValueChanges();
 
-    this.deliveryService.deliveries$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(records => {
-        if (records && records.length > 0) {
-          this.allFarmers = this.buildFarmerRegistry(records);
-          this.cdr.markForCheck();
-        }
-      });
+    this.deliveryService.deliveries$.pipe(takeUntil(this.destroy$)).subscribe((records) => {
+      if (records && records.length > 0) {
+        this.allFarmers = this.buildFarmerRegistry(records);
+        this.cdr.markForCheck();
+      }
+    });
 
     this.deliveryService.getPaginated(0, 50).pipe(takeUntil(this.destroy$)).subscribe();
   }
@@ -198,8 +211,9 @@ export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
         acc.push({
           id: r.farmerId,
           name: r.farmerName,
-          phone: r.phone ?? '',
+          phone: r.notes || '',
           branch: BRANCH_NAMES[this.session.branchId() ?? ''] ?? '',
+          branchId: null,
           currentSeason: r.season as Season,
           currentSession: r.session as DeliverySession,
         });
@@ -209,14 +223,16 @@ export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
   }
 
   private watchValueChanges(): void {
-    this.deliveryForm.get('volume')?.valueChanges
-      .pipe(takeUntil(this.destroy$))
+    this.deliveryForm
+      .get('volume')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
       .subscribe(() => this.calcEstValue());
 
     merge(
       this.deliveryForm.get('commodity')?.valueChanges ?? EMPTY,
       this.deliveryForm.get('grade')?.valueChanges ?? EMPTY,
-    ).pipe(takeUntil(this.destroy$))
+    )
+      .pipe(takeUntil(this.destroy$))
       .subscribe(() => this.updateUnitPrice());
   }
 
@@ -226,7 +242,11 @@ export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
     const branchId = this.session.branchId() ?? '';
 
     const price = commodity
-      ? this.pricingService.getUnitPrice(branchId, commodity, this.useGrades ? gradeCode : undefined)
+      ? this.pricingService.getUnitPrice(
+          branchId,
+          commodity,
+          this.useGrades ? gradeCode : undefined,
+        )
       : 0;
 
     this.deliveryForm.patchValue({ unitPrice: price || null }, { emitEvent: false });
@@ -235,7 +255,7 @@ export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
   }
 
   onFarmerSearch(event: Event): void {
-    const query = (event.target as HTMLInputElement).value.toLowerCase().trim();
+    const query = (event.target as HTMLInputElement).value.trim();
 
     if (!query) {
       this.filteredFarmers = [];
@@ -244,26 +264,46 @@ export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.filteredFarmers = this.allFarmers.filter(
-      f => f.name.toLowerCase().includes(query) ||
-           f.id.toLowerCase().includes(query),
-    );
-    this.showDropdown = true;
+    this.isSearching = true;
     this.cdr.markForCheck();
+
+    this.farmerService
+      .search(query)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (results) => {
+          this.filteredFarmers = results.map((r) => ({
+            id: r.memberId,
+            name: r.fullName,
+            phone: '',
+            branch: '',
+            branchId: r.branchId,
+            currentSeason: this.seasonConfig.activeSeason() ?? 'Wet Season',
+          }));
+          this.showDropdown = true;
+          this.isSearching = false;
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.isSearching = false;
+          this.cdr.markForCheck();
+        },
+      });
   }
 
   selectFarmer(farmer: Farmer): void {
     this.selectedFarmer = farmer;
     this.showDropdown = false;
 
-    const session = farmer.currentSession && this.sessionOptions.includes(farmer.currentSession)
-      ? farmer.currentSession
-      : this.sessionOptions[0];
+    const session =
+      farmer.currentSession && this.sessionOptions.includes(farmer.currentSession)
+        ? farmer.currentSession
+        : this.sessionOptions[0];
 
     this.deliveryForm.patchValue({
       farmerSearch: `${farmer.name} (${farmer.id})`,
       phone: farmer.phone,
-      branch: farmer.branch,
+      branch: farmer.branchId ?? 'N/A', // use branchId as display value
       season: farmer.currentSeason,
       session,
     });
@@ -272,10 +312,13 @@ export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
 
   clearFarmer(): void {
     this.selectedFarmer = null;
-    this.deliveryForm.patchValue({ farmerSearch: '', phone: '', branch: '' });
+    this.deliveryForm.patchValue({
+      farmerSearch: '',
+      phone: '',
+      branch: BRANCH_NAMES[this.session.branchId() ?? ''] ?? '',
+    });
     this.cdr.markForCheck();
   }
-
   onSearchBlur(): void {
     setTimeout(() => {
       this.showDropdown = false;
@@ -284,8 +327,12 @@ export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
   }
 
   getInitials(name: string): string {
-    return name.trim().split(/\s+/).slice(0, 2)
-      .map(w => w.charAt(0).toUpperCase()).join('');
+    return name
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((w) => w.charAt(0).toUpperCase())
+      .join('');
   }
 
   calcEstValue(): void {
@@ -327,7 +374,8 @@ export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
 
     const payload = this.buildPayload();
 
-    this.deliveryService.create(payload)
+    this.deliveryService
+      .create(payload)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => this.onSaveSuccess(payload.farmerName),
@@ -358,7 +406,8 @@ export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
   private onSaveError(err: any): void {
     this.isSaving = false;
     console.error('[FarmerDeliveries] Save execution failed:', err);
-    this.errorMessage = err.error?.message || 'Failed to record entry. Please check server connections and retry.';
+    this.errorMessage =
+      err.error?.message || 'Failed to record entry. Please check server connections and retry.';
     this.cdr.markForCheck();
   }
 

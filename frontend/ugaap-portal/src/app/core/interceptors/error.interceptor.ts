@@ -16,7 +16,6 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
       switch (err.status) {
         case 0:
-          // Suppress during local dev if no backend is running
           if (!req.url.includes('localhost:8083')) {
             toast.error('No internet connection', 'Check your network and try again.', 8000);
           }
@@ -27,21 +26,14 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           break;
 
         case 401:
-          // Only redirect if we actually had a session — avoids redirect loops
-          // when backend is unavailable during frontend-only development
-          if (session.getAccessToken()) {
-            session.clearSession();
-            router.navigate(['/auth/login']);
-            toast.warning('Session expired', 'Please sign in again.');
-          }
+          // Don't clear session or redirect — let the request fail silently.
+          // Explicit logout is handled by AuthService.logout() only.
+          toast.warning('Unauthorised', serverMsg ?? 'Please sign in again.');
           break;
 
         case 403:
-          // Same guard
-          if (session.getAccessToken()) {
-            router.navigate(['/auth/login'], { queryParams: { reason: 'forbidden' } });
-            toast.error('Access denied', 'You do not have permission to do that.');
-          }
+          // Don't redirect to login on 403 — just show the error
+          toast.error('Access denied', serverMsg ?? 'You do not have permission to do that.');
           break;
 
         case 404:
