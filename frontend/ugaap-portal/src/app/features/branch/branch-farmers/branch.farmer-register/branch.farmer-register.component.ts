@@ -9,17 +9,19 @@ import { FormShellComponent } from '../../../../shared/components/form-wizard/fo
 import { FormSectionComponent } from '../../../../shared/components/form-section/form-section.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
+import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 import {
   FarmerProfile,
   FarmerRegistrationForm,
   FarmerService,
 } from '../../../shared-farmer-domain/farmer.service';
 import { SessionService } from '../../../../core/services/session.service';
+import { FormFeedbackService } from '../../../../core/services/form-feedback.service';
 
 @Component({
   selector: 'app-branch.farmer-register',
   standalone: true,
-  imports: [CommonModule, FormsModule, FormShellComponent, FormSectionComponent, ButtonComponent, InputComponent],
+  imports: [CommonModule, FormsModule, FormShellComponent, FormSectionComponent, ButtonComponent, InputComponent, ModalComponent],
   templateUrl: './branch.farmer-register.component.html',
   styleUrl: './branch.farmer-register.component.css',
 })
@@ -54,9 +56,22 @@ export class BranchFarmerRegisterComponent {
   // ─────────────────────────────────────────
   // Exactly 10 digits — no country code prefix, no spaces
   private readonly phoneRegex = /^\d{10}$/;
-  // 14-char Uganda NIN: 2 letters · 5 digits · 1 letter · 3 digits · 1 letter · 1 digit · 1 letter
-  // Example: CM95012A345B6C — case-insensitive so lower-case input still passes
-  private readonly nationalIdRegex = /^[A-Za-z]{2}\d{5}[A-Za-z]\d{3}[A-Za-z]\d[A-Za-z]$/;
+  // Exactly 14 uppercase alphanumeric characters — input is auto-uppercased before validation
+  private readonly nationalIdRegex = /^[A-Z0-9]{14}$/;
+
+  private readonly fieldLabels: Record<string, string> = {
+    fullName:               'Full Name',
+    nationalIdNumber:       'National ID Number',
+    phoneNumber:            'Phone Number',
+    emailAddress:           'Email Address',
+    dateOfBirth:            'Date of Birth',
+    village:                'Village / Town',
+    totalLandArea:          'Total Land Area',
+    bankName:               'Bank',
+    bankBranch:             'Bank Branch',
+    bankAccountHolderName:  'Account Holder Name',
+    bankAccountNumber:      'Account Number',
+  };
 
   // ─────────────────────────────────────────
   // COMPONENT STATE
@@ -67,7 +82,7 @@ export class BranchFarmerRegisterComponent {
   photoError = '';
   photoFileName = '';
   isSaving = false;
-  saveError: string | null = null;
+  showConfirmModal = false;
   formErrors: Record<string, string> = {};
 
   // ─────────────────────────────────────────
@@ -113,6 +128,7 @@ export class BranchFarmerRegisterComponent {
     private route: ActivatedRoute,
     private farmerService: FarmerService,
     private session: SessionService,
+    private feedback: FormFeedbackService,
   ) {}
 
   // ─────────────────────────────────────────
@@ -138,7 +154,7 @@ export class BranchFarmerRegisterComponent {
   //       },
   //       error: () => {
   //         this.loadingFarmer = false;
-  //         this.saveError = 'Could not load farmer profile.';
+  //         this.loadingFarmer = false;
   //       },
   //     });
   //   }
@@ -201,7 +217,7 @@ export class BranchFarmerRegisterComponent {
     if (!f.nationalIdNumber.trim()) {
       this.formErrors['nationalIdNumber'] = 'National ID number is required.';
     } else if (!this.nationalIdRegex.test(f.nationalIdNumber.trim())) {
-      this.formErrors['nationalIdNumber'] = 'Must be 14 characters, e.g. CM95012A345B6C.';
+      this.formErrors['nationalIdNumber'] = 'Must be exactly 14 alphanumeric characters.';
     }
 
     if (!f.phoneNumber.trim()) {
@@ -244,12 +260,21 @@ export class BranchFarmerRegisterComponent {
     this.router.navigate(['/branch/farmers/list']);
   }
 
-  onSave(): void {
-    if (!this.validateForm()) return;
+  get reviewPaymentSummary(): string {
+    const pm = this.form.paymentMethod;
+    if (pm.type === 'bank')         return `${pm.bankName} — ${pm.bankAccountNumber}`;
+    if (pm.type === 'wendi_wallet') return `Wendi Wallet — ${this.form.phoneNumber}`;
+    return `Mobile Money (${pm.mobileMoneyProvider.toUpperCase()}) — ${this.form.phoneNumber}`;
+  }
 
-    // Both mobile money and Wendi wallet are tied to the farmer's phone number.
-    // We write the value here (not reactively in the template) so the model
-    // is always in sync with whatever phone number was entered at submit time.
+  onSave(): void {
+    if (!this.validateForm()) {
+      const invalid = Object.keys(this.formErrors).map(k => this.fieldLabels[k] ?? k);
+      this.feedback.fieldError(invalid);
+      return;
+    }
+
+    // Sync payment phone fields before showing the review so the preview is accurate
     if (this.form.paymentMethod.type === 'mobile_money') {
       this.form.paymentMethod.mobileMoneyPhone = this.form.phoneNumber;
     }
@@ -257,8 +282,12 @@ export class BranchFarmerRegisterComponent {
       this.form.paymentMethod.wendiWalletNumber = this.form.phoneNumber;
     }
 
+    this.showConfirmModal = true;
+  }
+
+  onConfirmSave(): void {
+    this.showConfirmModal = false;
     this.isSaving = true;
-    this.saveError = null;
 
     const payload: FarmerRegistrationForm = {
       ...this.form,
@@ -272,11 +301,12 @@ export class BranchFarmerRegisterComponent {
       this.farmerService.update(this.farmerId, payload).subscribe({
         next: () => {
           this.isSaving = false;
+          this.feedback.success('Farmer updated', `${this.form.fullName}'s profile has been saved.`);
           this.router.navigate(['/branch/farmers/list']);
         },
         error: (err) => {
           this.isSaving = false;
-          this.saveError = err?.error?.message ?? 'Failed to update farmer. Please try again.';
+          this.feedback.serverError(err);
         },
       });
       return;
@@ -285,11 +315,12 @@ export class BranchFarmerRegisterComponent {
     this.farmerService.create({ ...payload, status: 'Pending' }).subscribe({
       next: () => {
         this.isSaving = false;
+        this.feedback.success('Farmer registered', `${this.form.fullName} has been added successfully.`);
         this.router.navigate(['/branch/farmers/list']);
       },
       error: (err) => {
         this.isSaving = false;
-        this.saveError = err?.error?.message ?? 'Failed to register farmer. Please try again.';
+        this.feedback.serverError(err);
       },
     });
   }

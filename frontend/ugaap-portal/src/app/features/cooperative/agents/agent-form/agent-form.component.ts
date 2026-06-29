@@ -16,7 +16,9 @@ import { FormShellComponent }   from '../../../../shared/components/form-wizard/
 import { FormSectionComponent } from '../../../../shared/components/form-section/form-section.component';
 import { InputComponent }       from '../../../../shared/components/input/input.component';
 import { ButtonComponent }      from '../../../../shared/components/button/button.component';
+import { ModalComponent }       from '../../../../shared/components/modal/modal.component';
 import { ToastService } from '../../../../core/services/toast.service';
+import { FormFeedbackService } from '../../../../core/services/form-feedback.service';
 import { AGENT_BRANCHES, AgentInput, AgentsService } from '../agents.service';
 
 @Component({
@@ -30,6 +32,7 @@ import { AGENT_BRANCHES, AgentInput, AgentsService } from '../agents.service';
     FormSectionComponent,
     InputComponent,
     ButtonComponent,
+    ModalComponent,
   ],
   templateUrl: './agent-form.component.html',
   styleUrls: ['./agent-form.component.css'],
@@ -41,11 +44,21 @@ export class AgentFormComponent implements OnInit {
   private router = inject(Router);
   private toast = inject(ToastService);
   private agentsService = inject(AgentsService);
+  private feedback = inject(FormFeedbackService);
+
+  private readonly fieldLabels: Record<string, string> = {
+    fullName:  'Full Name',
+    nationalId: 'National ID',
+    phone:     'Phone Number',
+    email:     'Email Address',
+    branchId:  'Branch',
+  };
 
   agentId: string | null = null;
   isEditMode = false;
   agentForm!: FormGroup;
   isSaving = false;
+  showConfirmModal = false;
 
   readonly branches = AGENT_BRANCHES;
 
@@ -57,7 +70,7 @@ export class AgentFormComponent implements OnInit {
       fullName:   ['', Validators.required],
       phone:      ['', [Validators.required, Validators.pattern(/^\+\d{1,3}\d{4,14}$/)]],
       email:      ['', [Validators.required, Validators.email]],
-      nationalId: ['', Validators.required],
+      nationalId: ['', [Validators.required, Validators.pattern(/^[A-Z0-9]{14}$/)]],
       role:       ['field_agent', Validators.required],
       branchId:   ['', Validators.required],
     });
@@ -87,8 +100,10 @@ export class AgentFormComponent implements OnInit {
     if (ctrl?.touched && ctrl?.errors) {
       if (ctrl.errors['required']) return 'This field is required';
       if (ctrl.errors['email']) return 'Please enter a valid email address';
-      if (ctrl.errors['pattern'] && field === 'phone')
-        return 'Include country code (e.g. +256712345678)';
+      if (ctrl.errors['pattern']) {
+        if (field === 'phone') return 'Include country code (e.g. +256712345678)';
+        if (field === 'nationalId') return 'Must be exactly 14 alphanumeric characters';
+      }
     }
     return '';
   }
@@ -97,22 +112,35 @@ export class AgentFormComponent implements OnInit {
     this.router.navigate(['/cooperative/agents']);
   }
 
+  get reviewRoleLabel(): string {
+    return this.agentForm.value.role === 'field_agent' ? 'Field Agent' : 'Collection Clerk';
+  }
+
+  get reviewBranchName(): string {
+    return this.branches.find(b => b.id === this.agentForm.value.branchId)?.name ?? '—';
+  }
+
   // ── Save ──────────────────────────────────────────────────────────────────
 
   saveAgent(): void {
     if (this.agentForm.invalid) {
       this.agentForm.markAllAsTouched();
+      this.feedback.formError(this.agentForm, this.fieldLabels);
       return;
     }
+    this.showConfirmModal = true;
+  }
 
+  onConfirmSave(): void {
+    this.showConfirmModal = false;
     const input = this.agentForm.value as AgentInput;
 
     if (this.isEditMode && this.agentId) {
       this.agentsService.update(this.agentId, input);
-      this.toast.success('Agent updated', `${input.fullName}'s details have been saved.`);
+      this.feedback.success('Agent updated', `${input.fullName}'s details have been saved.`);
     } else {
       const agent = this.agentsService.create(input);
-      this.toast.success('Agent registered', `${agent.fullName} has been registered as ${agent.agentCode}.`);
+      this.feedback.success('Agent registered', `${agent.fullName} has been registered as ${agent.agentCode}.`);
     }
 
     this.router.navigate(['/cooperative/agents']);

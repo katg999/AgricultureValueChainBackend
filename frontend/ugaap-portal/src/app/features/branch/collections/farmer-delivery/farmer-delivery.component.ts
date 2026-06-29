@@ -339,7 +339,6 @@ export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
     const volume = parseFloat(this.deliveryForm.get('volume')?.value) || 0;
     const unitPrice = parseFloat(this.deliveryForm.getRawValue().unitPrice) || 0;
     const gross = volume * unitPrice;
-
     this.deliveryForm.patchValue({ estimatedValue: gross > 0 ? gross : null });
     this.cdr.markForCheck();
   }

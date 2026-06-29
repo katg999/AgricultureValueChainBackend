@@ -167,8 +167,18 @@ export class OtpVerifyComponent implements OnInit, AfterViewInit, OnDestroy {
 
         const roles: string[] = res?.data?.roles ?? [];
 
+        // AuthService.verifyLoginOtp() saves the session before this callback runs,
+        // so the user's role is already stored by the time we call homeRoute().
+        //
+        // homeRoute() returns the correct dashboard for each level:
+        //   Platform admin      → /platform/dashboard
+        //   Cooperative admin   → /cooperative/dashboard
+        //   Branch staff        → /branch/dashboard
+        //
+        // Note: redirecting to /auth/login here would be wrong — the user just authenticated.
+        // Only the authGuard (on protected routes) redirects unauthenticated users to /auth/login.
         if (roles.includes('PLATFORM_ADMIN')) {
-          this.router.navigateByUrl('/platform/dashboard');
+          this.router.navigateByUrl(this.dashboardConfig.homeRoute());
           return;
         }
 
@@ -178,14 +188,15 @@ export class OtpVerifyComponent implements OnInit, AfterViewInit, OnDestroy {
         ) {
           const userId = res?.data?.userId;
           const hasCompletedSetup = localStorage.getItem(`setup_complete_${userId}`);
+          // First-time login goes to the setup wizard; returning users go to their dashboard.
           this.router.navigateByUrl(
-            hasCompletedSetup ? '/branch/farmers/list' : '/auth/first-time-login',
+            hasCompletedSetup ? this.dashboardConfig.homeRoute() : '/auth/first-time-login',
           );
           return;
         }
 
-        // fallback
-        this.router.navigateByUrl('/platform/dashboard');
+        // Any other authenticated role (e.g. branch staff) lands on their own dashboard.
+        this.router.navigateByUrl(this.dashboardConfig.homeRoute());
       },
       error: (err) => {
         this.isLoading = false;
