@@ -3,11 +3,6 @@
  * Uses UGAAP design tokens
  */
 
-.page {
-  min-height: 100vh;
-  background: var(--surface-low);
-  font-family: var(--font-human);
-}
 
 .page-container {
   max-width: 1400px;
@@ -22,7 +17,8 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  margin-bottom: 32px;
+  gap: 16px;
+  margin-bottom: 8px;
 }
 
 .header-content {
@@ -46,13 +42,11 @@
    SEARCH BAR
     */
 
-.search-bar {
-  margin-bottom: 32px;
-}
+
 
 .search-input {
   position: relative;
-  max-width: 500px;
+  flex: 1; /* expand to fill available space beside the button */
 }
 
 .search-icon {
@@ -133,6 +127,6 @@
   }
 
   .search-input {
-    max-width: 100%;
+    width: 100%;
   }
 }

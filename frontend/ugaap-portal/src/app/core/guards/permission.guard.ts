@@ -40,5 +40,5 @@ export const permissionGuard: CanActivateFn = (route) => {
 
   toast.warning('Access denied', 'You do not have permission to view that page.');
   // Send the user to their own area's dashboard instead of the login page
-  return router.createUrlTree([dashboard.homeRoute()]);
+  return router.parseUrl(dashboard.homeRoute());
 };

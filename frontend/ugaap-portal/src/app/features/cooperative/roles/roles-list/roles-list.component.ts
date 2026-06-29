@@ -98,7 +98,7 @@ export class RolesListComponent {
       this.toast.warning('Cannot edit system role', `"${role.name}" is a built-in role and cannot be modified.`);
       return;
     }
-    this.router.navigate(['/cooperative/roles', role.id, 'edit']);
+    this.router.navigate(['/cooperative/roles', role.id, 'edit'], { state: { role } });
   }
 
   deleteRole(role: RoleCardData): void {

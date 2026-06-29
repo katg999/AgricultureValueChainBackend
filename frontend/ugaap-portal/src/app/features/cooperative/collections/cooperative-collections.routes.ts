@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { permissionGuard } from '../../../core/guards/permission.guard';
 
 export const COOPERATIVES_COLLECTIONS_ROUTES: Routes = [
   {
@@ -8,22 +9,24 @@ export const COOPERATIVES_COLLECTIONS_ROUTES: Routes = [
   },
   {
     path: 'delivery-list',
-    data: { title: 'Collections' },
+    canActivate: [permissionGuard],
+    data: { title: 'Collections', permissions: ['collections.view'] },
     loadComponent: () =>
       import('./delivery-list/delivery.cooperative.list.component')
         .then(m => m.CooperativeDeliveriesComponent),
   },
   {
     path: 'delivery-list/:id/edit',
+    canActivate: [permissionGuard],
+    data: { permissions: ['collections.edit'] },
     loadComponent: () =>
       import('./delivery-list/delivery.cooperative.list.component')
         .then(m => m.CooperativeDeliveriesComponent),
   },
-  // Farmer-level drilldown — reached via "View Farmers" on a delivery row.
-  // Uses the same FarmerDeliveriesListComponent as the branch view; the
-  // ?batch= and ?from=cooperative query params scope the data and back-link.
   {
     path: 'farmers',
+    canActivate: [permissionGuard],
+    data: { permissions: ['collections.view'] },
     loadComponent: () =>
       import('../../../features/branch/collections/farmer-deliveries-list/farmer-deliveries-list.component')
         .then(m => m.FarmerDeliveriesListComponent),

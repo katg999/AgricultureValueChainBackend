@@ -12,8 +12,4 @@ export interface DeliverySessionWindow {
   endHour: number;   // 0-23, must be greater than startHour
 }
 
-export const DEFAULT_SESSION_WINDOWS: DeliverySessionWindow[] = [
-  { id: 'morning', label: 'Morning', startHour: 6, endHour: 9 },
-  { id: 'midday', label: 'Midday', startHour: 9, endHour: 12 },
-  { id: 'afternoon', label: 'Afternoon', startHour: 12, endHour: 18 },
-];
+export { DEFAULT_SESSION_WINDOWS } from '../mock/mock-cooperative';

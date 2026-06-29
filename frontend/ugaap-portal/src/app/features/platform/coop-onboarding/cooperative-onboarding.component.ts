@@ -7,6 +7,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Title } from '@angular/platform-browser';
+import { finalize, timeout } from 'rxjs';
 
 import { FormShellComponent }   from '../../../shared/components/form-wizard/form-wizard.component';
 import { FormSectionComponent } from '../../../shared/components/form-section/form-section.component';
@@ -14,8 +15,9 @@ import { InputComponent }       from '../../../shared/components/input/input.com
 import { ButtonComponent }      from '../../../shared/components/button/button.component';
 import { ModalComponent }       from '../../../shared/components/modal/modal.component';
 import { AlertComponent }       from '../../../shared/components/alert/alert.component';
-import { CooperativeService }   from '../../../core/services/cooperative.service';
-import { ToastService }         from '../../../core/services/toast.service';
+import { CooperativeService }      from '../../../core/services/cooperative.service';
+import { ToastService }            from '../../../core/services/toast.service';
+import { FormFeedbackService }     from '../../../core/services/form-feedback.service';
 
 @Component({
   selector: 'app-cooperative-onboarding',
@@ -29,7 +31,7 @@ import { ToastService }         from '../../../core/services/toast.service';
     InputComponent,
     ButtonComponent,
     ModalComponent,
-    AlertComponent,
+    //AlertComponent,
   ],
   templateUrl: './cooperative-onboarding.component.html',
   styleUrls: ['./cooperative-onboarding.component.css'],
@@ -47,7 +49,22 @@ export class CooperativeOnboardingComponent implements OnInit {
   // Modal + loading state
   showConfirmModal = false;
   isLoading = false;
-  errorMessage = '';
+
+  private readonly fieldLabels: Record<string, string> = {
+    name:                  'Cooperative Name',
+    registrationNumber:    'Registration Number',
+    defaultBranchName:     'Default Branch Name',
+    address:               'Address',
+    country:               'Country',
+    accountName:           'Account Name',
+    accountNumber:         'Account Number',
+    admin1FullName:        'Admin 1 Full Name',
+    admin1Email:           'Admin 1 Email',
+    admin1Phone:           'Admin 1 Phone',
+    admin2FullName:        'Admin 2 Full Name',
+    admin2Email:           'Admin 2 Email',
+    admin2Phone:           'Admin 2 Phone',
+  };
 
   // Gender options shared by both admin sections
   readonly genderOptions = ['Female', 'Male', 'Other', 'Prefer not to say'];
@@ -58,6 +75,7 @@ export class CooperativeOnboardingComponent implements OnInit {
     private cooperativeService: CooperativeService,
     private titleService: Title,
     private toast: ToastService,
+    private feedback: FormFeedbackService,
   ) {}
 
   ngOnInit(): void {
@@ -81,11 +99,6 @@ export class CooperativeOnboardingComponent implements OnInit {
       poBox:      [''],
       websiteUrl: [''],
 
-      // Section 3 — Contact
-      contactPersonName:  [''],
-      contactPersonEmail: ['', Validators.email],
-      contactPersonPhone: [''],
-
       // Section 4 — Bank Account (fixed to Pearl Bank)
       bankName:      ['Pearl Bank'],
       bankBranch:    [''],
@@ -97,7 +110,7 @@ export class CooperativeOnboardingComponent implements OnInit {
       admin1Email:       ['', [Validators.required, Validators.email]],
       admin1Phone:       ['', Validators.required],
       admin1DateOfBirth: [''],
-      admin1NationalId:  [''],
+      admin1NationalId:  ['', Validators.pattern(/^[A-Z0-9]{14}$/)],
       admin1Gender:      ['Female'],
 
       // Section 6 — Admin 2 (formerly Checker)
@@ -105,7 +118,7 @@ export class CooperativeOnboardingComponent implements OnInit {
       admin2Email:       ['', [Validators.required, Validators.email]],
       admin2Phone:       ['', Validators.required],
       admin2DateOfBirth: [''],
-      admin2NationalId:  [''],
+      admin2NationalId:  ['', Validators.pattern(/^[A-Z0-9]{14}$/)],
       admin2Gender:      ['Female'],
     });
   }
@@ -163,6 +176,7 @@ export class CooperativeOnboardingComponent implements OnInit {
   openConfirmModal(): void {
     if (this.profileForm.invalid) {
       this.profileForm.markAllAsTouched();
+      this.feedback.formError(this.profileForm, this.fieldLabels);
       return;
     }
     this.showConfirmModal = true;
@@ -177,11 +191,11 @@ export class CooperativeOnboardingComponent implements OnInit {
   activateCooperative(): void {
     if (this.profileForm.invalid) {
       this.profileForm.markAllAsTouched();
+      this.feedback.formError(this.profileForm, this.fieldLabels);
       return;
     }
 
     this.isLoading = true;
-    this.errorMessage = '';
 
     const v = this.profileForm.value;
 
@@ -192,9 +206,6 @@ export class CooperativeOnboardingComponent implements OnInit {
       country:            v.country,
       poBox:              v.poBox,
       websiteUrl:         v.websiteUrl,
-      contactPersonName:  v.contactPersonName,
-      contactPersonPhone: v.contactPersonPhone,
-      contactPersonEmail: v.contactPersonEmail,
       defaultBranchName:     v.defaultBranchName,
       defaultBranchLocation: v.defaultBranchLocation,
 
@@ -226,9 +237,11 @@ export class CooperativeOnboardingComponent implements OnInit {
       },
     };
 
-    this.cooperativeService.createCooperative(payload).subscribe({
+    this.cooperativeService.createCooperative(payload).pipe(
+      timeout(30_000),
+      finalize(() => { this.isLoading = false; }),
+    ).subscribe({
       next: () => {
-        this.isLoading = false;
         this.showConfirmModal = false;
         this.toast.success(
           'Cooperative activated',
@@ -237,24 +250,23 @@ export class CooperativeOnboardingComponent implements OnInit {
         this.router.navigate(['/platform/cooperatives']);
       },
       error: (err) => {
-        this.isLoading = false;
-        console.error('Create cooperative failed:', err);
-        const message = err?.error?.message ?? 'Failed to activate cooperative. Please try again.';
-        this.errorMessage = message;
-        this.toast.error('Activation failed', message);
+        this.feedback.serverError(err);
       },
     });
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
-  getFieldError(fieldName: string): string {
+getFieldError(fieldName: string): string {
     const control = this.profileForm.get(fieldName);
     if (control?.touched && control?.errors) {
       if (control.errors['required']) return 'This field is required';
       if (control.errors['email'])    return 'Invalid email format';
-      if (control.errors['pattern'] && fieldName === 'accountNumber')
-        return 'Account number must be 6–20 digits';
+      if (control.errors['pattern']) {
+        if (fieldName === 'accountNumber') return 'Account number must be 6–20 digits';
+        if (fieldName === 'admin1NationalId' || fieldName === 'admin2NationalId')
+          return 'Must be exactly 14 alphanumeric characters';
+      }
     }
     return '';
   }

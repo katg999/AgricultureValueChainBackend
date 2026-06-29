@@ -97,6 +97,10 @@ export class InputComponent implements ControlValueAccessor {
    */
   @Input() disabled = false;
 
+  @Input() uppercase = false;
+
+  @Input() numbersOnly = false;
+
   /**
    * Optional link text in label (e.g., "Forgot password?")
    * Shown on the right side of the label
@@ -154,7 +158,11 @@ export class InputComponent implements ControlValueAccessor {
    */
   onInput(event: Event): void {
     const target = event.target as HTMLInputElement;
-    this.value = target.value;
+    let val = target.value;
+    if (this.numbersOnly) val = val.replace(/\D/g, '');
+    if (this.uppercase) val = val.toUpperCase();
+    if (this.numbersOnly || this.uppercase) target.value = val;
+    this.value = val;
     this.onChange(this.value);
   }
 

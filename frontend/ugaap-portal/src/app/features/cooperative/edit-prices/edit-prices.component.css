@@ -1,13 +1,15 @@
-﻿/* edit-prices.component.css */
+/* edit-prices.component.css */
 
 .page {
   max-width: 1100px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
-/* ── heading ──────────────────────────────────────────────── */
+/* ── Page header ──────────────────────────────────────────────────────────── */
+
 .page-header {
   display: flex;
   justify-content: space-between;
@@ -25,549 +27,30 @@
 .page-subtitle {
   font-size: 13px;
   color: #6B6880;
+  margin-top: 4px;
 }
 
-.error-bar {
-  background: #FCEBEB;
-  color: #8C342B;
-  border-radius: 8px;
-  padding: 10px 14px;
-  font-size: 13px;
-}
+/* ── Toggle card ──────────────────────────────────────────────────────────── */
 
-/* ── shared section card ──────────────────────────────────── */
+/* The section-card wraps the toggle row in a subtle container. */
 .section-card {
   background: var(--surface-lowest);
   border-radius: 14px;
   padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
 }
-
-/* ── section heading row (icon + title) ───────────────────── */
-.section-heading {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.sec-icon {
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.sec-icon--orange { background: #FDEEE8; }
-.sec-icon--purple { background: #EDE8EF; }
 
 .sec-title {
   font-size: 15px;
   font-weight: 700;
   color: #1A1A2E;
+  margin: 0 0 6px;
 }
 
-/* ── branch selector ──────────────────────────────────────── */
-.field-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #6B6880;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  display: block;
-  margin-bottom: 8px;
-}
-
-.select-wrap {
-  position: relative;
-  max-width: 360px;
-}
-
-.branch-select {
-  width: 100%;
-  appearance: none;
-  background: var(--surface-lowest);
-  border: 1px solid var(--surface-highest);
-  border-radius: 8px;
-  padding: 10px 36px 10px 14px;
-  font-family: var(--font-human);
-  font-size: 13px;
-  color: #1A1A2E;
-  cursor: pointer;
-  outline: none;
-  transition: border-color 0.15s;
-}
-
-.branch-select:focus { border-color: var(--primary); }
-
-.select-chevron {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #8A8799;
-  pointer-events: none;
-}
-
-/* ── price table ──────────────────────────────────────────── */
-.price-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-
-.price-table thead th {
-  padding: 10px 16px;
-  background: var(--surface-low);
-  font-family: var(--font-technical);
-  font-size: 10px;
-  letter-spacing: 0.06em;
-  color: #6B6880;
-  text-align: left;
-  font-weight: 700;
-}
-
-.price-table tbody tr {
-  border-bottom: 1px solid var(--surface-low);
-}
-
-.price-table tbody tr:last-child { border-bottom: none; }
-
-.price-table tbody td {
-  padding: 14px 16px;
-  vertical-align: middle;
-  color: #1A1A2E;
-}
-
-.grade-name {
-  font-weight: 500;
-}
-
-/* grade code pill — lavender monospace badge */
-.code-pill {
-  display: inline-block;
-  font-family: var(--font-technical);
-  font-size: 11px;
-  font-weight: 600;
-  background: #EDE8EF;
-  color: #533C59;
-  padding: 3px 10px;
-  border-radius: 20px;
-  white-space: nowrap;
-}
-
-.current-price {
-  color: #6B6880;
-  font-family: var(--font-technical);
-  font-size: 13px;
-}
-
-/* inline editable price input */
-.price-input {
-  width: 130px;
-  background: var(--surface-low);
-  border: 1px solid var(--surface-highest);
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-family: var(--font-technical);
-  font-size: 13px;
-  font-weight: 600;
-  color: #1A1A2E;
-  text-align: right;
-  outline: none;
-  transition: border-color 0.15s;
-}
-
-.price-input:focus {
-  border-color: var(--primary);
-  background: #fff;
-}
-
-/* ── flat branch picker ───────────────────────────────────── */
-.flat-branch-picker {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.flat-branch-picker .select-wrap {
-  max-width: 320px;
-}
-
-.flat-context-hint {
-  display: flex;
-  align-items: flex-start;
-  gap: 6px;
-  font-size: 12px;
-  color: #8A8799;
-  margin: 0;
-  line-height: 1.5;
-}
-
-.flat-context-hint--branch {
-  color: #F25D27;
-}
-
-.flat-context-hint svg { flex-shrink: 0; margin-top: 2px; }
-
-/* ── commodity card grid ──────────────────────────────────── */
-
-/* 2 columns; single column on small screens. */
-.commodity-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
-}
-
-@media (max-width: 480px) {
-  .commodity-grid { grid-template-columns: 1fr; }
-}
-
-.commodity-card {
-  background: #fff;
-  border: 1px solid #E5E7EB;
-  border-left: 4px solid var(--primary);  /* stat-card accent stripe */
-  border-radius: 12px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
-}
-
-.commodity-card:hover {
-  box-shadow: 0 6px 20px rgba(242, 93, 39, 0.14);
-  transform: translateY(-2px);
-}
-
-/* Header row: commodity name + remove button */
-.cc-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  min-height: 20px;
-}
-
-/* Matches stat-card .stat-label */
-.cc-name {
-  font-size: 11px;
-  font-weight: 600;
-  color: #6B7280;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.cc-divider {
-  display: none; /* replaced by spacing via gap */
-}
-
-/* Matches stat-card .stat-value */
-.cc-price-display {
-  font-family: 'IBM Plex Mono', 'Courier New', monospace;
-  font-size: 28px;
-  font-weight: 700;
-  color: #200B26;
-  line-height: 1.1;
-  letter-spacing: -0.5px;
-}
-
-/* Full-width price input inside the card — styled like the value */
-.cc-input {
-  width: 100%;
-  box-sizing: border-box;
-  font-family: 'IBM Plex Mono', 'Courier New', monospace;
-  font-size: 24px;
-  font-weight: 700;
-  color: #200B26;
-  text-align: left;
-  background: #F9FAFB;
-  border: 1px solid #E5E7EB;
-  border-radius: 8px;
-  padding: 10px 12px;
-  letter-spacing: -0.5px;
-}
-
-.cc-input:focus {
-  background: #fff;
-  border-color: var(--primary);
-  outline: none;
-}
-
-/* Matches stat-card .stat-trend */
-.cc-unit {
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  color: #6B7280;
-  text-transform: uppercase;
-  margin-top: auto;
-}
-
-/* Dashed "add" card — no left accent, just a ghost outline */
-.commodity-card--add {
-  border: 2px dashed #D5D3DC;
-  border-left: 2px dashed #D5D3DC;
-  background: transparent;
-  box-shadow: none;
-  cursor: pointer;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-height: 118px;
-  transition: border-color 0.15s, background 0.15s, transform 0.15s;
-}
-
-.commodity-card--add:hover {
-  border-color: var(--primary);
-  border-left-color: var(--primary);
-  background: #FFF5F0;
-  box-shadow: none;
-  transform: translateY(-2px);
-}
-
-.cc-add-icon {
-  font-size: 26px;
-  font-weight: 300;
-  color: #C8C6D0;
-  line-height: 1;
-  transition: color 0.15s;
-}
-
-.commodity-card--add:hover .cc-add-icon { color: var(--primary); }
-
-.cc-add-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #8A8799;
-  transition: color 0.15s;
-}
-
-.commodity-card--add:hover .cc-add-label { color: var(--primary); }
-
-/* Expanded add card (form state) */
-.commodity-card--add-open {
-  border: 2px dashed var(--primary);
-  border-left: 2px dashed var(--primary);
-  background: #FFF5F0;
-  box-shadow: none;
-}
-
-.cc-add-actions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.cc-cancel-btn {
-  background: none;
-  border: none;
-  color: #B4B2C0;
-  font-size: 14px;
-  cursor: pointer;
-  padding: 4px 6px;
-  border-radius: 6px;
-  transition: color 0.15s, background 0.15s;
-}
-.cc-cancel-btn:hover { color: #dc3545; background: #FEE2E2; }
-
-/* ── commodity add/remove controls ───────────────────────── */
-.add-commodity-btn {
-  font-family: var(--font-technical);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  padding: 8px 14px;
-  border-radius: 8px;
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: opacity 0.15s;
-}
-.add-commodity-btn:hover { opacity: 0.88; }
-
-.remove-commodity-btn {
-  background: none;
-  border: none;
-  color: #B4B2C0;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 6px;
-  transition: color 0.15s, background 0.15s;
-}
-.remove-commodity-btn:hover {
-  color: #dc3545;
-  background: #FEE2E2;
-}
-
-.add-commodity-error {
-  font-size: 12px;
-  color: #dc3545;
-  margin: -12px 0 0;
-  padding: 0 4px;
-}
-
-/* ── quick actions bar ────────────────────────────────────── */
-.quick-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: var(--surface-low);
-  border-radius: 10px;
-  padding: 12px 16px;
-  gap: 16px;
-}
-
-.qa-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #533C59;
-}
-
-.qa-btns {
-  display: flex;
-  gap: 10px;
-}
-
-.qa-btn {
-  font-family: var(--font-technical);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  padding: 7px 14px;
-  border-radius: 6px;
-  cursor: pointer;
-  background: var(--surface-lowest);
-  border: 1px solid var(--surface-highest);
-  color: #1A1A2E;
-  transition: all 0.12s;
-}
-
-.qa-btn:hover { background: var(--surface-highest); }
-
-.qa-btn--outline {
-  background: transparent;
-  border-color: var(--primary);
-  color: var(--primary);
-}
-
-.qa-btn--outline:hover { background: #FFF5F0; }
-
-/* ── multi-branch targets ─────────────────────────────────── */
-.targets-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.select-all-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--primary);
-  font-size: 12px;
-  font-weight: 600;
-  padding: 0;
-}
-
-.select-all-btn:hover { text-decoration: underline; }
-
-.targets-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-
-.targets-table thead th {
-  padding: 10px 14px;
-  background: var(--surface-low);
-  font-family: var(--font-technical);
-  font-size: 10px;
-  letter-spacing: 0.06em;
-  color: #6B6880;
-  text-align: left;
-  font-weight: 700;
-}
-
-.col-check { width: 48px; }
-
-.targets-table tbody tr {
-  border-bottom: 1px solid var(--surface-low);
-  cursor: pointer;
-  transition: background 0.1s;
-}
-
-.targets-table tbody tr:last-child { border-bottom: none; }
-.targets-table tbody tr:hover      { background: #FAFAFA; }
-.row--selected                     { background: #FFF5F0 !important; }
-
-.targets-table tbody td {
-  padding: 14px 14px;
-  vertical-align: middle;
-}
-
-.branch-name { font-weight: 500; color: #1A1A2E; }
-.text-muted  { color: #6B6880; }
-
-/* ── back button ──────────────────────────────────────────── */
-.btn-back {
-  background: none;
-  border: 1px solid #E8E6ED;
-  border-radius: 8px;
-  padding: 8px 16px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #533C59;
-  cursor: pointer;
-  white-space: nowrap;
-  flex-shrink: 0;
-  transition: border-color 0.15s, color 0.15s;
-}
-.btn-back:hover { border-color: var(--primary); color: var(--primary); }
-
-/* ── changed row highlight ───────────────────────────────── */
-.row--changed { background: #FFFBF0; }
-
-/* ── change indicator badge ──────────────────────────────── */
-.change-badge {
-  display: inline-block;
-  padding: 3px 8px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 700;
-  font-family: var(--font-technical);
-}
-.change-badge--up   { background: #D1FAE5; color: #065F46; }
-.change-badge--down { background: #FEE2E2; color: #991B1B; }
-
-.no-change { color: #B4B2C0; font-size: 13px; }
-
-/* ── state message ───────────────────────────────────────── */
-.state-msg {
-  padding: 24px;
-  text-align: center;
-  color: #8A8799;
-  font-size: 13px;
-}
-
-/* ── grade mode toggle ────────────────────────────────────── */
-
-/* Row that holds the description text and the toggle switch side by side. */
+/* Horizontal layout: description text on the left, toggle switch on the right. */
 .toggle-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   gap: 24px;
   flex-wrap: wrap;
 }
@@ -575,19 +58,21 @@
 .toggle-desc {
   font-size: 13px;
   color: #6B6880;
-  margin: 6px 0 0;
-  line-height: 1.6;
+  line-height: 1.7;
+  margin: 0;
 }
 
-/* Custom checkbox-based toggle switch. */
+/* ── Toggle switch (checkbox-based) ──────────────────────────────────────── */
+
+/* The real checkbox is hidden; the visual track + thumb replace it. */
 .toggle-switch {
   position: relative;
   display: inline-flex;
   cursor: pointer;
   flex-shrink: 0;
+  margin-top: 4px;
 }
 
-/* Hide the real checkbox — the visual track replaces it. */
 .toggle-switch input {
   position: absolute;
   opacity: 0;
@@ -623,32 +108,121 @@
   transform: translateX(22px);
 }
 
-/* ── commodity filter row ─────────────────────────────────── */
+/* ── Table cell: grade ────────────────────────────────────────────────────── */
 
-/* Sits above the grade price table — allows focusing on one crop. */
-.filter-row {
+/* Inline layout: code pill on the left, grade name on the right. */
+.grade-cell {
   display: flex;
   align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
+  gap: 8px;
 }
 
-/* ── save/cancel row ──────────────────────────────────────── */
-.page-actions {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 12px;
-}
-
-.btn-cancel {
-  background: none;
-  border: none;
-  color: #6B6880;
-  font-size: 14px;
+/* Lavender monospace pill — same style used across the app for grade codes. */
+.code-pill {
+  display: inline-block;
+  font-family: var(--font-technical);
+  font-size: 11px;
   font-weight: 600;
-  cursor: pointer;
-  padding: 10px 0;
-  transition: color 0.15s;
+  background: #EDE8EF;
+  color: #533C59;
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
 }
-.btn-cancel:hover { color: var(--primary); }
+
+.grade-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1A1A2E;
+}
+
+/* ── Table cell: price ────────────────────────────────────────────────────── */
+
+.price-val {
+  font-family: var(--font-technical);
+  font-weight: 700;
+  color: #1A1A2E;
+}
+
+.price-unit {
+  font-size: 11px;
+  font-weight: 600;
+  color: #9CA3AF;
+  letter-spacing: 0.04em;
+}
+
+/* ── Table cell: branch badge ─────────────────────────────────────────────── */
+
+/* Both variants share the same base pill shape. */
+.branch-badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+/* "All Branches" — neutral grey: cooperative-wide default price */
+.branch-badge--all {
+  background: #F2F1F5;
+  color: #533C59;
+}
+
+/* Specific branch name — orange tint: overrides the cooperative default */
+.branch-badge--specific {
+  background: #FFF0EA;
+  color: #C44B1A;
+}
+
+/* ── Table cell: row actions ──────────────────────────────────────────────── */
+
+.row-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
+/* Small icon-only button — default state is neutral. */
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: #8A8799;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.action-btn:hover {
+  background: var(--surface-low);
+  color: var(--primary);
+}
+
+/* Delete button turns red on hover to signal the destructive action. */
+.action-btn--danger:hover {
+  background: #FEE2E2;
+  color: #991B1B;
+}
+
+/* ── Modal form ───────────────────────────────────────────────────────────── */
+
+/* Stacks all form fields vertically with consistent spacing. */
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Inline validation error shown under raw <select> elements (not <app-input>). */
+.field-error {
+  display: block;
+  font-size: 12px;
+  color: #dc3545;
+  margin-top: 4px;
+}
