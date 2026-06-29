@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Roles List Page Styles
  * Uses UGAAP design tokens
  */
@@ -6,7 +6,7 @@
 .page {
   min-height: 100vh;
   background: var(--surface-low);
-  padding: 40px 20px;
+  padding: 16px 16px;
   font-family: var(--font-human);
 }
 
@@ -22,8 +22,9 @@
 .page-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 32px;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-bottom: 8px;
 }
 
 .header-content {
@@ -47,9 +48,7 @@
    SEARCH BAR
     */
 
-.search-bar {
-  margin-bottom: 32px;
-}
+
 
 .search-input {
   position: relative;

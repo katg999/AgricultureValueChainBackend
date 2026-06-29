@@ -1,5 +1,4 @@
-.page-container {
-  padding: 32px 16px;
+﻿.page-container {
   background: var(--surface-low);
   min-height: 100%;
 }
@@ -9,8 +8,8 @@
 .page-header {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
+  justify-content: flex-end;
+  gap: 8px;
   margin-bottom: 24px;
   flex-wrap: wrap;
 }
@@ -28,7 +27,7 @@
   margin: 0;
 }
 
-/* ── Filters ─────────────────────────────────────────────────────────────── */
+/* ── Filters */
 
 .filters-row {
   display: flex;

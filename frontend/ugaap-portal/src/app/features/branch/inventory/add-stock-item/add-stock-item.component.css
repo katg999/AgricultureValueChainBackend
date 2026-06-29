@@ -1,6 +1,5 @@
-.add-stock-item-page-wrapper {
+﻿.add-stock-item-page-wrapper {
   min-height: 100%;
-  padding: 32px 16px;
   background: var(--surface-low);
 }
 
@@ -135,12 +134,7 @@
   margin-right: 6px;
 }
 
-@media (max-width: 780px) {
-  .add-stock-item-page-wrapper {
-    padding: 16px;
-  }
-
-  .stock-card {
+@media (max-width: 780px) {  .stock-card {
     padding: 18px;
   }
 

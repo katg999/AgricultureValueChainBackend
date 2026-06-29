@@ -18,19 +18,11 @@ import java.util.UUID;
 @Repository
 public interface FarmerDeliveryRepository extends JpaRepository<FarmerDelivery, UUID>, JpaSpecificationExecutor<FarmerDelivery> {
 
-    /**
-     * Internal relational finder for calculation aggregations.
-     */
-    List<FarmerDelivery> findByFarmerId(UUID farmerId);
+    List<FarmerDelivery> findByFarmerId(String farmerId); // UUID → String
 
-    List<FarmerDelivery> findByFarmerIdIn(Collection<UUID> farmerIds);
+    List<FarmerDelivery> findByFarmerIdIn(Collection<String> farmerIds); // Collection<UUID> → Collection<String>
 
-    /**
-     * UI text matching utility enabling direct keyword text lookups.
-     */
     List<FarmerDelivery> findByFarmerNameContainingIgnoreCase(String farmerName);
-
-    //List<FarmerDelivery> findAllById(List<UUID> deliveryIds);
 
     class FarmerDeliverySpecifications {
         public static Specification<FarmerDelivery> withFilters(String farmerName, String season, String status) {

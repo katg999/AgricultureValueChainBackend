@@ -1,7 +1,6 @@
-.page-shell {
+﻿.page-shell {
   min-height: 100vh;
   background: var(--surface-low);
-  padding: 32px;
   font-family: var(--font-human);
 }
 
@@ -196,12 +195,7 @@
   }
 }
 
-@media (max-width: 640px) {
-  .page-shell {
-    padding: 24px 16px;
-  }
-
-  .top-header,
+@media (max-width: 640px) {  .top-header,
   .pagination-section {
     align-items: flex-start;
     flex-direction: column;

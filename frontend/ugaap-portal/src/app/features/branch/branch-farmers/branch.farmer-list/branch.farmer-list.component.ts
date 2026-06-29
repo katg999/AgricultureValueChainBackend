@@ -94,7 +94,7 @@ export class BranchFarmerListComponent implements OnInit, OnDestroy {
   }
 
   onAddFarmer(): void {
-    this.router.navigate(['./register'], { relativeTo: this.route }).then((success) => {
+    this.router.navigate(['../register'], { relativeTo: this.route }).then((success) => {
       console.log('Navigation result:', success);
       console.log('Current URL after nav:', this.router.url);
     });

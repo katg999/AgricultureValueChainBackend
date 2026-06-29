@@ -1,6 +1,5 @@
-.page {
+﻿.page {
   background: var(--surface-low);
-  padding: 40px 20px;
   font-family: var(--font-human);
   min-height: 100%;
 }

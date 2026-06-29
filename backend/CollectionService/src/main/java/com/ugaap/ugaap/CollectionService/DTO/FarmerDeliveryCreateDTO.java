@@ -43,6 +43,6 @@ public class FarmerDeliveryCreateDTO {
 
     @NotBlank(message = "Agricultural season identifier is required")
     private String season;
-    private Object farmerId;
+    private String farmerId;
 
 }

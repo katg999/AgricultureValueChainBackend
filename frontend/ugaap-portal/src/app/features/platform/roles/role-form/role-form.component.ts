@@ -1,13 +1,3 @@
-// features/platform/roles/role-form/role-form.component.ts
-//
-// Create / edit a platform-level role.
-//
-// Layout follows the shared <app-form-wizard> shell (the farmer-register
-// design): role details → permissions. Permissions are picked through
-// <app-permission-tabs> (scope="platform") — one tab per service, each broken
-// down into granular actions. Selected ids are plain strings like
-// "cooperatives.approve".
-
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
@@ -15,16 +5,11 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { HttpClient } from '@angular/common/http';
 
 import { API_ENDPOINTS } from '../../../../core/constants/api-endpoints';
-import { FormWizardComponent, WizardStep } from '../../../../shared/components/form-wizard/form-wizard.component';
+import { FormShellComponent } from '../../../../shared/components/form-wizard/form-wizard.component';
+import { FormSectionComponent } from '../../../../shared/components/form-section/form-section.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { PermissionTabsComponent } from '../../../../shared/components/permission-tabs/permission-tabs.component';
-
-/** Form controls validated before leaving each step */
-const STEP_FIELDS: string[][] = [
-  ['name', 'description', 'tenantId'],
-  [],   // permissions step is validated by selection count on save
-];
 
 @Component({
   selector: 'app-role-form',
@@ -33,7 +18,8 @@ const STEP_FIELDS: string[][] = [
     CommonModule,
     RouterModule,
     ReactiveFormsModule,
-    FormWizardComponent,
+    FormShellComponent,
+    FormSectionComponent,
     InputComponent,
     ButtonComponent,
     PermissionTabsComponent,
@@ -48,13 +34,6 @@ export class RoleFormComponent implements OnInit {
   isLoading = false;
   errorMessage = '';
 
-  readonly steps: WizardStep[] = [
-    { label: 'Role details' },
-    { label: 'Permissions' },
-  ];
-  currentStep = 0;
-
-  /** Permission ids granted to this role — two-way bound to the tab picker */
   readonly selectedPermissions = signal<string[]>([]);
 
   constructor(
@@ -70,8 +49,7 @@ export class RoleFormComponent implements OnInit {
     this.initForm();
 
     if (!this.isEditMode) {
-      const navigation = this.router.getCurrentNavigation();
-      const state = navigation?.extras?.state || history.state;
+      const state = this.router.getCurrentNavigation()?.extras?.state ?? history.state;
       if (state?.tenantId) {
         this.roleForm.patchValue({ tenantId: state.tenantId });
       }
@@ -84,53 +62,35 @@ export class RoleFormComponent implements OnInit {
 
   initForm(): void {
     this.roleForm = this.fb.group({
-      name: ['', Validators.required],
+      name:        ['', Validators.required],
       description: ['', Validators.required],
-      tenantId: ['', Validators.required],
+      tenantId:    ['', Validators.required],
     });
   }
 
-  // ── Step navigation ───────────────────────────────────────────────────────
+  // ── Helpers ───────────────────────────────────────────────────────────────
 
-  /** Moving forward validates the current step's controls first */
-  nextStep(): void {
-    if (!this.validateStep(this.currentStep)) return;
-    this.currentStep = Math.min(this.currentStep + 1, this.steps.length - 1);
+  get selectedPermissionsCount(): number { return this.selectedPermissions().length; }
+
+  get permissionsDesc(): string {
+    const n = this.selectedPermissionsCount;
+    return `${n} permission${n === 1 ? '' : 's'} selected`;
   }
 
-  prevStep(): void {
-    this.currentStep = Math.max(this.currentStep - 1, 0);
-  }
-
-  /** Sidebar clicks: backward always allowed, forward gated by validation */
-  goToStep(index: number): void {
-    if (index <= this.currentStep) {
-      this.currentStep = index;
-      return;
+  getFieldError(fieldName: string): string {
+    const ctrl = this.roleForm.get(fieldName);
+    if (ctrl?.touched && ctrl?.errors) {
+      if (ctrl.errors['required']) return 'This field is required';
     }
-    if (this.validateStep(this.currentStep)) {
-      this.currentStep = index;
-    }
+    return '';
   }
 
-  private validateStep(step: number): boolean {
-    const fields = STEP_FIELDS[step] ?? [];
-    let valid = true;
-    for (const field of fields) {
-      const ctrl = this.roleForm.get(field);
-      ctrl?.markAsTouched();
-      if (ctrl?.invalid) valid = false;
-    }
-    return valid;
-  }
+  cancel(): void { this.router.navigate(['/platform/roles']); }
 
   // ── Data loading ──────────────────────────────────────────────────────────
 
   loadRoleData(): void {
     if (!this.roleId) return;
-    this.errorMessage = '';
-
-    // Fetch role details
     this.http.get<any>(`${API_ENDPOINTS.ACCESS.ROLES}/${this.roleId}`).subscribe({
       next: (role) => {
         this.roleForm.patchValue({
@@ -138,11 +98,9 @@ export class RoleFormComponent implements OnInit {
           description: role.description,
           tenantId: role.tenantId,
         });
-        // After role details, load assigned permissions
         this.loadRolePermissions();
       },
       error: (err) => {
-        console.error('Failed to load role:', err);
         this.errorMessage = err?.error?.message || 'Failed to load role data';
       },
     });
@@ -152,8 +110,6 @@ export class RoleFormComponent implements OnInit {
     if (!this.roleId) return;
     this.http.get<any[]>(API_ENDPOINTS.ACCESS.ROLE_PERMISSIONS(this.roleId)).subscribe({
       next: (permissions) => {
-        // Accept either plain ids ("farmers.view") or legacy
-        // { module, action } pairs ("FARMERS"/"VIEW" → "farmers.view").
         const ids = permissions.map(p =>
           typeof p === 'string'
             ? p
@@ -162,29 +118,9 @@ export class RoleFormComponent implements OnInit {
         this.selectedPermissions.set(ids);
       },
       error: (err) => {
-        console.error('Failed to load permissions:', err);
         this.errorMessage = err?.error?.message || 'Failed to load permissions';
-        this.isLoading = false;
       },
     });
-  }
-
-  get selectedPermissionsCount(): number {
-    return this.selectedPermissions().length;
-  }
-
-  // ── Form helpers ──────────────────────────────────────────────────────────
-
-  getFieldError(fieldName: string): string {
-    const control = this.roleForm.get(fieldName);
-    if (control?.touched && control?.errors) {
-      if (control.errors['required']) return 'This field is required';
-    }
-    return '';
-  }
-
-  cancel(): void {
-    this.router.navigate(['/platform/roles']);
   }
 
   // ── Save ──────────────────────────────────────────────────────────────────
@@ -199,49 +135,6 @@ export class RoleFormComponent implements OnInit {
       return;
     }
 
-    const rolePayload = {
-      name: this.roleForm.value.name,
-      description: this.roleForm.value.description,
-      tenantId: this.roleForm.value.tenantId,
-    };
-    const permissionsPayload = { permissions: this.selectedPermissions() };
     this.router.navigate(['/platform/roles']);
-
-    // if (this.isEditMode && this.roleId) {
-    //   // UPDATE existing role
-    //   this.http.post(`${API_ENDPOINTS.ACCESS.ROLES}/${this.roleId}`, rolePayload).subscribe({
-    //     next: () => {
-    //       this.http.post(API_ENDPOINTS.ACCESS.ROLE_PERMISSIONS(this.roleId!), permissionsPayload).subscribe({
-    //         next: () => this.router.navigate(['/platform/roles']),
-    //         error: (err) => {
-    //           console.error('Failed to update permissions:', err);
-    //           this.errorMessage = err?.error?.message || 'Role updated but permissions failed';
-    //         },
-    //       });
-    //     },
-    //     error: (err) => {
-    //       console.error('Failed to update role:', err);
-    //       this.errorMessage = err?.error?.message || 'Failed to update role';
-    //     },
-    //   });
-    // } else {
-    //   // CREATE new role
-    //   this.http.post(API_ENDPOINTS.ACCESS.ROLES, rolePayload).subscribe({
-    //     next: (roleResponse: any) => {
-    //       const newRoleId = roleResponse.roleId;
-    //       this.http.post(API_ENDPOINTS.ACCESS.ROLE_PERMISSIONS(newRoleId), permissionsPayload).subscribe({
-    //         next: () => this.router.navigate(['/platform/roles'], { queryParams: { created: 'true' } }),
-    //         error: (err) => {
-    //           console.error('Permission assignment failed:', err);
-    //           this.errorMessage = err?.error?.message || 'Role created but permissions failed';
-    //         },
-    //       });
-    //     },
-    //     error: (err) => {
-    //       console.error('Role creation failed:', err);
-    //       this.errorMessage = err?.error?.message || 'Failed to create role';
-    //     },
-    //   });
-    // }
   }
 }
