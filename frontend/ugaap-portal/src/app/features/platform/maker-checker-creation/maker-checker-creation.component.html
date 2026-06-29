@@ -6,10 +6,15 @@
 
 <div class="page">
   <div class="page-container">
+    <!-- Page Header -->
+    <!-- <div class="page-header">
+      <app-logo size="sm" [showSubtitle]="false"></app-logo>
+    </div> -->
+
     <!-- Info Alert -->
     <app-alert variant="info">
       <p>
-        <strong>Important:</strong> Both Maker and Checker will have full permissions to manage
+        <strong>ℹ️ Important:</strong> Both Admin 1 and Admin 2 will have full permissions to manage
         all cooperative operations. These are the primary admin accounts.
       </p>
     </app-alert>
@@ -18,7 +23,7 @@
       <!-- MAKER ACCOUNT -->
       <form [formGroup]="makerForm" class="account-form">
         
-        <app-info-card title="MAKER ACCOUNT">
+        <app-info-card title="Admin 1">
           <!-- Photo Upload -->
           <div class="photo-upload-section">
             <label class="photo-label"
@@ -129,7 +134,7 @@
       <!-- CHECKER ACCOUNT -->
       <form [formGroup]="checkerForm" class="account-form">
         
-        <app-info-card title="CHECKER ACCOUNT">
+        <app-info-card title="Admin 2">
           
           <!-- Photo Upload -->
           <div class="photo-upload-section">
