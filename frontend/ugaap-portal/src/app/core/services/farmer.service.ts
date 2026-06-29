@@ -34,6 +34,13 @@ export interface FarmerProduction {
   livestock: string;
 }
 
+// Add this interface near the top with the other interfaces
+export interface FarmerSearchResult {
+  memberId: string;
+  fullName: string;
+  branchId: string | null;
+}
+
 export interface FarmerRegistrationForm {
   fullName: string;
   emailAddress: string;
@@ -282,6 +289,13 @@ export class FarmerService {
       tap((res) => console.log('[FarmerService.getById] raw response:', res)),
       map((res) => this.toFarmerProfile(res.data)),
     );
+  }
+
+  // ── Search ───────────────────────────────────────────────────────────────
+  search(query: string): Observable<FarmerSearchResult[]> {
+    return this.http.get<FarmerSearchResult[]>(`${API_ENDPOINTS.MEMBERS.REGISTER}/search`, {
+      params: { query },
+    });
   }
 
   // ── List ─────────────────────────────────────────────────────────────────
