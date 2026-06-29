@@ -1,50 +1,63 @@
 import { Routes } from '@angular/router';
+import { permissionGuard } from '../../../core/guards/permission.guard';
 
-// Platform-scoped user management routes.
-// Mounted at /platform/users via platform.routes.ts → { path: 'users', loadChildren: ... }
-// All imports are relative to THIS file's location (features/platform/user/).
+// Platform roles management routes.
+// Mounted at /platform/roles via platform.routes.ts.
 
 export const ROLES_ROUTES: Routes = [
 
-    {
+  // Default — roles list
+  {
     path: '',
-    title: 'Roles List' + ' | UGAAP',
+    title: 'Roles List | UGAAP',
+    canActivate: [permissionGuard],
+    data: { permissions: ['roles.view'] },
     loadComponent: () =>
       import('./roles-list/roles-list.component')
         .then(m => m.RolesListComponent),
-   
   },
-    // Roles list
-  // URL: /platform/roles/roles-list
+
+  // Canonical list path
   {
     path: 'roles-list',
-    title: 'Roles List' + ' | UGAAP',
+    title: 'Roles List | UGAAP',
+    canActivate: [permissionGuard],
+    data: { permissions: ['roles.view'] },
     loadComponent: () =>
       import('./roles-list/roles-list.component')
         .then(m => m.RolesListComponent),
-      
+  },
+
+  // Role detail
+  {
+    path: ':id',
+    title: 'Role Details | UGAAP',
+    canActivate: [permissionGuard],
+    data: { permissions: ['roles.view'] },
+    loadComponent: () =>
+      import('./role-detail/role-detail.component')
+        .then(m => m.RoleDetailComponent),
   },
 
   // Create role
-  // URL: /platform/roles/role-form
   {
     path: 'role-form',
-    title: 'Create Role' + ' | UGAAP',
+    title: 'Create Role | UGAAP',
+    canActivate: [permissionGuard],
+    data: { permissions: ['roles.create'] },
     loadComponent: () =>
       import('./role-form/role-form.component')
         .then(m => m.RoleFormComponent),
-      
   },
 
   // Edit role
-  // URL: /platform/roles/role-form/:id
   {
     path: 'role-form/:id',
-    title: 'Edit Role' + ' | UGAAP',
+    title: 'Edit Role | UGAAP',
+    canActivate: [permissionGuard],
+    data: { permissions: ['roles.edit'] },
     loadComponent: () =>
       import('./role-form/role-form.component')
         .then(m => m.RoleFormComponent),
-      
   },
-
 ];

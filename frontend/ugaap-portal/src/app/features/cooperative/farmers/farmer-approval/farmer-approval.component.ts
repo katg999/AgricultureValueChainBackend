@@ -19,6 +19,14 @@ import {
   OnboardingStep,
 } from '../../../shared-farmer-domain/farmer.service';
 
+import {
+  MOCK_INPUT_ALLOCATIONS,
+  MOCK_PRODUCE_DELIVERIES,
+  MOCK_BALANCE_LINES,
+  MOCK_REPAYMENTS,
+  MOCK_FARMER_NOTIFICATIONS,
+} from '../../../../core/mock/mock-farmer';
+
 //  Local interfaces (table row shapes — only used in this component) 
 
 export interface ProfileTab {
@@ -93,36 +101,12 @@ export class FarmerApprovalComponent implements OnInit {
     { key: 'notifications',     label: 'Notifications', badge: 2, badgeVariant: 'info' },
   ];
 
-  // Static detail tables (will come from API in a future iteration) 
-  readonly inputAllocations: InputAllocation[] = [
-    { item: 'NPK Fertilizer',   quantity: '8 Bags',        value: 640000, issueDate: '18 Jan 2024', recoveryStatus: 'partial'  },
-    { item: 'Coffee Seedlings', quantity: '250 Seedlings',  value: 375000, issueDate: '22 Jan 2024', recoveryStatus: 'settled'  },
-    { item: 'Pesticide Kit',    quantity: '3 Kits',         value: 210000, issueDate: '04 Feb 2024', recoveryStatus: 'overdue'  },
-  ];
-
-  readonly deliveries: ProduceDelivery[] = [
-    { crop: 'Coffee', weight: '420 Kg', collectionCentre: 'Kasese Coffee Growers Union', date: '16 Mar 2024', grade: 'A', value: 2520000 },
-    { crop: 'Maize',  weight: '180 Kg', collectionCentre: 'Kasese Coffee Growers Union', date: '28 Mar 2024', grade: 'B', value:  324000 },
-    { crop: 'Vanilla',weight: '32 Kg',  collectionCentre: 'Kasese Coffee Growers Union', date: '09 Apr 2024', grade: 'A', value:  960000 },
-  ];
-
-  readonly balanceLines: BalanceLine[] = [
-    { description: 'NPK Fertilizer allocation',    principal: 640000, recovered: 360000, outstanding: 280000, dueDate: '30 Apr 2024', status: 'partial'  },
-    { description: 'Coffee seedlings allocation',  principal: 375000, recovered: 375000, outstanding:      0, dueDate: '15 Apr 2024', status: 'settled'  },
-    { description: 'Pesticide kit allocation',     principal: 210000, recovered:      0, outstanding: 210000, dueDate: '20 Apr 2024', status: 'overdue'  },
-  ];
-
-  readonly repayments: Repayment[] = [
-    { date: '20 Mar 2024', method: 'Produce deduction', amount: 240000, reference: 'RCPT-2041', status: 'settled' },
-    { date: '05 Apr 2024', method: 'Mobile money',      amount: 120000, reference: 'MM-88921',  status: 'settled' },
-    { date: '18 Apr 2024', method: 'Branch cash desk',  amount:  75000, reference: 'BR-1209',   status: 'pending' },
-  ];
-
-  readonly notifications: FarmerNotification[] = [
-    { title: 'Farm verification visit scheduled',            channel: 'SMS',          date: '18 Apr 2024', status: 'open',   readState: 'Unread' },
-    { title: 'Outstanding pesticide kit balance reminder',   channel: 'SMS',          date: '15 Apr 2024', status: 'open',   readState: 'Unread' },
-    { title: 'Coffee seedlings allocation recovered',        channel: 'Branch notice', date: '12 Apr 2024', status: 'closed', readState: 'Read'   },
-  ];
+  // Static detail tables sourced from core/mock/mock-farmer.ts
+  readonly inputAllocations: InputAllocation[] = MOCK_INPUT_ALLOCATIONS as InputAllocation[];
+  readonly deliveries: ProduceDelivery[]       = MOCK_PRODUCE_DELIVERIES as ProduceDelivery[];
+  readonly balanceLines: BalanceLine[]         = MOCK_BALANCE_LINES as BalanceLine[];
+  readonly repayments: Repayment[]             = MOCK_REPAYMENTS as Repayment[];
+  readonly notifications: FarmerNotification[] = MOCK_FARMER_NOTIFICATIONS as FarmerNotification[];
 
   //  Data state
   /**

@@ -261,6 +261,8 @@
 
 /* ── Responsive ───────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .page-container {  .page-header { flex-direction: column; align-items: stretch; }
-  .detail-item { grid-template-columns: 1fr; }
+  .page-container {
+    .page-header { flex-direction: column; align-items: stretch; }
+    .detail-item { grid-template-columns: 1fr; }
+  }
 }
