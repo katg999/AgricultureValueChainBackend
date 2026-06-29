@@ -56,9 +56,9 @@ public class CooperativeService {
                 //.cooperativeId(UUID.randomUUID())
                 .registrationNumber(request.getRegistrationNumber())
                 .address(request.getAddress())
-                .contactPersonName(request.getContactPersonName())
-                .contactPersonPhone(request.getContactPersonPhone())
-                .contactPersonEmail(request.getContactPersonEmail())
+                .accountName(request.getAccountName())
+                .accountNumber(request.getAccountNumber())
+                .bankBranch(request.getBankBranch())
                 .poBox(request.getPoBox())
                 .websiteUrl(request.getWebsiteUrl())
                 .country(request.getCountry())
@@ -121,9 +121,9 @@ public class CooperativeService {
                     response.setName(c.getName());
                     response.setRegistrationNumber(c.getRegistrationNumber());
                     response.setAddress(c.getAddress());
-                    response.setContactPersonName(c.getContactPersonName());
-                    response.setContactPersonPhone(c.getContactPersonPhone());
-                    response.setContactPersonEmail(c.getContactPersonEmail());
+                    response.setAccountName(c.getAccountName());
+                    response.setAccountNumber(c.getAccountNumber());
+                    response.setBankBranch(c.getBankBranch());
                     response.setStatus(c.getStatus().name());
                     response.setCreatedAt(c.getCreatedAt().toString());
                     return response;

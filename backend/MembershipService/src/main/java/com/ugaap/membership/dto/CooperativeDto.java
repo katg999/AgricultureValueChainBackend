@@ -25,14 +25,14 @@ public class CooperativeDto {
         @NotBlank(message = "Address is required")
         private String address;
 
-        @NotBlank(message = "Contact person name is required")
-        private String contactPersonName;
+        @NotBlank(message = "Account Name name is required")
+        private String  accountName;
 
-        @Pattern(regexp = "^\\+?[0-9]{10,15}$", message = "Invalid phone number")
-        private String contactPersonPhone;
+        @NotBlank(message = "Account  Number is required")
+        private String accountNumber;
 
-        @Email(message = "Invalid email address")
-        private String contactPersonEmail;
+        @NotBlank(message = "Bank Branch Is Required")
+        private String bankBranch;
 
         private String poBox;
         private String websiteUrl;
@@ -61,9 +61,9 @@ public class CooperativeDto {
         private String name;
         private String registrationNumber;
         private String address;
-        private String contactPersonName;
-        private String contactPersonPhone;
-        private String contactPersonEmail;
+        private String accountName;
+        private String accountNumber;
+        private String bankBranch;
         private String status;
         private String createdAt;
     }
