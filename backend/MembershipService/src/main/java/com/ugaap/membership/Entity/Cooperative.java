@@ -30,14 +30,14 @@ public class Cooperative {
         @Column(name = "address", nullable = false)
         private String address;
 
-        @Column(name = "contact_person_name", nullable = false)
-        private String contactPersonName;
+        @Column(name = "account_name", nullable = false)
+        private String accountName;
 
-        @Column(name = "contact_person_phone")
-        private String contactPersonPhone;
+        @Column(name = "account_number")
+        private String accountNumber;
 
-        @Column(name = "contact_person_email")
-        private String contactPersonEmail;
+        @Column(name = "bank_branch")
+        private String bankBranch;
 
         @Column(name = "po_box")
         private String poBox;
