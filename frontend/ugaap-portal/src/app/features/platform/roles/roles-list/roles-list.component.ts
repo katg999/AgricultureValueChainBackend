@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 
 // Shared components
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
-import { RoleCardComponent, RoleCardData } from '../../../../shared/components/role-card/role-card.component';
+import { RoleCardData } from '../../../../shared/components/role-card/role-card.component';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
 import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
@@ -37,7 +37,6 @@ import { ToastService } from '../../../../core/services/toast.service';
     RouterModule,
     FormsModule,
     ButtonComponent,
-    RoleCardComponent,
     DataTableComponent,
     CellDirective,
     EmptyStateComponent,

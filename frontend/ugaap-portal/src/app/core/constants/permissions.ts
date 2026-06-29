@@ -285,8 +285,8 @@ export function allPermissionIds(): string[] {
 //
 // The constants below mirror the Java enum in shared/security/Permission.java
 // exactly, so permission strings carried in the backend JWT drop straight in
-// without translation. They are consumed by PermissionService.can() and the
-// *appHasPermission directive.
+// without translation. They are consumed by PermissionsService and the
+// *hasPermission directive.
 //
 // Relationship to the catalog above: the catalog ids (e.g. "farmers.approve")
 // are the granular, UI-facing breakdown; each maps onto one of these coarser

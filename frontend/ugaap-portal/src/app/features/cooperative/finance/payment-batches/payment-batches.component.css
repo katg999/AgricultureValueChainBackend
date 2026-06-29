@@ -158,5 +158,7 @@
 }
 
 @media (max-width: 768px) {
-  .pb-page {  .pb-title { font-size: 22px; }
+  .pb-page {
+    .pb-title { font-size: 22px; }
+  }
 }

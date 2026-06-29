@@ -3,11 +3,6 @@
  * Uses UGAAP design tokens
  */
 
-.page {
-  min-height: 100vh;
-  background: var(--surface-low);
-  font-family: var(--font-human);
-}
 
 .page-container {
   max-width: 1400px;

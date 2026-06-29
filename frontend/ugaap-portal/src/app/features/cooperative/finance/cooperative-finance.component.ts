@@ -4,7 +4,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 
 import { Season } from '../../branch/collections/branch.delivery.model';
-import { BatchRecord, BatchStatus } from '../../branch/finance/batch.model';
+import { BatchRecord, BatchStatus } from './batch-record.model';
 import { BatchService } from '../../branch/finance/batch.service';
 // import { StatCardComponent } from '../../../shared/components/stat-card/stat-card.component';
 

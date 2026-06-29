@@ -16,53 +16,12 @@ import { ExportService } from '../../../../core/services/export.service';
 import { ReportsStateService, CustomReportConfig } from '../../../../core/services/reports-state.service';
 import { CustomReportBuilderComponent } from '../custom-report-builder/custom-report-builder.component';
 
-// ── Mock data ──────────────────────────────────────────────────────────────────
-
-const DELIVERIES_DATA = [
-  { branch: 'Hoima',   farmer: 'Okello John',     date: '2026-05-15', quantity: 12.4, grade: 'A', value: '3,720,000',  status: 'Graded'  },
-  { branch: 'Masindi', farmer: 'Mugisha Peter',    date: '2026-05-14', quantity: 8.6,  grade: 'B', value: '2,150,000',  status: 'Paid'    },
-  { branch: 'Gulu',    farmer: 'Nakato Sarah',     date: '2026-05-14', quantity: 15.2, grade: 'A', value: '4,560,000',  status: 'Graded'  },
-  { branch: 'Lira',    farmer: 'Apio Grace',       date: '2026-05-13', quantity: 7.8,  grade: 'C', value: '1,560,000',  status: 'Pending' },
-  { branch: 'Mbale',   farmer: 'Otim Charles',     date: '2026-05-13', quantity: 10.5, grade: 'A', value: '3,150,000',  status: 'Paid'    },
-  { branch: 'Hoima',   farmer: 'Lubega James',     date: '2026-05-12', quantity: 14.1, grade: 'B', value: '3,525,000',  status: 'Graded'  },
-  { branch: 'Masindi', farmer: 'Namukasa Ruth',    date: '2026-05-12', quantity: 6.3,  grade: 'A', value: '1,890,000',  status: 'Pending' },
-  { branch: 'Gulu',    farmer: 'Ogenga Patrick',   date: '2026-05-11', quantity: 19.7, grade: 'A', value: '5,910,000',  status: 'Paid'    },
-  { branch: 'Lira',    farmer: 'Kamukama Denis',   date: '2026-05-11', quantity: 9.2,  grade: 'B', value: '2,300,000',  status: 'Graded'  },
-  { branch: 'Soroti',  farmer: 'Atukunda Mary',    date: '2026-05-10', quantity: 11.8, grade: 'A', value: '3,540,000',  status: 'Pending' },
-];
-
-const GRADING_DATA = [
-  { branch: 'Hoima',   gradeA: 129, gradeB: 56, gradeC: 18, rejected: 12, total: 215, qualityScore: 87 },
-  { branch: 'Masindi', gradeA: 64,  gradeB: 48, gradeC: 21, rejected: 9,  total: 142, qualityScore: 82 },
-  { branch: 'Gulu',    gradeA: 44,  gradeB: 32, gradeC: 14, rejected: 8,  total: 98,  qualityScore: 78 },
-  { branch: 'Lira',    gradeA: 39,  gradeB: 28, gradeC: 12, rejected: 8,  total: 87,  qualityScore: 75 },
-  { branch: 'Mbale',   gradeA: 34,  gradeB: 24, gradeC: 10, rejected: 8,  total: 76,  qualityScore: 73 },
-  { branch: 'Soroti',  gradeA: 28,  gradeB: 20, gradeC: 9,  rejected: 7,  total: 64,  qualityScore: 70 },
-];
-
-const PAYMENTS_DATA = [
-  { farmer: 'Okello John',     branch: 'Hoima',   delivered: 24.5, value: '7,350,000',  paid: '7,350,000',  outstanding: '0',          status: 'Settled' },
-  { farmer: 'Mugisha Peter',   branch: 'Masindi', delivered: 21.3, value: '5,325,000',  paid: '3,000,000',  outstanding: '2,325,000',  status: 'Partial' },
-  { farmer: 'Nakato Sarah',    branch: 'Gulu',    delivered: 18.7, value: '5,610,000',  paid: '5,610,000',  outstanding: '0',          status: 'Settled' },
-  { farmer: 'Apio Grace',      branch: 'Lira',    delivered: 16.2, value: '3,240,000',  paid: '0',          outstanding: '3,240,000',  status: 'Pending' },
-  { farmer: 'Otim Charles',    branch: 'Mbale',   delivered: 14.8, value: '4,440,000',  paid: '4,440,000',  outstanding: '0',          status: 'Settled' },
-  { farmer: 'Lubega James',    branch: 'Hoima',   delivered: 13.6, value: '3,400,000',  paid: '2,000,000',  outstanding: '1,400,000',  status: 'Partial' },
-  { farmer: 'Ogenga Patrick',  branch: 'Gulu',    delivered: 11.2, value: '3,360,000',  paid: '0',          outstanding: '3,360,000',  status: 'Overdue' },
-  { farmer: 'Kamukama Denis',  branch: 'Soroti',  delivered: 9.8,  value: '2,940,000',  paid: '2,940,000',  outstanding: '0',          status: 'Settled' },
-];
-
-const MEMBERS_DATA = [
-  { name: 'Okello John',    branch: 'Hoima',   registered: '2023-03-15', deliveries: 8, totalValue: '24,000,000', lastActive: '2026-05-15', status: 'Active'   },
-  { name: 'Mugisha Peter',  branch: 'Masindi', registered: '2022-11-20', deliveries: 6, totalValue: '15,000,000', lastActive: '2026-05-14', status: 'Active'   },
-  { name: 'Nakato Sarah',   branch: 'Gulu',    registered: '2023-06-10', deliveries: 5, totalValue: '18,000,000', lastActive: '2026-05-14', status: 'Active'   },
-  { name: 'Apio Grace',     branch: 'Lira',    registered: '2024-01-05', deliveries: 3, totalValue: '9,000,000',  lastActive: '2026-04-20', status: 'Inactive' },
-  { name: 'Otim Charles',   branch: 'Mbale',   registered: '2022-08-22', deliveries: 7, totalValue: '21,000,000', lastActive: '2026-05-13', status: 'Active'   },
-  { name: 'Lubega James',   branch: 'Hoima',   registered: '2023-09-12', deliveries: 6, totalValue: '18,000,000', lastActive: '2026-05-12', status: 'Active'   },
-  { name: 'Ogenga Patrick', branch: 'Gulu',    registered: '2021-05-03', deliveries: 9, totalValue: '28,000,000', lastActive: '2026-05-11', status: 'Active'   },
-  { name: 'Kamukama Denis', branch: 'Soroti',  registered: '2023-07-18', deliveries: 4, totalValue: '12,000,000', lastActive: '2026-05-10', status: 'Active'   },
-  { name: 'Atukunda Mary',  branch: 'Soroti',  registered: '2024-02-28', deliveries: 2, totalValue: '6,000,000',  lastActive: '2026-04-30', status: 'Inactive' },
-  { name: 'Namukasa Ruth',  branch: 'Masindi', registered: '2023-11-08', deliveries: 5, totalValue: '15,500,000', lastActive: '2026-05-08', status: 'Active'   },
-];
+import {
+  MOCK_REPORT_DELIVERIES_DATA as DELIVERIES_DATA,
+  MOCK_REPORT_GRADING_DATA    as GRADING_DATA,
+  MOCK_REPORT_PAYMENTS_DATA   as PAYMENTS_DATA,
+  MOCK_REPORT_MEMBERS_DATA    as MEMBERS_DATA,
+} from '../../../../core/mock/mock-cooperative';
 
 type BadgeVariant = 'active' | 'pending' | 'inactive' | 'suspended' | 'overdue' | 'settled' | 'partial' | 'verified' | 'failed' | 'draft' | 'open' | 'closed' | 'healthy' | 'low' | 'info';
 
