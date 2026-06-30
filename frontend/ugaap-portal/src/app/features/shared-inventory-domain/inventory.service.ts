@@ -7,6 +7,7 @@ import { API_ENDPOINTS } from '../../core/constants/api-endpoints';
 import { SessionService } from '../../core/services/session.service';
 import { MOCK_BRANCHES, MOCK_INITIAL_STOCK, MOCK_INITIAL_BRANCH_DISBURSEMENTS, MOCK_INITIAL_STOCK_REQUESTS, MOCK_INITIAL_FARMER_ALLOCATIONS } from '../../core/mock/mock-branch';
 import { MOCK_FARMERS } from '../../core/mock/mock-farmer';
+import { USE_MOCK } from '../../core/mock/mock-config';
 
 export type InventoryScope = 'cooperative' | 'branch';
 export type StockStatus = 'healthy' | 'low' | 'out';
@@ -140,10 +141,11 @@ export interface StockRequestPayload {
 
 @Injectable({ providedIn: 'root' })
 export class InventoryService {
-  private readonly stockSubject = new BehaviorSubject<StockItem[]>(MOCK_INITIAL_STOCK as StockItem[]);
-  private readonly branchDisbursementSubject = new BehaviorSubject<BranchDisbursement[]>(MOCK_INITIAL_BRANCH_DISBURSEMENTS as BranchDisbursement[]);
-  private readonly farmerAllocationSubject = new BehaviorSubject<FarmerAllocation[]>(MOCK_INITIAL_FARMER_ALLOCATIONS as FarmerAllocation[]);
-  private readonly stockRequestSubject = new BehaviorSubject<StockRequest[]>(MOCK_INITIAL_STOCK_REQUESTS as StockRequest[]);
+  // When USE_MOCK is false, start empty — real API calls fill these stores.
+  private readonly stockSubject = new BehaviorSubject<StockItem[]>(USE_MOCK ? MOCK_INITIAL_STOCK as StockItem[] : []);
+  private readonly branchDisbursementSubject = new BehaviorSubject<BranchDisbursement[]>(USE_MOCK ? MOCK_INITIAL_BRANCH_DISBURSEMENTS as BranchDisbursement[] : []);
+  private readonly farmerAllocationSubject = new BehaviorSubject<FarmerAllocation[]>(USE_MOCK ? MOCK_INITIAL_FARMER_ALLOCATIONS as FarmerAllocation[] : []);
+  private readonly stockRequestSubject = new BehaviorSubject<StockRequest[]>(USE_MOCK ? MOCK_INITIAL_STOCK_REQUESTS as StockRequest[] : []);
 
   constructor(
     private readonly http: HttpClient,

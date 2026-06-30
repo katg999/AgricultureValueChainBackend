@@ -19,6 +19,7 @@ import {
 } from '../models/batch.models';
 import { MOCK_PAYMENT_BATCHES } from '../../../../core/mock/mock-branch';
 import { MOCK_PAYMENT_FARMERS } from '../../../../core/mock/mock-farmer';
+import { USE_MOCK } from '../../../../core/mock/mock-config';
 
 // Display name for each branch this feature knows about — every batch/farmer record
 // is scoped to exactly one of these via branchId, matched against the logged-in session.
@@ -45,8 +46,9 @@ export class PaymentBatchService {
   // BehaviorSubject holds the current value AND emits it to any new subscriber immediately.
   // Think of it as a live variable — when you call .next(newValue), everyone watching updates.
   // [...spread] creates a copy so the seed data stays untouched.
-  private readonly batches$ = new BehaviorSubject<PaymentBatch[]>([...this.batchSeed]);
-  private readonly farmers$ = new BehaviorSubject<FarmerRecord[]>([...this.farmerSeed]);
+  // When USE_MOCK is false, start empty — the real API call fills these.
+  private readonly batches$ = new BehaviorSubject<PaymentBatch[]>(USE_MOCK ? [...this.batchSeed] : []);
+  private readonly farmers$ = new BehaviorSubject<FarmerRecord[]>(USE_MOCK ? [...this.farmerSeed] : []);
 
   // HttpClient is Angular's tool for making HTTP requests (GET, POST, DELETE, etc.)
   constructor(

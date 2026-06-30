@@ -56,7 +56,6 @@ export class CollectionHubFormComponent implements OnInit {
     commodities: [],
   };
 
-  // ── Touched tracking for inline errors ───────────────────────────────────────
   touched: Record<string, boolean> = {};
 
   ngOnInit(): void {
@@ -64,21 +63,31 @@ export class CollectionHubFormComponent implements OnInit {
     if (id) {
       this.isEditMode = true;
       this.editId = id;
-      const hub = this.hubsService.getById(id);
-      if (hub) {
-        this.form = {
-          name: hub.name,
-          location: hub.location,
-          district: hub.district,
-          branchId: hub.branchId,
-          capacity: hub.capacity,
-          commodities: [...hub.commodities],
-        };
-      }
+      this.hubsService.getById(id).subscribe({
+        next: hub => {
+          if (!hub) {
+            this.toast.error('Hub not found', 'The collection hub you tried to edit does not exist.');
+            this.router.navigate(['/cooperative/collection-hubs']);
+            return;
+          }
+          this.form = {
+            name: hub.name,
+            location: hub.location,
+            district: hub.district,
+            branchId: hub.branchId,
+            capacity: hub.capacity,
+            commodities: [...hub.commodities],
+          };
+        },
+        error: () => {
+          this.toast.error('Failed to load hub', 'Could not retrieve hub details.');
+          this.router.navigate(['/cooperative/collection-hubs']);
+        },
+      });
     }
   }
 
-  // ── Computed labels ──────────────────────────────────────────────────────────
+  // ── Computed labels ───────────────────────────────────────────────────────────
 
   get pageTitle(): string {
     return this.isEditMode ? 'Edit Collection Hub' : 'Add Collection Hub';
@@ -94,7 +103,7 @@ export class CollectionHubFormComponent implements OnInit {
     return this.branches.find(b => b.id === this.form.branchId)?.name ?? '—';
   }
 
-  // ── Step navigation ──────────────────────────────────────────────────────────
+  // ── Step navigation ───────────────────────────────────────────────────────────
 
   nextStep(): void {
     if (!this.isStepValid(this.currentStep)) return;
@@ -124,7 +133,7 @@ export class CollectionHubFormComponent implements OnInit {
     return true;
   }
 
-  // ── Commodity checkboxes ─────────────────────────────────────────────────────
+  // ── Commodity checkboxes ──────────────────────────────────────────────────────
 
   isCommoditySelected(c: string): boolean {
     return this.form.commodities.includes(c);
@@ -144,18 +153,25 @@ export class CollectionHubFormComponent implements OnInit {
     if (this.saving) return;
     this.saving = true;
 
-    try {
-      if (this.isEditMode) {
-        this.hubsService.update(this.editId, this.form);
-        this.toast.success('Hub updated', `${this.form.name} has been saved.`);
-      } else {
-        const hub = this.hubsService.create(this.form);
-        this.toast.success('Hub created', `${hub.hubCode} — ${hub.name} is now active.`);
-      }
-      this.router.navigate(['/cooperative/collection-hubs']);
-    } finally {
-      this.saving = false;
-    }
+    const op$ = this.isEditMode
+      ? this.hubsService.update(this.editId, this.form)
+      : this.hubsService.create(this.form);
+
+    op$.subscribe({
+      next: hub => {
+        this.saving = false;
+        if (this.isEditMode) {
+          this.toast.success('Hub updated', `${hub.name} has been saved.`);
+        } else {
+          this.toast.success('Hub created', `${hub.hubCode} — ${hub.name} is now active.`);
+        }
+        this.router.navigate(['/cooperative/collection-hubs']);
+      },
+      error: err => {
+        this.saving = false;
+        this.toast.error('Save failed', err?.error?.message ?? 'Please try again.');
+      },
+    });
   }
 
   cancel(): void {

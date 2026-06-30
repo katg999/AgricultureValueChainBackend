@@ -9,16 +9,7 @@ import { ButtonComponent }    from '../../../../shared/components/button/button.
 import { ToastService }       from '../../../../core/services/toast.service';
 import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
 import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
-
-export interface User {
-  id:           string;
-  name:         string;
-  email:        string;
-  phone:        string;
-  role:         string;
-  organization: string;
-  lastLogin:    string;
-}
+import { UsersService, User } from '../users.service';
 
 type BadgeVariant = 'info' | 'active' | 'pending' | 'inactive' | 'suspended' |
                     'overdue' | 'settled' | 'partial' | 'verified' |
@@ -33,6 +24,7 @@ type BadgeVariant = 'info' | 'active' | 'pending' | 'inactive' | 'suspended' |
 })
 export class UsersListComponent implements OnInit {
 
+  private usersService = inject(UsersService);
   private router = inject(Router);
   private toast  = inject(ToastService);
 
@@ -56,14 +48,14 @@ export class UsersListComponent implements OnInit {
     { key: 'actions',      header: 'ACTIONS' },
   ];
 
-  users: User[] = [
-    { id: '1', name: 'Sarah Namubiru',   email: 's.namubiru@ugaap.co.ug',  phone: '+256 701 445 678', role: 'COOPERATIVE ADMIN', organization: 'UGAAP Central',            lastLogin: '2 mins ago' },
-    { id: '2', name: 'James Okello',     email: 'j.okello@ugaap.co.ug',    phone: '+256 754 123 456', role: 'LOGISTICS MANAGER', organization: 'Kasese Coffee Coop',        lastLogin: '1 hour ago' },
-    { id: '3', name: 'Mary Atim',        email: 'm.atim@ugaap.co.ug',      phone: '+256 772 987 654', role: 'ACCOUNTANT',        organization: 'Mubende Warehouse Central', lastLogin: 'Yesterday'  },
-    { id: '4', name: 'Robert Ssemakula', email: 'r.ssemakula@ugaap.co.ug', phone: '+256 700 654 321', role: 'COOPERATIVE ADMIN', organization: 'Kasese Coffee Coop',        lastLogin: '3 days ago' },
-  ];
+  users: User[] = [];
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.usersService.users$.subscribe(users => this.users = users);
+    this.usersService.list().subscribe({
+      error: () => this.toast.error('Failed to load users', 'Could not reach the server. Please try again.'),
+    });
+  }
 
   addNewUser(): void {
     this.router.navigate(['/cooperative/users/add-user']);

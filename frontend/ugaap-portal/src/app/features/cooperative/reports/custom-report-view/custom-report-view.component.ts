@@ -4,7 +4,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import Chart from 'chart.js/auto';
-import { ReportsStateService, CustomReportConfig } from '../../../../core/services/reports-state.service';
+import { ReportConfigService, CustomReportConfig } from '../../../../core/services/reports-state.service';
 import { ExportService } from '../../../../core/services/export.service';
 import { TableComponent, TableColumn } from '../../../../shared/components/table/table.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge';
@@ -13,7 +13,7 @@ import { ChartCardComponent } from '../../../../shared/components/chart-card/cha
 import { ExportDropdownComponent } from '../../../../shared/components/export-dropdown/export-dropdown.component';
 import { CustomReportBuilderComponent } from '../custom-report-builder/custom-report-builder.component';
 
-import { MOCK_CUSTOM_REPORT_DATA as MOCK_DATA } from '../../../../core/mock/mock-cooperative';
+import { ReportsService } from '../../../../core/services/reports.service';
 
 type BadgeVariant = 'active' | 'pending' | 'inactive' | 'suspended' | 'overdue' | 'settled' | 'partial' | 'verified' | 'failed' | 'draft' | 'open' | 'closed' | 'healthy' | 'low' | 'info';
 
@@ -44,8 +44,9 @@ export class CustomReportViewComponent implements OnInit, AfterViewInit, OnDestr
 
   constructor(
     private router: Router,
-    private stateService: ReportsStateService,
+    private stateService: ReportConfigService,
     private exportService: ExportService,
+    private reportsService: ReportsService,
   ) {}
 
   ngOnInit(): void {
@@ -71,7 +72,7 @@ export class CustomReportViewComponent implements OnInit, AfterViewInit, OnDestr
 
   private buildTableData(): void {
     if (!this.config) return;
-    const raw = MOCK_DATA[this.config.dataSource] || [];
+    const raw = this.reportsService.getCustomReportData(this.config.dataSource);
     const selectedKeys = this.config.columns.filter(c => c.selected).map(c => c.key);
     this.tableData = raw.map(row => {
       const filtered: any = {};

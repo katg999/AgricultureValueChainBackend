@@ -6,6 +6,7 @@ import { API_ENDPOINTS } from '../../../core/constants/api-endpoints';
 import { SessionService } from '../../../core/services/session.service';
 import { ALL_DELIVERY_SESSIONS, BranchDelivery, BranchDeliveryFormData, DeliveryStatus, DeliverySession, Season } from './branch.delivery.model';
 import { MOCK_BRANCH_DELIVERIES } from '../../../core/mock/mock-branch';
+import { USE_MOCK } from '../../../core/mock/mock-config';
 
 @Injectable({ providedIn: 'root' })
 export class BranchDeliveryService {
@@ -14,7 +15,8 @@ export class BranchDeliveryService {
 
   private readonly seed: BranchDelivery[] = MOCK_BRANCH_DELIVERIES;
 
-  private readonly deliveries$ = new BehaviorSubject<BranchDelivery[]>([...this.seed]);
+  // When USE_MOCK is false, start empty — the real API call in getDeliveries() fills this.
+  private readonly deliveries$ = new BehaviorSubject<BranchDelivery[]>(USE_MOCK ? [...this.seed] : []);
 
   constructor(
     private readonly http: HttpClient,

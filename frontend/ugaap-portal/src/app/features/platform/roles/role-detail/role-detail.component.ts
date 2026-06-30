@@ -6,7 +6,7 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 import { RoleCardData } from '../../../../shared/components/role-card/role-card.component';
 import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
 import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
-import { MOCK_ROLES } from '../../../../core/mock/mock-cooperative';
+import { RolesService } from '../../../../core/services/roles.service';
 
 interface AssignedUser {
   id: string;
@@ -25,8 +25,9 @@ interface AssignedUser {
 })
 export class RoleDetailComponent implements OnInit {
 
-  private route  = inject(ActivatedRoute);
-  private router = inject(Router);
+  private route        = inject(ActivatedRoute);
+  private router       = inject(Router);
+  private rolesService = inject(RolesService);
 
   role: RoleCardData | null = null;
   users: AssignedUser[] = [];
@@ -38,11 +39,9 @@ export class RoleDetailComponent implements OnInit {
     { key: 'assignedAt', header: 'Assigned', class: 'muted' },
   ];
 
-  private readonly allRoles: RoleCardData[] = MOCK_ROLES as RoleCardData[];
-
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id') ?? '';
-    this.role = this.allRoles.find(r => r.id === id) ?? null;
+    this.role = this.rolesService.findById(id) as RoleCardData ?? null;
 
     if (this.role) {
       this.users = this.mockUsersForRole(this.role);

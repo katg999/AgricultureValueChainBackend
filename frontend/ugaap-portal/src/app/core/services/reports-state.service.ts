@@ -25,7 +25,12 @@ export interface CustomReportConfig {
   dateRange: { start: string; end: string };
 }
 
+// Holds the report configuration the user built in the builder so it can be read
+// by custom-report-view after the router transition (avoids query-param serialisation).
 @Injectable({ providedIn: 'root' })
-export class ReportsStateService {
+export class ReportConfigService {
   currentReportConfig: CustomReportConfig | null = null;
 }
+
+// Backwards-compat alias — remove once all imports are updated.
+export { ReportConfigService as ReportsStateService };

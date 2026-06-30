@@ -1,34 +1,34 @@
 // features/cooperative/collection-hubs/collection-hubs.service.ts
 //
-// Domain service for collection hubs — physical sites where farmers bring
-// produce for weighing, grading and temporary storage before transport.
-//
-// Currently backed by an in-memory mock store. Each method documents the
-// API call that replaces it once the backend endpoint is live.
+// Domain service for collection hubs.
+// Uses HttpClient + API_ENDPOINTS; mock data is returned when USE_MOCK = true.
 
-import { Injectable, signal } from '@angular/core';
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
+
+import { API_ENDPOINTS } from '../../../core/constants/api-endpoints';
+import { USE_MOCK } from '../../../core/mock/mock-config';
 
 export type HubStatus = 'active' | 'inactive';
 
 export interface CollectionHub {
   id: string;
-  /** Reference code shown in mono font, e.g. HUB-0003 */
   hubCode: string;
   name: string;
   location: string;
   district: string;
   branchId: string;
   branchName: string;
-  /** Storage capacity in metric tonnes */
   capacity: number;
-  /** Current load in metric tonnes */
   currentLoad: number;
   commodities: string[];
   status: HubStatus;
   createdAt: string;
 }
 
-/** Fields captured by the create / edit form */
 export interface CollectionHubInput {
   name: string;
   location: string;
@@ -103,68 +103,111 @@ const SEED_HUBS: CollectionHub[] = [
 @Injectable({ providedIn: 'root' })
 export class CollectionHubsService {
 
-  private readonly _hubs = signal<CollectionHub[]>([...SEED_HUBS]);
-  readonly hubs = this._hubs.asReadonly();
+  private readonly _hubs = new BehaviorSubject<CollectionHub[]>(
+    USE_MOCK ? [...SEED_HUBS] : [],
+  );
+  readonly hubs$ = this._hubs.asObservable();
 
-  // ── Read ────────────────────────────────────────────────────────────────────
+  constructor(private http: HttpClient) {}
 
-  /** Replace with: GET API_ENDPOINTS.COOPERATIVE.HUB_BY_ID(id) */
-  getById(id: string): CollectionHub | undefined {
-    return this._hubs().find(h => h.id === id);
-  }
+  // ── Read ──────────────────────────────────────────────────────────────────────
 
-  // ── Create ──────────────────────────────────────────────────────────────────
-
-  /** Replace with: POST API_ENDPOINTS.COOPERATIVE.COLLECTION_HUBS */
-  create(input: CollectionHubInput): CollectionHub {
-    const seq = this._hubs().length + 1;
-    const hub: CollectionHub = {
-      id: `hub-${String(seq).padStart(3, '0')}`,
-      hubCode: `HUB-${String(seq).padStart(4, '0')}`,
-      ...input,
-      branchName: this.branchName(input.branchId),
-      currentLoad: 0,
-      status: 'active',
-      createdAt: new Date().toISOString().slice(0, 10),
-    };
-    this._hubs.update(list => [hub, ...list]);
-    return hub;
-  }
-
-  // ── Update ──────────────────────────────────────────────────────────────────
-
-  /** Replace with: PUT API_ENDPOINTS.COOPERATIVE.HUB_BY_ID(id) */
-  update(id: string, input: CollectionHubInput): CollectionHub | undefined {
-    let updated: CollectionHub | undefined;
-    this._hubs.update(list =>
-      list.map(h => {
-        if (h.id !== id) return h;
-        updated = { ...h, ...input, branchName: this.branchName(input.branchId) };
-        return updated;
-      }),
-    );
-    return updated;
-  }
-
-  // ── Delete ──────────────────────────────────────────────────────────────────
-
-  /** Replace with: DELETE API_ENDPOINTS.COOPERATIVE.HUB_BY_ID(id) */
-  delete(id: string): void {
-    this._hubs.update(list => list.filter(h => h.id !== id));
-  }
-
-  // ── Status toggle ───────────────────────────────────────────────────────────
-
-  /** Replace with: POST HUB_DEACTIVATE(id) / HUB_ACTIVATE(id) */
-  setStatus(id: string, status: HubStatus): void {
-    this._hubs.update(list =>
-      list.map(h => (h.id === id ? { ...h, status } : h)),
+  list(): Observable<CollectionHub[]> {
+    if (USE_MOCK) return of([...SEED_HUBS]);
+    return this.http.get<CollectionHub[]>(API_ENDPOINTS.COOPERATIVE.COLLECTION_HUBS).pipe(
+      tap(hubs => this._hubs.next(hubs)),
+      catchError(err => { throw err; }),
     );
   }
 
-  // ── Private helpers ─────────────────────────────────────────────────────────
+  getById(id: string): Observable<CollectionHub | undefined> {
+    if (USE_MOCK) return of(SEED_HUBS.find(h => h.id === id));
+    return this.http.get<CollectionHub>(API_ENDPOINTS.COOPERATIVE.COLLECTION_HUB_BY_ID(id)).pipe(
+      catchError(err => { throw err; }),
+    );
+  }
 
-  private branchName(branchId: string): string {
+  // ── Create ────────────────────────────────────────────────────────────────────
+
+  create(input: CollectionHubInput): Observable<CollectionHub> {
+    if (USE_MOCK) {
+      const seq = this._hubs.value.length + 1;
+      const hub: CollectionHub = {
+        id: `hub-${String(seq).padStart(3, '0')}`,
+        hubCode: `HUB-${String(seq).padStart(4, '0')}`,
+        ...input,
+        branchName: this._branchName(input.branchId),
+        currentLoad: 0,
+        status: 'active',
+        createdAt: new Date().toISOString().slice(0, 10),
+      };
+      this._hubs.next([hub, ...this._hubs.value]);
+      return of(hub);
+    }
+    return this.http.post<CollectionHub>(API_ENDPOINTS.COOPERATIVE.COLLECTION_HUBS, input).pipe(
+      tap(hub => this._upsert(hub)),
+      catchError(err => { throw err; }),
+    );
+  }
+
+  // ── Update ────────────────────────────────────────────────────────────────────
+
+  update(id: string, input: CollectionHubInput): Observable<CollectionHub> {
+    if (USE_MOCK) {
+      const existing = this._hubs.value.find(h => h.id === id);
+      const updated: CollectionHub = {
+        ...(existing as CollectionHub),
+        ...input,
+        branchName: this._branchName(input.branchId),
+      };
+      this._upsert(updated);
+      return of(updated);
+    }
+    return this.http.put<CollectionHub>(API_ENDPOINTS.COOPERATIVE.COLLECTION_HUB_BY_ID(id), input).pipe(
+      tap(hub => this._upsert(hub)),
+      catchError(err => { throw err; }),
+    );
+  }
+
+  // ── Delete ────────────────────────────────────────────────────────────────────
+
+  delete(id: string): Observable<void> {
+    if (USE_MOCK) {
+      this._hubs.next(this._hubs.value.filter(h => h.id !== id));
+      return of(undefined);
+    }
+    return this.http.delete<void>(API_ENDPOINTS.COOPERATIVE.COLLECTION_HUB_BY_ID(id)).pipe(
+      tap(() => this._hubs.next(this._hubs.value.filter(h => h.id !== id))),
+      catchError(err => { throw err; }),
+    );
+  }
+
+  // ── Status ────────────────────────────────────────────────────────────────────
+
+  setStatus(id: string, status: HubStatus): Observable<void> {
+    if (USE_MOCK) {
+      this._hubs.next(this._hubs.value.map(h => h.id === id ? { ...h, status } : h));
+      return of(undefined);
+    }
+    const url = status === 'active'
+      ? API_ENDPOINTS.COOPERATIVE.COLLECTION_HUB_ACTIVATE(id)
+      : API_ENDPOINTS.COOPERATIVE.COLLECTION_HUB_DEACTIVATE(id);
+    return this.http.post<void>(url, {}).pipe(
+      tap(() => this._hubs.next(this._hubs.value.map(h => h.id === id ? { ...h, status } : h))),
+      catchError(err => { throw err; }),
+    );
+  }
+
+  // ── Private helpers ───────────────────────────────────────────────────────────
+
+  private _upsert(hub: CollectionHub): void {
+    const list = [...this._hubs.value];
+    const idx = list.findIndex(h => h.id === hub.id);
+    if (idx >= 0) list[idx] = hub; else list.unshift(hub);
+    this._hubs.next(list);
+  }
+
+  private _branchName(branchId: string): string {
     return HUB_BRANCHES.find(b => b.id === branchId)?.name ?? 'Unassigned';
   }
 }

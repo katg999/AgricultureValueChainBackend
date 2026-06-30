@@ -1,10 +1,11 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, throwError } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
+import { catchError, map, tap } from 'rxjs/operators';
 import { API_ENDPOINTS } from '../../../core/constants/api-endpoints';
 import { FarmerDelivery, FarmerDeliveryCreateDTO, FarmerDeliveryUpdateDTO } from './farmer.delivery.model';
 import { MOCK_FARMER_DELIVERY_RECORDS } from '../../../core/mock/mock-branch';
+import { USE_MOCK } from '../../../core/mock/mock-config';
 
 export interface PaginatedResponse<T> {
   content: T[];
@@ -19,22 +20,24 @@ export class FarmerDeliveryService {
   // Map the shared mock records to the FarmerDelivery shape so the list page shows
   // data in dev mode without needing a running backend.
   private readonly seed: FarmerDelivery[] = MOCK_FARMER_DELIVERY_RECORDS.map(r => ({
-    id:             r.id,
-    farmerId:       r.farmerId,
-    farmerName:     r.farmerName,
-    commodity:      r.commodity,
-    volume:         r.volume,
-    unitPrice:      r.unitPrice,
-    estimatedValue: r.estimatedValue,
-    grade:          r.grade,
-    status:         r.status as 'Pending' | 'Approved' | 'Rejected',
-    season:         r.season as string,
-    session:        r.session as string | undefined,
-    createdAt:      new Date(r.deliveryDate),
-    updatedAt:      new Date(r.deliveryDate),
+    id:               r.id,
+    branchDeliveryId: r.deliveryBatchId,   // kept so getByBatchId() can filter in-memory
+    farmerId:         r.farmerId,
+    farmerName:       r.farmerName,
+    commodity:        r.commodity,
+    volume:           r.volume,
+    unitPrice:        r.unitPrice,
+    estimatedValue:   r.estimatedValue,
+    grade:            r.grade,
+    status:           r.status as 'Pending' | 'Approved' | 'Rejected',
+    season:           r.season as string,
+    session:          r.session as string | undefined,
+    createdAt:        new Date(r.deliveryDate),
+    updatedAt:        new Date(r.deliveryDate),
   }));
 
-  private readonly _deliveries$ = new BehaviorSubject<FarmerDelivery[]>([...this.seed]);
+  // When USE_MOCK is false, start empty — the real API call fills this.
+  private readonly _deliveries$ = new BehaviorSubject<FarmerDelivery[]>(USE_MOCK ? [...this.seed] : []);
   readonly deliveries$ = this._deliveries$.asObservable();
 
   private readonly baseUrl = API_ENDPOINTS.BRANCH.FARMER_DELIVERIES;
@@ -100,6 +103,20 @@ export class FarmerDeliveryService {
         this._deliveries$.next(this._deliveries$.value.filter(d => d.id !== id));
       }),
       catchError(this.handleError),
+    );
+  }
+
+  // Returns all farmer deliveries that belong to a specific batch (branchDeliveryId).
+  // In mock mode, filters in-memory. In live mode, hits the API with a batchId param.
+  getByBatchId(batchId: string): Observable<FarmerDelivery[]> {
+    if (USE_MOCK) {
+      return this._deliveries$.pipe(
+        map(all => all.filter(d => (d as any).branchDeliveryId === batchId)),
+      );
+    }
+    const params = new HttpParams().set('batchId', batchId);
+    return this.http.get<FarmerDelivery[]>(this.baseUrl, { params }).pipe(
+      catchError(() => of(this._deliveries$.value.filter(d => (d as any).branchDeliveryId === batchId))),
     );
   }
 

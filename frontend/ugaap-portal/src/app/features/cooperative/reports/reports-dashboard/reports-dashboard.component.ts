@@ -13,15 +13,10 @@ import { ChartCardComponent } from '../../../../shared/components/chart-card/cha
 import { TabNavComponent, TabItem } from '../../../../shared/components/tab-nav/tab-nav.component';
 import { ExportDropdownComponent } from '../../../../shared/components/export-dropdown/export-dropdown.component';
 import { ExportService } from '../../../../core/services/export.service';
-import { ReportsStateService, CustomReportConfig } from '../../../../core/services/reports-state.service';
+import { ReportConfigService, CustomReportConfig } from '../../../../core/services/reports-state.service';
 import { CustomReportBuilderComponent } from '../custom-report-builder/custom-report-builder.component';
 
-import {
-  MOCK_REPORT_DELIVERIES_DATA as DELIVERIES_DATA,
-  MOCK_REPORT_GRADING_DATA    as GRADING_DATA,
-  MOCK_REPORT_PAYMENTS_DATA   as PAYMENTS_DATA,
-  MOCK_REPORT_MEMBERS_DATA    as MEMBERS_DATA,
-} from '../../../../core/mock/mock-cooperative';
+import { ReportsService, ReportTab } from '../../../../core/services/reports.service';
 
 type BadgeVariant = 'active' | 'pending' | 'inactive' | 'suspended' | 'overdue' | 'settled' | 'partial' | 'verified' | 'failed' | 'draft' | 'open' | 'closed' | 'healthy' | 'low' | 'info';
 
@@ -79,7 +74,8 @@ export class ReportsDashboardComponent implements AfterViewInit, OnDestroy {
   constructor(
     private router: Router,
     private exportService: ExportService,
-    private stateService: ReportsStateService,
+    private stateService: ReportConfigService,
+    private reportsService: ReportsService,
   ) {}
 
   ngAfterViewInit(): void {
@@ -109,13 +105,7 @@ export class ReportsDashboardComponent implements AfterViewInit, OnDestroy {
   // ── Pagination ────────────────────────────────────────────────────────────
 
   private get activeData(): any[] {
-    const map: Record<string, any[]> = {
-      deliveries: DELIVERIES_DATA,
-      grading:    GRADING_DATA,
-      payments:   PAYMENTS_DATA,
-      members:    MEMBERS_DATA,
-    };
-    return map[this.activeTab] ?? [];
+    return this.reportsService.getTabData(this.activeTab as ReportTab);
   }
 
   get paginatedData(): any[] {
@@ -204,7 +194,7 @@ export class ReportsDashboardComponent implements AfterViewInit, OnDestroy {
 
   onExport(type: 'excel' | 'pdf' | 'csv' | 'print', tab: string): void {
     this.exportLoading = true;
-    const data = { deliveries: DELIVERIES_DATA, grading: GRADING_DATA, payments: PAYMENTS_DATA, members: MEMBERS_DATA }[tab] ?? [];
+    const data = this.reportsService.getTabData(tab as ReportTab);
     const cols = this.activeColumns.filter(c => !c.template).map(c => ({ key: c.key, label: c.label }));
     const flatData = data.map((row: any) => {
       const out: any = {};

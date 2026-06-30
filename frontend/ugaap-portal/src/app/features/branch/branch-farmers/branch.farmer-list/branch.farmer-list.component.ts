@@ -5,7 +5,6 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { BehaviorSubject, combineLatest, map, Observable, Subject, takeUntil } from 'rxjs';
 
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
-import { InputComponent } from '../../../../shared/components/input/input.component';
 import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
 import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
 import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
@@ -14,7 +13,7 @@ import { FarmerListItem, FarmerService } from '../../../shared-farmer-domain/far
 @Component({
   selector: 'app-branch.farmer-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonComponent, InputComponent, StatCardComponent, DataTableComponent, CellDirective],
+  imports: [CommonModule, FormsModule, ButtonComponent, StatCardComponent, DataTableComponent, CellDirective],
   templateUrl: './branch.farmer-list.component.html',
   styleUrl: './branch.farmer-list.component.css',
 })

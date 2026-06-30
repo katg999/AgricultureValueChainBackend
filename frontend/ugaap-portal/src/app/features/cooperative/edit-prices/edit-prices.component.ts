@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 
 import { ToastService }    from '../../../core/services/toast.service';
-import { MOCK_GRADES }     from '../../../core/mock/mock-cooperative';
+import { GradingService }  from '../../../core/services/grading.service';
+import { USE_MOCK }        from '../../../core/mock/mock-config';
 import { DataTableComponent, TableColumn } from '../../../shared/components/data-table/data-table.component';
 import { CellDirective }   from '../../../shared/components/data-table/cell.directive';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
@@ -72,8 +73,9 @@ const SEED_GRADE: GradePriceEntry[] = [
 })
 export class EditPricesComponent {
 
-  private fb    = inject(FormBuilder);
-  private toast = inject(ToastService);
+  private fb      = inject(FormBuilder);
+  private toast   = inject(ToastService);
+  private grading = inject(GradingService);
 
   // ── Mode toggle ────────────────────────────────────────────────────────────
 
@@ -89,8 +91,9 @@ export class EditPricesComponent {
   // ── Datasets ───────────────────────────────────────────────────────────────
 
   // Two completely separate datasets — the table shows only the active one.
-  flatEntries  = signal<FlatPriceEntry[]>([...SEED_FLAT]);
-  gradeEntries = signal<GradePriceEntry[]>([...SEED_GRADE]);
+  // Start empty when mock mode is off — real API responses will populate these.
+  flatEntries  = signal<FlatPriceEntry[]>(USE_MOCK  ? [...SEED_FLAT]  : []);
+  gradeEntries = signal<GradePriceEntry[]>(USE_MOCK ? [...SEED_GRADE] : []);
 
   get activeRows(): (FlatPriceEntry | GradePriceEntry)[] {
     return this.gradeMode() ? this.gradeEntries() : this.flatEntries();
@@ -116,8 +119,8 @@ export class EditPricesComponent {
 
   // ── Reference data ─────────────────────────────────────────────────────────
 
-  // Grade dropdown options pulled from the grade definitions configured in grade-config.
-  readonly gradeOptions = MOCK_GRADES;
+  // Grade dropdown options come from GradingService so they reflect the configured grade definitions.
+  get gradeOptions() { return this.grading.grades; }
 
   readonly branchOptions = [
     { id: 'all',    name: 'All Branches' },

@@ -18,6 +18,7 @@ interface Branch {
   farmers: number;
   centres: number;
   status: 'ACTIVE' | 'PENDING';
+  branchCode: string; // links to FarmerListItem.branchId in the detail view
 }
 
 // Activity item for recent activity table
@@ -83,7 +84,7 @@ export class BranchDashboardComponent implements OnInit {
 
     const nb = state.newBranch;
     this.branches = [
-      { id: Date.now(), name: nb.name, location: nb.location, farmers: 0, centres: 0, status: 'PENDING' },
+      { id: Date.now(), name: nb.name, location: nb.location, farmers: 0, centres: 0, status: 'PENDING', branchCode: '' },
       ...this.branches,
     ];
 
@@ -189,8 +190,8 @@ export class BranchDashboardComponent implements OnInit {
 
   onViewBranch(branch: Branch, event?: Event): void {
     if (event) event.stopPropagation();
-    this.toast.info(branch.name, `${branch.location} · ${branch.farmers.toLocaleString()} farmers · ${branch.centres} centres`);
     this.closeMenu();
+    this.router.navigate(['/cooperative/branches', branch.id, 'detail']);
   }
 
   onEditBranch(branch: Branch, event?: Event): void {
@@ -206,16 +207,16 @@ export class BranchDashboardComponent implements OnInit {
   // ---------- Data Loaders (preserved and enhanced with ids) ----------
   private loadBranchData(): void {
     this.branches = [
-      { id: 1, name: 'Kampala Central Hub', location: 'Kampala, Central Region', farmers: 1240, centres: 5, status: 'ACTIVE' },
-      { id: 2, name: 'Gulu Northern Branch', location: 'Gulu, Northern Uganda', farmers: 876, centres: 3, status: 'ACTIVE' },
-      { id: 3, name: 'Mbarara Dairy Centre', location: 'Mbarara, Western', farmers: 2034, centres: 6, status: 'ACTIVE' },
-      { id: 4, name: 'Jinja East Office', location: 'Jinja, Eastern', farmers: 567, centres: 2, status: 'PENDING' },
-      { id: 5, name: 'Fort Portal Collection', location: 'Fort Portal, West', farmers: 342, centres: 1, status: 'ACTIVE' },
-      { id: 6, name: 'Mbale Highlands Branch', location: 'Mbale, Eastern', farmers: 985, centres: 4, status: 'ACTIVE' },
-      { id: 7, name: 'Soroti Regional', location: 'Soroti, Teso', farmers: 428, centres: 2, status: 'PENDING' },
-      { id: 8, name: 'Arua West Nile', location: 'Arua, West Nile', farmers: 763, centres: 3, status: 'ACTIVE' },
-      { id: 9, name: 'Masaka Green', location: 'Masaka, Central', farmers: 592, centres: 2, status: 'ACTIVE' },
-      { id: 10, name: 'Lira Cooperative', location: 'Lira, Lango', farmers: 311, centres: 1, status: 'ACTIVE' },
+      { id: 1,  name: 'Kampala Central Hub',    location: 'Kampala, Central Region', farmers: 1240, centres: 5, status: 'ACTIVE',  branchCode: 'BR-KLA' },
+      { id: 2,  name: 'Gulu Northern Branch',   location: 'Gulu, Northern Uganda',   farmers: 876,  centres: 3, status: 'ACTIVE',  branchCode: 'BR-GUL' },
+      { id: 3,  name: 'Mbarara Dairy Centre',   location: 'Mbarara, Western',        farmers: 2034, centres: 6, status: 'ACTIVE',  branchCode: 'BR-MBA' },
+      { id: 4,  name: 'Jinja East Office',      location: 'Jinja, Eastern',          farmers: 567,  centres: 2, status: 'PENDING', branchCode: 'BR-JIN' },
+      { id: 5,  name: 'Fort Portal Collection', location: 'Fort Portal, West',       farmers: 342,  centres: 1, status: 'ACTIVE',  branchCode: 'BR-FPT' },
+      { id: 6,  name: 'Mbale Highlands Branch', location: 'Mbale, Eastern',          farmers: 985,  centres: 4, status: 'ACTIVE',  branchCode: 'BR-MBL' },
+      { id: 7,  name: 'Soroti Regional',        location: 'Soroti, Teso',            farmers: 428,  centres: 2, status: 'PENDING', branchCode: 'BR-SOR' },
+      { id: 8,  name: 'Arua West Nile',         location: 'Arua, West Nile',         farmers: 763,  centres: 3, status: 'ACTIVE',  branchCode: 'BR-ARU' },
+      { id: 9,  name: 'Masaka Green',           location: 'Masaka, Central',         farmers: 592,  centres: 2, status: 'ACTIVE',  branchCode: 'BR-MSK' },
+      { id: 10, name: 'Lira Cooperative',       location: 'Lira, Lango',             farmers: 311,  centres: 1, status: 'ACTIVE',  branchCode: 'BR-LIR' },
     ];
   }
 

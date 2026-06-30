@@ -10,6 +10,8 @@ import { ToggleSwitchComponent } from '../../../../shared/components/toggle-swit
 import { AlertComponent } from '../../../../shared/components/alert/alert.component';
 import { FormFeedbackService } from '../../../../core/services/form-feedback.service';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
+import { ToastService } from '../../../../core/services/toast.service';
+import { UsersService } from '../users.service';
 
 @Component({
   selector: 'app-add-user',
@@ -35,6 +37,8 @@ export class AddUserComponent implements OnInit {
 
   sendWelcomeEmail = true;
   requireOTP = true;
+  isLoading = false;
+  showConfirmModal = false;
 
   genderOptions = ['Male', 'Female', 'Other', 'Prefer not to say'];
 
@@ -45,10 +49,9 @@ export class AddUserComponent implements OnInit {
     'Field Officer'
   ];
 
-  isLoading = false;
-  showConfirmModal = false;
-
   private feedback = inject(FormFeedbackService);
+  private usersService = inject(UsersService);
+  private toast = inject(ToastService);
 
   private readonly fieldLabels: Record<string, string> = {
     fullName: 'Full Name',
@@ -63,10 +66,6 @@ export class AddUserComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.initForm();
-  }
-
-  initForm(): void {
     this.userForm = this.fb.group({
       fullName:    ['', [Validators.required]],
       email:       ['', [Validators.required, Validators.email]],
@@ -113,8 +112,19 @@ export class AddUserComponent implements OnInit {
 
   onConfirmSave(): void {
     this.showConfirmModal = false;
-    this.feedback.success('User created', `${this.userForm.value.fullName} has been added successfully.`);
-    this.router.navigate(['/cooperative/users']);
+    this.isLoading = true;
+
+    this.usersService.create(this.userForm.value).subscribe({
+      next: user => {
+        this.isLoading = false;
+        this.feedback.success('User created', `${user.name} has been added successfully.`);
+        this.router.navigate(['/cooperative/users']);
+      },
+      error: err => {
+        this.isLoading = false;
+        this.toast.error('Save failed', err?.error?.message ?? 'Please try again.');
+      },
+    });
   }
 
   isValidDate(dateString: string): boolean {

@@ -9,6 +9,16 @@ export const BRANCH_ROUTES: Routes = [
     pathMatch: 'full',
   },
 
+  // Branch detail view — opened from the Branch Network Overview table
+  {
+    path: ':id/detail',
+    canActivate: [permissionGuard],
+    data: { permissions: ['branches.view'] },
+    loadComponent: () =>
+      import('./branch-detail/branch-detail.component')
+        .then(m => m.BranchDetailComponent),
+  },
+
   // Branch dashboard — requires branch view or performance permission
   {
     path: 'dashboard',
