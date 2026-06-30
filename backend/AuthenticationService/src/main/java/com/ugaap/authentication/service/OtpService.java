@@ -9,6 +9,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -26,6 +27,7 @@ public class OtpService {
     private final StringRedisTemplate  redisTemplate;
     private final CredentialsRepository credentialsRepository;
     private final PasswordEncoder      passwordEncoder;
+    private final EmailService emailService;
     private final SecureRandom         secureRandom = new SecureRandom();
 
     // ── Step 1: Forgot Password → generate OTP → send to email ───────────────
@@ -47,7 +49,12 @@ public class OtpService {
         );
 
         // TODO: emailService.sendOtp(email, otp);
-        log.info("PASSWORD RESET OTP for {} : {}", email, otp);
+        try {
+            emailService.sendOtp(email, otp);
+        } catch (IOException e) {
+            log.error("Failed to send password reset OTP to {}: {}", email, e.getMessage());
+            throw new AuthException("Failed to send OTP email. Please try again.");
+        }
     }
 
     // ── Step 2: Verify OTP only → return a short-lived verified token ─────────
