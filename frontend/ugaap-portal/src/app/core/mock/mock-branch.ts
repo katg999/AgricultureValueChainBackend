@@ -15,7 +15,10 @@ export const MOCK_BRANCHES = [
   { id: 'BR-JIN', name: 'Jinja Branch'    },
   { id: 'BR-MBA', name: 'Mbarara Branch'  },
   { id: 'BR-GUL', name: 'Gulu Branch'     },
+  { id: 'BR-LIR', name: 'Lira Cooperative' },
   { id: 'BR-MBL', name: 'Mbale West'      },
+  { id: 'BR-HOI', name: 'Hoima Central'   },
+  { id: 'BR-MAS', name: 'Masindi Depot'   },
 ];
 
 // ── Cooperative branch network (used by branch-dash and branch-detail) ───────
@@ -41,6 +44,8 @@ export const MOCK_COOPERATIVE_BRANCHES: CooperativeBranch[] = [
   { id: 8,  name: 'Arua West Nile',         location: 'Arua, West Nile',         farmers: 763,  centres: 3, status: 'ACTIVE',  branchCode: 'BR-ARU' },
   { id: 9,  name: 'Masaka Green',           location: 'Masaka, Central',         farmers: 592,  centres: 2, status: 'ACTIVE',  branchCode: 'BR-MSK' },
   { id: 10, name: 'Lira Cooperative',       location: 'Lira, Lango',             farmers: 311,  centres: 1, status: 'ACTIVE',  branchCode: 'BR-LIR' },
+  { id: 11, name: 'Hoima Central',          location: 'Hoima, Western Uganda',   farmers: 580,  centres: 3, status: 'ACTIVE',  branchCode: 'BR-HOI' },
+  { id: 12, name: 'Masindi Depot',          location: 'Masindi, Western Uganda', farmers: 420,  centres: 2, status: 'ACTIVE',  branchCode: 'BR-MAS' },
 ];
 
 export const MOCK_BRANCH_ACTIVITIES = [

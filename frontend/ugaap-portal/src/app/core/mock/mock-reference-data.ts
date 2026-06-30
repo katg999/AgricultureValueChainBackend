@@ -45,5 +45,8 @@ export const fetchStockUnits = (): Promise<string[]> =>
 export const fetchRoleFilterOptions = (): Promise<string[]> =>
   delay(['All Roles', 'PLATFORM ADMIN', 'COOPERATIVE ADMIN', 'LOGISTICS MANAGER', 'ACCOUNTANT']);
 
+export const fetchCooperativeRoleFilterOptions = (): Promise<string[]> =>
+  delay(['All Roles', 'MANAGER', 'COOPERATIVE ADMIN', 'LOGISTICS MANAGER', 'ACCOUNTANT']);
+
 export const fetchCooperationOptions = (): Promise<string[]> =>
   delay(['All Cooperations', 'UGAAP Central', 'Kasese Coffee Coop', 'Mubende Warehouse Central']);

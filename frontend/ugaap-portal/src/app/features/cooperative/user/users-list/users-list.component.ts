@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { from } from 'rxjs';
-import { fetchRoleFilterOptions, fetchCooperationOptions } from '../../../../core/mock/mock-reference-data';
+import { fetchCooperativeRoleFilterOptions, fetchCooperationOptions } from '../../../../core/mock/mock-reference-data';
 
 import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
 import { BadgeComponent }     from '../../../../shared/components/badge/badge';
@@ -54,7 +54,7 @@ export class UsersListComponent implements OnInit {
 
   ngOnInit(): void {
     // Load filter dropdown options from async mock fetch (swap for real HTTP calls when API is ready)
-    from(fetchRoleFilterOptions()).subscribe(v   => this.roleOptions        = v);
+    from(fetchCooperativeRoleFilterOptions()).subscribe(v   => this.roleOptions        = v);
     from(fetchCooperationOptions()).subscribe(v  => this.cooperationOptions = v);
 
     this.usersService.users$.subscribe(users => this.users = users);
