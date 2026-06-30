@@ -9,36 +9,7 @@
   margin: 0 auto;
 }
 
-/* 
-   PAGE HEADER
-    */
-
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 16px;
-  margin-bottom: 8px;
-}
-
-.header-content {
-  flex: 1;
-}
-
-.page-title {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--secondary);
-  margin: 0 0 8px;
-}
-
-.page-subtitle {
-  font-size: 14px;
-  color: #6B6B7B;
-  margin: 0;
-}
-
-/* 
+/*
    SEARCH BAR
     */
 

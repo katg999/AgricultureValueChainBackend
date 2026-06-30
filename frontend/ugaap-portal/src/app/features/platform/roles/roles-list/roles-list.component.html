@@ -9,17 +9,7 @@
 <div class="page">
   <div class="page-container">
     
-    <!-- Page Header -->
-    <div class="page-header">
-      <app-button
-        variant="primary"
-        size="md"
-        iconLeft="+"
-        (clicked)="createNewRole()">
-        Create new role
-      </app-button>
-    </div>
-
+    <!-- Search + action on the same row -->
     <div class="filters-bar">
       <div class="search-input">
         <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -31,6 +21,13 @@
           placeholder="Search roles..."
           [(ngModel)]="searchQuery">
       </div>
+      <app-button
+        variant="primary"
+        size="md"
+        iconLeft="+"
+        (clicked)="createNewRole()">
+        Create new role
+      </app-button>
     </div>
     <!-- Roles Grid - USING REUSABLE COMPONENT -->
     <app-data-table

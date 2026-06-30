@@ -13,7 +13,7 @@ export const ROLES_ROUTES: Routes = [
   {
     path: 'create',
     canActivate: [permissionGuard],
-    data: { permissions: ['roles.create'] },
+    data: { permissions: ['roles.create'], title: 'Create Role', subtitle: 'Define permissions for a new staff role' },
     loadComponent: () =>
       import('./role-form/role-form.component')
         .then(m => m.RoleFormComponent),
@@ -29,7 +29,7 @@ export const ROLES_ROUTES: Routes = [
   {
     path: ':id/edit',
     canActivate: [permissionGuard],
-    data: { permissions: ['roles.edit'] },
+    data: { permissions: ['roles.edit'], title: 'Edit Role' },
     loadComponent: () =>
       import('./role-form/role-form.component')
         .then(m => m.RoleFormComponent),

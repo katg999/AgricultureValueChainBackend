@@ -21,7 +21,7 @@ export const AGENTS_ROUTES: Routes = [
   {
     path: 'register',
     canActivate: [permissionGuard],
-    data: { permissions: ['agents.register'] },
+    data: { permissions: ['agents.register'], title: 'Register Agent', subtitle: 'Add a new field agent to your cooperative' },
     loadComponent: () =>
       import('./agent-form/agent-form.component')
         .then(m => m.AgentFormComponent),
@@ -31,7 +31,7 @@ export const AGENTS_ROUTES: Routes = [
   {
     path: ':id/edit',
     canActivate: [permissionGuard],
-    data: { permissions: ['agents.edit'] },
+    data: { permissions: ['agents.edit'], title: 'Edit Agent' },
     loadComponent: () =>
       import('./agent-form/agent-form.component')
         .then(m => m.AgentFormComponent),

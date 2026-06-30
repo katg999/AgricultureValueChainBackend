@@ -13,7 +13,7 @@ export const BRANCH_ROUTES: Routes = [
   {
     path: ':id/detail',
     canActivate: [permissionGuard],
-    data: { permissions: ['branches.view'] },
+    data: { permissions: ['branches.view'], title: 'Branch Detail' },
     loadComponent: () =>
       import('./branch-detail/branch-detail.component')
         .then(m => m.BranchDetailComponent),
@@ -23,7 +23,7 @@ export const BRANCH_ROUTES: Routes = [
   {
     path: 'dashboard',
     canActivate: [permissionGuard],
-    data: { permissions: ['branches.view', 'branches.performance'] },
+    data: { permissions: ['branches.view', 'branches.performance'], title: 'Branch Overview', subtitle: 'Performance and activity for this branch' },
     loadComponent: () =>
       import('./branch-dash/branch-dash.component')
         .then(m => m.BranchDashboardComponent),
@@ -33,7 +33,7 @@ export const BRANCH_ROUTES: Routes = [
   {
     path: 'onboarding',
     canActivate: [permissionGuard],
-    data: { permissions: ['branches.create'] },
+    data: { permissions: ['branches.create'], title: 'New Branch', subtitle: 'Register a new branch office' },
     loadComponent: () =>
       import('./branch-onboarding/branch-onboarding.component')
         .then(m => m.BranchOnboardingComponent),
@@ -43,7 +43,7 @@ export const BRANCH_ROUTES: Routes = [
   {
     path: 'collections',
     canActivate: [permissionGuard],
-    data: { permissionModule: 'collections' },
+    data: { permissionModule: 'collections', title: 'Collections' },
     loadChildren: () =>
       import('../../branch/collections/branch.collections.routes')
         .then(m => m.BRANCH_COLLECTIONS_ROUTES),
@@ -53,7 +53,7 @@ export const BRANCH_ROUTES: Routes = [
   {
     path: 'farmers',
     canActivate: [permissionGuard],
-    data: { permissionModule: 'farmers' },
+    data: { permissionModule: 'farmers', title: 'Farmers' },
     loadChildren: () =>
       import('../../branch/branch-farmers/branch.farmers.routes')
         .then(m => m.BRANCH_FARMERS_ROUTES),
@@ -68,7 +68,7 @@ export const BRANCH_ROUTES: Routes = [
   {
     path: 'finance/batch-processing',
     canActivate: [permissionGuard],
-    data: { permissions: ['finance.view', 'finance.batches.create'] },
+    data: { permissions: ['finance.view', 'finance.batches.create'], title: 'Payment Batches', subtitle: 'Batch farmer payments for disbursement' },
     loadComponent: () =>
       import('../../branch/finance/batch-processing/batch-processing')
         .then(m => m.BatchProcessingComponent),
@@ -76,7 +76,7 @@ export const BRANCH_ROUTES: Routes = [
   {
     path: 'finance/farmers',
     canActivate: [permissionGuard],
-    data: { permissions: ['finance.view'] },
+    data: { permissions: ['finance.view'], title: 'Batch Farmers' },
     loadComponent: () =>
       import('../../branch/finance/all-batch-farmers/all-batch-farmers.component')
         .then(m => m.AllBatchFarmersComponent),
@@ -84,7 +84,7 @@ export const BRANCH_ROUTES: Routes = [
   {
     path: 'finance/batch/:id/farmers',
     canActivate: [permissionGuard],
-    data: { permissions: ['finance.view'] },
+    data: { permissions: ['finance.view'], title: 'Batch Farmers' },
     loadComponent: () =>
       import('../../branch/finance/batch-farmers/batch-farmers.component')
         .then(m => m.BatchFarmersComponent),
@@ -94,7 +94,7 @@ export const BRANCH_ROUTES: Routes = [
   {
     path: 'inventory',
     canActivate: [permissionGuard],
-    data: { permissionModule: 'inventory' },
+    data: { permissionModule: 'inventory', title: 'Inventory' },
     loadChildren: () =>
       import('../../branch/inventory/inventory.routes')
         .then(m => m.INVENTORY_ROUTES),
@@ -104,7 +104,7 @@ export const BRANCH_ROUTES: Routes = [
   {
     path: 'daily-grading',
     canActivate: [permissionGuard],
-    data: { permissions: ['collections.grade'] },
+    data: { permissions: ['collections.grade'], title: 'Daily Grading', subtitle: 'Record graded produce for today' },
     loadComponent: () =>
       import('../../branch/daily-grading/daily-grading.component')
         .then(m => m.DailyGradingComponent),
