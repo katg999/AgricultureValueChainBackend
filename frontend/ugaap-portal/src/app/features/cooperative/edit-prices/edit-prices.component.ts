@@ -5,37 +5,12 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ToastService }    from '../../../core/services/toast.service';
 import { GradingService }  from '../../../core/services/grading.service';
 import { USE_MOCK }        from '../../../core/mock/mock-config';
+import { FlatPriceEntry, GradePriceEntry } from '../../../core/models/pricing.model';
 import { DataTableComponent, TableColumn } from '../../../shared/components/data-table/data-table.component';
 import { CellDirective }   from '../../../shared/components/data-table/cell.directive';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { ModalComponent }  from '../../../shared/components/modal/modal.component';
 import { InputComponent }  from '../../../shared/components/input/input.component';
-
-// ── Data models ───────────────────────────────────────────────────────────────
-
-// One row in the table when grade mode is OFF — commodity has a single flat price.
-export interface FlatPriceEntry {
-  id: string;
-  commodity: string;
-  pricePerKg: number;
-  // 'all' = applies cooperative-wide; a branchId = applies to that branch only
-  // (branch-specific rows override the 'all' row for the same commodity)
-  branch: string;
-  effectiveFrom: string;
-  effectiveTo: string;
-}
-
-// One row in the table when grade mode is ON — price depends on commodity AND grade.
-export interface GradePriceEntry {
-  id: string;
-  commodity: string;
-  gradeCode: string;  // e.g. 'A'
-  gradeName: string;  // e.g. 'Premium' — resolved from grade definitions
-  pricePerKg: number;
-  branch: string;
-  effectiveFrom: string;
-  effectiveTo: string;
-}
 
 // ── Seed data (replaced by real API responses in production) ─────────────────
 
