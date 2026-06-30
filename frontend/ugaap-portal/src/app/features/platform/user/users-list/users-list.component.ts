@@ -78,6 +78,12 @@ export class UsersListComponent implements OnInit {
 
   get totalItems(): number { return this.filteredUsers.length; }
 
+  // ── Stat card counts — derived from the loaded users array ───────────────
+  get totalUsers():    number { return this.users.length; }
+  get activeUsers():   number { return this.users.filter(u => u.status === 'active').length; }
+  get inactiveUsers(): number { return this.users.filter(u => u.status === 'inactive').length; }
+  get lockedAccounts():number { return this.users.filter(u => u.status === 'locked').length; }
+
   get startIndex(): number { return this.totalItems === 0 ? 0 : (this.currentPage - 1) * this.itemsPerPage + 1; }
 
   get endIndex(): number { return Math.min(this.currentPage * this.itemsPerPage, this.totalItems); }

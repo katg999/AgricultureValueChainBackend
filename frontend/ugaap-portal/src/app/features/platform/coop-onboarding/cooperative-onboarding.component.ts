@@ -15,7 +15,7 @@ import { InputComponent }       from '../../../shared/components/input/input.com
 import { ButtonComponent }      from '../../../shared/components/button/button.component';
 import { ModalComponent }       from '../../../shared/components/modal/modal.component';
 import { AlertComponent }       from '../../../shared/components/alert/alert.component';
-import { CooperativeService }      from '../../../core/services/cooperative.service';
+import { PlatformCooperativesService } from '../../../core/services/platform-cooperatives.service';
 import { ToastService }            from '../../../core/services/toast.service';
 import { FormFeedbackService }     from '../../../core/services/form-feedback.service';
 
@@ -72,7 +72,7 @@ export class CooperativeOnboardingComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private cooperativeService: CooperativeService,
+    private cooperativeService: PlatformCooperativesService,
     private titleService: Title,
     private toast: ToastService,
     private feedback: FormFeedbackService,

@@ -116,6 +116,7 @@ export interface PlatformUser {
   role:         string;
   organization: string;
   lastLogin:    string;
+  status:       'active' | 'inactive' | 'locked';
 }
 
 export interface LoginHistoryEntry {
@@ -137,10 +138,10 @@ export interface PlatformUserDetail extends PlatformUser {
 }
 
 export const MOCK_PLATFORM_USERS: PlatformUser[] = [
-  { id: '1', name: 'Sarah Namubiru',  email: 's.namubiru@ugaap-ug',  phone: '+256 701 445 678', role: 'PLATFORM ADMIN',    organization: 'UGAAP Central',           lastLogin: '2 mins ago'  },
-  { id: '2', name: 'James Ochieng',   email: 'j.ochieng@ugaap-ug',   phone: '+256 772 234 567', role: 'COOPERATIVE ADMIN', organization: 'Kasese Coffee Coop',       lastLogin: '1 hour ago'  },
-  { id: '3', name: 'Grace Atim',      email: 'g.atim@ugaap-ug',      phone: '+256 784 890 123', role: 'PLATFORM ADMIN',    organization: 'UGAAP Central',           lastLogin: 'Yesterday'   },
-  { id: '4', name: 'David Wafula',    email: 'd.wafula@ugaap-ug',    phone: '+256 756 321 098', role: 'COOPERATIVE ADMIN', organization: 'Mubende Warehouse Central', lastLogin: '3 days ago'  },
+  { id: '1', name: 'Sarah Namubiru',  email: 's.namubiru@ugaap-ug',  phone: '+256 701 445 678', role: 'PLATFORM ADMIN',    organization: 'UGAAP Central',            lastLogin: '2 mins ago',  status: 'active'   },
+  { id: '2', name: 'James Ochieng',   email: 'j.ochieng@ugaap-ug',   phone: '+256 772 234 567', role: 'COOPERATIVE ADMIN', organization: 'Kasese Coffee Coop',        lastLogin: '1 hour ago',  status: 'active'   },
+  { id: '3', name: 'Grace Atim',      email: 'g.atim@ugaap-ug',      phone: '+256 784 890 123', role: 'PLATFORM ADMIN',    organization: 'UGAAP Central',            lastLogin: 'Yesterday',   status: 'inactive' },
+  { id: '4', name: 'David Wafula',    email: 'd.wafula@ugaap-ug',    phone: '+256 756 321 098', role: 'COOPERATIVE ADMIN', organization: 'Mubende Warehouse Central', lastLogin: '3 days ago',  status: 'locked'   },
 ];
 
 export const MOCK_PLATFORM_USER_DETAIL: PlatformUserDetail = {

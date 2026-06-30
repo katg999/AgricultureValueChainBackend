@@ -16,7 +16,7 @@ import { MOCK_COOPERATIVE_USERS } from '../../../core/mock/mock-cooperative';
 
 export type { LoginHistoryEntry };
 
-export type UserStatus = 'active' | 'inactive';
+export type UserStatus = 'active' | 'inactive' | 'locked';
 
 export interface User {
   id: string;

@@ -113,14 +113,23 @@ export class BranchDashboardService {
   // ── Individual page stat cards ────────────────────────────────────────────
 
   getCollectionsStats(): Observable<BranchPageStats['collections']> {
-    return of({ ...MOCK_BRANCH_PAGE_STATS.collections });
+    if (USE_MOCK) return of({ ...MOCK_BRANCH_PAGE_STATS.collections });
+    return this.http.get<BranchPageStats['collections']>(`${this.apiUrl}/collections-stats`).pipe(
+      catchError(() => of({ ...MOCK_BRANCH_PAGE_STATS.collections })),
+    );
   }
 
   getFarmersStats(): Observable<BranchPageStats['farmers']> {
-    return of({ ...MOCK_BRANCH_PAGE_STATS.farmers });
+    if (USE_MOCK) return of({ ...MOCK_BRANCH_PAGE_STATS.farmers });
+    return this.http.get<BranchPageStats['farmers']>(`${this.apiUrl}/farmers-stats`).pipe(
+      catchError(() => of({ ...MOCK_BRANCH_PAGE_STATS.farmers })),
+    );
   }
 
   getInventoryStats(): Observable<BranchPageStats['inventory']> {
-    return of({ ...MOCK_BRANCH_PAGE_STATS.inventory });
+    if (USE_MOCK) return of({ ...MOCK_BRANCH_PAGE_STATS.inventory });
+    return this.http.get<BranchPageStats['inventory']>(`${this.apiUrl}/inventory-stats`).pipe(
+      catchError(() => of({ ...MOCK_BRANCH_PAGE_STATS.inventory })),
+    );
   }
 }

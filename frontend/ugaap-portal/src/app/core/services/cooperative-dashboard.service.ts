@@ -47,11 +47,16 @@ export class CooperativeDashboardService {
   constructor(private http: HttpClient) {}
 
   getMeta(): Observable<CoopDashboardMeta> {
-    return of({
-      cooperativeName: MOCK_COOP_NAME,
-      season:          MOCK_COOP_SEASON,
-      totalVolume:     MOCK_TOTAL_VOLUME,
-    });
+    if (USE_MOCK) {
+      return of({
+        cooperativeName: MOCK_COOP_NAME,
+        season:          MOCK_COOP_SEASON,
+        totalVolume:     MOCK_TOTAL_VOLUME,
+      });
+    }
+    return this.http.get<CoopDashboardMeta>(`${this.apiUrl}/meta`).pipe(
+      catchError(() => of({ cooperativeName: '', season: '', totalVolume: '' })),
+    );
   }
 
   getStats(): Observable<StatCardData[]> {

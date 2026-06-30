@@ -13,6 +13,8 @@ export const PLATFORM_ROUTES: Routes = [
   {
     path: 'dashboard',
     title: 'Dashboard | UGAAP',
+    // title + subtitle are read by admin-layout topbar via extractRouteData()
+    data: { title: 'Platform Dashboard', subtitle: 'System-wide overview of cooperatives, users, and platform health' },
     loadComponent: () =>
       import('./dashboard/platform-dashboard.component')
         .then(m => m.PlatformDashboardComponent),

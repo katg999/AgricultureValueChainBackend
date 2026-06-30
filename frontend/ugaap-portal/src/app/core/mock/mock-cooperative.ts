@@ -435,10 +435,11 @@ export const MOCK_COOPERATIVE_BATCHES: BatchRecord[] = [
 // ── Cooperative users ─────────────────────────────────────────────────────────
 
 export const MOCK_COOPERATIVE_USERS = [
-  { id: '1', name: 'Sarah Namubiru',   email: 's.namubiru@ugaap.co.ug',  phone: '+256 701 445 678', role: 'COOPERATIVE ADMIN', organization: 'UGAAP Central',            lastLogin: '2 mins ago', status: 'active'   as const },
-  { id: '2', name: 'James Okello',     email: 'j.okello@ugaap.co.ug',    phone: '+256 754 123 456', role: 'LOGISTICS MANAGER', organization: 'Kasese Coffee Coop',        lastLogin: '1 hour ago', status: 'active'   as const },
-  { id: '3', name: 'Mary Atim',        email: 'm.atim@ugaap.co.ug',      phone: '+256 772 987 654', role: 'ACCOUNTANT',        organization: 'Mubende Warehouse Central', lastLogin: 'Yesterday',  status: 'active'   as const },
-  { id: '4', name: 'Robert Ssemakula', email: 'r.ssemakula@ugaap.co.ug', phone: '+256 700 654 321', role: 'COOPERATIVE ADMIN', organization: 'Kasese Coffee Coop',        lastLogin: '3 days ago', status: 'inactive' as const },
+  { id: '1', name: 'Sarah Namubiru',   email: 's.namubiru@ugaap.co.ug',  phone: '+256 701 445 678', role: 'COOPERATIVE ADMIN', organization: 'UGAAP Central',            lastLogin: '2 mins ago',  status: 'active'   as const },
+  { id: '2', name: 'James Okello',     email: 'j.okello@ugaap.co.ug',    phone: '+256 754 123 456', role: 'LOGISTICS MANAGER', organization: 'Kasese Coffee Coop',        lastLogin: '1 hour ago',  status: 'active'   as const },
+  { id: '3', name: 'Mary Atim',        email: 'm.atim@ugaap.co.ug',      phone: '+256 772 987 654', role: 'ACCOUNTANT',        organization: 'Mubende Warehouse Central', lastLogin: 'Yesterday',   status: 'active'   as const },
+  { id: '4', name: 'Robert Ssemakula', email: 'r.ssemakula@ugaap.co.ug', phone: '+256 700 654 321', role: 'COOPERATIVE ADMIN', organization: 'Kasese Coffee Coop',        lastLogin: '3 days ago',  status: 'inactive' as const },
+  { id: '5', name: 'Flavia Nakirya',   email: 'f.nakirya@ugaap.co.ug',   phone: '+256 782 001 234', role: 'ACCOUNTANT',        organization: 'Mubende Warehouse Central', lastLogin: '2 weeks ago', status: 'locked'   as const },
 ];
 
 // ── Field agents ──────────────────────────────────────────────────────────────

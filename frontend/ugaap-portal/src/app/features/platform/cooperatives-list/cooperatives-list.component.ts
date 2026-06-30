@@ -6,7 +6,7 @@ import { Title } from '@angular/platform-browser';
 
 import { TableComponent, TableColumn } from '../../../shared/components/table/table.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
-import { CooperativesService, PlatformCooperative } from '../../../core/services/cooperatives.service';
+import { PlatformCooperativesService, PlatformCooperative } from '../../../core/services/platform-cooperatives.service';
 
 type Cooperative = PlatformCooperative;
 
@@ -19,7 +19,7 @@ type Cooperative = PlatformCooperative;
 })
 export class CooperativesListComponent implements OnInit {
 
-  private coopsService = inject(CooperativesService);
+  private coopsService = inject(PlatformCooperativesService);
 
   columns: TableColumn[] = [
     { key: 'name', label: 'ORGANISATION NAME', sortable: true, width: '25%' },

@@ -28,11 +28,16 @@ export const API_ENDPOINTS = {
     COOPERATIVE_BY_ID: (id: string) => `${BASE}/api/v1/cooperatives/${id}`,
     ACTIVATE_COOPERATIVE: (id: string) => `${BASE}/api/v1/cooperatives/${id}/activate`,
     DEACTIVATE_COOPERATIVE: (id: string) => `${BASE}/api/v1/cooperatives/${id}/deactivate`,
+    USERS: `${BASE}/api/v1/platform/users`,
+    USER_BY_ID: (id: string) => `${BASE}/api/v1/platform/users/${id}`,
+    USER_LOGIN_HISTORY: (id: string) => `${BASE}/api/v1/platform/users/${id}/login-history`,
   },
 
   // ── Cooperative Admin ───────────────────────────────────────────────────────
   COOPERATIVE: {
     DASHBOARD: `${BASE}/api/v1/cooperatives/dashboard`,
+    PROFILE: `${BASE}/api/v1/cooperatives/profile`,
+    BANK_ACCOUNTS: `${BASE}/api/v1/cooperatives/bank-accounts`,
     GRADING: `${BASE}/api/v1/cooperatives/grading`,
     PRICING: `${BASE}/api/v1/cooperatives/pricing`,
 

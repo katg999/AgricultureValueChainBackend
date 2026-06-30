@@ -85,6 +85,12 @@ export class UsersListComponent implements OnInit {
   onRoleFilterChange(): void {}
   onCooperationFilterChange(): void {}
 
+  // ── Stat card counts — derived from the loaded users array ───────────────
+  get totalUsers():    number { return this.users.length; }
+  get activeUsers():   number { return this.users.filter(u => u.status === 'active').length; }
+  get inactiveUsers(): number { return this.users.filter(u => u.status === 'inactive').length; }
+  get lockedAccounts():number { return this.users.filter(u => u.status === 'locked').length; }
+
   getRoleBadgeVariant(role: string): BadgeVariant {
     const r = role?.toLowerCase();
     if (r?.includes('admin'))     return 'active';
