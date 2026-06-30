@@ -11,6 +11,8 @@ import { catchError, tap } from 'rxjs/operators';
 
 import { API_ENDPOINTS } from '../../../core/constants/api-endpoints';
 import { USE_MOCK } from '../../../core/mock/mock-config';
+import { MOCK_BRANCHES } from '../../../core/mock/mock-branch';
+import { MOCK_AGENTS } from '../../../core/mock/mock-cooperative';
 
 export type AgentStatus = 'active' | 'inactive';
 export type AgentRole = 'field_agent' | 'collection_clerk';
@@ -40,52 +42,13 @@ export interface AgentInput {
   branchId: string;
 }
 
-export const AGENT_BRANCHES: { id: string; name: string }[] = [
-  { id: 'br-001', name: 'Hoima Central' },
-  { id: 'br-002', name: 'Masindi Depot' },
-  { id: 'br-003', name: 'Gulu North' },
-  { id: 'br-004', name: 'Lira East' },
-  { id: 'br-005', name: 'Mbale West' },
-];
-
-const SEED_AGENTS: Agent[] = [
-  {
-    id: 'agt-001', agentCode: 'AGT-0001', fullName: 'Moses Byaruhanga',
-    phone: '+256772114501', email: 'moses.b@bugishu.coop', nationalId: 'CM900421003XKE',
-    role: 'field_agent', branchId: 'br-001', branchName: 'Hoima Central',
-    assignedFarmers: 64, collectionsThisSeason: '18.2 MT', status: 'active', registeredAt: '2025-02-14',
-  },
-  {
-    id: 'agt-002', agentCode: 'AGT-0002', fullName: 'Sarah Nambooze',
-    phone: '+256701558294', email: 'sarah.n@bugishu.coop', nationalId: 'CF880317002LMQ',
-    role: 'collection_clerk', branchId: 'br-001', branchName: 'Hoima Central',
-    assignedFarmers: 41, collectionsThisSeason: '12.7 MT', status: 'active', registeredAt: '2025-03-02',
-  },
-  {
-    id: 'agt-003', agentCode: 'AGT-0003', fullName: 'Ivan Okello',
-    phone: '+256759301873', email: 'ivan.o@bugishu.coop', nationalId: 'CM921105004PRT',
-    role: 'field_agent', branchId: 'br-003', branchName: 'Gulu North',
-    assignedFarmers: 52, collectionsThisSeason: '15.9 MT', status: 'active', registeredAt: '2025-04-19',
-  },
-  {
-    id: 'agt-004', agentCode: 'AGT-0004', fullName: 'Grace Akello',
-    phone: '+256782446120', email: 'grace.a@bugishu.coop', nationalId: 'CF950623001ZWB',
-    role: 'field_agent', branchId: 'br-004', branchName: 'Lira East',
-    assignedFarmers: 38, collectionsThisSeason: '9.4 MT', status: 'inactive', registeredAt: '2025-01-28',
-  },
-  {
-    id: 'agt-005', agentCode: 'AGT-0005', fullName: 'Peter Wanyama',
-    phone: '+256703918456', email: 'peter.w@bugishu.coop', nationalId: 'CM870914005QAC',
-    role: 'collection_clerk', branchId: 'br-005', branchName: 'Mbale West',
-    assignedFarmers: 47, collectionsThisSeason: '14.1 MT', status: 'active', registeredAt: '2025-05-07',
-  },
-];
+export { MOCK_BRANCHES as AGENT_BRANCHES } from '../../../core/mock/mock-branch';
 
 @Injectable({ providedIn: 'root' })
 export class AgentsService {
 
   private readonly _agents = new BehaviorSubject<Agent[]>(
-    USE_MOCK ? [...SEED_AGENTS] : [],
+    USE_MOCK ? [...MOCK_AGENTS] as Agent[] : [],
   );
   readonly agents$ = this._agents.asObservable();
 
@@ -94,7 +57,7 @@ export class AgentsService {
   // ── Read ─────────────────────────────────────────────────────────────────────
 
   list(): Observable<Agent[]> {
-    if (USE_MOCK) return of([...SEED_AGENTS]);
+    if (USE_MOCK) return of([...MOCK_AGENTS] as Agent[]);
     return this.http.get<Agent[]>(API_ENDPOINTS.COOPERATIVE.AGENTS).pipe(
       tap(agents => this._agents.next(agents)),
       catchError(err => { throw err; }),
@@ -102,7 +65,7 @@ export class AgentsService {
   }
 
   getById(id: string): Observable<Agent | undefined> {
-    if (USE_MOCK) return of(SEED_AGENTS.find(a => a.id === id));
+    if (USE_MOCK) return of(MOCK_AGENTS.find(a => a.id === id) as Agent | undefined);
     return this.http.get<Agent>(API_ENDPOINTS.COOPERATIVE.AGENT_BY_ID(id)).pipe(
       catchError(err => { throw err; }),
     );
@@ -175,6 +138,6 @@ export class AgentsService {
   }
 
   private _branchName(branchId: string): string {
-    return AGENT_BRANCHES.find(b => b.id === branchId)?.name ?? 'Unassigned';
+    return MOCK_BRANCHES.find(b => b.id === branchId)?.name ?? 'Unassigned';
   }
 }
