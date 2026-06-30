@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
+import { USE_MOCK } from '../mock/mock-config';
 import { MOCK_COOP_PROFILE, MOCK_COOP_BANK_ACCOUNTS, CooperativeProfile } from '../mock/mock-cooperative';
 
 export type { CooperativeProfile };
@@ -67,7 +69,8 @@ export class CooperativeService {
   }
 
   getBankAccounts(): Observable<CooperativeBankAccount[]> {
-    // Swap for http.get(API_ENDPOINTS.COOPERATIVE.BANK_ACCOUNTS) when ready.
-    return of(MOCK_COOP_BANK_ACCOUNTS.map(a => ({ ...a })));
+    if (USE_MOCK) return of(MOCK_COOP_BANK_ACCOUNTS.map(a => ({ ...a })));
+    // TODO: replace of([]) with http.get(API_ENDPOINTS.COOPERATIVE.BANK_ACCOUNTS) when that endpoint is registered
+    return of([] as CooperativeBankAccount[]).pipe(catchError(() => of([])));
   }
 }
