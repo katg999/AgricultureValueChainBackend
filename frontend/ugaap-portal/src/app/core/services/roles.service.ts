@@ -17,6 +17,19 @@ export interface RoleRecord {
   createdAt:        string;
 }
 
+export interface AssignedUser {
+  id:         string;
+  name:       string;
+  email:      string;
+  branch:     string;
+  assignedAt: string;
+}
+
+// Fixed name/branch pools used to generate deterministic mock user lists.
+const FIRST_NAMES = ['Sarah', 'James', 'Grace', 'David', 'Alice', 'Peter', 'Lydia', 'Moses'];
+const LAST_NAMES  = ['Nakato', 'Ochieng', 'Atim', 'Wafula', 'Apio', 'Ssali', 'Nambi', 'Kato'];
+const BRANCHES    = ['Kampala Branch', 'Jinja Branch', 'Mbale Branch', 'Fort Portal Branch', 'Adjumani Branch'];
+
 @Injectable({ providedIn: 'root' })
 export class RolesService {
 
@@ -39,6 +52,17 @@ export class RolesService {
       tap(data => this._roles.next(data)),
       catchError(err => { throw err; }),
     );
+  }
+
+  getUsersForRole(usersCount: number): AssignedUser[] {
+    const count = Math.min(usersCount, 8);
+    return Array.from({ length: count }, (_, i) => ({
+      id:         `u${i + 1}`,
+      name:       `${FIRST_NAMES[i]} ${LAST_NAMES[i]}`,
+      email:      `${FIRST_NAMES[i].toLowerCase()}.${LAST_NAMES[i].toLowerCase()}@coop.ug`,
+      branch:     BRANCHES[i % BRANCHES.length],
+      assignedAt: '2024-01-' + String(i + 1).padStart(2, '0'),
+    }));
   }
 
   deleteRole(id: string): Observable<void> {

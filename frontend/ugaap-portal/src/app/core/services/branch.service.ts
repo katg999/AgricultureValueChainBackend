@@ -1,9 +1,34 @@
 // core/services/branch.service.ts
+//
+// Branch domain service.
+// Lower half: HTTP calls for branch onboarding (create / list / get by ID).
+// Upper half: cooperative branch network data used by the branch dashboard and
+//             branch-detail page, with USE_MOCK support.
 
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { tap, catchError } from 'rxjs/operators';
+
 import { API_ENDPOINTS } from '../constants/api-endpoints';
+import { USE_MOCK } from '../mock/mock-config';
+import {
+  CooperativeBranch,
+  MOCK_COOPERATIVE_BRANCHES,
+  MOCK_BRANCH_ACTIVITIES,
+  MOCK_ASSIGNED_AGENTS_COUNT,
+  MOCK_BRANCHES,
+} from '../mock/mock-branch';
+
+// Lookup map built from MOCK_BRANCHES so multiple features share one source of truth.
+const BRANCH_DISPLAY_NAMES: Record<string, string> = Object.fromEntries(
+  MOCK_BRANCHES.map(b => [b.id, b.name])
+);
+
+// Re-export so components only need to import from the service
+export type { CooperativeBranch } from '../mock/mock-branch';
+
+// ── Onboarding API types ──────────────────────────────────────────────────────
 
 export interface BranchCreatePayload {
   name: string;
@@ -28,11 +53,46 @@ export interface BranchResponse {
   createdAt: string;
 }
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class BranchService {
+
+  // ── Cooperative branch network ────────────────────────────────────────────
+
+  private readonly _branches = new BehaviorSubject<CooperativeBranch[]>(
+    USE_MOCK ? [...MOCK_COOPERATIVE_BRANCHES] : [],
+  );
+  readonly branches$ = this._branches.asObservable();
+
+  readonly assignedAgentsCount = MOCK_ASSIGNED_AGENTS_COUNT;
+
   constructor(private http: HttpClient) {}
+
+  listCooperativeBranches(): Observable<CooperativeBranch[]> {
+    if (USE_MOCK) return of([...MOCK_COOPERATIVE_BRANCHES]);
+    // Replace with real endpoint when available
+    return of([...MOCK_COOPERATIVE_BRANCHES]);
+  }
+
+  getCooperativeBranchById(id: number): Observable<CooperativeBranch | undefined> {
+    if (USE_MOCK) return of(MOCK_COOPERATIVE_BRANCHES.find(b => b.id === id));
+    return of(MOCK_COOPERATIVE_BRANCHES.find(b => b.id === id));
+  }
+
+  // Prepends a newly registered branch into the in-memory list
+  addCooperativeBranch(branch: Omit<CooperativeBranch, 'id'>): void {
+    const next: CooperativeBranch = { id: Date.now(), ...branch };
+    this._branches.next([next, ...this._branches.value]);
+  }
+
+  getActivities(): Observable<{ title: string; time: string }[]> {
+    return of([...MOCK_BRANCH_ACTIVITIES]);
+  }
+
+  getBranchDisplayName(branchId: string): string {
+    return BRANCH_DISPLAY_NAMES[branchId] ?? branchId;
+  }
+
+  // ── Onboarding API calls ──────────────────────────────────────────────────
 
   createBranch(payload: BranchCreatePayload): Observable<BranchResponse> {
     return this.http.post<BranchResponse>(API_ENDPOINTS.BRANCHES.CREATE, payload);

@@ -1,14 +1,14 @@
 // ── Branch-level mock data ────────────────────────────────────────────────────
 //
-// Covers: branch options, stock inventory, branch disbursements, stock requests,
-// farmer input allocations, branch-level delivery batches, and payment batches.
+// Covers: cooperative branch network, stock inventory, branch disbursements,
+// stock requests, farmer input allocations, delivery batches, payment batches.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { BranchDelivery } from '../../features/branch/collections/branch.delivery.model';
 import { PaymentBatch } from '../../features/branch/finance/models/batch.models';
 import { FarmerDeliveryRecord } from '../models/farmer-delivery-record.model';
 
-// ── Branches ──────────────────────────────────────────────────────────────────
+// ── Slim branch options (used by dropdowns across the app) ───────────────────
 
 export const MOCK_BRANCHES = [
   { id: 'BR-KLA', name: 'Kampala Central' },
@@ -16,6 +16,94 @@ export const MOCK_BRANCHES = [
   { id: 'BR-MBA', name: 'Mbarara Branch'  },
   { id: 'BR-GUL', name: 'Gulu Branch'     },
   { id: 'BR-MBL', name: 'Mbale West'      },
+];
+
+// ── Cooperative branch network (used by branch-dash and branch-detail) ───────
+
+export interface CooperativeBranch {
+  id: number;
+  name: string;
+  location: string;
+  farmers: number;
+  centres: number;
+  status: 'ACTIVE' | 'PENDING';
+  branchCode: string; // links to FarmerListItem.branchId
+}
+
+export const MOCK_COOPERATIVE_BRANCHES: CooperativeBranch[] = [
+  { id: 1,  name: 'Kampala Central Hub',    location: 'Kampala, Central Region', farmers: 1240, centres: 5, status: 'ACTIVE',  branchCode: 'BR-KLA' },
+  { id: 2,  name: 'Gulu Northern Branch',   location: 'Gulu, Northern Uganda',   farmers: 876,  centres: 3, status: 'ACTIVE',  branchCode: 'BR-GUL' },
+  { id: 3,  name: 'Mbarara Dairy Centre',   location: 'Mbarara, Western',        farmers: 2034, centres: 6, status: 'ACTIVE',  branchCode: 'BR-MBA' },
+  { id: 4,  name: 'Jinja East Office',      location: 'Jinja, Eastern',          farmers: 567,  centres: 2, status: 'PENDING', branchCode: 'BR-JIN' },
+  { id: 5,  name: 'Fort Portal Collection', location: 'Fort Portal, West',       farmers: 342,  centres: 1, status: 'ACTIVE',  branchCode: 'BR-FPT' },
+  { id: 6,  name: 'Mbale Highlands Branch', location: 'Mbale, Eastern',          farmers: 985,  centres: 4, status: 'ACTIVE',  branchCode: 'BR-MBL' },
+  { id: 7,  name: 'Soroti Regional',        location: 'Soroti, Teso',            farmers: 428,  centres: 2, status: 'PENDING', branchCode: 'BR-SOR' },
+  { id: 8,  name: 'Arua West Nile',         location: 'Arua, West Nile',         farmers: 763,  centres: 3, status: 'ACTIVE',  branchCode: 'BR-ARU' },
+  { id: 9,  name: 'Masaka Green',           location: 'Masaka, Central',         farmers: 592,  centres: 2, status: 'ACTIVE',  branchCode: 'BR-MSK' },
+  { id: 10, name: 'Lira Cooperative',       location: 'Lira, Lango',             farmers: 311,  centres: 1, status: 'ACTIVE',  branchCode: 'BR-LIR' },
+];
+
+export const MOCK_BRANCH_ACTIVITIES = [
+  { title: 'New branch registered in Gulu',                    time: '2 hours ago' },
+  { title: 'Collection centre added in Mbarara',               time: 'Yesterday'   },
+  { title: 'Farmer enrollment increased by 12% in Kampala',    time: '3 days ago'  },
+  { title: 'Field agent assignment updated for Jinja',         time: '5 days ago'  },
+  { title: 'Weekly collection report generated',               time: '1 week ago'  },
+];
+
+export const MOCK_ASSIGNED_AGENTS_COUNT = 142;
+
+// ── Branch dashboard (branch staff home screen) ───────────────────────────────
+
+export interface TodayDelivery {
+  ref:    string;
+  farmer: string;
+  weight: string;
+  grade:  string;
+  amount: string;
+  time:   string;
+  status: 'graded' | 'pending' | 'queued';
+}
+
+// Shapes mirror StatCardData from shared/components/stat-card
+export const MOCK_BRANCH_STATS = [
+  {
+    label: "Today's Collections", value: '2.4 MT', icon: 'box',
+    trend: '+0.8 MT from yesterday', trendUp: true,
+    route: '/branch/collections',
+  },
+  {
+    label: 'Grading Queue', value: '18', icon: 'clock',
+    thresholds: { warning: 10, critical: 25, direction: 'above' as const },
+    route: '/branch/collections',
+  },
+  {
+    label: 'Stock on Hand', value: '15.6 MT', icon: 'box',
+    trend: 'Within capacity', trendUp: true,
+    thresholds: { warning: 5, critical: 2, direction: 'below' as const },
+    route: '/branch/inventory/current-stock',
+  },
+  {
+    label: 'Active Farmers', value: '142', icon: 'farmer',
+    trend: '+3 this week', trendUp: true,
+    route: '/branch/farmers',
+  },
+];
+
+export const MOCK_TODAY_DELIVERIES: TodayDelivery[] = [
+  { ref: 'DEL-9041', farmer: 'John Tumwesigye',   weight: '320 kg', grade: 'A',  amount: 'UGX 1,600K', time: '10:15', status: 'graded'  },
+  { ref: 'DEL-9040', farmer: 'Rose Atukunda',     weight: '180 kg', grade: 'B+', amount: 'UGX 810K',   time: '10:02', status: 'graded'  },
+  { ref: 'DEL-9039', farmer: 'Paul Ategeka',      weight: '260 kg', grade: 'A',  amount: 'UGX 1,300K', time: '09:44', status: 'graded'  },
+  { ref: 'DEL-9038', farmer: 'Deborah Kembabazi', weight: '95 kg',  grade: '—',  amount: '—',           time: '09:30', status: 'pending' },
+  { ref: 'DEL-9037', farmer: 'Fred Turyamureeba', weight: '410 kg', grade: 'A+', amount: 'UGX 2,255K', time: '09:10', status: 'graded'  },
+];
+
+// Shapes mirror ActivityData from shared/components/activity-item
+export const MOCK_BRANCH_DASH_ACTIVITIES = [
+  { title: 'New delivery recorded',  subtitle: 'John Tumwesigye · 320 kg · Grade A',         timestamp: '10 mins ago', color: '#10B981' },
+  { title: 'Farmer registered',      subtitle: 'Christine Nanyonjo added to branch roster',   timestamp: '1 hr ago',    action: 'View Profile', color: '#3B82F6' },
+  { title: 'Moisture test flagged',  subtitle: 'DEL-9038 — above threshold, pending re-test', timestamp: '2 hrs ago',   color: '#F59E0B' },
+  { title: 'Stock level updated',    subtitle: 'Warehouse capacity at 68%',                   timestamp: '3 hrs ago',   color: '#9CA3AF' },
 ];
 
 // ── Stock inventory ───────────────────────────────────────────────────────────

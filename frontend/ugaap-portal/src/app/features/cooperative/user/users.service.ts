@@ -11,6 +11,9 @@ import { catchError, tap } from 'rxjs/operators';
 
 import { API_ENDPOINTS } from '../../../core/constants/api-endpoints';
 import { USE_MOCK } from '../../../core/mock/mock-config';
+import { MOCK_LOGIN_HISTORY, LoginHistoryEntry } from '../../../core/mock/mock-platform';
+
+export type { LoginHistoryEntry };
 
 export type UserStatus = 'active' | 'inactive';
 
@@ -111,6 +114,13 @@ export class UsersService {
       tap(() => this._users.next(this._users.value.map(u => u.id === id ? { ...u, status } : u))),
       catchError(err => { throw err; }),
     );
+  }
+
+  // ── Login history ─────────────────────────────────────────────────────────────
+
+  getLoginHistory(_userId: string): Observable<LoginHistoryEntry[]> {
+    // Swap for http.get<LoginHistoryEntry[]>(url) when audit-log endpoint is ready.
+    return of([...MOCK_LOGIN_HISTORY]);
   }
 
   // ── Private helpers ───────────────────────────────────────────────────────────

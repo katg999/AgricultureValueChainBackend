@@ -102,6 +102,16 @@ export class PaymentBatchService {
     ).subscribe();
   }
 
+  // Available seasons for the batch-create form dropdown.
+  getSeasons(): string[] {
+    return ['Season A 2024', 'Season B 2024', 'Season A 2025'];
+  }
+
+  // Available commodity filters for the batch-create form dropdown.
+  getCommodities(): string[] {
+    return ['All Commodities', 'Coffee', 'Maize'];
+  }
+
   // Display name for the branch the current session belongs to — used wherever the
   // UI needs to make the implicit branch scoping visible (e.g. the Create Batch page).
   getOwnBranchName(): string {

@@ -1,12 +1,80 @@
 // ── Cooperative-level mock data ───────────────────────────────────────────────
 //
 // Covers: cooperatives, roles, pricing config, season config, delivery session
-// config, grade config, reports, and cooperative-wide payment batch records.
+// config, grade config, reports, cooperative-wide payment batch records, and
+// cooperative dashboard KPIs / branch performance / payment breakdown.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { SeasonWindow } from '../models/season-config.model';
 import { DeliverySessionWindow } from '../models/delivery-session.model';
 import { BatchRecord } from '../../features/cooperative/finance/batch-record.model';
+
+// ── Cooperative dashboard ─────────────────────────────────────────────────────
+
+export interface BranchPerformanceRow {
+  branchName:  string;
+  deliveries:  number;
+  outstanding: string;
+  status:      'healthy' | 'action-required' | 'new';
+}
+
+export interface PaymentBreakdownRow {
+  status: string;
+  amount: string;
+  flex:   number;
+  color:  string;
+}
+
+export const MOCK_COOP_NAME    = 'Bugishu Cooperative Union';
+export const MOCK_COOP_SEASON  = '2026 Main Season active';
+export const MOCK_TOTAL_VOLUME = 'UGX 120,000,000';
+
+// Shapes mirror StatCardData from shared/components/stat-card
+export const MOCK_COOP_STATS = [
+  {
+    label: 'Active agents', value: '3,200', icon: 'users',
+    trend: '+12% from last season', trendUp: true,
+    thresholds: { warning: 2000, critical: 1000, direction: 'below' as const },
+    route: '/cooperative/agents',
+  },
+  {
+    label: 'Total deliveries', value: '540', icon: 'box',
+    trend: '+12% from last season', trendUp: true,
+    route: '/cooperative/collections',
+  },
+  {
+    label: 'Input Disbursed', value: '450,000,000', icon: 'wallet',
+    trend: 'UGX', trendUp: true,
+    route: '/cooperative/inventory/stock-disbursed',
+  },
+  {
+    label: 'Outstanding', value: '120,000,000', icon: 'clipboard',
+    thresholds: { warning: 50_000_000, critical: 100_000_000, direction: 'above' as const },
+    route: '/cooperative/inventory/stock-disbursed',
+  },
+];
+
+export const MOCK_BRANCH_PERFORMANCE: BranchPerformanceRow[] = [
+  { branchName: 'Hoima Central',   deliveries: 215.4, outstanding: '34,500,000', status: 'healthy'         },
+  { branchName: 'Masindi West',    deliveries: 142.8, outstanding: '58,200,000', status: 'action-required' },
+  { branchName: 'Kibaale Outpost', deliveries: 98.1,  outstanding: '12,100,000', status: 'healthy'         },
+  { branchName: 'Buliisa Branch',  deliveries: 83.7,  outstanding: '15,200,000', status: 'new'             },
+];
+
+export const MOCK_PAYMENT_BREAKDOWN: PaymentBreakdownRow[] = [
+  { status: 'SETTLED',           amount: 'UGX 66M', flex: 66, color: '#10B981' },
+  { status: 'PARTIALLY SETTLED', amount: 'UGX 36M', flex: 36, color: '#F59E0B' },
+  { status: 'PENDING',           amount: 'UGX 18M', flex: 18, color: '#D1D5DB' },
+];
+
+// Shapes mirror ActivityData from shared/components/activity-item
+export const MOCK_COOP_ACTIVITIES = [
+  { title: 'Agnes Owino registered',          subtitle: 'Hoima Central',              timestamp: '14 mins ago', action: 'View Profile',    color: '#10B981' },
+  { title: 'New delivery from Mbarara',        subtitle: '12.5 MT Robusta',            timestamp: '2 hrs ago',   action: 'BATCH-5510-COF',  actionIcon: '↗', color: '#F59E0B' },
+  { title: 'Loan disbursement approved',       subtitle: 'UGX 4.2M to Okello David',  timestamp: '5 hrs ago',   color: '#3B82F6' },
+  { title: 'Logistics route updated',          subtitle: 'Masindi to Kampala Central', timestamp: 'Yesterday',   color: '#9CA3AF' },
+  { title: 'System Backup Completed',          subtitle: 'Scheduled Maintenance',      timestamp: '2 days ago',  color: '#6B7280' },
+];
 
 // ── Cooperatives ──────────────────────────────────────────────────────────────
 
@@ -210,6 +278,92 @@ export const MOCK_CUSTOM_REPORT_DATA: Record<string, any[]> = {
     { name: 'Otim Charles',  branch: 'Mbale',   registered: '2022-08-22', deliveries: 7, totalValue: '21,000,000', lastActive: '2026-05-13', status: 'Active'   },
   ],
 };
+
+// ── Cooperative profile ───────────────────────────────────────────────────────
+
+export interface CooperativeProfile {
+  name:               string;
+  registrationNumber: string;
+  address:            string;
+  country:            string;
+  poBox:              string;
+  websiteUrl:         string;
+  memberSince:        string;
+  status:             'active' | 'suspended';
+}
+
+export const MOCK_COOP_PROFILE: CooperativeProfile = {
+  name:               'Bugishu Cooperative Union',
+  registrationNumber: 'COOP/2024/0157',
+  address:            'Plot 12, Republic Street, Mbale',
+  country:            'Uganda',
+  poBox:              'P.O. Box 547, Mbale',
+  websiteUrl:         'https://bugishu.coop',
+  memberSince:        '2024-03-18',
+  status:             'active',
+};
+
+// Shape matches CooperativeBankAccount from cooperative.service.ts
+export const MOCK_COOP_BANK_ACCOUNTS = [
+  {
+    id:            '1',
+    bankName:      'Stanbic Bank Uganda',
+    bankBranch:    'Mbale Branch',
+    accountName:   'Bugishu Cooperative Union Ltd',
+    accountNumber: '9030012345678',
+    isPrimary:     true,
+  },
+];
+
+// ── Reports chart data ────────────────────────────────────────────────────────
+// Numeric series used by ReportsService chart getters.
+// The component keeps Chart.js config logic; the service keeps data.
+
+export interface ChartSeries { labels: string[]; data: number[]; }
+export interface StackedChartSeries {
+  labels:   string[];
+  datasets: Array<{ label: string; data: number[]; backgroundColor: string }>;
+}
+
+export const MOCK_DELIVERY_TREND: Record<string, ChartSeries> = {
+  monthly: { labels: ['Dec','Jan','Feb','Mar','Apr','May'],                                                                           data: [92,108,134,156,148,215] },
+  weekly:  { labels: ['Wk 44','Wk 46','Wk 48','Wk 50','Wk 52','Wk 2','Wk 4','Wk 6','Wk 8','Wk 10'],                               data: [38,42,51,48,55,61,58,72,68,78] },
+  daily:   { labels: ['15 May','16','17','18','19','20','21','22','23','24','25','26','27','28'],                                     data: [18,12,24,16,20,8,15,22,19,25,14,18,21,28] },
+};
+
+export const MOCK_DELIVERY_BY_BRANCH:   ChartSeries = { labels: ['Hoima','Masindi','Gulu','Lira','Mbale','Soroti'],              data: [215,142,98,87,76,64] };
+export const MOCK_DELIVERY_STATUS_SPLIT: ChartSeries = { labels: ['Pending','Graded','Paid'],                                    data: [45,230,265] };
+export const MOCK_TOP_FARMERS_DELIVERY: ChartSeries  = { labels: ['Ogenga P.','Okello J.','Mugisha P.','Nakato S.','Atukunda M.'], data: [24.5,21.3,18.7,16.2,14.8] };
+
+export const MOCK_GRADING_DISTRIBUTION: ChartSeries = { labels: ['Grade A','Grade B','Grade C','Rejected'], data: [338,188,84,44] };
+export const MOCK_GRADING_BY_BRANCH: StackedChartSeries = {
+  labels: ['Hoima','Masindi','Gulu','Lira','Mbale','Soroti'],
+  datasets: [
+    { label: 'Grade A',  data: [129,64,44,39,34,28], backgroundColor: '#10B981' },
+    { label: 'Grade B',  data: [56,48,32,28,24,20],  backgroundColor: '#3B82F6' },
+    { label: 'Grade C',  data: [18,21,14,12,10,9],   backgroundColor: '#F59E0B' },
+    { label: 'Rejected', data: [12,9,8,8,8,7],       backgroundColor: '#EF4444' },
+  ],
+};
+export const MOCK_QUALITY_TREND:    ChartSeries = { labels: ['Dec','Jan','Feb','Mar','Apr','May'],      data: [78,80,79,82,83,81] };
+export const MOCK_REJECTION_RATES:  ChartSeries = { labels: ['Hoima','Masindi','Gulu','Lira','Mbale','Soroti'], data: [5.6,6.3,8.2,9.2,10.5,10.9] };
+
+export const MOCK_PAYMENT_STATUS_BY_BRANCH: StackedChartSeries = {
+  labels: ['Hoima','Masindi','Gulu','Lira','Mbale','Soroti'],
+  datasets: [
+    { label: 'Settled', data: [32,18,12,8,7,5], backgroundColor: '#10B981' },
+    { label: 'Partial', data: [8,12,6,5,4,3],   backgroundColor: '#F59E0B' },
+    { label: 'Pending', data: [4,6,3,4,3,2],    backgroundColor: '#EF4444' },
+  ],
+};
+export const MOCK_PAYMENT_TREND:       ChartSeries = { labels: ['Dec','Jan','Feb','Mar','Apr','May'],          data: [28,34,42,38,45,52] };
+export const MOCK_RECOVERY_RATE                    = 78; // percent
+export const MOCK_OUTSTANDING_BY_BRANCH: ChartSeries = { labels: ['Masindi','Hoima','Lira','Gulu','Mbale','Soroti'], data: [12.6,8.4,5.8,6.2,3.4,2.1] };
+
+export const MOCK_MEMBER_TREND:            ChartSeries = { labels: ['Dec','Jan','Feb','Mar','Apr','May'],             data: [8,12,6,14,10,14] };
+export const MOCK_MEMBERS_BY_BRANCH:       ChartSeries = { labels: ['Hoima','Masindi','Mbale','Gulu','Soroti','Lira'], data: [124,98,86,82,78,74] };
+export const MOCK_ACTIVE_MEMBER_SPLIT:     ChartSeries = { labels: ['Active','Inactive'],                             data: [425,117] };
+export const MOCK_TOP_FARMERS_DELIVERIES:  ChartSeries = { labels: ['Ogenga P.','Okello J.','Otim C.','Lubega J.','Mugisha P.'], data: [9,8,7,6,6] };
 
 // ── Cooperative-level payment batch records ────────────────────────────────────
 // Used by BatchService (cooperative finance view) as seed data.

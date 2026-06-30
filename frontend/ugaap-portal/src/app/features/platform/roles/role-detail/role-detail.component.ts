@@ -6,15 +6,7 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 import { RoleCardData } from '../../../../shared/components/role-card/role-card.component';
 import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
 import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
-import { RolesService } from '../../../../core/services/roles.service';
-
-interface AssignedUser {
-  id: string;
-  name: string;
-  email: string;
-  branch: string;
-  assignedAt: string;
-}
+import { RolesService, AssignedUser } from '../../../../core/services/roles.service';
 
 @Component({
   selector: 'app-role-detail',
@@ -44,7 +36,7 @@ export class RoleDetailComponent implements OnInit {
     this.role = this.rolesService.findById(id) as RoleCardData ?? null;
 
     if (this.role) {
-      this.users = this.mockUsersForRole(this.role);
+      this.users = this.rolesService.getUsersForRole(this.role.usersCount);
     }
   }
 
@@ -58,19 +50,5 @@ export class RoleDetailComponent implements OnInit {
 
   viewUser(user: AssignedUser): void {
     this.router.navigate(['/platform/users/user', user.id]);
-  }
-
-  private mockUsersForRole(role: RoleCardData): AssignedUser[] {
-    const count = Math.min(role.usersCount, 8);
-    const firstNames = ['Sarah', 'James', 'Grace', 'David', 'Alice', 'Peter', 'Lydia', 'Moses'];
-    const lastNames  = ['Nakato', 'Ochieng', 'Atim', 'Wafula', 'Apio', 'Ssali', 'Nambi', 'Kato'];
-    const branches   = ['Kampala Branch', 'Jinja Branch', 'Mbale Branch', 'Fort Portal Branch', 'Adjumani Branch'];
-    return Array.from({ length: count }, (_, i) => ({
-      id: `u${i + 1}`,
-      name: `${firstNames[i]} ${lastNames[i]}`,
-      email: `${firstNames[i].toLowerCase()}.${lastNames[i].toLowerCase()}@coop.ug`,
-      branch: branches[i % branches.length],
-      assignedAt: '2024-01-' + String(i + 1).padStart(2, '0'),
-    }));
   }
 }

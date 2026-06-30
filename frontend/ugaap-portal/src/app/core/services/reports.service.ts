@@ -7,7 +7,27 @@ import {
   MOCK_REPORT_PAYMENTS_DATA,
   MOCK_REPORT_MEMBERS_DATA,
   MOCK_CUSTOM_REPORT_DATA,
+  MOCK_DELIVERY_TREND,
+  MOCK_DELIVERY_BY_BRANCH,
+  MOCK_DELIVERY_STATUS_SPLIT,
+  MOCK_TOP_FARMERS_DELIVERY,
+  MOCK_GRADING_DISTRIBUTION,
+  MOCK_GRADING_BY_BRANCH,
+  MOCK_QUALITY_TREND,
+  MOCK_REJECTION_RATES,
+  MOCK_PAYMENT_STATUS_BY_BRANCH,
+  MOCK_PAYMENT_TREND,
+  MOCK_RECOVERY_RATE,
+  MOCK_OUTSTANDING_BY_BRANCH,
+  MOCK_MEMBER_TREND,
+  MOCK_MEMBERS_BY_BRANCH,
+  MOCK_ACTIVE_MEMBER_SPLIT,
+  MOCK_TOP_FARMERS_DELIVERIES,
+  ChartSeries,
+  StackedChartSeries,
 } from '../mock/mock-cooperative';
+
+export type { ChartSeries, StackedChartSeries };
 import { USE_MOCK } from '../mock/mock-config';
 
 // Tab key type keeps callers type-safe when requesting a specific dataset.
@@ -45,4 +65,31 @@ export class ReportsService {
   getCustomReportData(dataSource: string): any[] {
     return this._customData[dataSource] ?? [];
   }
+
+  // ── Chart series getters ──────────────────────────────────────────────────
+  // Synchronous — chart init in ngAfterViewInit needs data immediately.
+  // Swap for HTTP calls in a future API layer without touching the component.
+
+  getDeliveryTrendSeries(period: 'daily' | 'weekly' | 'monthly'): ChartSeries {
+    return MOCK_DELIVERY_TREND[period] ?? MOCK_DELIVERY_TREND['monthly'];
+  }
+
+  getDeliveryByBranch():    ChartSeries { return MOCK_DELIVERY_BY_BRANCH;    }
+  getDeliveryStatusSplit(): ChartSeries { return MOCK_DELIVERY_STATUS_SPLIT; }
+  getTopFarmersDelivery():  ChartSeries { return MOCK_TOP_FARMERS_DELIVERY;  }
+
+  getGradingDistribution():  ChartSeries        { return MOCK_GRADING_DISTRIBUTION;    }
+  getGradingByBranch():      StackedChartSeries { return MOCK_GRADING_BY_BRANCH;       }
+  getQualityTrend():         ChartSeries        { return MOCK_QUALITY_TREND;           }
+  getRejectionRates():       ChartSeries        { return MOCK_REJECTION_RATES;         }
+
+  getPaymentStatusByBranch(): StackedChartSeries { return MOCK_PAYMENT_STATUS_BY_BRANCH; }
+  getPaymentTrend():           ChartSeries       { return MOCK_PAYMENT_TREND;             }
+  getRecoveryRate():           number            { return MOCK_RECOVERY_RATE;             }
+  getOutstandingByBranch():    ChartSeries       { return MOCK_OUTSTANDING_BY_BRANCH;     }
+
+  getMemberTrend():           ChartSeries { return MOCK_MEMBER_TREND;           }
+  getMembersByBranch():       ChartSeries { return MOCK_MEMBERS_BY_BRANCH;      }
+  getActiveMemberSplit():     ChartSeries { return MOCK_ACTIVE_MEMBER_SPLIT;    }
+  getTopFarmersByDeliveries(): ChartSeries { return MOCK_TOP_FARMERS_DELIVERIES; }
 }

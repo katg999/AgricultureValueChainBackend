@@ -8,14 +8,9 @@ import { InfoCardComponent } from '../../../../shared/components/info-card/info-
 import { AlertComponent }    from '../../../../shared/components/alert/alert.component';
 import { TableColumn }       from '../../../../shared/components/table/table.component';
 import { ToastService }      from '../../../../core/services/toast.service';
-import { UsersService, User, UserStatus } from '../users.service';
+import { UsersService, User, UserStatus, LoginHistoryEntry } from '../users.service';
 
-export interface LoginHistory {
-  dateTime: string;
-  ipAddress: string;
-  device: string;
-  status: 'success' | 'failed';
-}
+export type { LoginHistoryEntry as LoginHistory };
 
 @Component({
   selector: 'app-user-details',
@@ -41,24 +36,15 @@ export class UserDetailsComponent implements OnInit {
   userId: string | null = null;
   user: User | null = null;
   isLoading = true;
+  loginHistory: LoginHistoryEntry[] = [];
+  showSecurityAlert = true;
 
   loginColumns: TableColumn[] = [
-    { key: 'dateTime',  label: 'DATE AND TIME',  sortable: true },
+    { key: 'dateTime',  label: 'DATE AND TIME',  sortable: true  },
     { key: 'ipAddress', label: 'IP ADDRESS',      sortable: false },
     { key: 'device',    label: 'DEVICE / OS',     sortable: false },
-    { key: 'status',    label: 'STATUS',          sortable: true }
+    { key: 'status',    label: 'STATUS',          sortable: true  },
   ];
-
-  // Login history remains static until a dedicated audit-log endpoint is available
-  loginHistory: LoginHistory[] = [
-    { dateTime: '2024-05-24 09:14:22', ipAddress: '197.232.44.112', device: 'MacBook Pro · Chrome 125',      status: 'success' },
-    { dateTime: '2024-05-23 18:22:05', ipAddress: '197.232.44.112', device: 'iPhone 15 Pro · Safari Mobile', status: 'success' },
-    { dateTime: '2024-05-23 18:21:44', ipAddress: '197.232.44.112', device: 'iPhone 15 Pro · Safari Mobile', status: 'failed'  },
-    { dateTime: '2024-05-22 08:45:10', ipAddress: '41.210.154.38',  device: 'MacBook Pro · Chrome 125',      status: 'success' },
-    { dateTime: '2024-05-21 14:30:55', ipAddress: '41.210.154.38',  device: 'iPad Pro · Chrome iOS',         status: 'success' },
-  ];
-
-  showSecurityAlert = true;
 
   ngOnInit(): void {
     this.userId = this.route.snapshot.paramMap.get('id');
@@ -66,6 +52,7 @@ export class UserDetailsComponent implements OnInit {
       this.router.navigate(['/cooperative/users']);
       return;
     }
+    this.usersService.getLoginHistory(this.userId).subscribe(h => { this.loginHistory = h; });
     this.usersService.getById(this.userId).subscribe({
       next: user => {
         this.isLoading = false;

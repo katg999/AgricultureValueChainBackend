@@ -14,7 +14,7 @@
         (ngModelChange)="searchQuery.set($event)" />
     </div>
 
-    <select
+    <select title="Filter by status"
       class="filter-select"
       [ngModel]="statusFilter()"
       (ngModelChange)="statusFilter.set($event)">

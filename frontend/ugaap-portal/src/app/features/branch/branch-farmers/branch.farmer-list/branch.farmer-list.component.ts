@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { BehaviorSubject, combineLatest, map, Observable, Subject, takeUntil } from 'rxjs';
@@ -9,6 +9,7 @@ import { StatCardComponent } from '../../../../shared/components/stat-card/stat-
 import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
 import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
 import { FarmerListItem, FarmerService } from '../../../shared-farmer-domain/farmer.service';
+import { BranchDashboardService } from '../../../../core/services/branch-dashboard.service';
 
 @Component({
   selector: 'app-branch.farmer-list',
@@ -32,7 +33,7 @@ export class BranchFarmerListComponent implements OnInit, OnDestroy {
     { key: 'actions',          header: '',                 width: '60px' },
   ];
 
-  readonly collectionProgress = 78;
+  collectionProgress = 0; // loaded from BranchDashboardService
 
   farmers$!: Observable<FarmerListItem[]>;
   filteredFarmers$!: Observable<FarmerListItem[]>;
@@ -41,6 +42,7 @@ export class BranchFarmerListComponent implements OnInit, OnDestroy {
 
   private readonly destroy$ = new Subject<void>();
   private readonly filterState$ = new BehaviorSubject({ searchQuery: '' });
+  private readonly branchDash = inject(BranchDashboardService);
 
   constructor(
     private router: Router,
@@ -54,6 +56,11 @@ export class BranchFarmerListComponent implements OnInit, OnDestroy {
     this.filteredFarmers$ = combineLatest([this.farmers$, this.filterState$]).pipe(
       map(([farmers, filter]) => this.filterFarmers(farmers, filter)),
     );
+
+    // Pull collection progress from the service instead of hardcoding it
+    this.branchDash.getFarmersStats().subscribe(s => {
+      this.collectionProgress = s.collectionProgress;
+    });
 
     this.refresh();
   }

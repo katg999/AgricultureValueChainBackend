@@ -261,14 +261,17 @@ export class ReportsDashboardComponent implements AfterViewInit, OnDestroy {
   // ── DELIVERIES charts ─────────────────────────────────────────────────────
 
   private initDeliveryCharts(): void {
-    const { labels, data } = this.getDeliveryTrendSeries(this.deliveryPeriod);
+    const trend  = this.reportsService.getDeliveryTrendSeries(this.deliveryPeriod);
+    const branch = this.reportsService.getDeliveryByBranch();
+    const status = this.reportsService.getDeliveryStatusSplit();
+    const top    = this.reportsService.getTopFarmersDelivery();
 
     this.initChart('delivery-trend-chart', 'delivery-trend', {
       type: 'line',
       data: {
-        labels,
+        labels: trend.labels,
         datasets: [{
-          label: 'Deliveries (MT)', data,
+          label: 'Deliveries (MT)', data: trend.data,
           borderColor: '#F25D27', backgroundColor: 'rgba(242,93,39,0.08)',
           fill: true, tension: 0.4, borderWidth: 2.5,
           pointBackgroundColor: '#F25D27', pointRadius: 4,
@@ -284,8 +287,8 @@ export class ReportsDashboardComponent implements AfterViewInit, OnDestroy {
     this.initChart('delivery-branch-chart', 'delivery-branch', {
       type: 'bar',
       data: {
-        labels: ['Hoima', 'Masindi', 'Gulu', 'Lira', 'Mbale', 'Soroti'],
-        datasets: [{ label: 'Volume (MT)', data: [215, 142, 98, 87, 76, 64], backgroundColor: '#F25D27', borderRadius: 6 }],
+        labels: branch.labels,
+        datasets: [{ label: 'Volume (MT)', data: branch.data, backgroundColor: '#F25D27', borderRadius: 6 }],
       },
       options: {
         indexAxis: 'y' as const, responsive: true, maintainAspectRatio: false,
@@ -300,8 +303,8 @@ export class ReportsDashboardComponent implements AfterViewInit, OnDestroy {
     this.initChart('delivery-status-chart', 'delivery-status', {
       type: 'doughnut',
       data: {
-        labels: ['Pending', 'Graded', 'Paid'],
-        datasets: [{ data: [45, 230, 265], backgroundColor: ['#F59E0B', '#10B981', '#3B82F6'], borderWidth: 0 }],
+        labels: status.labels,
+        datasets: [{ data: status.data, backgroundColor: ['#F59E0B', '#10B981', '#3B82F6'], borderWidth: 0 }],
       },
       options: {
         cutout: '65%', responsive: true, maintainAspectRatio: false,
@@ -316,8 +319,8 @@ export class ReportsDashboardComponent implements AfterViewInit, OnDestroy {
     this.initChart('delivery-farmers-chart', 'delivery-farmers', {
       type: 'bar',
       data: {
-        labels: ['Ogenga P.', 'Okello J.', 'Mugisha P.', 'Nakato S.', 'Atukunda M.'],
-        datasets: [{ label: 'Qty (MT)', data: [24.5, 21.3, 18.7, 16.2, 14.8], backgroundColor: '#200B26', borderRadius: 6 }],
+        labels: top.labels,
+        datasets: [{ label: 'Qty (MT)', data: top.data, backgroundColor: '#200B26', borderRadius: 6 }],
       },
       options: {
         indexAxis: 'y' as const, responsive: true, maintainAspectRatio: false,
@@ -330,18 +333,9 @@ export class ReportsDashboardComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  private getDeliveryTrendSeries(period: string): { labels: string[]; data: number[] } {
-    const map: Record<string, { labels: string[]; data: number[] }> = {
-      monthly: { labels: ['Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May'],      data: [92, 108, 134, 156, 148, 215] },
-      weekly:  { labels: ['Wk 44','Wk 46','Wk 48','Wk 50','Wk 52','Wk 2','Wk 4','Wk 6','Wk 8','Wk 10'], data: [38, 42, 51, 48, 55, 61, 58, 72, 68, 78] },
-      daily:   { labels: ['15 May','16','17','18','19','20','21','22','23','24','25','26','27','28'], data: [18, 12, 24, 16, 20, 8, 15, 22, 19, 25, 14, 18, 21, 28] },
-    };
-    return map[period] ?? map['monthly'];
-  }
-
   updateDeliveryPeriod(period: 'daily' | 'weekly' | 'monthly'): void {
     this.deliveryPeriod = period;
-    const { labels, data } = this.getDeliveryTrendSeries(period);
+    const { labels, data } = this.reportsService.getDeliveryTrendSeries(period);
     const chart = this.chartMap.get('delivery-trend');
     if (chart) {
       chart.data.labels = labels;
@@ -353,11 +347,16 @@ export class ReportsDashboardComponent implements AfterViewInit, OnDestroy {
   // ── GRADING charts ────────────────────────────────────────────────────────
 
   private initGradingCharts(): void {
+    const dist    = this.reportsService.getGradingDistribution();
+    const branch  = this.reportsService.getGradingByBranch();
+    const quality = this.reportsService.getQualityTrend();
+    const reject  = this.reportsService.getRejectionRates();
+
     this.initChart('grading-dist-chart', 'grading-dist', {
       type: 'doughnut',
       data: {
-        labels: ['Grade A', 'Grade B', 'Grade C', 'Rejected'],
-        datasets: [{ data: [338, 188, 84, 44], backgroundColor: ['#10B981', '#3B82F6', '#F59E0B', '#EF4444'], borderWidth: 0 }],
+        labels: dist.labels,
+        datasets: [{ data: dist.data, backgroundColor: ['#10B981', '#3B82F6', '#F59E0B', '#EF4444'], borderWidth: 0 }],
       },
       options: {
         cutout: '65%', responsive: true, maintainAspectRatio: false,
@@ -372,13 +371,8 @@ export class ReportsDashboardComponent implements AfterViewInit, OnDestroy {
     this.initChart('grading-branch-chart', 'grading-branch', {
       type: 'bar',
       data: {
-        labels: ['Hoima', 'Masindi', 'Gulu', 'Lira', 'Mbale', 'Soroti'],
-        datasets: [
-          { label: 'Grade A', data: [129, 64, 44, 39, 34, 28], backgroundColor: '#10B981', stack: 's' },
-          { label: 'Grade B', data: [56,  48, 32, 28, 24, 20], backgroundColor: '#3B82F6', stack: 's' },
-          { label: 'Grade C', data: [18,  21, 14, 12, 10,  9], backgroundColor: '#F59E0B', stack: 's' },
-          { label: 'Rejected', data: [12,  9,  8,  8,  8,  7], backgroundColor: '#EF4444', stack: 's' },
-        ],
+        labels: branch.labels,
+        datasets: branch.datasets.map(ds => ({ ...ds, stack: 's' })),
       },
       options: {
         responsive: true, maintainAspectRatio: false,
@@ -396,10 +390,9 @@ export class ReportsDashboardComponent implements AfterViewInit, OnDestroy {
     this.initChart('grading-quality-chart', 'grading-quality', {
       type: 'line',
       data: {
-        labels: ['Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May'],
+        labels: quality.labels,
         datasets: [{
-          label: 'Avg Quality Score',
-          data: [78, 80, 79, 82, 83, 81],
+          label: 'Avg Quality Score', data: quality.data,
           borderColor: '#10B981', backgroundColor: 'rgba(16,185,129,0.08)',
           fill: true, tension: 0.4, borderWidth: 2.5,
           pointBackgroundColor: '#10B981', pointRadius: 4,
@@ -408,18 +401,15 @@ export class ReportsDashboardComponent implements AfterViewInit, OnDestroy {
       options: {
         responsive: true, maintainAspectRatio: false,
         plugins: { legend: { display: false }, tooltip: this.tooltipDefaults },
-        scales: {
-          x: this.scaleDefaults,
-          y: { ...this.scaleDefaults, min: 60, max: 100 },
-        },
+        scales: { x: this.scaleDefaults, y: { ...this.scaleDefaults, min: 60, max: 100 } },
       },
     });
 
     this.initChart('grading-rejection-chart', 'grading-rejection', {
       type: 'bar',
       data: {
-        labels: ['Hoima', 'Masindi', 'Gulu', 'Lira', 'Mbale', 'Soroti'],
-        datasets: [{ label: 'Rejection Rate (%)', data: [5.6, 6.3, 8.2, 9.2, 10.5, 10.9], backgroundColor: '#EF4444', borderRadius: 6 }],
+        labels: reject.labels,
+        datasets: [{ label: 'Rejection Rate (%)', data: reject.data, backgroundColor: '#EF4444', borderRadius: 6 }],
       },
       options: {
         responsive: true, maintainAspectRatio: false,
@@ -435,15 +425,16 @@ export class ReportsDashboardComponent implements AfterViewInit, OnDestroy {
   // ── PAYMENTS charts ───────────────────────────────────────────────────────
 
   private initPaymentCharts(): void {
+    const statusByBranch = this.reportsService.getPaymentStatusByBranch();
+    const trend          = this.reportsService.getPaymentTrend();
+    const recoveryRate   = this.reportsService.getRecoveryRate();
+    const outstanding    = this.reportsService.getOutstandingByBranch();
+
     this.initChart('payment-status-chart', 'payment-status', {
       type: 'bar',
       data: {
-        labels: ['Hoima', 'Masindi', 'Gulu', 'Lira', 'Mbale', 'Soroti'],
-        datasets: [
-          { label: 'Settled', data: [32, 18, 12, 8, 7, 5],  backgroundColor: '#10B981', stack: 's' },
-          { label: 'Partial', data: [8,  12,  6, 5, 4, 3],  backgroundColor: '#F59E0B', stack: 's' },
-          { label: 'Pending', data: [4,   6,  3, 4, 3, 2],  backgroundColor: '#EF4444', stack: 's' },
-        ],
+        labels: statusByBranch.labels,
+        datasets: statusByBranch.datasets.map(ds => ({ ...ds, stack: 's' })),
       },
       options: {
         responsive: true, maintainAspectRatio: false,
@@ -461,10 +452,9 @@ export class ReportsDashboardComponent implements AfterViewInit, OnDestroy {
     this.initChart('payment-trend-chart', 'payment-trend', {
       type: 'line',
       data: {
-        labels: ['Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May'],
+        labels: trend.labels,
         datasets: [{
-          label: 'Payments (M UGX)',
-          data: [28, 34, 42, 38, 45, 52],
+          label: 'Payments (M UGX)', data: trend.data,
           borderColor: '#3B82F6', backgroundColor: 'rgba(59,130,246,0.08)',
           fill: true, tension: 0.4, borderWidth: 2.5,
           pointBackgroundColor: '#3B82F6', pointRadius: 4,
@@ -478,6 +468,7 @@ export class ReportsDashboardComponent implements AfterViewInit, OnDestroy {
     });
 
     // Half-donut gauge for recovery rate
+    const rateLabel = `${recoveryRate}%`;
     const gaugePlugin = {
       id: 'gaugeCenter',
       beforeDraw: (chart: any) => {
@@ -490,7 +481,7 @@ export class ReportsDashboardComponent implements AfterViewInit, OnDestroy {
         ctx.fillStyle = '#10B981';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'bottom';
-        ctx.fillText('78%', cx, cy);
+        ctx.fillText(rateLabel, cx, cy);
         ctx.font = '12px Inter, sans-serif';
         ctx.fillStyle = '#9CA3AF';
         ctx.fillText('Recovery Rate', cx, cy + 14);
@@ -501,7 +492,7 @@ export class ReportsDashboardComponent implements AfterViewInit, OnDestroy {
     this.initChart('payment-recovery-chart', 'payment-recovery', {
       type: 'doughnut',
       data: {
-        datasets: [{ data: [78, 22], backgroundColor: ['#10B981', '#F3F4F6'], borderWidth: 0 }],
+        datasets: [{ data: [recoveryRate, 100 - recoveryRate], backgroundColor: ['#10B981', '#F3F4F6'], borderWidth: 0 }],
       },
       options: {
         circumference: 180, rotation: -90, cutout: '72%',
@@ -514,8 +505,8 @@ export class ReportsDashboardComponent implements AfterViewInit, OnDestroy {
     this.initChart('payment-outstanding-chart', 'payment-outstanding', {
       type: 'bar',
       data: {
-        labels: ['Masindi', 'Hoima', 'Lira', 'Gulu', 'Mbale', 'Soroti'],
-        datasets: [{ label: 'Outstanding (M UGX)', data: [12.6, 8.4, 5.8, 6.2, 3.4, 2.1], backgroundColor: '#F25D27', borderRadius: 6 }],
+        labels: outstanding.labels,
+        datasets: [{ label: 'Outstanding (M UGX)', data: outstanding.data, backgroundColor: '#F25D27', borderRadius: 6 }],
       },
       options: {
         indexAxis: 'y' as const, responsive: true, maintainAspectRatio: false,
@@ -531,13 +522,17 @@ export class ReportsDashboardComponent implements AfterViewInit, OnDestroy {
   // ── MEMBERS charts ────────────────────────────────────────────────────────
 
   private initMemberCharts(): void {
+    const trend    = this.reportsService.getMemberTrend();
+    const branch   = this.reportsService.getMembersByBranch();
+    const active   = this.reportsService.getActiveMemberSplit();
+    const topFarms = this.reportsService.getTopFarmersByDeliveries();
+
     this.initChart('member-trend-chart', 'member-trend', {
       type: 'line',
       data: {
-        labels: ['Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May'],
+        labels: trend.labels,
         datasets: [{
-          label: 'New Members',
-          data: [8, 12, 6, 14, 10, 14],
+          label: 'New Members', data: trend.data,
           borderColor: '#F25D27', backgroundColor: 'rgba(242,93,39,0.08)',
           fill: true, tension: 0.4, borderWidth: 2.5,
           pointBackgroundColor: '#F25D27', pointRadius: 4,
@@ -553,8 +548,8 @@ export class ReportsDashboardComponent implements AfterViewInit, OnDestroy {
     this.initChart('member-branch-chart', 'member-branch', {
       type: 'bar',
       data: {
-        labels: ['Hoima', 'Masindi', 'Mbale', 'Gulu', 'Soroti', 'Lira'],
-        datasets: [{ label: 'Members', data: [124, 98, 86, 82, 78, 74], backgroundColor: '#200B26', borderRadius: 6 }],
+        labels: branch.labels,
+        datasets: [{ label: 'Members', data: branch.data, backgroundColor: '#200B26', borderRadius: 6 }],
       },
       options: {
         responsive: true, maintainAspectRatio: false,
@@ -569,8 +564,8 @@ export class ReportsDashboardComponent implements AfterViewInit, OnDestroy {
     this.initChart('member-active-chart', 'member-active', {
       type: 'doughnut',
       data: {
-        labels: ['Active', 'Inactive'],
-        datasets: [{ data: [425, 117], backgroundColor: ['#10B981', '#F3F4F6'], borderWidth: 0 }],
+        labels: active.labels,
+        datasets: [{ data: active.data, backgroundColor: ['#10B981', '#F3F4F6'], borderWidth: 0 }],
       },
       options: {
         cutout: '65%', responsive: true, maintainAspectRatio: false,
@@ -585,8 +580,8 @@ export class ReportsDashboardComponent implements AfterViewInit, OnDestroy {
     this.initChart('member-farmers-chart', 'member-farmers', {
       type: 'bar',
       data: {
-        labels: ['Ogenga P.', 'Okello J.', 'Otim C.', 'Lubega J.', 'Mugisha P.'],
-        datasets: [{ label: 'Deliveries', data: [9, 8, 7, 6, 6], backgroundColor: '#8B5CF6', borderRadius: 6 }],
+        labels: topFarms.labels,
+        datasets: [{ label: 'Deliveries', data: topFarms.data, backgroundColor: '#8B5CF6', borderRadius: 6 }],
       },
       options: {
         indexAxis: 'y' as const, responsive: true, maintainAspectRatio: false,
