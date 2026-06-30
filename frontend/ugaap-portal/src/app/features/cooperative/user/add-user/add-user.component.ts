@@ -2,6 +2,8 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
+import { from } from 'rxjs';
+import { fetchGenderOptions } from '../../../../core/mock/mock-reference-data';
 
 import { FormSectionComponent } from '../../../../shared/components/form-section/form-section.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
@@ -40,7 +42,7 @@ export class AddUserComponent implements OnInit {
   isLoading = false;
   showConfirmModal = false;
 
-  genderOptions = ['Male', 'Female', 'Other', 'Prefer not to say'];
+  genderOptions: string[] = [];
 
   roleOptions = [
     'Admin',
@@ -66,6 +68,9 @@ export class AddUserComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // Load gender options from async mock fetch (swap for real HTTP call when API is ready)
+    from(fetchGenderOptions()).subscribe(v => this.genderOptions = v);
+
     this.userForm = this.fb.group({
       fullName:    ['', [Validators.required]],
       email:       ['', [Validators.required, Validators.email]],

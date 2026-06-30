@@ -4,6 +4,8 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { from } from 'rxjs';
+import { fetchDistricts, fetchCommodities } from '../../../../core/mock/mock-reference-data';
 
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
@@ -13,8 +15,6 @@ import {
   CollectionHubsService,
   CollectionHubInput,
   HUB_BRANCHES,
-  UGANDA_DISTRICTS,
-  COMMODITIES,
 } from '../collection-hubs.service';
 
 @Component({
@@ -32,8 +32,8 @@ export class CollectionHubFormComponent implements OnInit {
   private toast = inject(ToastService);
 
   readonly branches = HUB_BRANCHES;
-  readonly districts = UGANDA_DISTRICTS;
-  readonly allCommodities = COMMODITIES;
+  districts:      string[] = [];
+  allCommodities: string[] = [];
 
   isEditMode = false;
   editId = '';
@@ -59,6 +59,10 @@ export class CollectionHubFormComponent implements OnInit {
   touched: Record<string, boolean> = {};
 
   ngOnInit(): void {
+    // Load dropdown options from async mock fetch (swap for real HTTP calls when API is ready)
+    from(fetchDistricts()).subscribe(v   => this.districts      = v);
+    from(fetchCommodities()).subscribe(v => this.allCommodities = v);
+
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.isEditMode = true;
