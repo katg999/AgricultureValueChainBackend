@@ -12,6 +12,7 @@ import { catchError, tap } from 'rxjs/operators';
 import { API_ENDPOINTS } from '../../../core/constants/api-endpoints';
 import { USE_MOCK } from '../../../core/mock/mock-config';
 import { MOCK_LOGIN_HISTORY, LoginHistoryEntry } from '../../../core/mock/mock-platform';
+import { MOCK_COOPERATIVE_USERS } from '../../../core/mock/mock-cooperative';
 
 export type { LoginHistoryEntry };
 
@@ -45,18 +46,11 @@ export interface UserInput {
   role: string;
 }
 
-const SEED_USERS: User[] = [
-  { id: '1', name: 'Sarah Namubiru',   email: 's.namubiru@ugaap.co.ug',  phone: '+256 701 445 678', role: 'COOPERATIVE ADMIN', organization: 'UGAAP Central',            lastLogin: '2 mins ago',  status: 'active' },
-  { id: '2', name: 'James Okello',     email: 'j.okello@ugaap.co.ug',    phone: '+256 754 123 456', role: 'LOGISTICS MANAGER', organization: 'Kasese Coffee Coop',        lastLogin: '1 hour ago',  status: 'active' },
-  { id: '3', name: 'Mary Atim',        email: 'm.atim@ugaap.co.ug',      phone: '+256 772 987 654', role: 'ACCOUNTANT',        organization: 'Mubende Warehouse Central', lastLogin: 'Yesterday',   status: 'active' },
-  { id: '4', name: 'Robert Ssemakula', email: 'r.ssemakula@ugaap.co.ug', phone: '+256 700 654 321', role: 'COOPERATIVE ADMIN', organization: 'Kasese Coffee Coop',        lastLogin: '3 days ago',  status: 'inactive' },
-];
-
 @Injectable({ providedIn: 'root' })
 export class UsersService {
 
   private readonly _users = new BehaviorSubject<User[]>(
-    USE_MOCK ? [...SEED_USERS] : [],
+    USE_MOCK ? [...MOCK_COOPERATIVE_USERS] as User[] : [],
   );
   readonly users$ = this._users.asObservable();
 
@@ -65,7 +59,7 @@ export class UsersService {
   // ── Read ──────────────────────────────────────────────────────────────────────
 
   list(): Observable<User[]> {
-    if (USE_MOCK) return of([...SEED_USERS]);
+    if (USE_MOCK) return of([...MOCK_COOPERATIVE_USERS] as User[]);
     return this.http.get<User[]>(API_ENDPOINTS.COOPERATIVE.USERS).pipe(
       tap(users => this._users.next(users)),
       catchError(err => { throw err; }),
@@ -73,7 +67,7 @@ export class UsersService {
   }
 
   getById(id: string): Observable<User | undefined> {
-    if (USE_MOCK) return of(SEED_USERS.find(u => u.id === id));
+    if (USE_MOCK) return of(MOCK_COOPERATIVE_USERS.find(u => u.id === id) as User | undefined);
     return this.http.get<User>(API_ENDPOINTS.COOPERATIVE.USER_BY_ID(id)).pipe(
       catchError(err => { throw err; }),
     );
