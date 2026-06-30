@@ -69,8 +69,9 @@ export class BranchService {
 
   listCooperativeBranches(): Observable<CooperativeBranch[]> {
     if (USE_MOCK) return of([...MOCK_COOPERATIVE_BRANCHES]);
-    // Replace with real endpoint when available
-    return of([...MOCK_COOPERATIVE_BRANCHES]);
+    return this.http.get<CooperativeBranch[]>(API_ENDPOINTS.COOPERATIVE.BRANCHES).pipe(
+      catchError(() => of([])),
+    );
   }
 
   getCooperativeBranchById(id: number): Observable<CooperativeBranch | undefined> {
@@ -85,7 +86,9 @@ export class BranchService {
   }
 
   getActivities(): Observable<{ title: string; time: string }[]> {
-    return of([...MOCK_BRANCH_ACTIVITIES]);
+    if (USE_MOCK) return of([...MOCK_BRANCH_ACTIVITIES]);
+    // No dedicated activities endpoint yet — returns empty list until one is registered
+    return of([] as { title: string; time: string }[]).pipe(catchError(() => of([])));
   }
 
   getBranchDisplayName(branchId: string): string {
@@ -99,7 +102,9 @@ export class BranchService {
   }
 
   listBranches(tenantId: string): Observable<BranchResponse[]> {
-    return this.http.get<BranchResponse[]>(API_ENDPOINTS.BRANCHES.LIST(tenantId));
+    return this.http.get<BranchResponse[]>(API_ENDPOINTS.BRANCHES.LIST(tenantId)).pipe(
+      catchError(() => of([])),
+    );
   }
 
   getBranch(branchId: string): Observable<BranchResponse> {

@@ -60,7 +60,7 @@ export class AgentsService {
     if (USE_MOCK) return of([...MOCK_AGENTS] as Agent[]);
     return this.http.get<Agent[]>(API_ENDPOINTS.COOPERATIVE.AGENTS).pipe(
       tap(agents => this._agents.next(agents)),
-      catchError(err => { throw err; }),
+      catchError(() => of([])),
     );
   }
 

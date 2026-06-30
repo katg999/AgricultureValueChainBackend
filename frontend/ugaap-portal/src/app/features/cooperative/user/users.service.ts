@@ -62,7 +62,7 @@ export class UsersService {
     if (USE_MOCK) return of([...MOCK_COOPERATIVE_USERS] as User[]);
     return this.http.get<User[]>(API_ENDPOINTS.COOPERATIVE.USERS).pipe(
       tap(users => this._users.next(users)),
-      catchError(err => { throw err; }),
+      catchError(() => of([])),
     );
   }
 

@@ -58,7 +58,7 @@ export class CollectionHubsService {
     if (USE_MOCK) return of([...MOCK_COLLECTION_HUBS] as CollectionHub[]);
     return this.http.get<CollectionHub[]>(API_ENDPOINTS.COOPERATIVE.COLLECTION_HUBS).pipe(
       tap(hubs => this._hubs.next(hubs)),
-      catchError(err => { throw err; }),
+      catchError(() => of([])),
     );
   }
 
