@@ -8,6 +8,7 @@
 import { SeasonWindow } from '../models/season-config.model';
 import { DeliverySessionWindow } from '../models/delivery-session.model';
 import { BatchRecord } from '../../features/cooperative/finance/batch-record.model';
+import { FlatPriceEntry, GradePriceEntry } from '../models/pricing.model';
 
 // ── Cooperative dashboard ─────────────────────────────────────────────────────
 
@@ -429,4 +430,65 @@ export const MOCK_COOPERATIVE_BATCHES: BatchRecord[] = [
     status: 'pending',
     createdAt: new Date('2024-10-18'),
   },
+];
+
+// ── Cooperative users ─────────────────────────────────────────────────────────
+
+export const MOCK_COOPERATIVE_USERS = [
+  { id: '1', name: 'Sarah Namubiru',   email: 's.namubiru@ugaap.co.ug',  phone: '+256 701 445 678', role: 'COOPERATIVE ADMIN', organization: 'UGAAP Central',            lastLogin: '2 mins ago', status: 'active'   as const },
+  { id: '2', name: 'James Okello',     email: 'j.okello@ugaap.co.ug',    phone: '+256 754 123 456', role: 'LOGISTICS MANAGER', organization: 'Kasese Coffee Coop',        lastLogin: '1 hour ago', status: 'active'   as const },
+  { id: '3', name: 'Mary Atim',        email: 'm.atim@ugaap.co.ug',      phone: '+256 772 987 654', role: 'ACCOUNTANT',        organization: 'Mubende Warehouse Central', lastLogin: 'Yesterday',  status: 'active'   as const },
+  { id: '4', name: 'Robert Ssemakula', email: 'r.ssemakula@ugaap.co.ug', phone: '+256 700 654 321', role: 'COOPERATIVE ADMIN', organization: 'Kasese Coffee Coop',        lastLogin: '3 days ago', status: 'inactive' as const },
+];
+
+// ── Field agents ──────────────────────────────────────────────────────────────
+
+export const MOCK_AGENTS = [
+  { id: 'agt-001', agentCode: 'AGT-0001', fullName: 'Moses Byaruhanga', phone: '+256772114501', email: 'moses.b@bugishu.coop', nationalId: 'CM900421003XKE', role: 'field_agent'      as const, branchId: 'BR-HOI', branchName: 'Hoima Central',    assignedFarmers: 64, collectionsThisSeason: '18.2 MT', status: 'active'   as const, registeredAt: '2025-02-14' },
+  { id: 'agt-002', agentCode: 'AGT-0002', fullName: 'Sarah Nambooze',   phone: '+256701558294', email: 'sarah.n@bugishu.coop', nationalId: 'CF880317002LMQ', role: 'collection_clerk' as const, branchId: 'BR-HOI', branchName: 'Hoima Central',    assignedFarmers: 41, collectionsThisSeason: '12.7 MT', status: 'active'   as const, registeredAt: '2025-03-02' },
+  { id: 'agt-003', agentCode: 'AGT-0003', fullName: 'Ivan Okello',      phone: '+256759301873', email: 'ivan.o@bugishu.coop',  nationalId: 'CM921105004PRT', role: 'field_agent'      as const, branchId: 'BR-GUL', branchName: 'Gulu Branch',      assignedFarmers: 52, collectionsThisSeason: '15.9 MT', status: 'active'   as const, registeredAt: '2025-04-19' },
+  { id: 'agt-004', agentCode: 'AGT-0004', fullName: 'Grace Akello',     phone: '+256782446120', email: 'grace.a@bugishu.coop', nationalId: 'CF950623001ZWB', role: 'field_agent'      as const, branchId: 'BR-LIR', branchName: 'Lira Cooperative', assignedFarmers: 38, collectionsThisSeason: '9.4 MT',  status: 'inactive' as const, registeredAt: '2025-01-28' },
+  { id: 'agt-005', agentCode: 'AGT-0005', fullName: 'Peter Wanyama',    phone: '+256703918456', email: 'peter.w@bugishu.coop', nationalId: 'CM870914005QAC', role: 'collection_clerk' as const, branchId: 'BR-MBL', branchName: 'Mbale West',       assignedFarmers: 47, collectionsThisSeason: '14.1 MT', status: 'active'   as const, registeredAt: '2025-05-07' },
+];
+
+// ── Collection hubs ───────────────────────────────────────────────────────────
+
+export const MOCK_COLLECTION_HUBS = [
+  { id: 'hub-001', hubCode: 'HUB-0001', name: 'Hoima Market Hub',               location: 'Hoima Trading Centre, Plot 14',  district: 'Hoima',   branchId: 'BR-HOI', branchName: 'Hoima Central',    capacity: 50, currentLoad: 32.4, commodities: ['Robusta Coffee', 'Maize'],              status: 'active'   as const, createdAt: '2025-01-10' },
+  { id: 'hub-002', hubCode: 'HUB-0002', name: 'Masindi South Collection Point',  location: 'Masindi-Kampala Rd, Km 4',      district: 'Masindi', branchId: 'BR-MAS', branchName: 'Masindi Depot',    capacity: 80, currentLoad: 71.0, commodities: ['Robusta Coffee'],                       status: 'active'   as const, createdAt: '2025-02-03' },
+  { id: 'hub-003', hubCode: 'HUB-0003', name: 'Gulu Farmers Hub',                location: 'Gulu Central Market, Stall 22', district: 'Gulu',    branchId: 'BR-GUL', branchName: 'Gulu Branch',      capacity: 40, currentLoad: 12.7, commodities: ['Simsim', 'Soya Beans', 'Millet'],      status: 'active'   as const, createdAt: '2025-03-18' },
+  { id: 'hub-004', hubCode: 'HUB-0004', name: 'Lira East Aggregation Centre',    location: 'Lira Municipality, Block C',    district: 'Lira',    branchId: 'BR-LIR', branchName: 'Lira Cooperative', capacity: 60, currentLoad: 0,    commodities: ['Sunflower', 'Soya Beans'],              status: 'inactive' as const, createdAt: '2025-04-22' },
+  { id: 'hub-005', hubCode: 'HUB-0005', name: 'Mbale West Hub',                  location: 'Mbale Industrial Area, Shed B', district: 'Mbale',   branchId: 'BR-MBL', branchName: 'Mbale West',       capacity: 35, currentLoad: 28.9, commodities: ['Arabica Coffee', 'Maize'],              status: 'active'   as const, createdAt: '2025-05-30' },
+];
+
+// ── Pricing entries ───────────────────────────────────────────────────────────
+
+export const MOCK_FLAT_PRICE_ENTRIES: FlatPriceEntry[] = [
+  { id: 'FP-1', commodity: 'Maize',  pricePerKg: 2_500, branch: 'all', effectiveFrom: '2026-01-01', effectiveTo: '2026-12-31' },
+  { id: 'FP-2', commodity: 'Coffee', pricePerKg: 6_000, branch: 'all', effectiveFrom: '2026-01-01', effectiveTo: '2026-12-31' },
+  { id: 'FP-3', commodity: 'Beans',  pricePerKg: 2_500, branch: 'all', effectiveFrom: '2026-01-01', effectiveTo: '2026-12-31' },
+  { id: 'FP-4', commodity: 'Rice',   pricePerKg: 3_500, branch: 'all', effectiveFrom: '2026-01-01', effectiveTo: '2026-12-31' },
+];
+
+export const MOCK_GRADE_PRICE_ENTRIES: GradePriceEntry[] = [
+  { id: 'GP-1', commodity: 'Maize',  gradeCode: 'A', gradeName: 'Premium',   pricePerKg: 3_250, branch: 'all', effectiveFrom: '2026-01-01', effectiveTo: '2026-12-31' },
+  { id: 'GP-2', commodity: 'Maize',  gradeCode: 'B', gradeName: 'Standard',  pricePerKg: 2_500, branch: 'all', effectiveFrom: '2026-01-01', effectiveTo: '2026-12-31' },
+  { id: 'GP-3', commodity: 'Maize',  gradeCode: 'C', gradeName: 'Low Grade', pricePerKg: 1_750, branch: 'all', effectiveFrom: '2026-01-01', effectiveTo: '2026-12-31' },
+  { id: 'GP-4', commodity: 'Coffee', gradeCode: 'A', gradeName: 'Premium',   pricePerKg: 7_800, branch: 'all', effectiveFrom: '2026-01-01', effectiveTo: '2026-12-31' },
+  { id: 'GP-5', commodity: 'Coffee', gradeCode: 'B', gradeName: 'Standard',  pricePerKg: 6_000, branch: 'all', effectiveFrom: '2026-01-01', effectiveTo: '2026-12-31' },
+  { id: 'GP-6', commodity: 'Beans',  gradeCode: 'A', gradeName: 'Premium',   pricePerKg: 3_250, branch: 'all', effectiveFrom: '2026-01-01', effectiveTo: '2026-12-31' },
+  { id: 'GP-7', commodity: 'Beans',  gradeCode: 'B', gradeName: 'Standard',  pricePerKg: 2_500, branch: 'all', effectiveFrom: '2026-01-01', effectiveTo: '2026-12-31' },
+];
+
+// ── Role assigned users ───────────────────────────────────────────────────────
+
+export const MOCK_ASSIGNED_USERS = [
+  { id: 'u1', name: 'Sarah Nakato',  email: 'sarah.nakato@coop.ug',  branch: 'Kampala Branch',     assignedAt: '2024-01-01' },
+  { id: 'u2', name: 'James Ochieng', email: 'james.ochieng@coop.ug', branch: 'Jinja Branch',       assignedAt: '2024-01-02' },
+  { id: 'u3', name: 'Grace Atim',    email: 'grace.atim@coop.ug',    branch: 'Mbale Branch',       assignedAt: '2024-01-03' },
+  { id: 'u4', name: 'David Wafula',  email: 'david.wafula@coop.ug',  branch: 'Fort Portal Branch', assignedAt: '2024-01-04' },
+  { id: 'u5', name: 'Alice Apio',    email: 'alice.apio@coop.ug',    branch: 'Adjumani Branch',    assignedAt: '2024-01-05' },
+  { id: 'u6', name: 'Peter Ssali',   email: 'peter.ssali@coop.ug',   branch: 'Kampala Branch',     assignedAt: '2024-01-06' },
+  { id: 'u7', name: 'Lydia Nambi',   email: 'lydia.nambi@coop.ug',   branch: 'Jinja Branch',       assignedAt: '2024-01-07' },
+  { id: 'u8', name: 'Moses Kato',    email: 'moses.kato@coop.ug',    branch: 'Mbale Branch',       assignedAt: '2024-01-08' },
 ];
