@@ -2,17 +2,21 @@
 //
 // Supplies all data for the Branch staff home screen AND the stat-card summaries
 // used on individual branch feature pages (collections, farmers, inventory).
-// Swap `of(...)` bodies for http.get(...) when the API is ready.
+// Automatically switches between mock and HTTP endpoints based on global config.
 
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
+import { USE_MOCK } from '../mock/mock-config';
 import {
   TodayDelivery,
   MOCK_BRANCH_STATS,
   MOCK_TODAY_DELIVERIES,
   MOCK_BRANCH_DASH_ACTIVITIES,
 } from '../mock/mock-branch';
+import { StatCardData } from '../../shared/components/stat-card/stat-card.component';
 
 export type { TodayDelivery } from '../mock/mock-branch';
 
@@ -63,35 +67,69 @@ const MOCK_BRANCH_PAGE_STATS: BranchPageStats = {
   },
 };
 
+export interface BranchActivity {
+  title:     string;
+  subtitle?: string;
+  timestamp: string;
+  action?:   string;
+  color:     string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class BranchDashboardService {
+  private apiUrl = 'http://localhost:8083/api/v1/branch-dashboard';
+
+  constructor(private http: HttpClient) {}
 
   // ── Home screen data ──────────────────────────────────────────────────────
 
-  getStats(): Observable<typeof MOCK_BRANCH_STATS> {
-    return of([...MOCK_BRANCH_STATS]);
+  getStats(): Observable<StatCardData[]> {
+    if (USE_MOCK) {
+      return of([...MOCK_BRANCH_STATS] as StatCardData[]);
+    }
+    return this.http.get<StatCardData[]>(`${this.apiUrl}/stats`).pipe(
+      catchError(() => of([])),
+    );
   }
 
   getTodayDeliveries(): Observable<TodayDelivery[]> {
-    return of([...MOCK_TODAY_DELIVERIES]);
+    if (USE_MOCK) {
+      return of([...MOCK_TODAY_DELIVERIES]);
+    }
+    return this.http.get<TodayDelivery[]>(`${this.apiUrl}/today-deliveries`).pipe(
+      catchError(() => of([])),
+    );
   }
 
-  getRecentActivities(): Observable<typeof MOCK_BRANCH_DASH_ACTIVITIES> {
-    return of([...MOCK_BRANCH_DASH_ACTIVITIES]);
+  getRecentActivities(): Observable<BranchActivity[]> {
+    if (USE_MOCK) {
+      return of([...MOCK_BRANCH_DASH_ACTIVITIES]);
+    }
+    return this.http.get<BranchActivity[]>(`${this.apiUrl}/recent-activities`).pipe(
+      catchError(() => of([])),
+    );
   }
 
   // ── Individual page stat cards ────────────────────────────────────────────
-  // Pages (collections, farmers, inventory) call these instead of hardcoding.
 
   getCollectionsStats(): Observable<BranchPageStats['collections']> {
-    return of({ ...MOCK_BRANCH_PAGE_STATS.collections });
+    if (USE_MOCK) {
+      return of({ ...MOCK_BRANCH_PAGE_STATS.collections });
+    }
+    return this.http.get<BranchPageStats['collections']>(`${this.apiUrl}/collections-stats`);
   }
 
   getFarmersStats(): Observable<BranchPageStats['farmers']> {
-    return of({ ...MOCK_BRANCH_PAGE_STATS.farmers });
+    if (USE_MOCK) {
+      return of({ ...MOCK_BRANCH_PAGE_STATS.farmers });
+    }
+    return this.http.get<BranchPageStats['farmers']>(`${this.apiUrl}/farmers-stats`);
   }
 
   getInventoryStats(): Observable<BranchPageStats['inventory']> {
-    return of({ ...MOCK_BRANCH_PAGE_STATS.inventory });
+    if (USE_MOCK) {
+      return of({ ...MOCK_BRANCH_PAGE_STATS.inventory });
+    }
+    return this.http.get<BranchPageStats['inventory']>(`${this.apiUrl}/inventory-stats`);
   }
 }

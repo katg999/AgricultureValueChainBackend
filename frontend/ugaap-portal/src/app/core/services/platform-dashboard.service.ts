@@ -6,6 +6,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 //import the global toggle flag for mock vs real data
 import {USE_MOCK} from '../mock/mock-config';
 
@@ -33,7 +34,9 @@ export class PlatformDashboardService {
       return of([...MOCK_PLATFORM_STATS]);
     }
     // Return real HTTP call here when API is ready
-    return this.http.get<StatCardData[]>(`${this.apiUrl}/stats`);
+    return this.http.get<StatCardData[]>(`${this.apiUrl}/stats`).pipe(
+      catchError(() => of([])),
+    );
   }
 
   getOnboardingItems(): Observable<OnboardingItem[]> {
@@ -41,7 +44,9 @@ export class PlatformDashboardService {
       return of([...MOCK_ONBOARDING_ITEMS]);
     }
     // Return real HTTP call here when API is ready
-    return this.http.get<OnboardingItem[]>(`${this.apiUrl}/onboarding-items`);
+    return this.http.get<OnboardingItem[]>(`${this.apiUrl}/onboarding-items`).pipe(
+      catchError(() => of([])),
+    );
   }
 
   getPlatformHealth(): Observable<PlatformHealthItem[]> {
@@ -49,7 +54,9 @@ export class PlatformDashboardService {
       return of([...MOCK_PLATFORM_HEALTH]);
     }
     // Return real HTTP call here when API is ready
-    return this.http.get<PlatformHealthItem[]>(`${this.apiUrl}/platform-health`);
+    return this.http.get<PlatformHealthItem[]>(`${this.apiUrl}/platform-health`).pipe(
+      catchError(() => of([])),
+    );
   }
 
   getRecentActivity(): Observable<PlatformActivity[]> {
@@ -57,6 +64,8 @@ export class PlatformDashboardService {
       return of([...MOCK_PLATFORM_ACTIVITIES]);
     }
     // Return real HTTP call here when API is ready
-    return this.http.get<PlatformActivity[]>(`${this.apiUrl}/recent-activity`);
+    return this.http.get<PlatformActivity[]>(`${this.apiUrl}/recent-activity`).pipe(
+      catchError(() => of([])),
+    );
   }
 }
