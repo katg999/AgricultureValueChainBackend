@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { permissionGuard } from '../../core/guards/permission.guard';
 
 // All routes that live under /platform — the platform admin's section.
 // Registered in app.routes.ts at { path: 'platform', loadChildren: ... }.
@@ -8,7 +9,7 @@ export const PLATFORM_ROUTES: Routes = [
   // Default — go straight to the dashboard
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
 
-  // ── Dashboard ─────────────────────────────────────────────────────────────
+  // ── Dashboard — everyone authenticated lands here; no extra guard ─────────
   {
     path: 'dashboard',
     title: 'Dashboard | UGAAP',
@@ -28,7 +29,7 @@ export const PLATFORM_ROUTES: Routes = [
         .then(m => m.CooperativesListComponent),
   },
 
-  // Onboarding wizard — reached via "Add organisation" button
+  // Onboarding wizard — requires explicit onboard permission
   {
     path: 'cooperatives/onboard',
     title: 'Cooperative Onboarding | UGAAP',
@@ -51,18 +52,9 @@ export const PLATFORM_ROUTES: Routes = [
   {
     path: 'roles',
     title: 'Role Management | UGAAP',
-    data: { title: 'Roles & Permissions', subtitle: 'Manage who can do what across the platform' },
+    canActivate: [permissionGuard],
+    data: { permissionModule: 'roles' },
     loadChildren: () =>
       import('./roles/roles.routes').then(m => m.ROLES_ROUTES),
-  },
-
-  // ── Maker-checker approval flow ───────────────────────────────────────────
-  {
-    path: 'maker-checker',
-    title: 'Maker-Checker Approvals | UGAAP',
-    data: { title: 'Maker-Checker', subtitle: 'Review and approve pending actions' },
-    loadComponent: () =>
-      import('./maker-checker-creation/maker-checker-creation.component')
-        .then(m => m.MakerCheckerCreationComponent),
   },
 ];

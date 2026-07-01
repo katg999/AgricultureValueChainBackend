@@ -14,6 +14,7 @@ import { HttpClient } from '@angular/common/http';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { API_ENDPOINTS }   from '../../../../core/constants/api-endpoints';
 import { ToastService }    from '../../../../core/services/toast.service';
+import { MOCK_GRADES, MOCK_BRANCH_GRADE_SUMMARIES } from '../../../../core/mock/mock-cooperative';
 
 export interface Grade {
   id:          string;
@@ -52,37 +53,8 @@ export class GradeConfigComponent implements OnInit {
   error          = signal<string | null>(null);
   expandedGrade  = signal<string | null>(null);   // keyed by grade code
 
-  private readonly mockGrades: Grade[] = [
-    { id: '1', name: 'Premium',   code: 'A', description: 'Highest quality, clean, dry, no defects', createdAt: '15 Jan 2024', branchCount: 3 },
-    { id: '2', name: 'Standard',  code: 'B', description: 'Good quality with minor defects allowed',  createdAt: '15 Jan 2024', branchCount: 2 },
-    { id: '3', name: 'Low Grade', code: 'C', description: 'Below average, moisture content issues',   createdAt: '15 Jan 2024', branchCount: 1 },
-    { id: '4', name: 'Rejected',  code: 'R', description: 'Does not meet minimum standards',          createdAt: '15 Jan 2024', branchCount: 0 },
-  ];
-
-  private readonly mockBranches: BranchGradeSummary[] = [
-    {
-      id: 'b1', name: 'Kasese Main Branch', region: 'Western Region',
-      avgPrice: 7350, gradeCount: 2,
-      grades: [
-        { name: 'Premium',  code: 'A', pricePerKg: 8500 },
-        { name: 'Standard', code: 'B', pricePerKg: 6200 },
-      ],
-    },
-    {
-      id: 'b2', name: 'Kasese North Branch', region: 'Western Region',
-      avgPrice: 7150, gradeCount: 1,
-      grades: [
-        { name: 'Premium', code: 'A', pricePerKg: 8200 },
-      ],
-    },
-    {
-      id: 'b3', name: 'Mbarara Central', region: 'Western Region',
-      avgPrice: 7550, gradeCount: 1,
-      grades: [
-        { name: 'Standard', code: 'B', pricePerKg: 6100 },
-      ],
-    },
-  ];
+  private readonly mockGrades: Grade[]              = MOCK_GRADES as Grade[];
+  private readonly mockBranches: BranchGradeSummary[] = MOCK_BRANCH_GRADE_SUMMARIES as BranchGradeSummary[];
 
   ngOnInit(): void {
     this.loadGrades();

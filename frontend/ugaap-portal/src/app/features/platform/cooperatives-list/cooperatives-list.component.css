@@ -2,12 +2,6 @@
    PAGE CONTAINER
     */
 
-.page {
-  background: var(--surface-low);
-  min-height: 100vh;
-  padding: 16px;
-  font-family: var(--font-human);
-}
 
 /* ── Page heading ─────────────────────────────────────────────────────────── */
 

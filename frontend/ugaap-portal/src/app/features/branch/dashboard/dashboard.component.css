@@ -228,6 +228,8 @@
 }
 
 @media (max-width: 640px) {
-  .branch-dashboard .dashboard-header { flex-direction: column; gap: 16px; }
-  .stats-grid { grid-template-columns: 1fr; }
+  .branch-dashboard {
+    .dashboard-header { flex-direction: column; gap: 16px; }
+    .stats-grid { grid-template-columns: 1fr; }
+  }
 }

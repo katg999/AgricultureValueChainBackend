@@ -1,4 +1,4 @@
-.page {
+﻿.page {
   min-height: 100vh;
   background: var(--surface-low);
   padding: 16px;
@@ -152,8 +152,8 @@
     align-items: stretch;
   }
 
-  .search-wrap {
-    max-width: 100%;
+  .search-input {
+    width: 100%;
   }
 }
 

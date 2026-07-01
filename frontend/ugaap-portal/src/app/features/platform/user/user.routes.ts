@@ -1,14 +1,17 @@
 import { Routes } from '@angular/router';
+import { permissionGuard } from '../../../core/guards/permission.guard';
 
-// Platform-scoped user management routes.
-// Mounted at /platform/users via platform.routes.ts → { path: 'users', loadChildren: ... }
+// Platform user management routes.
+// Mounted at /platform/users via platform.routes.ts.
 
 export const USER_ROUTES: Routes = [
 
+  // Users list
   {
     path: '',
     title: 'Users List | UGAAP',
-    data: { title: 'User Management', subtitle: 'Manage platform users and access rights' },
+    canActivate: [permissionGuard],
+    data: { permissions: ['users.view'] },
     loadComponent: () =>
       import('./users-list/users-list.component')
         .then(m => m.UsersListComponent),
@@ -31,5 +34,4 @@ export const USER_ROUTES: Routes = [
       import('./user-details/user-details.component')
         .then(m => m.UserDetailsComponent),
   },
-
 ];
