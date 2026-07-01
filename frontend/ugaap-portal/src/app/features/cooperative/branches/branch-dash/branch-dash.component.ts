@@ -54,8 +54,12 @@ export class BranchDashboardComponent implements OnInit {
   private toast = inject(ToastService);
   private branchService = inject(BranchService);
 
-  // Exposed to template for the stat card
-  get assignedAgents(): number { return this.branchService.assignedAgentsCount; }
+  // Exposed to template for the stat cards
+  get assignedAgents(): number             { return this.branchService.assignedAgentsCount; }
+  get agentsTrend(): string | undefined    { return this.branchService.agentsTrend; }
+  get agentsTrendUp(): boolean | undefined { return this.branchService.agentsTrendUp; }
+  get farmersTrend(): string | undefined   { return this.branchService.farmersTrend; }
+  get farmersTrendUp(): boolean | undefined { return this.branchService.farmersTrendUp; }
 
   constructor(private router: Router) {}
 

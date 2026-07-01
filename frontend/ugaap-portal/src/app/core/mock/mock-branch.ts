@@ -56,7 +56,12 @@ export const MOCK_BRANCH_ACTIVITIES = [
   { title: 'Weekly collection report generated',               time: '1 week ago'  },
 ];
 
-export const MOCK_ASSIGNED_AGENTS_COUNT = 142;
+export const MOCK_ASSIGNED_AGENTS_COUNT    = 142;
+export const MOCK_AGENTS_TREND             = '+12 this month';
+export const MOCK_AGENTS_TREND_UP          = true;
+
+export const MOCK_FARMERS_TREND            = '+8%';
+export const MOCK_FARMERS_TREND_UP         = true;
 
 // ── Branch dashboard (branch staff home screen) ───────────────────────────────
 

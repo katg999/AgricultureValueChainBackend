@@ -17,6 +17,10 @@ import {
   MOCK_COOPERATIVE_BRANCHES,
   MOCK_BRANCH_ACTIVITIES,
   MOCK_ASSIGNED_AGENTS_COUNT,
+  MOCK_AGENTS_TREND,
+  MOCK_AGENTS_TREND_UP,
+  MOCK_FARMERS_TREND,
+  MOCK_FARMERS_TREND_UP,
   MOCK_BRANCHES,
 } from '../mock/mock-branch';
 
@@ -63,7 +67,11 @@ export class BranchService {
   );
   readonly branches$ = this._branches.asObservable();
 
-  readonly assignedAgentsCount = MOCK_ASSIGNED_AGENTS_COUNT;
+  readonly assignedAgentsCount = USE_MOCK ? MOCK_ASSIGNED_AGENTS_COUNT : 0;
+  readonly agentsTrend         = USE_MOCK ? MOCK_AGENTS_TREND         : undefined;
+  readonly agentsTrendUp       = USE_MOCK ? MOCK_AGENTS_TREND_UP      : undefined;
+  readonly farmersTrend        = USE_MOCK ? MOCK_FARMERS_TREND        : undefined;
+  readonly farmersTrendUp      = USE_MOCK ? MOCK_FARMERS_TREND_UP     : undefined;
 
   constructor(private http: HttpClient) {}
 
