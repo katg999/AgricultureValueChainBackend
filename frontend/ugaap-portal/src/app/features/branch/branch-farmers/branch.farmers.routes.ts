@@ -8,47 +8,50 @@ export const BRANCH_FARMERS_ROUTES: Routes = [
     pathMatch: 'full',
   },
 
-  // Farmer Management (view + edit)
+  // Farmer list
   {
     path: 'list',
-    data: { title: 'Farmers' },
+    canActivate: [permissionGuard],
+    data: { title: 'Farmers', permissions: ['farmers.view'] },
     loadComponent: () =>
       import('./branch.farmer-list/branch.farmer-list.component').then(
         (m) => m.BranchFarmerListComponent,
       ),
   },
 
-
-  // Farmer Registration (new) and Edit (with :id)
+  // Register new farmer
   {
     path: 'register',
     canActivate: [permissionGuard],
-    data: { title: 'Register Farmer', permissionModule: 'farmers' },
-    loadComponent: () =>
-      import('./branch.farmer-register/branch.farmer-register.component').then(
-        (m) => m.BranchFarmerRegisterComponent,
-      ),
-  },
-  {
-    path: 'register/:id',
-    canActivate: [permissionGuard],
-    data: { title: 'Edit Farmer', permissionModule: 'farmers' },
+    data: { title: 'Register Farmer', permissions: ['farmers.register'] },
     loadComponent: () =>
       import('./branch.farmer-register/branch.farmer-register.component').then(
         (m) => m.BranchFarmerRegisterComponent,
       ),
   },
 
-  // Read-only farmer profile (branch staff view — no approve/reject)
+  // Edit existing farmer
+  {
+    path: 'register/:id',
+    canActivate: [permissionGuard],
+    data: { title: 'Edit Farmer', permissions: ['farmers.edit'] },
+    loadComponent: () =>
+      import('./branch.farmer-register/branch.farmer-register.component').then(
+        (m) => m.BranchFarmerRegisterComponent,
+      ),
+  },
+
+  // Read-only farmer profile (view permission is sufficient)
   {
     path: 'profile/:id',
-    data: { title: 'Farmer Profile' },
+    canActivate: [permissionGuard],
+    data: { title: 'Farmer Profile', permissions: ['farmers.view'] },
     loadComponent: () =>
       import('../../cooperative/farmers/farmer-approval/farmer-approval.component')
         .then(m => m.FarmerApprovalComponent)
   },
 
   // Legacy dotted paths kept for existing bookmarks.
-  { path: 'branch.farmer-list', redirectTo: 'list', pathMatch: 'full' },
+  { path: 'branch.farmer-list',     redirectTo: 'list',     pathMatch: 'full' },
   { path: 'branch.farmer-register', redirectTo: 'register', pathMatch: 'full' },
 ];

@@ -43,7 +43,8 @@
             placeholder="e.g. CM95012A345B6C"
             type="text"
             [required]="true"
-            hint="14 chars: 2 letters · 5 digits · 1 letter · 3 digits · 1 letter · 1 digit · 1 letter"
+            [uppercase]="true"
+            hint="14 alphanumeric characters"
             [error]="formErrors['nationalIdNumber']"
             [(ngModel)]="form.nationalIdNumber"
             name="nationalIdNumber">
@@ -343,9 +344,6 @@
           </app-input>
         </div>
 
-        <!-- API error shown at bottom of last section -->
-        <div *ngIf="saveError" class="save-error mt-16" role="alert">{{ saveError }}</div>
-
       </app-form-section>
 
     </app-form-shell>
@@ -365,3 +363,52 @@
   </ng-container>
 
 </div>
+
+<!-- ── REVIEW & CONFIRM MODAL ── -->
+<app-modal
+  [isOpen]="showConfirmModal"
+  title="Review & Confirm"
+  subtitle="Check the details below before registering."
+  size="lg"
+  [closeOnBackdrop]="!isSaving"
+  [closeOnEsc]="!isSaving"
+  (closed)="showConfirmModal = false">
+
+  <div class="review-layout">
+    <div class="review-group">
+      <h4 class="review-group-title">Personal Details</h4>
+      <hr class="review-divider">
+      <div class="review-row-item"><span class="rl">Full Name</span><span class="rv">{{ form.fullName || '—' }}</span></div>
+      <div class="review-row-item"><span class="rl">National ID</span><span class="rv">{{ form.nationalIdNumber || '—' }}</span></div>
+      <div class="review-row-item"><span class="rl">Phone</span><span class="rv">{{ form.phoneNumber || '—' }}</span></div>
+      <div class="review-row-item"><span class="rl">Email</span><span class="rv">{{ form.emailAddress || '—' }}</span></div>
+      <div class="review-row-item"><span class="rl">Gender</span><span class="rv">{{ form.gender || '—' }}</span></div>
+      <div class="review-row-item"><span class="rl">Date of Birth</span><span class="rv">{{ form.dateOfBirth || '—' }}</span></div>
+    </div>
+
+    <div class="review-group">
+      <h4 class="review-group-title">Farm Details</h4>
+      <hr class="review-divider">
+      <div class="review-row-item"><span class="rl">Location</span><span class="rv">{{ form.farmLocation || '—' }}</span></div>
+      <div class="review-row-item"><span class="rl">Village / Town</span><span class="rv">{{ form.village || '—' }}</span></div>
+      <div class="review-row-item"><span class="rl">Land Area (acres)</span><span class="rv">{{ form.totalLandArea ?? '—' }}</span></div>
+      <div class="review-row-item"><span class="rl">Irrigation</span><span class="rv">{{ form.irrigationSource || '—' }}</span></div>
+    </div>
+
+    <div class="review-group">
+      <h4 class="review-group-title">Payment Method</h4>
+      <hr class="review-divider">
+      <div class="review-row-item"><span class="rl">Method</span><span class="rv">{{ reviewPaymentSummary }}</span></div>
+    </div>
+  </div>
+
+  <div class="modal-actions" footer>
+    <button type="button" class="btn-secondary" [disabled]="isSaving" (click)="showConfirmModal = false">
+      Edit
+    </button>
+    <app-button variant="primary" size="md" [loading]="isSaving" loadingText="Saving…" (clicked)="onConfirmSave()">
+      {{ isEditMode ? 'Save Changes' : 'Register Farmer' }}
+    </app-button>
+  </div>
+
+</app-modal>
