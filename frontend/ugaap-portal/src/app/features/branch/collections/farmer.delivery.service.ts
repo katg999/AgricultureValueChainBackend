@@ -42,6 +42,9 @@ export class FarmerDeliveryService {
 
   private readonly baseUrl = API_ENDPOINTS.BRANCH.FARMER_DELIVERIES;
 
+  // Start after the highest seed id (FDR-021) so mock-created records never collide.
+  private nextMockId = this.seed.length + 1;
+
   constructor(private readonly http: HttpClient) {}
 
   getPaginated(
@@ -49,6 +52,10 @@ export class FarmerDeliveryService {
     size: number,
     filters?: { farmerName?: string; season?: string; status?: string }
   ): Observable<PaginatedResponse<FarmerDelivery>> {
+    if (USE_MOCK) {
+      return of(this.paginateMock(page, size, filters));
+    }
+
     let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString());
@@ -66,6 +73,11 @@ export class FarmerDeliveryService {
   }
 
   searchByName(farmerName: string): Observable<FarmerDelivery[]> {
+    if (USE_MOCK) {
+      const term = farmerName.trim().toLowerCase();
+      return of(this._deliveries$.value.filter(d => d.farmerName.toLowerCase().includes(term)));
+    }
+
     const params = new HttpParams().set('farmerName', farmerName);
     return this.http.get<FarmerDelivery[]>(`${this.baseUrl}/search`, { params }).pipe(
       tap(deliveries => this._deliveries$.next(deliveries)),
@@ -74,6 +86,12 @@ export class FarmerDeliveryService {
   }
 
   create(dto: FarmerDeliveryCreateDTO): Observable<FarmerDelivery> {
+    if (USE_MOCK) {
+      const newDelivery = this.buildMockDelivery(dto);
+      this._deliveries$.next([newDelivery, ...this._deliveries$.value]);
+      return of(newDelivery);
+    }
+
     return this.http.post<FarmerDelivery>(this.baseUrl, dto).pipe(
       tap(newDelivery => {
         this._deliveries$.next([newDelivery, ...this._deliveries$.value]);
@@ -83,6 +101,17 @@ export class FarmerDeliveryService {
   }
 
   partialUpdate(id: string, dto: FarmerDeliveryUpdateDTO): Observable<FarmerDelivery> {
+    if (USE_MOCK) {
+      const list = this._deliveries$.value;
+      const index = list.findIndex(d => d.id === id);
+      if (index === -1) {
+        return throwError(() => new Error(`Delivery ${id} not found.`));
+      }
+      const updated = { ...list[index], ...dto, updatedAt: new Date() };
+      this._deliveries$.next([...list.slice(0, index), updated, ...list.slice(index + 1)]);
+      return of(updated);
+    }
+
     return this.http.patch<FarmerDelivery>(`${this.baseUrl}/${id}`, dto).pipe(
       tap(updatedDelivery => {
         const list = this._deliveries$.value;
@@ -98,6 +127,11 @@ export class FarmerDeliveryService {
   }
 
   delete(id: string): Observable<void> {
+    if (USE_MOCK) {
+      this._deliveries$.next(this._deliveries$.value.filter(d => d.id !== id));
+      return of(void 0);
+    }
+
     return this.http.delete<void>(`${this.baseUrl}/${id}`).pipe(
       tap(() => {
         this._deliveries$.next(this._deliveries$.value.filter(d => d.id !== id));
@@ -123,5 +157,50 @@ export class FarmerDeliveryService {
   private handleError(error: any): Observable<never> {
     console.error('An infrastructure communication error occurred:', error);
     return throwError(() => new Error(error.message || 'Server error connection failure.'));
+  }
+
+  private buildMockDelivery(dto: FarmerDeliveryCreateDTO): FarmerDelivery {
+    const now = new Date();
+    return {
+      id: `FDR-${String(this.nextMockId++).padStart(3, '0')}`,
+      farmerName: dto.farmerName,
+      commodity: dto.commodity,
+      volume: dto.volume,
+      estimatedValue: 0,
+      status: 'Pending',
+      season: dto.season,
+      session: dto.session,
+      notes: dto.notes,
+      createdAt: now,
+      updatedAt: now,
+    };
+  }
+
+  private paginateMock(
+    page: number,
+    size: number,
+    filters?: { farmerName?: string; season?: string; status?: string },
+  ): PaginatedResponse<FarmerDelivery> {
+    let content = this._deliveries$.value;
+
+    if (filters?.farmerName) {
+      const term = filters.farmerName.trim().toLowerCase();
+      content = content.filter(d => d.farmerName.toLowerCase().includes(term));
+    }
+    if (filters?.season) {
+      content = content.filter(d => d.season === filters.season);
+    }
+    if (filters?.status) {
+      content = content.filter(d => d.status === filters.status);
+    }
+
+    const start = page * size;
+    return {
+      content: content.slice(start, start + size),
+      totalElements: content.length,
+      totalPages: Math.max(Math.ceil(content.length / size), 1),
+      size,
+      number: page,
+    };
   }
 }

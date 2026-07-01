@@ -106,16 +106,40 @@ export class BranchService {
   // ── Onboarding API calls ──────────────────────────────────────────────────
 
   createBranch(payload: BranchCreatePayload): Observable<BranchResponse> {
+    if (USE_MOCK) {
+      const now = new Date().toISOString();
+      return of({
+        branchId: `BR-${Date.now()}`,
+        name: payload.name,
+        tenantId: payload.tenantId,
+        location: payload.location,
+        branchCode: `BR-${Date.now()}`,
+        status: 'ACTIVE',
+        createdAt: now,
+      });
+    }
     return this.http.post<BranchResponse>(API_ENDPOINTS.BRANCHES.CREATE, payload);
   }
 
   listBranches(tenantId: string): Observable<BranchResponse[]> {
+    if (USE_MOCK) return of([]);
     return this.http.get<BranchResponse[]>(API_ENDPOINTS.BRANCHES.LIST(tenantId)).pipe(
       catchError(() => of([])),
     );
   }
 
   getBranch(branchId: string): Observable<BranchResponse> {
+    if (USE_MOCK) {
+      return of({
+        branchId,
+        name: BRANCH_DISPLAY_NAMES[branchId] ?? branchId,
+        tenantId: '',
+        location: '',
+        branchCode: branchId,
+        status: 'ACTIVE',
+        createdAt: new Date().toISOString(),
+      });
+    }
     return this.http.get<BranchResponse>(API_ENDPOINTS.BRANCHES.BY_ID(branchId));
   }
 }

@@ -8,4 +8,4 @@
 // Flip the flag, save, and the app hot-reloads instantly.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const USE_MOCK = false;
+export const USE_MOCK = true;

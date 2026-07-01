@@ -66,11 +66,13 @@ export class PaymentBatchService {
   // timeout(3000) = if the server takes more than 3 seconds, give up (don't freeze the UI).
   // catchError = if the request fails for any reason, do nothing — the seed data stays.
   getBatches(): Observable<PaymentBatch[]> {
-    this.http.get<PaymentBatch[]>(API_ENDPOINTS.BRANCH.BATCHES).pipe(
-      timeout(3000),
-      tap(rows => this.batches$.next(rows)), // on success: replace seed with real data
-      catchError(() => of(null)),            // on failure: silently ignore
-    ).subscribe();
+    if (!USE_MOCK) {
+      this.http.get<PaymentBatch[]>(API_ENDPOINTS.BRANCH.BATCHES).pipe(
+        timeout(3000),
+        tap(rows => this.batches$.next(rows)), // on success: replace seed with real data
+        catchError(() => of(null)),            // on failure: silently ignore
+      ).subscribe();
+    }
     const branchId = this.session.branchId();
     return this.batches$.pipe(map(rows => rows.filter(b => b.branchId === branchId)));
   }
@@ -86,20 +88,24 @@ export class PaymentBatchService {
     this.batches$.next(updated);
 
     // Fire-and-forget HTTP PATCH — we don't wait for it, UI already updated above.
-    this.http.patch(API_ENDPOINTS.BRANCH.BATCH_BY_ID(id), { status }).pipe(
-      timeout(3000),
-      catchError(() => of(null)),
-    ).subscribe();
+    if (!USE_MOCK) {
+      this.http.patch(API_ENDPOINTS.BRANCH.BATCH_BY_ID(id), { status }).pipe(
+        timeout(3000),
+        catchError(() => of(null)),
+      ).subscribe();
+    }
   }
 
   // Removes a batch from the list immediately, then tells the API.
   deleteBatch(id: string): void {
     this.batches$.next(this.batches$.value.filter(b => b.id !== id));
 
-    this.http.delete(API_ENDPOINTS.BRANCH.BATCH_BY_ID(id)).pipe(
-      timeout(3000),
-      catchError(() => of(null)),
-    ).subscribe();
+    if (!USE_MOCK) {
+      this.http.delete(API_ENDPOINTS.BRANCH.BATCH_BY_ID(id)).pipe(
+        timeout(3000),
+        catchError(() => of(null)),
+      ).subscribe();
+    }
   }
 
   // Available seasons for the batch-create form dropdown.
@@ -163,10 +169,12 @@ export class PaymentBatchService {
     // Add to the live list immediately — the table re-renders without waiting for the API.
     this.batches$.next([...this.batches$.value, batch]);
 
-    this.http.post<PaymentBatch>(API_ENDPOINTS.BRANCH.BATCHES, batch).pipe(
-      timeout(3000),
-      catchError(() => of(batch)),
-    ).subscribe();
+    if (!USE_MOCK) {
+      this.http.post<PaymentBatch>(API_ENDPOINTS.BRANCH.BATCHES, batch).pipe(
+        timeout(3000),
+        catchError(() => of(batch)),
+      ).subscribe();
+    }
 
     return batch; // return it so the component can show the batch ID in the success banner
   }
@@ -185,11 +193,13 @@ export class PaymentBatchService {
   // read matchFarmers()/getFarmersForBatch() synchronously should call this first
   // (fire-and-forget) so farmers$ has a chance to hold real data before they're read.
   getAllFarmers(): Observable<FarmerRecord[]> {
-    this.http.get<FarmerRecord[]>(API_ENDPOINTS.BRANCH.PAYMENT_FARMERS).pipe(
-      timeout(3000),
-      tap(rows => this.farmers$.next(rows)),
-      catchError(() => of(null)),
-    ).subscribe();
+    if (!USE_MOCK) {
+      this.http.get<FarmerRecord[]>(API_ENDPOINTS.BRANCH.PAYMENT_FARMERS).pipe(
+        timeout(3000),
+        tap(rows => this.farmers$.next(rows)),
+        catchError(() => of(null)),
+      ).subscribe();
+    }
     const branchId = this.session.branchId();
     return this.farmers$.pipe(map(rows => rows.filter(f => f.branchId === branchId)));
   }
@@ -201,11 +211,13 @@ export class PaymentBatchService {
   // Every branch's batches, unfiltered. Same instant-local + background-refresh
   // pattern as getBatches() — just without the branchId filter at the end.
   getAllBatchesAcrossBranches(): Observable<PaymentBatch[]> {
-    this.http.get<PaymentBatch[]>(API_ENDPOINTS.COOPERATIVE.PAYMENT_BATCHES).pipe(
-      timeout(3000),
-      tap(rows => this.batches$.next(rows)),
-      catchError(() => of(null)),
-    ).subscribe();
+    if (!USE_MOCK) {
+      this.http.get<PaymentBatch[]>(API_ENDPOINTS.COOPERATIVE.PAYMENT_BATCHES).pipe(
+        timeout(3000),
+        tap(rows => this.batches$.next(rows)),
+        catchError(() => of(null)),
+      ).subscribe();
+    }
     return this.batches$.asObservable();
   }
 
@@ -217,11 +229,13 @@ export class PaymentBatchService {
 
   // Every branch's farmers, unfiltered.
   getAllFarmersAcrossBranches(): Observable<FarmerRecord[]> {
-    this.http.get<FarmerRecord[]>(API_ENDPOINTS.COOPERATIVE.PAYMENT_FARMERS).pipe(
-      timeout(3000),
-      tap(rows => this.farmers$.next(rows)),
-      catchError(() => of(null)),
-    ).subscribe();
+    if (!USE_MOCK) {
+      this.http.get<FarmerRecord[]>(API_ENDPOINTS.COOPERATIVE.PAYMENT_FARMERS).pipe(
+        timeout(3000),
+        tap(rows => this.farmers$.next(rows)),
+        catchError(() => of(null)),
+      ).subscribe();
+    }
     return this.farmers$.asObservable();
   }
 

@@ -6,6 +6,7 @@ import { catchError, tap } from 'rxjs/operators';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
 import { MOCK_ROLES, MOCK_ASSIGNED_USERS } from '../mock/mock-cooperative';
 import { USE_MOCK }      from '../mock/mock-config';
+import { allPermissionIds } from '../constants/permissions';
 
 export interface RoleRecord {
   id:               string;
@@ -53,6 +54,41 @@ export class RolesService {
   getUsersForRole(usersCount: number): AssignedUser[] {
     // Return static mock users from MOCK_ASSIGNED_USERS, limited to requested count
     return (MOCK_ASSIGNED_USERS as AssignedUser[]).slice(0, Math.min(usersCount, MOCK_ASSIGNED_USERS.length));
+  }
+
+  // Mock mode has no per-role permission assignments stored anywhere, so we
+  // derive a plausible set from the catalog sized to the role's permissionsCount.
+  getPermissionsForRole(role: RoleRecord): string[] {
+    return allPermissionIds().slice(0, role.permissionsCount);
+  }
+
+  // Mock-only mutations — used by the create/edit role forms so the roles
+  // list reflects changes without a backend (mirrors deleteRole's approach).
+  createRole(data: { name: string; description: string; permissionsCount: number }): RoleRecord {
+    const role: RoleRecord = {
+      id: String(Date.now()),
+      name: data.name,
+      description: data.description,
+      permissionsCount: data.permissionsCount,
+      usersCount: 0,
+      isSystem: false,
+      createdAt: new Date().toISOString().slice(0, 10),
+    };
+    this._roles.next([...this._roles.value, role]);
+    return role;
+  }
+
+  updateRoleDetails(
+    id: string,
+    data: { name: string; description: string; permissionsCount: number },
+  ): RoleRecord | undefined {
+    const idx = this._roles.value.findIndex(r => r.id === id);
+    if (idx === -1) return undefined;
+    const updated: RoleRecord = { ...this._roles.value[idx], ...data };
+    const next = [...this._roles.value];
+    next[idx] = updated;
+    this._roles.next(next);
+    return updated;
   }
 
   deleteRole(id: string): Observable<void> {

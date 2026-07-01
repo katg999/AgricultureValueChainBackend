@@ -76,6 +76,22 @@ export class PlatformCooperativesService {
   }
 
   createCooperative(payload: CreateCooperativeRequest): Observable<any> {
+    if (USE_MOCK) {
+      const coop: PlatformCooperative = {
+        id: `COOP-UG-${String(Date.now()).slice(-3)}`,
+        name: payload.name,
+        code: payload.registrationNumber,
+        country: payload.country,
+        branches: 1,
+        activeFarmers: 0,
+        season: '—',
+        status: 'pending',
+        onboardingProgress: 100,
+        lastActivity: 'just now',
+      };
+      this._cooperatives.next([coop, ...this._cooperatives.value]);
+      return of(coop);
+    }
     return this.http.post(API_ENDPOINTS.PLATFORM.COOPERATIVES, payload);
   }
 }

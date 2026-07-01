@@ -15,7 +15,7 @@
     </div>
 
     <div class="header-actions">
-      <button class="btn primary-action-btn" (click)="addFarmerDelivery()">
+      <button *ngIf="canRecordDelivery" class="btn primary-action-btn" (click)="addFarmerDelivery()">
         <span class="icon-plus">+</span> Add Farmer Delivery
       </button>
     </div>
@@ -50,8 +50,8 @@
       emptyIcon="truck"
       emptyTitle="No deliveries yet"
       emptyMessage="Record the first farmer delivery to get started."
-      emptyActionLabel="Add Delivery"
-      emptyRoute="/branch/collections/deliveries/add">
+      [emptyActionLabel]="canRecordDelivery ? 'Add Delivery' : ''"
+      (emptyAction)="addFarmerDelivery()">
 
       <ng-template appCell="id" let-row>
         <span class="mono">{{ $any(row).id }}</span>
@@ -102,5 +102,7 @@
       </ng-template>
 
     </app-data-table>
+
+  <app-farmer-delivery *ngIf="showAddModal" (closed)="onAddModalClosed()"></app-farmer-delivery>
 
 </div>

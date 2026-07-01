@@ -227,6 +227,11 @@ export class FarmerService {
     branchId: string,
     reason?: string,
   ): Observable<FarmerProfile> {
+    if (USE_MOCK) {
+      const item = this.farmersSubject.value.find((f) => f.id === farmerId);
+      if (item) this._upsertFarmer({ ...item, branchId });
+      return of(buildMockFarmerProfile(farmerId));
+    }
     return this.http.post<FarmerProfile>(
       `${API_ENDPOINTS.COOPERATIVE.FARMER_BY_ID(farmerId)}/link`,
       {
