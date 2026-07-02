@@ -55,7 +55,7 @@
 
 .filters-bar {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr 1fr;
   gap: 16px;
   margin-bottom: 24px;
 }
@@ -90,6 +90,7 @@
 }
 
 .filter-select {
+  width: 100%;
   height: 48px;
   padding: 0 16px;
   border: 1px solid #E8E6ED;
@@ -282,6 +283,11 @@
 
   .filters-bar {
     grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+  }
+
+  .filters-bar .search-input {
+    grid-column: 1 / -1;
   }
 }
 

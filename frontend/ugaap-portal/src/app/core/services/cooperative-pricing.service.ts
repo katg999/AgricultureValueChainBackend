@@ -6,6 +6,7 @@ import {
   GRADE_MULTIPLIERS,
   ALL_BRANCH_IDS,
 } from '../mock/mock-cooperative';
+import { USE_MOCK } from '../mock/mock-config';
 
 export interface FlatCommodityPrice {
   commodity: string;
@@ -52,9 +53,10 @@ function buildDefaultGradePrices(): GradeCommodityPrice[] {
 export class CooperativePricingService {
 
   private readonly _useGrades = new BehaviorSubject<boolean>(false);
-  private readonly _flatPrices = new BehaviorSubject<FlatCommodityPrice[]>([...DEFAULT_FLAT_PRICES]);
+  // When USE_MOCK is false, start empty — real API calls fill these.
+  private readonly _flatPrices = new BehaviorSubject<FlatCommodityPrice[]>(USE_MOCK ? [...DEFAULT_FLAT_PRICES] : []);
   private readonly _branchFlatPrices = new BehaviorSubject<Map<string, FlatCommodityPrice[]>>(new Map());
-  private readonly _gradePrices = new BehaviorSubject<GradeCommodityPrice[]>(buildDefaultGradePrices());
+  private readonly _gradePrices = new BehaviorSubject<GradeCommodityPrice[]>(USE_MOCK ? buildDefaultGradePrices() : []);
 
   readonly useGrades$: Observable<boolean> = this._useGrades.asObservable();
 

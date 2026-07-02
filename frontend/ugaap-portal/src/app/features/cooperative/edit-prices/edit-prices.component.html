@@ -10,7 +10,7 @@
       <h1 class="page-title">Commodity Prices</h1>
       <p class="page-subtitle">
         Set the prices paid to farmers for commodities delivered at your branches.
-        {{ gradeMode() ? 'Grade mode is ON — prices vary by quality grade.' : 'Flat mode — one price per commodity.' }}
+        {{ gradeMode() ? 'Grade mode is ON: prices vary by quality grade.' : 'Flat mode — one price per commodity.' }}
       </p>
     </div>
     <app-button variant="primary" size="md" (clicked)="openAdd()">
@@ -25,12 +25,12 @@
     <div class="toggle-row">
       <div>
         <h2 class="sec-title">Grade-Based Pricing</h2>
-        <p class="toggle-desc">
+        <!-- <p class="toggle-desc">
           <strong>OFF</strong> — one flat price per commodity (e.g. Maize = 2,500 UGX/kg for all grades).<br>
           <strong>ON</strong> &nbsp;— prices vary by commodity and quality grade (e.g. Grade A Maize = 3,250 UGX/kg).<br>
           Each row can apply to <em>All Branches</em> or a specific branch — branch-specific rows
           override the cooperative-wide price for that branch.
-        </p>
+        </p> -->
       </div>
       <label class="toggle-switch" title="Toggle grade-based pricing">
         <input

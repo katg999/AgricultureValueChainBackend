@@ -12,6 +12,7 @@ import { catchError, timeout } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { SessionService } from './session.service';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
+import { USE_MOCK } from '../mock/mock-config';
 import {
   DeliverySession,
   DeliverySessionWindow,
@@ -31,7 +32,7 @@ export class DeliverySessionConfigService {
     private readonly session: SessionService,
   ) {
     this.windowsSignal.set(this.loadFromStorage());
-    this.refreshFromServer();
+    if (!USE_MOCK) this.refreshFromServer();
   }
 
   getWindows(): DeliverySessionWindow[] {
@@ -71,10 +72,12 @@ export class DeliverySessionConfigService {
     this.saveToStorage(windows);
 
     // Fire-and-forget — optimistic update, same pattern as PaymentBatchService.updateBatchStatus().
-    this.http.put(API_ENDPOINTS.COOPERATIVE.SESSION_CONFIG, windows).pipe(
-      timeout(3000),
-      catchError(() => of(null)),
-    ).subscribe();
+    if (!USE_MOCK) {
+      this.http.put(API_ENDPOINTS.COOPERATIVE.SESSION_CONFIG, windows).pipe(
+        timeout(3000),
+        catchError(() => of(null)),
+      ).subscribe();
+    }
 
     return null;
   }

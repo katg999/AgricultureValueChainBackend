@@ -17,7 +17,7 @@ export const USER_ROUTES: Routes = [
   {
     path: 'add-user',
     canActivate: [permissionGuard],
-    data: { permissions: ['users.create'] },
+    data: { permissions: ['users.create'], title: 'Add User', subtitle: 'Create a new staff account' },
     loadComponent: () =>
       import('./add-user/add-user.component')
         .then(m => m.AddUserComponent),
@@ -27,7 +27,7 @@ export const USER_ROUTES: Routes = [
   {
     path: 'user/:id',
     canActivate: [permissionGuard],
-    data: { permissions: ['users.view'] },
+    data: { permissions: ['users.view'], title: 'User Details' },
     loadComponent: () =>
       import('./user-details/user-details.component')
         .then(m => m.UserDetailsComponent),

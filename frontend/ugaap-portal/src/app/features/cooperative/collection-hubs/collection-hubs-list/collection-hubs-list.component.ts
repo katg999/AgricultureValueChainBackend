@@ -1,9 +1,10 @@
 // features/cooperative/collection-hubs/collection-hubs-list/collection-hubs-list.component.ts
 
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
@@ -22,7 +23,7 @@ type StatusFilter = 'all' | HubStatus;
   templateUrl: './collection-hubs-list.component.html',
   styleUrls: ['./collection-hubs-list.component.css'],
 })
-export class CollectionHubsListComponent {
+export class CollectionHubsListComponent implements OnInit {
 
   private hubsService = inject(CollectionHubsService);
   private router = inject(Router);
@@ -31,7 +32,7 @@ export class CollectionHubsListComponent {
   readonly searchQuery = signal('');
   readonly statusFilter = signal<StatusFilter>('all');
 
-  readonly hubs = this.hubsService.hubs;
+  readonly hubs = toSignal(this.hubsService.hubs$, { initialValue: [] as CollectionHub[] });
 
   readonly filteredHubs = computed<CollectionHub[]>(() => {
     const q = this.searchQuery().trim().toLowerCase();
@@ -58,11 +59,19 @@ export class CollectionHubsListComponent {
     { key: 'actions',     header: 'ACTIONS' },
   ];
 
-  // ── Detail modal ─────────────────────────────────────────────────────────────
+  // ── Lifecycle ─────────────────────────────────────────────────────────────────
+
+  ngOnInit(): void {
+    this.hubsService.list().subscribe({
+      error: () => this.toast.error('Failed to load hubs', 'Could not reach the server. Please try again.'),
+    });
+  }
+
+  // ── Detail modal ──────────────────────────────────────────────────────────────
+
   showDetailModal = false;
   selectedHub: CollectionHub | null = null;
 
-  // ── Delete confirm modal ─────────────────────────────────────────────────────
   showDeleteModal = false;
   hubToDelete: CollectionHub | null = null;
 
@@ -76,7 +85,7 @@ export class CollectionHubsListComponent {
     this.selectedHub = null;
   }
 
-  // ── Actions ──────────────────────────────────────────────────────────────────
+  // ── Actions ───────────────────────────────────────────────────────────────────
 
   createHub(): void {
     this.router.navigate(['/cooperative/collection-hubs/new']);
@@ -99,10 +108,12 @@ export class CollectionHubsListComponent {
 
   executeDelete(): void {
     if (!this.hubToDelete) return;
-    const name = this.hubToDelete.name;
-    this.hubsService.delete(this.hubToDelete.id);
+    const hub = this.hubToDelete;
     this.closeDeleteModal();
-    this.toast.success('Hub deleted', `${name} has been removed.`);
+    this.hubsService.delete(hub.id).subscribe({
+      next: () => this.toast.success('Hub deleted', `${hub.name} has been removed.`),
+      error: () => this.toast.error('Delete failed', `Could not delete ${hub.name}. Please try again.`),
+    });
   }
 
   toggleStatus(hub: CollectionHub): void {
@@ -111,14 +122,16 @@ export class CollectionHubsListComponent {
       `Deactivate ${hub.name}? Farmers will no longer be directed to this hub.`)) {
       return;
     }
-    this.hubsService.setStatus(hub.id, next);
-    this.toast.success(
-      next === 'active' ? 'Hub reactivated' : 'Hub deactivated',
-      `${hub.name} is now ${next}.`,
-    );
+    this.hubsService.setStatus(hub.id, next).subscribe({
+      next: () => this.toast.success(
+        next === 'active' ? 'Hub reactivated' : 'Hub deactivated',
+        `${hub.name} is now ${next}.`,
+      ),
+      error: () => this.toast.error('Status update failed', 'Could not update hub status. Please try again.'),
+    });
   }
 
-  // ── Template helpers ─────────────────────────────────────────────────────────
+  // ── Template helpers ──────────────────────────────────────────────────────────
 
   loadPercent(hub: CollectionHub): number {
     if (hub.capacity === 0) return 0;

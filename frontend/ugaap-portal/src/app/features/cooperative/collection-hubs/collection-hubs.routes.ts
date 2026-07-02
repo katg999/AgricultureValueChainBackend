@@ -20,7 +20,7 @@ export const COLLECTION_HUBS_ROUTES: Routes = [
   {
     path: 'new',
     canActivate: [permissionGuard],
-    data: { permissions: ['collection_hubs.create'] },
+    data: { permissions: ['collection_hubs.create'], title: 'New Collection Hub', subtitle: 'Register a new collection point' },
     loadComponent: () =>
       import('./collection-hub-form/collection-hub-form.component')
         .then(m => m.CollectionHubFormComponent),
@@ -30,7 +30,7 @@ export const COLLECTION_HUBS_ROUTES: Routes = [
   {
     path: ':id/edit',
     canActivate: [permissionGuard],
-    data: { permissions: ['collection_hubs.edit'] },
+    data: { permissions: ['collection_hubs.edit'], title: 'Edit Collection Hub' },
     loadComponent: () =>
       import('./collection-hub-form/collection-hub-form.component')
         .then(m => m.CollectionHubFormComponent),

@@ -6,7 +6,7 @@ import { permissionGuard } from '../../../core/guards/permission.guard';
 
 export const ROLES_ROUTES: Routes = [
 
-  // Default — roles list
+  // Default — roles list (inherits parent title 'Roles & Permissions')
   {
     path: '',
     title: 'Roles List | UGAAP',
@@ -33,7 +33,7 @@ export const ROLES_ROUTES: Routes = [
     path: ':id',
     title: 'Role Details | UGAAP',
     canActivate: [permissionGuard],
-    data: { permissions: ['roles.view'] },
+    data: { permissions: ['roles.view'], title: 'Role Details' },
     loadComponent: () =>
       import('./role-detail/role-detail.component')
         .then(m => m.RoleDetailComponent),
@@ -44,7 +44,7 @@ export const ROLES_ROUTES: Routes = [
     path: 'role-form',
     title: 'Create Role | UGAAP',
     canActivate: [permissionGuard],
-    data: { permissions: ['roles.create'] },
+    data: { permissions: ['roles.create'], title: 'Create Role', subtitle: 'Define permissions for a new administrator role' },
     loadComponent: () =>
       import('./role-form/role-form.component')
         .then(m => m.RoleFormComponent),
@@ -55,7 +55,7 @@ export const ROLES_ROUTES: Routes = [
     path: 'role-form/:id',
     title: 'Edit Role | UGAAP',
     canActivate: [permissionGuard],
-    data: { permissions: ['roles.edit'] },
+    data: { permissions: ['roles.edit'], title: 'Edit Role' },
     loadComponent: () =>
       import('./role-form/role-form.component')
         .then(m => m.RoleFormComponent),

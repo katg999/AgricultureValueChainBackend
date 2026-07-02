@@ -10,19 +10,8 @@ import { ButtonComponent }       from '../../../shared/components/button/button.
 import { ToggleSwitchComponent } from '../../../shared/components/toggle-switch/toggle-switch.component';
 import { HasPermissionDirective } from '../../../shared/directives/has-permission.directive';
 import { ToastService }          from '../../../core/services/toast.service';
-import { CooperativeBankAccount } from '../../../core/services/cooperative.service';
+import { CooperativeService, CooperativeBankAccount, CooperativeProfile } from '../../../core/services/cooperative.service';
 import { CooperativePricingService } from '../../../core/services/cooperative-pricing.service';
-
-interface CooperativeProfile {
-  name: string;
-  registrationNumber: string;
-  address: string;
-  country: string;
-  poBox: string;
-  websiteUrl: string;
-  memberSince: string;
-  status: 'active' | 'suspended';
-}
 
 export interface OperationalModules {
   // Structure
@@ -59,34 +48,13 @@ export interface OperationalModules {
 })
 export class CooperativeProfileComponent implements OnInit {
 
-  private fb         = inject(FormBuilder);
-  private toast      = inject(ToastService);
-  private pricingSvc = inject(CooperativePricingService);
+  private fb           = inject(FormBuilder);
+  private toast        = inject(ToastService);
+  private pricingSvc   = inject(CooperativePricingService);
+  private coopService  = inject(CooperativeService);
 
-  // ── Mock data — replace with GET /cooperative/profile ──────────────────────
-
-  profile: CooperativeProfile = {
-    name: 'Bugishu Cooperative Union',
-    registrationNumber: 'COOP/2024/0157',
-    address: 'Plot 12, Republic Street, Mbale',
-    country: 'Uganda',
-    poBox: 'P.O. Box 547, Mbale',
-    websiteUrl: 'https://bugishu.coop',
-    memberSince: '2024-03-18',
-    status: 'active',
-  };
-
-  // ── Bank accounts — replace with GET /cooperative/profile/bank-accounts ───
-  bankAccounts: CooperativeBankAccount[] = [
-    {
-      id: '1',
-      bankName: 'Stanbic Bank Uganda',
-      bankBranch: 'Mbale Branch',
-      accountName: 'Bugishu Cooperative Union Ltd',
-      accountNumber: '9030012345678',
-      isPrimary: true,
-    },
-  ];
+  profile: CooperativeProfile | null = null;
+  bankAccounts: CooperativeBankAccount[] = [];
 
   // ── Operational modules ────────────────────────────────────────────────────
 
@@ -111,6 +79,8 @@ export class CooperativeProfileComponent implements OnInit {
   isSavingModules = false;
 
   ngOnInit(): void {
+    this.coopService.getProfile().subscribe(p => { this.profile = p; });
+    this.coopService.getBankAccounts().subscribe(accounts => { this.bankAccounts = accounts; });
     // Sync doesGrading from the pricing service so profile reflects the live state.
     this.modulesForm.patchValue({ doesGrading: this.pricingSvc.useGrades });
   }

@@ -10,6 +10,8 @@ import { FormSectionComponent } from '../../../../shared/components/form-section
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { PermissionTabsComponent } from '../../../../shared/components/permission-tabs/permission-tabs.component';
+import { RolesService } from '../../../../core/services/roles.service';
+import { USE_MOCK } from '../../../../core/mock/mock-config';
 
 @Component({
   selector: 'app-role-form',
@@ -41,6 +43,7 @@ export class RoleFormComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private http: HttpClient,
+    private rolesService: RolesService,
   ) {}
 
   ngOnInit(): void {
@@ -91,6 +94,18 @@ export class RoleFormComponent implements OnInit {
 
   loadRoleData(): void {
     if (!this.roleId) return;
+
+    if (USE_MOCK) {
+      const role = this.rolesService.findById(this.roleId);
+      if (!role) {
+        this.errorMessage = 'Failed to load role data';
+        return;
+      }
+      this.roleForm.patchValue({ name: role.name, description: role.description });
+      this.selectedPermissions.set(this.rolesService.getPermissionsForRole(role));
+      return;
+    }
+
     this.http.get<any>(`${API_ENDPOINTS.ACCESS.ROLES}/${this.roleId}`).subscribe({
       next: (role) => {
         this.roleForm.patchValue({

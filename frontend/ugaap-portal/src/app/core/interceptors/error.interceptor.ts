@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { SessionService } from '../services/session.service';
 import { ToastService } from '../services/toast.service';
+import { USE_MOCK } from '../mock/mock-config';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const session = inject(SessionService);
@@ -12,6 +13,11 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((err: HttpErrorResponse) => {
+      // Mock mode should never make real HTTP calls, but if a call site was
+      // missed and one slips through, don't surface it — silently rethrow so
+      // the caller's own catchError/fallback still runs, just without a toast.
+      if (USE_MOCK) return throwError(() => err);
+
       const serverMsg: string | undefined = err?.error?.message || err?.error?.error;
 
       switch (err.status) {

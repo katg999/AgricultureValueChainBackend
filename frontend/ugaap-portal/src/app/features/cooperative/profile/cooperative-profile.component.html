@@ -1,6 +1,8 @@
 <div class="page">
 <div class="page-container">
 
+  @if (profile) {
+
   <!-- Page header -->
   <div class="page-header">
     <span class="status-pill" [class.pill-active]="profile.status === 'active'">
@@ -41,6 +43,8 @@
         </div>
       </dl>
     </app-info-card>
+
+  } <!-- end @if (profile) -->
 
     <!-- BANK ACCOUNTS -->
   <app-info-card title="BANK ACCOUNTS">
