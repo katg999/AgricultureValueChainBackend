@@ -46,8 +46,6 @@ public class AuthServiceClient {
 
     // ── DTOs ──────────────────────────────────────────────────
 
-
-
     public record CredentialsProvisionRequest(
             String userId,
             String username,

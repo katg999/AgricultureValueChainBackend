@@ -20,8 +20,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AccessManagementController {
 
-    private final UserService         userService;
-    private final RoleService         roleService;
+    private final UserService          userService;
+    private final RoleService          roleService;
     private final UgaapSecurityContext securityContext;
 
     // ── Users ─────────────────────────────────────────────────
@@ -77,33 +77,20 @@ public class AccessManagementController {
         return ResponseEntity.ok(roleService.listRoles(tenantId));
     }
 
-    @PostMapping("/roles/{roleId}/permissions")
-    @PreAuthorize("hasRole('PLATFORM_ADMIN') or hasRole('COOPERATIVE_ADMIN_MAKER')")
-    public ResponseEntity<AccessManagementDto.RoleResponse> assignPermissions(
-            @PathVariable String roleId,
-            @Valid @RequestBody AccessManagementDto.AssignPermissionsRequest request) {
-        return ResponseEntity.ok(
-                roleService.assignPermissions(roleId, request));
-    }
-
     @DeleteMapping("/roles/{roleId}")
     @PreAuthorize("hasRole('PLATFORM_ADMIN')")
     public ResponseEntity<Void> deleteRole(@PathVariable String roleId) {
         roleService.deleteRole(roleId);
         return ResponseEntity.noContent().build();
     }
-// These are Test Endpoints
 
-    //@GetMapping("/test/membership-view")
-   // @RequiresPermission(module = Permission.Module.MEMBERSHIP, action = Permission.Action.VIEW)
-    //public ResponseEntity<String> testMembershipView() {
-        //return ResponseEntity.ok("Access granted — you have MEMBERSHIP:VIEW permission");
-    //}
 
-    //@GetMapping("/test/inventory-view")
-    //@RequiresPermission(module = Permission.Module.INVENTORY, action = Permission.Action.VIEW)
-    //public ResponseEntity<String> testInventoryView() {
-        //return ResponseEntity.ok("Access granted — you have INVENTORY:VIEW permission");
-    //}
-
+    // AccessManagementController
+    @PutMapping("/roles/{roleId}")
+    @PreAuthorize("hasRole('PLATFORM_ADMIN') or hasRole('COOPERATIVE_ADMIN_MAKER')")
+    public ResponseEntity<AccessManagementDto.RoleResponse> updateRole(
+            @PathVariable String roleId,
+            @Valid @RequestBody AccessManagementDto.CreateRoleRequest request) {
+        return ResponseEntity.ok(roleService.updateRole(roleId, request));
+    }
 }

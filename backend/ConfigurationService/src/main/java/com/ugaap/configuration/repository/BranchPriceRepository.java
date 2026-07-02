@@ -8,8 +8,13 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface BranchPriceRepository extends JpaRepository<BranchPrice, UUID> {
-    List<BranchPrice> findAllByBranchId(UUID branchId);
-    List<BranchPrice> findAllByBranchIdIsNull();         // global prices
-    Optional<BranchPrice> findByGradeIdAndBranchId(UUID gradeId, UUID branchId);
-    Optional<BranchPrice> findByGradeIdAndBranchIdIsNull(UUID gradeId); // global
+
+    List<BranchPrice> findAllByBranchName(String branchName);
+    List<BranchPrice> findAllByCommodityId(UUID commodityId);
+
+    // Flat price lookups (grade IS NULL)
+    Optional<BranchPrice> findByCommodityIdAndGradeIsNullAndBranchName(UUID commodityId, String branchName);
+
+    // Grade-based price lookups
+    Optional<BranchPrice> findByCommodityIdAndGradeIdAndBranchName(UUID commodityId, UUID gradeId, String branchName);
 }

@@ -6,8 +6,8 @@ import com.ugaap.membership.Entity.User;
 import com.ugaap.membership.dto.AccessManagementDto;
 import com.ugaap.membership.repository.RoleRepository;
 import com.ugaap.membership.repository.UserRepository;
-import com.ugaap.shared.client.AuthServiceClient; // look here
-import com.ugaap.shared.Exception.AuthException;  // look here
+import com.ugaap.shared.client.AuthServiceClient;
+import com.ugaap.shared.Exception.AuthException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -93,16 +93,26 @@ public class UserService {
         log.info("User profile created: userId={}, username={}", userId, username);
 
         // 2. Provision credentials in AuthService
-        authServiceClient.provisionCredentials(
-                new AuthServiceClient.CredentialsProvisionRequest(
-                        userId.toString(),
-                        username,
-                        request.getEmail(),
-                        plainPassword
-                )
-        );
-
-        log.info("Credentials provisioned for userId={}", userId);
+        // NOTE: wrapped in try/catch — auth-service integration (internal API key)
+        // is not fully wired up yet, so failures here must not block user creation.
+        // TODO: remove this guard once AuthServiceClient's X-Internal-Key is
+        // confirmed working end-to-end between membership-service and auth-service.
+        try {
+            authServiceClient.provisionCredentials(
+                    new AuthServiceClient.CredentialsProvisionRequest(
+                            userId.toString(),
+                            username,
+                            request.getEmail(),
+                            plainPassword
+                    )
+            );
+            log.info("Credentials provisioned for userId={}", userId);
+        } catch (Exception e) {
+            log.warn("Credential provisioning failed for userId={}, username={} — " +
+                            "user created without auth credentials (auth-service integration " +
+                            "will be wired up in a later step): {}",
+                    userId, username, e.getMessage());
+        }
 
         return AccessManagementDto.UserResponse.builder()
                 .userId(userId.toString())
@@ -150,7 +160,14 @@ public class UserService {
         userRepository.save(user);
 
         // Revoke credentials in AuthService
-        authServiceClient.deactivateCredentials(userId);
+        // NOTE: same temporary guard as createUser — see TODO above.
+        try {
+            authServiceClient.deactivateCredentials(userId);
+        } catch (Exception e) {
+            log.warn("Credential deactivation failed for userId={} — " +
+                            "auth-service integration will be wired up in a later step: {}",
+                    userId, e.getMessage());
+        }
 
         log.info("User deactivated: userId={}", userId);
     }
