@@ -1,10 +1,13 @@
 package com.ugaap.configuration.service;
 
-import com.ugaap.configuration.dto.PriceRequest;
+import com.ugaap.configuration.dto.FlatPriceRequest;
+import com.ugaap.configuration.dto.GradePriceRequest;
 import com.ugaap.configuration.dto.PriceResponse;
 import com.ugaap.configuration.entity.BranchPrice;
+import com.ugaap.configuration.entity.Commodity;
 import com.ugaap.configuration.entity.Grade;
 import com.ugaap.configuration.repository.BranchPriceRepository;
+import com.ugaap.configuration.repository.CommodityRepository;
 import com.ugaap.configuration.repository.GradeRepository;
 import com.ugaap.shared.Exception.AuthException;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -26,30 +28,49 @@ public class PriceService {
 
     private final BranchPriceRepository branchPriceRepository;
     private final GradeRepository       gradeRepository;
+    private final CommodityRepository   commodityRepository;
 
-    // ── Set price (create or update) ─────────────────────────────────────────
+    // ── Flat price (no grade) ───────────────────────────────────────────────
 
     @Transactional
-    public List<PriceResponse> setPrice(PriceRequest request) {
+    public PriceResponse setFlatPrice(FlatPriceRequest request) {
+        Commodity commodity = commodityRepository.findById(request.getCommodityId())
+                .orElseThrow(() -> new AuthException("Commodity not found"));
+
+        BranchPrice price = branchPriceRepository
+                .findByCommodityIdAndGradeIsNullAndBranchName(commodity.getId(), request.getBranchName())
+                .orElse(BranchPrice.builder().commodity(commodity).branchName(request.getBranchName()).build());
+
+        applyNewPrice(price, request.getPricePerKg());
+        branchPriceRepository.save(price);
+
+        log.info("Flat price set for commodity {} branch {}: {}",
+                commodity.getCode(), request.getBranchName(), request.getPricePerKg());
+
+        return toResponse(price);
+    }
+
+    // ── Grade-based price ────────────────────────────────────────────────────
+
+    @Transactional
+    public PriceResponse setGradePrice(GradePriceRequest request) {
+        Commodity commodity = commodityRepository.findById(request.getCommodityId())
+                .orElseThrow(() -> new AuthException("Commodity not found"));
         Grade grade = gradeRepository.findById(request.getGradeId())
                 .orElseThrow(() -> new AuthException("Grade not found"));
 
-        List<PriceResponse> responses = new ArrayList<>();
+        BranchPrice price = branchPriceRepository
+                .findByCommodityIdAndGradeIdAndBranchName(commodity.getId(), grade.getId(), request.getBranchName())
+                .orElse(BranchPrice.builder().commodity(commodity).grade(grade)
+                        .branchName(request.getBranchName()).build());
 
-        boolean isGlobal = request.getBranchIds() == null
-                || request.getBranchIds().isEmpty();
+        applyNewPrice(price, request.getPricePerKg());
+        branchPriceRepository.save(price);
 
-        if (isGlobal) {
-            // Apply to all branches (branchId = null)
-            responses.add(upsertPrice(grade, null, request.getNewPrice()));
-        } else {
-            // Apply to each specified branch
-            for (UUID branchId : request.getBranchIds()) {
-                responses.add(upsertPrice(grade, branchId, request.getNewPrice()));
-            }
-        }
+        log.info("Grade price set for commodity {} grade {} branch {}: {}",
+                commodity.getCode(), grade.getCode(), request.getBranchName(), request.getPricePerKg());
 
-        return responses;
+        return toResponse(price);
     }
 
     // ── Read ──────────────────────────────────────────────────────────────────
@@ -61,15 +82,15 @@ public class PriceService {
                 .collect(Collectors.toList());
     }
 
-    public List<PriceResponse> getPricesForBranch(UUID branchId) {
-        return branchPriceRepository.findAllByBranchId(branchId)
+    public List<PriceResponse> getPricesForBranch(String branchName) {
+        return branchPriceRepository.findAllByBranchName(branchName)
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
 
-    public List<PriceResponse> getGlobalPrices() {
-        return branchPriceRepository.findAllByBranchIdIsNull()
+    public List<PriceResponse> getPricesForCommodity(UUID commodityId) {
+        return branchPriceRepository.findAllByCommodityId(commodityId)
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
@@ -77,29 +98,12 @@ public class PriceService {
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private PriceResponse upsertPrice(Grade grade, UUID branchId, BigDecimal newPrice) {
-        BranchPrice price;
-
-        if (branchId == null) {
-            price = branchPriceRepository
-                    .findByGradeIdAndBranchIdIsNull(grade.getId())
-                    .orElse(BranchPrice.builder().grade(grade).build());
-        } else {
-            price = branchPriceRepository
-                    .findByGradeIdAndBranchId(grade.getId(), branchId)
-                    .orElse(BranchPrice.builder().grade(grade).branchId(branchId).build());
-        }
-
-        // Shift current → old, set new
+    private void applyNewPrice(BranchPrice price, BigDecimal newPrice) {
         price.setCurrentPrice(
                 price.getNewPrice() != null ? price.getNewPrice() : BigDecimal.ZERO
         );
         price.setNewPrice(newPrice);
         price.setChangePercent(computeChange(price.getCurrentPrice(), newPrice));
-
-        branchPriceRepository.save(price);
-        log.info("Price set for grade {} branch {}: {}", grade.getCode(), branchId, newPrice);
-        return toResponse(price);
     }
 
     private BigDecimal computeChange(BigDecimal current, BigDecimal newPrice) {
@@ -115,9 +119,11 @@ public class PriceService {
     private PriceResponse toResponse(BranchPrice p) {
         return PriceResponse.builder()
                 .id(p.getId())
-                .gradeName(p.getGrade().getName())
-                .gradeCode(p.getGrade().getCode())
-                .branchId(p.getBranchId())
+                .commodityName(p.getCommodity().getName())
+                .commodityCode(p.getCommodity().getCode())
+                .gradeName(p.getGrade() != null ? p.getGrade().getName() : null)
+                .gradeCode(p.getGrade() != null ? p.getGrade().getCode() : null)
+                .branchName(p.getBranchName())
                 .currentPrice(p.getCurrentPrice())
                 .newPrice(p.getNewPrice())
                 .changePercent(p.getChangePercent())

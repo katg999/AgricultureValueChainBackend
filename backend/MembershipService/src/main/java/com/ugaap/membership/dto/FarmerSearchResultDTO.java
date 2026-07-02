@@ -8,4 +8,5 @@ import lombok.Data;
 public class FarmerSearchResultDTO {
     private String memberId;
     private String fullName;
+    private String branchId;
 }
