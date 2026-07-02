@@ -1,6 +1,7 @@
 package com.ugaap.configuration.controller;
 
-import com.ugaap.configuration.dto.PriceRequest;
+import com.ugaap.configuration.dto.FlatPriceRequest;
+import com.ugaap.configuration.dto.GradePriceRequest;
 import com.ugaap.configuration.dto.PriceResponse;
 import com.ugaap.configuration.service.PriceService;
 import com.ugaap.shared.dto.ApiResponse;
@@ -19,11 +20,18 @@ public class PriceController {
 
     private final PriceService priceService;
 
-    @PostMapping
-    public ResponseEntity<ApiResponse<List<PriceResponse>>> setPrice(
-            @Valid @RequestBody PriceRequest request) {
+    @PostMapping("/flat")
+    public ResponseEntity<ApiResponse<PriceResponse>> setFlatPrice(
+            @Valid @RequestBody FlatPriceRequest request) {
         return ResponseEntity.ok(
-                ApiResponse.ok("Price configured", priceService.setPrice(request)));
+                ApiResponse.ok("Flat price configured", priceService.setFlatPrice(request)));
+    }
+
+    @PostMapping("/grade")
+    public ResponseEntity<ApiResponse<PriceResponse>> setGradePrice(
+            @Valid @RequestBody GradePriceRequest request) {
+        return ResponseEntity.ok(
+                ApiResponse.ok("Grade price configured", priceService.setGradePrice(request)));
     }
 
     @GetMapping
@@ -32,17 +40,19 @@ public class PriceController {
                 ApiResponse.ok("Prices fetched", priceService.getAllPrices()));
     }
 
-    @GetMapping("/global")
-    public ResponseEntity<ApiResponse<List<PriceResponse>>> getGlobal() {
-        return ResponseEntity.ok(
-                ApiResponse.ok("Global prices fetched", priceService.getGlobalPrices()));
-    }
-
-    @GetMapping("/branch/{branchId}")
+    @GetMapping("/branch/{branchName}")
     public ResponseEntity<ApiResponse<List<PriceResponse>>> getByBranch(
-            @PathVariable UUID branchId) {
+            @PathVariable String branchName) {
         return ResponseEntity.ok(
                 ApiResponse.ok("Branch prices fetched",
-                        priceService.getPricesForBranch(branchId)));
+                        priceService.getPricesForBranch(branchName)));
+    }
+
+    @GetMapping("/commodity/{commodityId}")
+    public ResponseEntity<ApiResponse<List<PriceResponse>>> getByCommodity(
+            @PathVariable UUID commodityId) {
+        return ResponseEntity.ok(
+                ApiResponse.ok("Commodity prices fetched",
+                        priceService.getPricesForCommodity(commodityId)));
     }
 }

@@ -34,8 +34,7 @@ public class Permission {
     @Column(name = "description")
     private String description;
 
-    public enum Module {
-        MEMBERSHIP, INVENTORY, REPORTING, ACCESS_MANAGEMENT, BRANCHES
+    public enum Module {BRANCHES, ORGANISATION_SETUP, CONFIGURATION, COLLECTIONS, FARMERS,AGENTS, COLLECTION_HUBS,  INVENTORY, FINANCE, USER_MANAGEMENT, ROLES_AND_PERMISSIONS, REPORTS
     }
 
     public enum Action {

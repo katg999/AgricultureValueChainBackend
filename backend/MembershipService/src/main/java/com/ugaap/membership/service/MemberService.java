@@ -253,6 +253,7 @@ public class MemberService {
                 .map(m -> FarmerSearchResultDTO.builder()
                         .memberId(m.getMemberId().toString())
                         .fullName(m.getFullName())
+                        .branchId(m.getBranchId() != null ? m.getBranchId().toString() : null)
                         .build())
                 .toList();
     }
