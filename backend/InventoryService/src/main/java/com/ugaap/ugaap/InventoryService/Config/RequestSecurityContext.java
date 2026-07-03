@@ -13,14 +13,17 @@ public class RequestSecurityContext {
     private static final String KEY_COOPERATIVE_ID = "ctx.cooperativeId";
     private static final String KEY_BRANCH_ID      = "ctx.branchId";
     private static final String KEY_USER_ID        = "ctx.userId";
+    private static final String KEY_TENANT_ID      = "ctx.tenantId";
 
-    public void setCooperativeId(UUID id) { set(KEY_COOPERATIVE_ID, id); }
-    public void setBranchId(UUID id)      { set(KEY_BRANCH_ID, id); }
-    public void setUserId(UUID id)        { set(KEY_USER_ID, id); }
+    public void setCooperativeId(UUID id)    { set(KEY_COOPERATIVE_ID, id); }
+    public void setBranchId(UUID id)         { set(KEY_BRANCH_ID, id); }
+    public void setUserId(UUID id)           { set(KEY_USER_ID, id); }
+    public void setTenantId(String tenantId) { request().setAttribute(KEY_TENANT_ID, tenantId); }
 
-    public UUID getCooperativeId() { return get(KEY_COOPERATIVE_ID); }
-    public UUID getBranchId()      { return get(KEY_BRANCH_ID); }
-    public UUID getUserId()        { return get(KEY_USER_ID); }
+    public UUID   getCooperativeId() { return get(KEY_COOPERATIVE_ID); }
+    public UUID   getBranchId()      { return get(KEY_BRANCH_ID); }
+    public UUID   getUserId()        { return get(KEY_USER_ID); }
+    public String getTenantId()      { return (String) request().getAttribute(KEY_TENANT_ID); }
 
     private void set(String key, UUID value) {
         request().setAttribute(key, value);

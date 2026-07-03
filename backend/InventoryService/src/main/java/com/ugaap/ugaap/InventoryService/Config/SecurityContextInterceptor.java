@@ -17,43 +17,32 @@ public class SecurityContextInterceptor implements HandlerInterceptor {
     private static final String HEADER_COOPERATIVE_ID = "X-Cooperative-Id";
     private static final String HEADER_BRANCH_ID      = "X-Branch-Id";
     private static final String HEADER_USER_ID        = "X-User-Id";
+    private static final String HEADER_TENANT_ID      = "X-Tenant-Id";
 
     private final RequestSecurityContext securityContext;
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        UUID cooperativeId = parseHeader(request, response, HEADER_COOPERATIVE_ID);
-        if (cooperativeId == null && headerPresent(request, HEADER_COOPERATIVE_ID)) return false;
-
-        UUID branchId = parseHeader(request, response, HEADER_BRANCH_ID);
-        if (branchId == null && headerPresent(request, HEADER_BRANCH_ID)) return false;
-
-        UUID userId = parseHeader(request, response, HEADER_USER_ID);
-        if (userId == null && headerPresent(request, HEADER_USER_ID)) return false;
-
-        securityContext.setCooperativeId(cooperativeId);
-        securityContext.setBranchId(branchId);
-        securityContext.setUserId(userId);
-
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+        // X-Cooperative-Id is a UUID (only set when JWT has cooperative_id claim).
+        // X-Tenant-Id is the human-readable tenant key (e.g. "demo-coop") — always set.
+        // X-Branch-Id and X-User-Id are UUIDs injected from JWT by the gateway.
+        // If a UUID header is present but malformed, log and continue with null rather
+        // than aborting with 400 — callers control whether null context is acceptable.
+        securityContext.setCooperativeId(parseUuidHeader(request, HEADER_COOPERATIVE_ID));
+        securityContext.setBranchId(parseUuidHeader(request, HEADER_BRANCH_ID));
+        securityContext.setUserId(parseUuidHeader(request, HEADER_USER_ID));
+        securityContext.setTenantId(request.getHeader(HEADER_TENANT_ID));
         return true;
     }
 
-    private UUID parseHeader(HttpServletRequest request, HttpServletResponse response, String headerName) throws Exception {
+    private UUID parseUuidHeader(HttpServletRequest request, String headerName) {
         String value = request.getHeader(headerName);
         if (value == null || value.isBlank()) return null;
-
         try {
             return UUID.fromString(value.trim());
         } catch (IllegalArgumentException e) {
-            log.warn("Malformed UUID in header {}: {}", headerName, value);
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST,
-                    "Invalid UUID in header: " + headerName);
+            log.warn("Non-UUID value in header {} ({}); treating as absent", headerName, value);
             return null;
         }
-    }
-
-    private boolean headerPresent(HttpServletRequest request, String headerName) {
-        String value = request.getHeader(headerName);
-        return value != null && !value.isBlank();
     }
 }

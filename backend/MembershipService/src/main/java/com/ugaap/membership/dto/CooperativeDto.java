@@ -31,7 +31,6 @@ public class CooperativeDto {
         @NotBlank(message = "Account  Number is required")
         private String accountNumber;
 
-        @NotBlank(message = "Bank Branch Is Required")
         private String bankBranch;
 
         private String poBox;

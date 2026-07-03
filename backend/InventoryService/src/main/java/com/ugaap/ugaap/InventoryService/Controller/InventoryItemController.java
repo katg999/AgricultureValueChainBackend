@@ -55,10 +55,6 @@ public class InventoryItemController {
             @RequestHeader(value = "X-User-Id", required = false) UUID userId,
             @Valid @RequestBody InventoryItemCreateDto dto) {
         log.info("POST /items — X-Branch-Id={} X-Cooperative-Id={} X-User-Id={}", branchId, cooperativeId, userId);
-        if (branchId == null || cooperativeId == null) {
-            return ResponseEntity.badRequest()
-                    .body("X-Branch-Id and X-Cooperative-Id headers are required.");
-        }
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(inventoryItemService.createItem(dto, branchId, cooperativeId, userId));
     }

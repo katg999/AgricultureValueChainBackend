@@ -44,10 +44,10 @@ public class InventoryItem {
     @Column(name = "reorder_level", nullable = false)
     private BigDecimal reorderLevel;
 
-    @Column(name = "cooperative_id", nullable = false)
+    @Column(name = "cooperative_id")
     private UUID cooperativeId;
 
-    @Column(name = "branch_id", nullable = false)
+    @Column(name = "branch_id")
     private UUID branchId;
 
     @Column(name = "created_at", nullable = false, updatable = false)

@@ -106,13 +106,14 @@ public class InventoryItemService {
     @Transactional(readOnly = true)
     public Page<InventoryItemDto> getLowStockItems(UUID branchId, Pageable pageable) {
         Specification<InventoryItem> spec = (root, query, cb) -> {
+            var lowStockPredicate = cb.and(
+                    root.get("reorderLevel").isNotNull(),
+                    cb.lessThanOrEqualTo(root.get("quantityAvailable"), root.get("reorderLevel"))
+            );
             if (branchId != null) {
-                return cb.and(
-                        cb.equal(root.get("branchId"), branchId),
-                        cb.lessThanOrEqualTo(root.get("quantityAvailable"), root.get("reorderLevel"))
-                );
+                return cb.and(cb.equal(root.get("branchId"), branchId), lowStockPredicate);
             }
-            return cb.lessThanOrEqualTo(root.get("quantityAvailable"), root.get("reorderLevel"));
+            return lowStockPredicate;
         };
 
         return itemRepository.findAll(spec, pageable).map(this::toDto);
@@ -156,6 +157,8 @@ public class InventoryItemService {
     }
 
     public InventoryItemDto toDto(InventoryItem item) {
+        BigDecimal qty = item.getQuantityAvailable() != null ? item.getQuantityAvailable() : BigDecimal.ZERO;
+        BigDecimal reorder = item.getReorderLevel() != null ? item.getReorderLevel() : BigDecimal.ZERO;
         return InventoryItemDto.builder()
                 .id(item.getId())
                 .sku(item.getSku())
@@ -164,9 +167,9 @@ public class InventoryItemService {
                 .unitOfMeasure(item.getUnitOfMeasure())
                 .buyingPrice(item.getBuyingPrice())
                 .sellingPrice(item.getSellingPrice())
-                .quantityAvailable(item.getQuantityAvailable())
-                .reorderLevel(item.getReorderLevel())
-                .lowStock(item.getQuantityAvailable().compareTo(item.getReorderLevel()) <= 0)
+                .quantityAvailable(qty)
+                .reorderLevel(reorder)
+                .lowStock(qty.compareTo(reorder) <= 0)
                 .branchId(item.getBranchId())
                 .cooperativeId(item.getCooperativeId())
                 .createdAt(item.getCreatedAt())
