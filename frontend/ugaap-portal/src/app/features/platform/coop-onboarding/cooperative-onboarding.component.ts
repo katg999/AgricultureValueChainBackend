@@ -2,7 +2,7 @@
 // its default branch, bank details, and both admin (Admin 1 / Admin 2) accounts
 // in one submission.  No step wizard; all validation runs at final submit.
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -76,6 +76,7 @@ export class CooperativeOnboardingComponent implements OnInit {
     private titleService: Title,
     private toast: ToastService,
     private feedback: FormFeedbackService,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -200,46 +201,22 @@ export class CooperativeOnboardingComponent implements OnInit {
     const v = this.profileForm.value;
 
     const payload = {
-      name:               v.name,
-      registrationNumber: v.registrationNumber,
-      address:            v.address,
-      country:            v.country,
-      poBox:              v.poBox,
-      websiteUrl:         v.websiteUrl,
+      name:                  v.name,
+      registrationNumber:    v.registrationNumber,
+      address:               v.address,
+      country:               v.country   || null,
+      poBox:                 v.poBox     || null,
+      websiteUrl:            v.websiteUrl || null,
       defaultBranchName:     v.defaultBranchName,
-      defaultBranchLocation: v.defaultBranchLocation,
-
-      bankDetails: {
-        bankName:      v.bankName,
-        bankBranch:    v.bankBranch,
-        accountName:   v.accountName,
-        accountNumber: v.accountNumber,
-      },
-
-      // Admin accounts sent as part of the cooperative creation payload
-      admin1: {
-        fullName:    v.admin1FullName,
-        email:       v.admin1Email,
-        phone:       v.admin1Phone,
-        dateOfBirth: v.admin1DateOfBirth,
-        nationalId:  v.admin1NationalId,
-        gender:      v.admin1Gender,
-        photoBase64: this.admin1Photo || null,
-      },
-      admin2: {
-        fullName:    v.admin2FullName,
-        email:       v.admin2Email,
-        phone:       v.admin2Phone,
-        dateOfBirth: v.admin2DateOfBirth,
-        nationalId:  v.admin2NationalId,
-        gender:      v.admin2Gender,
-        photoBase64: this.admin2Photo || null,
-      },
+      defaultBranchLocation: v.defaultBranchLocation || null,
+      accountName:           v.accountName,
+      accountNumber:         v.accountNumber,
+      bankBranch:            v.bankBranch || null,
     };
 
-    this.cooperativeService.createCooperative(payload).pipe(
+    this.cooperativeService.createCooperative(payload as any).pipe(
       timeout(30_000),
-      finalize(() => { this.isLoading = false; }),
+      finalize(() => { this.isLoading = false; this.cdr.detectChanges(); }),
     ).subscribe({
       next: () => {
         this.showConfirmModal = false;

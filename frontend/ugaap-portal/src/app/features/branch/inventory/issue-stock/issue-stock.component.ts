@@ -113,8 +113,8 @@ export class IssueStockComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.branches = this.inventoryService.getBranches();
-    this.farmers = this.inventoryService.getFarmersForCurrentBranch();
+    this.inventoryService.getBranches().subscribe(b => this.branches = b);
+    this.inventoryService.getFarmersForCurrentBranch().subscribe(f => this.farmers = f);
 
     // Populate the dropdown immediately from cache, then overwrite when HTTP responds.
     const snapshot = this.inventoryService.getStockItems(this.scope);

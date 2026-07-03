@@ -2,8 +2,10 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { finalize } from 'rxjs';
 
 import { BranchService, BranchCreatePayload } from '../../../../core/services/branch.service';
+import { SessionService } from '../../../../core/services/session.service';
 
 // Shared UI components used in the template
 import { FormShellComponent } from '../../../../shared/components/form-wizard/form-wizard.component';
@@ -13,7 +15,6 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 import { AlertComponent } from '../../../../shared/components/alert/alert.component';
 import { ToastService } from '../../../../core/services/toast.service';
-import { API_ENDPOINTS } from '../../../../core/constants/api-endpoints';
 
 @Component({
   selector: 'app-branch-onboarding',
@@ -42,7 +43,8 @@ export class BranchOnboardingComponent implements OnInit {
   isLoading = false;
   errorMessage = '';
 
-  private toast = inject(ToastService);
+  private toast   = inject(ToastService);
+  private session = inject(SessionService);
 
   constructor(
     private fb: FormBuilder,
@@ -103,17 +105,36 @@ export class BranchOnboardingComponent implements OnInit {
 
   registerBranch(): void {
     this.errorMessage = '';
-    // Navigate to the branch dashboard and pass the new branch data via router state
-    // so the dashboard can show a success toast / highlight the new row
-    this.router.navigate(['/cooperative/branches/dashboard'], {
-      state: {
-        newBranch: {
-          name:        this.formValue.branchName,
-          location:    `${this.formValue.location}, ${this.formValue.region}`,
-          branchCode:  this.formValue.branchRegistrationNumber,
-          country:     this.formValue.country,
-          managerName: this.formValue.managerName,
-        },
+    this.isLoading = true;
+
+    const tenantId = this.session.tenantId() ?? '';
+    const v = this.formValue;
+
+    const payload: BranchCreatePayload = {
+      name:               v.branchName,
+      tenantId,
+      registrationNumber: v.branchRegistrationNumber,
+      location:           v.location,
+      region:             v.region,
+      country:            v.country,
+      establishedDate:    v.establishedDate,
+      address:            v.address,
+      poBox:              v.poBox,
+      websiteUrl:         '',
+    };
+
+    this.branchService.createBranch(payload).pipe(
+      finalize(() => {
+        this.isLoading = false;
+        this.showConfirmModal = false;
+      }),
+    ).subscribe({
+      next: (branch) => {
+        this.toast.success(`Branch "${branch.name}" created successfully`);
+        this.router.navigate(['/cooperative/branches/dashboard']);
+      },
+      error: (err) => {
+        this.errorMessage = err?.error?.message ?? 'Failed to create branch. Please try again.';
       },
     });
   }

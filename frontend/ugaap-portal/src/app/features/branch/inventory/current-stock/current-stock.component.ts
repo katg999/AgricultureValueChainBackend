@@ -100,7 +100,9 @@ export class CurrentStockComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.branches = this.inventoryService.getBranches().map(branch => branch.name);
+    this.inventoryService.getBranches().subscribe(branches => {
+      this.branches = branches.map(b => b.name);
+    });
 
     this.inventoryService.listStock(this.scope).subscribe(items => {
       this.allItems = items;

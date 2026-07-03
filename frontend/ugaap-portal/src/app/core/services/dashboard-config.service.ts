@@ -248,10 +248,13 @@ export class DashboardConfigService {
    * (e.g. shared routes like /collections, /farmers, /users).
    */
   levelForRole(role: string | null): UserLevel {
-    switch (role) {
+    switch (role?.toLowerCase()) {
       case 'platform_admin':    return 'platform';
-      case 'cooperative_admin': return 'cooperative';
-      case 'branch':            return 'branch';
+      case 'cooperative_admin':
+      case 'cooperative_admin_maker':
+      case 'cooperative_admin_checker': return 'cooperative';
+      case 'branch':
+      case 'branch_staff':      return 'branch';
       default:                  return 'branch';
     }
   }

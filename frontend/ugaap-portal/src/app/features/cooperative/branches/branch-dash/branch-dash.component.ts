@@ -9,6 +9,8 @@ import { StatCardComponent } from '../../../../shared/components/stat-card/stat-
 import { ToastService }      from '../../../../core/services/toast.service';
 import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
 import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
+import { BranchService } from '../../../../core/services/branch.service';
+import { SessionService } from '../../../../core/services/session.service';
 
 // Branch model (must include id for pagination and menu)
 interface Branch {
@@ -67,9 +69,13 @@ export class BranchDashboardComponent implements OnInit {
   // Static value for "Assigned Users"
   assignedAgents = 142;
 
-  private toast = inject(ToastService);
+  private toast   = inject(ToastService);
+  private session = inject(SessionService);
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private branchService: BranchService,
+  ) {}
 
   ngOnInit(): void {
     this.loadBranchData();
@@ -203,20 +209,26 @@ export class BranchDashboardComponent implements OnInit {
     this.toast.info('Coming soon', 'Interactive map view is being built and will be available soon.');
   }
 
-  // ---------- Data Loaders (preserved and enhanced with ids) ----------
+  // ---------- Data Loaders ----------
   private loadBranchData(): void {
-    this.branches = [
-      { id: 1, name: 'Kampala Central Hub', location: 'Kampala, Central Region', farmers: 1240, centres: 5, status: 'ACTIVE' },
-      { id: 2, name: 'Gulu Northern Branch', location: 'Gulu, Northern Uganda', farmers: 876, centres: 3, status: 'ACTIVE' },
-      { id: 3, name: 'Mbarara Dairy Centre', location: 'Mbarara, Western', farmers: 2034, centres: 6, status: 'ACTIVE' },
-      { id: 4, name: 'Jinja East Office', location: 'Jinja, Eastern', farmers: 567, centres: 2, status: 'PENDING' },
-      { id: 5, name: 'Fort Portal Collection', location: 'Fort Portal, West', farmers: 342, centres: 1, status: 'ACTIVE' },
-      { id: 6, name: 'Mbale Highlands Branch', location: 'Mbale, Eastern', farmers: 985, centres: 4, status: 'ACTIVE' },
-      { id: 7, name: 'Soroti Regional', location: 'Soroti, Teso', farmers: 428, centres: 2, status: 'PENDING' },
-      { id: 8, name: 'Arua West Nile', location: 'Arua, West Nile', farmers: 763, centres: 3, status: 'ACTIVE' },
-      { id: 9, name: 'Masaka Green', location: 'Masaka, Central', farmers: 592, centres: 2, status: 'ACTIVE' },
-      { id: 10, name: 'Lira Cooperative', location: 'Lira, Lango', farmers: 311, centres: 1, status: 'ACTIVE' },
-    ];
+    const tenantId = this.session.tenantId();
+    if (!tenantId) return;
+
+    this.branchService.listBranches(tenantId).subscribe({
+      next: (rows) => {
+        this.branches = rows.map((b, i) => ({
+          id: i + 1,
+          name: b.name,
+          location: b.location ?? '',
+          farmers: 0,
+          centres: 0,
+          status: (b.status === 'ACTIVE' ? 'ACTIVE' : 'PENDING') as 'ACTIVE' | 'PENDING',
+        }));
+      },
+      error: () => {
+        this.toast.error('Failed to load branches', 'Could not fetch branch data from the server.');
+      },
+    });
   }
 
   private loadRecentActivities(): void {

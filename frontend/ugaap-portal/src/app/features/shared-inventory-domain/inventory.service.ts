@@ -30,6 +30,7 @@ export interface FarmerOption {
 
 export interface StockItem {
   id: string;
+  sku?: string;            // backend SKU — used when issuing credit to a farmer
   name: string;
   category: string;
   categoryClass: string;
@@ -150,54 +151,79 @@ export class InventoryService {
     private readonly session: SessionService,
   ) {}
 
-  getBranches(): BranchOption[] {
-    return MOCK_BRANCHES;
+  getBranches(): Observable<BranchOption[]> {
+    const tenantId = this.session.tenantId();
+    if (!tenantId) return of([]);
+
+    return this.http.get<any[]>(API_ENDPOINTS.BRANCHES.LIST(tenantId)).pipe(
+      timeout(8000),
+      map(rows => rows.map(r => ({ id: r.branchId as string, name: r.name as string }))),
+      catchError(err => {
+        console.error('getBranches failed:', err);
+        return of([]);
+      }),
+    );
   }
 
-  getFarmersForCurrentBranch(): FarmerOption[] {
+  getFarmersForCurrentBranch(): Observable<FarmerOption[]> {
+    const tenantId = this.session.tenantId();
     const branchId = this.session.branchId();
-    if (!branchId) return [];
-    return MOCK_FARMERS.filter(farmer => farmer.branchId === branchId);
+    if (!tenantId) return of(MOCK_FARMERS);
+
+    const url = API_ENDPOINTS.MEMBERS.LIST(tenantId, branchId || undefined);
+    return this.http.get<any[]>(url).pipe(
+      timeout(8000),
+      map(rows => rows.map(r => ({
+        id: r.memberId as string,
+        name: r.fullName as string,
+        phone: r.phoneNumber as string,
+        branchId: r.branchId as string,
+        branchName: '',
+        availableCredit: 0,
+      }))),
+      catchError(() => of(MOCK_FARMERS)),
+    );
   }
 
   listStock(scope: InventoryScope): Observable<StockItem[]> {
-    // Tell the backend WHICH cooperative or branch we want stock for.
-    // The backend field names (cooperativeId, branchId) are used as query params.
-    const params: Record<string, string> = {};
-    const coopId   = this.session.cooperativeId();
+    // GET /api/v1/inventory/items returns Page<InventoryItemDto>.
+    // branchId header is forwarded by the API Gateway from the JWT, but we also
+    // pass it as a query param so cooperative admins can filter by branch.
+    const params: Record<string, string> = { size: '200' };
     const branchId = this.session.branchId();
-    if (scope === 'cooperative' && coopId)   params['cooperativeId'] = coopId;
-    if (scope === 'branch'      && branchId) params['branchId']      = branchId;
+    if (scope === 'branch' && branchId) params['branchId'] = branchId;
 
-    // GET /api/input-stock/all → returns InputStockResponseDTO[]
-    // We map each item to our StockItem shape (field names differ between backend and frontend).
-    return this.http.get<any[]>(API_ENDPOINTS.INVENTORY_BACKEND.STOCK_ALL, { params }).pipe(
+    return this.http.get<any>(API_ENDPOINTS.INVENTORY_BACKEND.ITEMS, { params }).pipe(
       timeout(8000),
-      map(items => items.map(raw => this.mapBackendStockToStockItem(raw))),
+      // Spring Page<> wraps the array in a "content" field.
+      map(page => (page?.content ?? page ?? []).map((raw: any) => this.mapBackendStockToStockItem(raw))),
       tap(items => this.stockSubject.next(items)),
-      catchError(() => of(this.filterStockForScope(scope))),
+      catchError(err => {
+        console.error('listStock failed:', err);
+        return of([] as StockItem[]);
+      }),
     );
   }
 
   addStockItem(payload: AddStockItemPayload): Observable<StockItem> {
-    // The backend DTO uses different field names. We translate here before sending.
-    // Note: category, unit, batchReference are not yet in the backend InputStockDTO —
-    // they will be ignored by the backend until the DTO is extended.
-    // inputItemId is required (nullable=false in DB); we generate a placeholder UUID
-    // since the InputItem master catalogue isn't implemented in the frontend yet.
+    // Translate frontend payload → InventoryItemCreateDto field names.
+    // sku: prefer batchReference if the user filled it in, otherwise auto-generate.
+    // buyingPrice = sellingPrice = unitPrice (frontend has a single price concept).
+    const sku = payload.batchReference?.trim()
+      || `${payload.itemName.slice(0, 3).toUpperCase()}-${Date.now().toString().slice(-6)}`;
+
     const body = {
-      itemName:         payload.itemName,
-      supplierName:     payload.supplierName,
-      quantity:         payload.quantity,
-      unitCost:         payload.unitPrice,        // frontend: unitPrice → backend: unitCost
-      minimumThreshold: payload.minThreshold,     // frontend: minThreshold → backend: minimumThreshold
-      receivedDate:     payload.receivedDate,
-      cooperativeId:    this.session.cooperativeId(),
-      branchId:         this.session.branchId(),
-      inputItemId:      crypto.randomUUID(),      // placeholder until InputItem catalogue is wired up
+      sku,
+      itemName:       payload.itemName,
+      category:       payload.category,
+      unitOfMeasure:  payload.unit,           // frontend: unit → backend: unitOfMeasure
+      buyingPrice:    payload.unitPrice,      // frontend: unitPrice → backend: buyingPrice
+      sellingPrice:   payload.unitPrice,      //                     → backend: sellingPrice
+      reorderLevel:   payload.minThreshold,   // frontend: minThreshold → backend: reorderLevel
+      initialQuantity: payload.quantity,      // frontend: quantity → backend: initialQuantity
     };
 
-    return this.http.post<any>(API_ENDPOINTS.INVENTORY_BACKEND.STOCK_CREATE, body).pipe(
+    return this.http.post<any>(API_ENDPOINTS.INVENTORY_BACKEND.ITEMS, body).pipe(
       timeout(8000),
       map(raw => this.mapBackendStockToStockItem(raw)),
       tap(item => this.stockSubject.next([item, ...this.stockSubject.value])),
@@ -222,23 +248,27 @@ export class InventoryService {
   }
 
   issueStockToFarmer(payload: FarmerStockIssuePayload): Observable<FarmerAllocation> {
-    // The backend uses different field names and combines repaymentMethod + deductionRate
-    // into a single "replacementTerms" string. We build that string here.
-    const replacementTerms = `${payload.repaymentMethod} @ ${payload.deductionRate}%`;
+    // Translate frontend payload → IssueCreditRequestDto field names.
+    // sku: look up from the cached stock list by stockItemId.
+    // repaymentStrategy: 'installments' → PARTIAL_DEDUCTION, everything else → FULL_DEDUCTION.
+    const sku = this.findSkuForItem(payload.stockItemId);
+    const repaymentStrategy = payload.repaymentMethod === 'installments'
+      ? 'PARTIAL_DEDUCTION'
+      : 'FULL_DEDUCTION';
 
-    const body = {
-      inputStockId:     payload.stockItemId,       // frontend: stockItemId → backend: inputStockId
-      farmerId:         payload.farmerId,
-      quantity:         payload.quantity,
-      season:           payload.season,
-      cooperativeId:    this.session.cooperativeId(),
-      branchId:         this.session.branchId(),
-      replacementTerms,                            // combined from repaymentMethod + deductionRate
+    const body: Record<string, unknown> = {
+      farmerId:          payload.farmerId,
+      sku,
+      quantity:          payload.quantity,
+      repaymentStrategy,
     };
+    if (repaymentStrategy === 'PARTIAL_DEDUCTION') {
+      body['customDeductionAmount'] = payload.deductionRate;
+    }
 
-    return this.http.post<any>(API_ENDPOINTS.INVENTORY_BACKEND.ALLOCATION_ISSUE, body).pipe(
+    return this.http.post<any>(API_ENDPOINTS.INVENTORY_BACKEND.CREDITS_ISSUE, body).pipe(
       timeout(8000),
-      map(raw => this.mapBackendAllocationToFarmerAllocation(raw)),
+      map(raw => this.mapBackendCreditToFarmerAllocation(raw)),
       tap(alloc => this.farmerAllocationSubject.next([alloc, ...this.farmerAllocationSubject.value])),
       catchError(() => of(this.addMockFarmerAllocation(payload))),
     );
@@ -272,23 +302,16 @@ export class InventoryService {
   }
 
   listFarmerAllocations(): Observable<FarmerAllocation[]> {
-    const branchId = this.session.branchId();
     const snapshot = this.filterFarmerAllocationsForBranch();
 
-    // Without a branchId we can't ask the backend for the right records.
-    // Return the cached snapshot immediately so the UI isn't empty.
-    if (!branchId) return of(snapshot);
-
-    // GET /api/allocations/branch/{branchId} → InputAllocationResponseDTO[]
-    // The backend already filters to this branch, so we just map the response shape.
-    return this.http.get<any[]>(
-      API_ENDPOINTS.INVENTORY_BACKEND.ALLOCATIONS_BY_BRANCH(branchId),
-    ).pipe(
+    // branchId filtering is done by the gateway via X-Branch-Id header from the JWT.
+    // Branch staff get their branch filtered automatically; coop admin gets all credits.
+    return this.http.get<any>(API_ENDPOINTS.INVENTORY_BACKEND.CREDITS, { params: { size: '200' } }).pipe(
       timeout(8000),
-      map(rows => rows.map(raw => this.mapBackendAllocationToFarmerAllocation(raw))),
+      map(page => (page?.content ?? page ?? []).map((raw: any) => this.mapBackendCreditToFarmerAllocation(raw))),
       tap(rows => this.farmerAllocationSubject.next(rows)),
       catchError(() => of(snapshot)),
-      startWith(snapshot),   // show cached data immediately while the HTTP call is in-flight
+      startWith(snapshot),
     );
   }
 
@@ -364,7 +387,7 @@ export class InventoryService {
 
   private filterFarmerAllocationsForBranch(): FarmerAllocation[] {
     const branchId = this.session.branchId();
-    if (!branchId) return [];
+    if (!branchId) return [...this.farmerAllocationSubject.value];
     return this.farmerAllocationSubject.value.filter(row => row.branchId === branchId);
   }
 
@@ -493,84 +516,64 @@ export class InventoryService {
   // Any field missing from the backend gets a safe default so the UI never crashes.
 
   private mapBackendStockToStockItem(raw: any): StockItem {
-    // The backend tracks two quantities:
-    //   quantity         = original amount received from supplier
-    //   availableQuantity = what's left after issuances (this is what we display)
-    const qty = raw.availableQuantity ?? raw.quantity ?? 0;
-    const min = raw.minimumThreshold  ?? 0;
+    // Maps InventoryItemDto → frontend StockItem.
+    // Backend field names differ significantly from the old inventory service.
+    const qty = Number(raw.quantityAvailable ?? 0);
+    const min = Number(raw.reorderLevel ?? 0);
     const category = (raw.category ?? 'GENERAL').toUpperCase();
 
     return {
       id:            raw.id,
-      name:          raw.itemName,             // backend: itemName  → frontend: name
+      sku:           raw.sku ?? '',                    // new field — needed for credit issuance
+      name:          raw.itemName,                     // backend: itemName → frontend: name
       category,
-      categoryClass: category.toLowerCase(),   // derived — used for CSS class binding
-      quantity:      qty,                      // backend: availableQuantity → frontend: quantity
-      unit:          raw.unit ?? 'Units',      // not in backend DTO yet; default shown
-      unitPrice:     raw.unitCost ?? 0,        // backend: unitCost  → frontend: unitPrice
-      minThreshold:  min,                      // backend: minimumThreshold → frontend: minThreshold
-      stockStatus:   this.toStockStatus(qty, min),
-      branchIds:     raw.branchId ? [raw.branchId] : [],   // backend stores one branchId, we wrap it
-      branchNames:   [],                       // backend returns ID only; name lookup not yet done
-      season:        raw.season ?? '',         // not in backend DTO yet
-      updatedAt:     (raw.receivedDate ?? raw.createdAt ?? '').slice(0, 10),
-      supplierName:  raw.supplierName ?? '',
-      // Backend has shortCode (auto-generated reference); batchReference (supplier lot number)
-      // is not yet stored by the backend, so we use shortCode as the closest equivalent.
-      batchReference: raw.shortCode ?? '',
+      categoryClass: category.toLowerCase(),
+      quantity:      qty,                              // backend: quantityAvailable → frontend: quantity
+      unit:          raw.unitOfMeasure ?? 'Units',    // backend: unitOfMeasure → frontend: unit
+      unitPrice:     Number(raw.sellingPrice ?? 0),   // backend: sellingPrice → frontend: unitPrice
+      minThreshold:  min,                              // backend: reorderLevel → frontend: minThreshold
+      stockStatus:   raw.lowStock ? (qty <= 0 ? 'out' : 'low') : 'healthy',
+      branchIds:     raw.branchId ? [raw.branchId.toString()] : [],
+      branchNames:   [],
+      season:        '',
+      updatedAt:     raw.updatedAt ? raw.updatedAt.toString().slice(0, 10) : '',
+      supplierName:  '',
+      batchReference: raw.sku ?? '',                  // sku is the closest equivalent
     };
   }
 
-  private mapBackendAllocationToFarmerAllocation(raw: any): FarmerAllocation {
-    const totalVal    = raw.totalValue        ?? 0;
-    const totalQty    = raw.quantity          ?? 0;
-    const recoveredQ  = raw.recoveredQuantity ?? 0;
-
-    // Outstanding = how much value is still owed.
-    // Formula: totalValue × fraction not yet recovered
-    const outstanding = totalQty > 0
-      ? totalVal * (1 - recoveredQ / totalQty)
-      : totalVal;
-
-    // Backend stores fullyRecovered flag. "overdue" would require a due-date
-    // concept that doesn't exist in the backend yet — we default to 'partial'.
-    const status: RecoveryStatus = raw.fullyRecovered ? 'settled' : 'partial';
+  // Maps InputCreditDto (backend) → FarmerAllocation (frontend).
+  private mapBackendCreditToFarmerAllocation(raw: any): FarmerAllocation {
+    const loanStatus: string = (raw.status ?? 'ACTIVE').toUpperCase();
+    const status: RecoveryStatus =
+      loanStatus === 'PAID'    ? 'settled'  :
+      loanStatus === 'OVERDUE' ? 'overdue'  : 'partial';
 
     return {
       id:          raw.id,
-      stockItemId: raw.inputStockId ?? '',    // backend: inputStockId → frontend: stockItemId
-      farmerId:    raw.farmerId     ?? '',
-      farmerName:  raw.farmerName   ?? '',
-      branchId:    raw.branchId     ?? '',
-      branchName:  raw.branchName   ?? '',
-      itemName:    raw.itemName     ?? '',
-      itemType:    raw.itemType     ?? '',    // not stored on allocation yet; blank until backend adds it
-      quantity:    raw.quantity     ?? 0,
-      unit:        raw.unit         ?? 'Units', // not stored on allocation yet
-      totalValue:  totalVal,
-      issueDate:   (raw.issueDate ?? '').slice(0, 10),  // backend: LocalDateTime → we want date only
-      outstanding,
+      stockItemId: raw.itemSku    ?? '',      // sku is closest reference to a stock item ID
+      farmerId:    raw.farmerId   ?? '',
+      farmerName:  raw.farmerName ?? '',
+      branchId:    raw.branchId   ? raw.branchId.toString() : '',
+      branchName:  '',                        // not returned by InputCreditDto
+      itemName:    raw.itemName   ?? '',
+      itemType:    raw.itemSku    ?? '',
+      quantity:    Number(raw.quantityIssued  ?? 0),
+      unit:        'Units',
+      totalValue:  Number(raw.totalAmountOwed ?? 0),
+      issueDate:   raw.createdAt ? raw.createdAt.toString().slice(0, 10) : '',
+      outstanding: Number(raw.remainingBalance ?? 0),
       status,
     };
   }
 
-  // Used when the backend adds a coop→branch disbursement flow (farmerId becomes optional).
-  // Not called yet — included so the mapping logic is ready when the backend supports it.
-  private mapBackendAllocationToBranchDisbursement(raw: any): BranchDisbursement {
-    return {
-      id:          raw.id,
-      stockItemId: raw.inputStockId ?? '',    // backend: inputStockId → frontend: stockItemId
-      branchId:    raw.branchId     ?? '',
-      branchName:  raw.branchName   ?? '',
-      itemName:    raw.itemName     ?? '',
-      itemType:    raw.itemType     ?? '',
-      quantity:    raw.quantity     ?? 0,
-      unit:        raw.unit         ?? 'Units',
-      totalValue:  raw.totalValue   ?? 0,
-      issueDate:   (raw.issueDate ?? '').slice(0, 10),
-      // farmerAcknowledged=true means the branch has confirmed receipt → 'received'
-      status:      raw.farmerAcknowledged ? 'received' : 'issued',
-    };
+  // Resolve a stock item's SKU from the in-memory cache so issueStockToFarmer()
+  // can send the sku field required by IssueCreditRequestDto.
+  private findSkuForItem(stockItemId: string): string {
+    const pool = this.stockSubject.value.length
+      ? this.stockSubject.value
+      : (MOCK_INITIAL_STOCK as StockItem[]);
+    return pool.find(item => item.id === stockItemId)?.sku ?? stockItemId;
   }
   // ─────────────────────────────────────────────────────────────────────────
 

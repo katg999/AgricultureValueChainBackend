@@ -7,8 +7,8 @@
 // Base URL:  /api/v1  (proxied to backend via API-Gateway)
 // ─────────────────────────────────────────────────────────────────────────────
 
-//const BASE = 'http://localhost:8083'; // API-Gateway call
-const BASE = 'http://192.168.100.20:8083';
+const BASE = 'http://localhost:8083'; // API-Gateway
+//const BASE = 'http://192.168.100.20:8083'; // use this when accessing from another machine on the network
 
 export const API_ENDPOINTS = {
   // ── Authentication ──────────────────────────────────────────────────────────
@@ -128,17 +128,26 @@ export const API_ENDPOINTS = {
 
   USERS: `${BASE}/api/v1/access/users`,
 
-  // ── Inventory Service — real backend paths ──────────────────────────────────
-  // The COOPERATIVE.INVENTORY and BRANCH.INVENTORY constants above are the
-  // PLANNED gateway routes (not yet wired in the gateway config).
-  // These paths below are where the InventoryService microservice actually listens.
-  // The frontend uses these directly until the gateway routing is set up.
+  // ── Inventory Service — /api/v1/inventory/** via API Gateway ────────────────
   INVENTORY_BACKEND: {
-    STOCK_ALL: `${BASE}/api/input-stock/all`, // GET ?cooperativeId=X or ?branchId=X
-    STOCK_CREATE: `${BASE}/api/input-stock`, // POST — add new stock
-    ALLOCATION_ISSUE: `${BASE}/api/allocations/issue`,
-    ALLOCATIONS_BY_BRANCH: (branchId: string) => `${BASE}/api/allocations/branch/${branchId}`,
-    ALLOCATIONS_BY_COOP: (coopId: string) => `${BASE}/api/allocations/cooperative/${coopId}`,
+    // Stock items (InventoryItemController)
+    ITEMS:              `${BASE}/api/v1/inventory/items`,
+    ITEM_BY_ID:         (id: string) => `${BASE}/api/v1/inventory/items/${id}`,
+    ITEM_STOCK:         (id: string) => `${BASE}/api/v1/inventory/items/${id}/stock`,
+    LOW_STOCK:          `${BASE}/api/v1/inventory/items/low-stock`,
+
+    // Input credit loans (InputCreditController)
+    CREDITS:            `${BASE}/api/v1/inventory/credits`,
+    CREDITS_ISSUE:      `${BASE}/api/v1/inventory/credits/issue`,
+    CREDIT_BY_ID:       (id: string) => `${BASE}/api/v1/inventory/credits/${id}`,
+    CREDITS_BY_FARMER:  (farmerId: string) => `${BASE}/api/v1/inventory/credits/farmer/${farmerId}`,
+    CREDIT_STATUS:      (loanId: string) => `${BASE}/api/v1/inventory/credits/${loanId}/status`,
+
+    // Repayments & deductions (DeductionController)
+    BATCH_DEDUCTION:    `${BASE}/api/v1/inventory/deductions/batch`,
+    FINANCE_BATCH:      `${BASE}/api/v1/inventory/deductions/finance-batch`,
+    MANUAL_REPAYMENT:   `${BASE}/api/v1/inventory/deductions/manual`,
+    FARMER_SUMMARY:     (farmerId: string) => `${BASE}/api/v1/inventory/deductions/farmer/${farmerId}/summary`,
   },
 
   // ── Access Control (Roles & Permissions) ───────────────────────────────────
