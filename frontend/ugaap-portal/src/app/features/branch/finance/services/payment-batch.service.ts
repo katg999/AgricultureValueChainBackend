@@ -36,19 +36,21 @@ export class PaymentBatchService {
   // Starts at 4 because the seed data already uses 1, 2, 3.
   private nextBatchId = 5; // seed data uses BATCH-001..BATCH-004
 
-  // Farmer seed sourced from core/mock/mock-farmer.ts — cast satisfies FarmerRecord[].
-  private readonly farmerSeed: FarmerRecord[] = MOCK_PAYMENT_FARMERS as FarmerRecord[];
-
-  // Placeholder batches so the list page has something to display immediately.
-  private readonly batchSeed: PaymentBatch[] = MOCK_PAYMENT_BATCHES;
-
   // ── Reactive stores ────────────────────────────────────────────────────────
   // BehaviorSubject holds the current value AND emits it to any new subscriber immediately.
   // Think of it as a live variable — when you call .next(newValue), everyone watching updates.
   // [...spread] creates a copy so the seed data stays untouched.
   // When USE_MOCK is false, start empty — the real API call fills these.
-  private readonly batches$ = new BehaviorSubject<PaymentBatch[]>(USE_MOCK ? [...this.batchSeed] : []);
-  private readonly farmers$ = new BehaviorSubject<FarmerRecord[]>(USE_MOCK ? [...this.farmerSeed] : []);
+  //
+  // Seeded directly from the imported mock constants (not via an intermediate
+  // `this.xSeed` field) — under this repo's Vitest/esbuild test builder,
+  // specific combinations of test entry-point bundles have been observed to
+  // execute class-field initializers out of declaration order, leaving a
+  // same-class field referenced via `this.` still `undefined` at the point a
+  // later field's initializer runs. Referencing the module-level constant
+  // directly removes that cross-field ordering dependency entirely.
+  private readonly batches$ = new BehaviorSubject<PaymentBatch[]>(USE_MOCK ? [...MOCK_PAYMENT_BATCHES] : []);
+  private readonly farmers$ = new BehaviorSubject<FarmerRecord[]>(USE_MOCK ? [...(MOCK_PAYMENT_FARMERS as FarmerRecord[])] : []);
 
   // HttpClient is Angular's tool for making HTTP requests (GET, POST, DELETE, etc.)
   constructor(
