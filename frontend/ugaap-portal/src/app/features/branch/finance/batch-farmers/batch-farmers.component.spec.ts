@@ -34,6 +34,7 @@ const mobileMoneyFarmer: FarmerRecord = {
   paymentMethod: 'Mobile Money',
   netPayable: 450000,
   hasBankDetails: true,
+  status: 'Active',
   bankAccount: '9876100001',
   bankCode: 'STBK',
 };

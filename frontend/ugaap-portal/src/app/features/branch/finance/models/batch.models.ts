@@ -4,6 +4,7 @@
 // is expected, it'll tell you before the app even runs.
 
 import { DeliverySession } from '../../collections/branch.delivery.model';
+import { FarmerStatus } from '../../../../core/models/farmer.model';
 
 // BatchStatus = the lifecycle of a batch. It starts as Draft, moves forward or gets rejected.
 // Using a union type (with |) means the value can ONLY be one of these exact strings — nothing else.
@@ -70,6 +71,7 @@ export interface FarmerRecord {
   payoutChannel?: PayoutChannel; // officer-confirmed channel for this disbursement, if picked
   netPayable: number;
   hasBankDetails: boolean;
+  status: FarmerStatus; // onboarding status — only 'Active' farmers are batch-eligible
   bankAccount: string;
   bankCode: string;
   email?: string;

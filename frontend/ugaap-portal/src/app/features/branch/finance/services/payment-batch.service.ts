@@ -143,8 +143,8 @@ export class PaymentBatchService {
   matchFarmers(criteria: BatchFilterCriteria): { eligible: FarmerRecord[]; excluded: FarmerRecord[] } {
     const filtered = this.applyFilter(this.farmersInOwnBranch(), criteria);
     return {
-      eligible: filtered.filter(f => f.hasBankDetails),      // can be paid
-      excluded: filtered.filter(f => !f.hasBankDetails),     // missing bank info
+      eligible: filtered.filter(f => this.isPayable(f)),
+      excluded: filtered.filter(f => !this.isPayable(f)),
     };
   }
 
@@ -184,7 +184,7 @@ export class PaymentBatchService {
   getFarmersForBatch(batchId: string): FarmerRecord[] {
     const batch = this.getBatchById(batchId);
     if (!batch) return [];
-    return this.applyFilter(this.farmersInOwnBranch(), batch).filter(f => f.hasBankDetails);
+    return this.applyFilter(this.farmersInOwnBranch(), batch).filter(f => this.isPayable(f));
   }
 
   // Exposes the farmer pool as an Observable, scoped to the logged-in branch —
@@ -244,7 +244,7 @@ export class PaymentBatchService {
     const batch = this.getBatchByIdAcrossBranches(batchId);
     if (!batch) return [];
     const inBranch = this.farmers$.value.filter(f => f.branchId === batch.branchId);
-    return this.applyFilter(inBranch, batch).filter(f => f.hasBankDetails);
+    return this.applyFilter(inBranch, batch).filter(f => this.isPayable(f));
   }
 
   // Buckets farmers by deliveryDate, then within each day by session (in the fixed
@@ -281,6 +281,14 @@ export class PaymentBatchService {
   }
 
   // ── Private helpers ────────────────────────────────────────────────────────
+
+  // A farmer is payable only once BOTH conditions hold: bank details are on
+  // file AND their onboarding was actually approved. Pending/Rejected/
+  // Suspended farmers must never be matched into a batch, even if their
+  // bank details are otherwise complete.
+  private isPayable(f: FarmerRecord): boolean {
+    return f.hasBankDetails && f.status === 'Active';
+  }
 
   private farmersInOwnBranch(): FarmerRecord[] {
     const branchId = this.session.branchId();
