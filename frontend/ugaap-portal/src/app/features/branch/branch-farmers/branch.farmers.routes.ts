@@ -45,7 +45,7 @@ export const BRANCH_FARMERS_ROUTES: Routes = [
   {
     path: 'profile/:id',
     canActivate: [permissionGuard],
-    data: { title: 'Farmer Profile', permissions: ['farmers.view'] },
+    data: { title: 'Farmer Profile', permissions: ['farmers.view', 'farmers.approve'] },
     loadComponent: () =>
       import('../../cooperative/farmers/farmer-approval/farmer-approval.component')
         .then(m => m.FarmerApprovalComponent)

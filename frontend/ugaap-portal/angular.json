@@ -78,7 +78,8 @@
           "options": {
             "include": [
               "src/app/features/branch/finance/**/*.spec.ts",
-              "src/app/shared/components/batch-flow-status/**/*.spec.ts"
+              "src/app/shared/components/batch-flow-status/**/*.spec.ts",
+              "src/app/features/cooperative/farmers/farmer-approval/**/*.spec.ts"
             ]
           }
         }
