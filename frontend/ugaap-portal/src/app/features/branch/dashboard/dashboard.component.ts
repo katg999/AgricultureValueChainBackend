@@ -69,6 +69,14 @@ export class BranchDashboardComponent implements OnInit {
     // Navigation handled by routerLink in the template
   }
 
+  // buildBatchStatCards() returns a fresh array each emission, so without an
+  // identity key Angular treats every re-emission as all-new items and
+  // destroys/recreates each app-stat-card — re-triggering its count-up
+  // animation. label is stable across emissions (only the value changes).
+  trackByLabel(_i: number, stat: StatCardData): string {
+    return stat.label;
+  }
+
   private buildBatchStatCards(counts: Record<ActiveBatchStatus, number>): StatCardData[] {
     return [
       {
