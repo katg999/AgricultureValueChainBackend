@@ -45,3 +45,37 @@ describe('PaymentBatchService — farmer onboarding-status eligibility', () => {
     expect(farmers.find(f => f.farmerId === 'F-011')).toBeUndefined();
   });
 });
+
+describe('PaymentBatchService — getBatchStatusCounts', () => {
+  let service: PaymentBatchService;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+    });
+    service = TestBed.inject(PaymentBatchService);
+  });
+
+  it('counts BR-MBL batches correctly by status (BATCH-001 Approved, BATCH-002 Draft)', () => {
+    let counts!: Record<string, number>;
+    service.getBatchStatusCounts().subscribe(c => (counts = c));
+
+    expect(counts['Draft']).toBe(1);
+    expect(counts['Approved']).toBe(1);
+  });
+
+  it('returns 0, not undefined, for statuses with no matching batches in this branch', () => {
+    let counts!: Record<string, number>;
+    service.getBatchStatusCounts().subscribe(c => (counts = c));
+
+    expect(counts['Pending Approval']).toBe(0);
+    expect(counts['Disbursed']).toBe(0);
+  });
+
+  it('never includes a Rejected key in the result', () => {
+    let counts!: Record<string, number>;
+    service.getBatchStatusCounts().subscribe(c => (counts = c));
+
+    expect(Object.keys(counts).sort()).toEqual(['Approved', 'Disbursed', 'Draft', 'Pending Approval']);
+  });
+});

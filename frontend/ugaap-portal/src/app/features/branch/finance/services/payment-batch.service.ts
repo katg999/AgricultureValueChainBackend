@@ -14,6 +14,7 @@ import {
   BatchFilterCriteria,
   PaymentBatch,
   BatchStatus,
+  ActiveBatchStatus,
   DayGroup,
   SessionGroup,
 } from '../models/batch.models';
@@ -77,6 +78,21 @@ export class PaymentBatchService {
     }
     const branchId = this.session.branchId();
     return this.batches$.pipe(map(rows => rows.filter(b => b.branchId === branchId)));
+  }
+
+  // Per-status batch counts for the logged-in branch, for dashboard tiles.
+  // Rejected is deliberately excluded — it's a terminal off-ramp, not part of
+  // the active pipeline. Every remaining key is always present, even at 0.
+  getBatchStatusCounts(): Observable<Record<ActiveBatchStatus, number>> {
+    return this.getBatches().pipe(
+      map(batches => {
+        const counts = { Draft: 0, 'Pending Approval': 0, Approved: 0, Disbursed: 0 } as Record<ActiveBatchStatus, number>;
+        for (const b of batches) {
+          if (b.status in counts) counts[b.status as ActiveBatchStatus]++;
+        }
+        return counts;
+      }),
+    );
   }
 
   // Changes a batch's status in memory and then tries to sync it to the API.
