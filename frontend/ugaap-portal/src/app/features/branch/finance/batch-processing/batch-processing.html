@@ -67,10 +67,6 @@
       emptyActionLabel="Create Batch"
       emptyRoute="/branch/finance/batch-create">
 
-      <ng-template appCell="dateRange" let-row>
-        <span class="mono date-range">{{ $any(row).openingDate }} — {{ $any(row).closingDate }}</span>
-      </ng-template>
-
       <ng-template appCell="totalAmount" let-row>
         {{ formatCurrency($any(row).totalAmount) }}
       </ng-template>

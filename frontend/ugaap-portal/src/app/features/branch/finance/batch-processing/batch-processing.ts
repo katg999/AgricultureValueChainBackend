@@ -37,7 +37,6 @@ export class BatchProcessingComponent implements OnInit, OnDestroy {
     { key: 'id',              header: 'Batch ID',     class: 'mono' },
     { key: 'batchName',       header: 'Batch Name' },
     { key: 'season',          header: 'Season' },
-    { key: 'dateRange',       header: 'Date Range',   class: 'mono' },
     { key: 'commodityFilter', header: 'Commodity' },
     { key: 'branch',          header: 'Branch' },
     { key: 'farmerCount',     header: 'Farmers',      align: 'right' },

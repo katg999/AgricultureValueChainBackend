@@ -1,5 +1,4 @@
 .disbursements-page {
-  padding: 24px;
   background: var(--surface-low);
   min-height: 100vh;
   font-family: var(--font-human);
@@ -51,10 +50,4 @@
 
 .mono {
   font-family: var(--font-technical, 'IBM Plex Mono', monospace);
-}
-
-@media (max-width: 768px) {
-  .disbursements-page {
-    padding: 16px;
-  }
 }
