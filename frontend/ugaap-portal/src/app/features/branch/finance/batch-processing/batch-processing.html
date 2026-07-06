@@ -95,7 +95,6 @@
               [style.bottom]="menuPosition.bottom !== undefined ? menuPosition.bottom + 'px' : 'auto'"
               [style.right.px]="menuPosition.right">
               <button type="button" (click)="viewFarmers($any(row))">View Farmers</button>
-              <button type="button" [disabled]="$any(row).status === 'Draft'" (click)="exportPaymentFile($any(row))">Export Payment File</button>
               <button type="button" [disabled]="$any(row).status !== 'Draft'" (click)="submitForApproval($any(row))">Submit for Approval</button>
               <button type="button" class="danger" [disabled]="$any(row).status !== 'Draft'" (click)="deleteBatch($any(row))">Delete</button>
             </div>
