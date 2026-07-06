@@ -197,6 +197,7 @@ const BRANCH_CONFIG: DashboardConfig = {
       permissionModule: 'finance',
       children: [
         { label: 'Batch Processing', icon: '', route: '/branch/finance/batch-processing', permissions: ['finance.view', 'finance.batches.create'] },
+        { label: 'Disbursements',    icon: '', route: '/branch/finance/disbursements',    permissions: ['finance.view'] },
         { label: 'Batch Farmers',    icon: '', route: '/branch/finance/farmers',          permissions: ['finance.view'] },
       ],
     },

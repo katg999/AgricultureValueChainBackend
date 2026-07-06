@@ -23,7 +23,6 @@
     // the finance feature, but physically outside it.
     "src/app/shared/components/batch-flow-status/**/*.spec.ts",
     "src/app/features/cooperative/farmers/farmer-approval/**/*.spec.ts",
-    "src/app/features/branch/branch-farmers/branch.farmer-list/**/*.spec.ts",
-    "src/app/features/branch/dashboard/**/*.spec.ts"
+    "src/app/features/branch/branch-farmers/branch.farmer-list/**/*.spec.ts"
   ]
 }

@@ -29,11 +29,6 @@
       [data]="stat"
       [delay]="i * 80">
     </app-stat-card>
-    <app-stat-card
-      *ngFor="let stat of batchStats; let i = index; trackBy: trackByLabel"
-      [data]="stat"
-      [delay]="(stats.length + i) * 80">
-    </app-stat-card>
   </div>
 
   <!-- ── Content Row ────────────────────────────────────────────────────── -->

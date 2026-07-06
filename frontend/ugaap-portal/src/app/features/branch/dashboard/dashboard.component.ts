@@ -2,10 +2,7 @@
 //
 // Branch staff home screen.
 // All data comes from BranchDashboardService — swap mock Observables
-// for real HTTP calls there without touching this component. Batch-status
-// tiles are the one exception: they're composed here directly from
-// PaymentBatchService, since BranchDashboardService (core/) must stay
-// finance-feature-agnostic.
+// for real HTTP calls there without touching this component.
 
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -15,8 +12,6 @@ import { StatCardComponent, StatCardData } from '../../../shared/components/stat
 import { ActivityItemComponent, ActivityData } from '../../../shared/components/activity-item/activity-item.component';
 import { SessionService } from '../../../core/services/session.service';
 import { BranchDashboardService, TodayDelivery } from '../../../core/services/branch-dashboard.service';
-import { PaymentBatchService } from '../finance/services/payment-batch.service';
-import { ActiveBatchStatus } from '../finance/models/batch.models';
 
 @Component({
   selector: 'app-branch-dashboard',
@@ -29,13 +24,11 @@ export class BranchDashboardComponent implements OnInit {
 
   private session            = inject(SessionService);
   private dashboard          = inject(BranchDashboardService);
-  private paymentBatchService = inject(PaymentBatchService);
 
   readonly user = this.session.currentUser;
   get userName(): string { return this.user()?.fullName ?? 'Branch Staff'; }
 
   stats:             StatCardData[]    = [];
-  batchStats:        StatCardData[]    = [];
   deliveries:        TodayDelivery[]   = [];
   recentActivities:  ActivityData[]    = [];
 
@@ -51,10 +44,6 @@ export class BranchDashboardComponent implements OnInit {
     this.dashboard.getRecentActivities().subscribe(activities => {
       this.recentActivities = activities as ActivityData[];
     });
-
-    this.paymentBatchService.getBatchStatusCounts().subscribe(counts => {
-      this.batchStats = this.buildBatchStatCards(counts);
-    });
   }
 
   statusClass(s: TodayDelivery['status']): string {
@@ -67,35 +56,5 @@ export class BranchDashboardComponent implements OnInit {
 
   recordDelivery(): void {
     // Navigation handled by routerLink in the template
-  }
-
-  // buildBatchStatCards() returns a fresh array each emission, so without an
-  // identity key Angular treats every re-emission as all-new items and
-  // destroys/recreates each app-stat-card — re-triggering its count-up
-  // animation. label is stable across emissions (only the value changes).
-  trackByLabel(_i: number, stat: StatCardData): string {
-    return stat.label;
-  }
-
-  private buildBatchStatCards(counts: Record<ActiveBatchStatus, number>): StatCardData[] {
-    return [
-      {
-        label: 'Draft Batches', value: counts['Draft'], icon: 'clipboard',
-        status: 'active', route: '/branch/finance/batch-processing',
-      },
-      {
-        label: 'Pending Approval', value: counts['Pending Approval'], icon: 'clock',
-        status: counts['Pending Approval'] > 0 ? 'warning' : 'active',
-        route: '/branch/finance/batch-processing',
-      },
-      {
-        label: 'Approved Batches', value: counts['Approved'], icon: 'check',
-        status: 'active', route: '/branch/finance/batch-processing',
-      },
-      {
-        label: 'Disbursed Batches', value: counts['Disbursed'], icon: 'wallet',
-        status: 'active', route: '/branch/finance/batch-processing',
-      },
-    ];
   }
 }

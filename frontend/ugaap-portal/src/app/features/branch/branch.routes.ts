@@ -71,6 +71,14 @@ export const BRANCH_ROUTES: Routes = [
         .then(m => m.BatchProcessingComponent),
   },
   {
+    path: 'finance/disbursements',
+    canActivate: [permissionGuard],
+    data: { title: 'Disbursements', subtitle: 'Approved batches ready for farmer payout', permissions: ['finance.view'] },
+    loadComponent: () =>
+      import('./finance/disbursements/disbursements')
+        .then(m => m.DisbursementsComponent),
+  },
+  {
     path: 'finance/farmers',
     canActivate: [permissionGuard],
     data: { title: 'Batch Farmers', permissions: ['finance.view'] },
