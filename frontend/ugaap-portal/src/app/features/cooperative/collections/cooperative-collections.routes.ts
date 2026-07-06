@@ -18,7 +18,7 @@ export const COOPERATIVES_COLLECTIONS_ROUTES: Routes = [
   {
     path: 'delivery-list/:id/edit',
     canActivate: [permissionGuard],
-    data: { permissions: ['collections.edit'] },
+    data: { permissions: ['collections.edit'], title: 'Edit Delivery' },
     loadComponent: () =>
       import('./delivery-list/delivery.cooperative.list.component')
         .then(m => m.CooperativeDeliveriesComponent),
@@ -26,7 +26,7 @@ export const COOPERATIVES_COLLECTIONS_ROUTES: Routes = [
   {
     path: 'farmers',
     canActivate: [permissionGuard],
-    data: { permissions: ['collections.view'] },
+    data: { permissions: ['collections.view'], title: 'Farmer Deliveries', subtitle: 'Deliveries grouped by farmer' },
     loadComponent: () =>
       import('../../../features/branch/collections/farmer-deliveries-list/farmer-deliveries-list.component')
         .then(m => m.FarmerDeliveriesListComponent),

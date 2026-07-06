@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { AuthUser } from '../models/auth.model';
 import { environment } from '../../../environments/environment';
 import { DEV_MOCK_USER } from '../mock/mock-auth';
+import { USE_MOCK } from '../mock/mock-config';
 
 const KEYS = {
   ACCESS_TOKEN: 'ugaap_access_token',
@@ -167,7 +168,8 @@ export class SessionService {
     try {
       const raw = localStorage.getItem(KEYS.USER);
       if (raw) return JSON.parse(raw) as AuthUser;
-      return environment.production ? null : DEV_MOCK_USER;
+      // Only fall back to the hardcoded dev user when mock mode is on.
+      return (USE_MOCK && !environment.production) ? DEV_MOCK_USER : null;
     } catch {
       return null;
     }

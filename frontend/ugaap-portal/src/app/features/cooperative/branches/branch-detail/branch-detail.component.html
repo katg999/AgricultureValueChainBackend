@@ -1,0 +1,248 @@
+<div class="page-container">
+
+  <!-- ── Page header ──────────────────────────────────────────────────────── -->
+  <div class="page-header">
+    <div class="header-left">
+      <button type="button" class="back-btn" (click)="goBack()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path d="M19 12H5M5 12l7 7M5 12l7-7" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Branches
+      </button>
+      <div class="title-block" *ngIf="branch">
+        <h1 class="page-title">{{ branch.name }}</h1>
+        <span class="location-tag">{{ branch.location }}</span>
+      </div>
+    </div>
+
+    <div class="header-actions" *ngIf="branch">
+      <span class="status-badge" [class]="statusClass(branch.status)">{{ branch.status }}</span>
+      <app-button variant="primary" size="md" (clicked)="openEdit()">Edit Branch</app-button>
+    </div>
+  </div>
+
+  <!-- ── Tab bar ──────────────────────────────────────────────────────────── -->
+  <div class="tab-bar">
+    <button class="tab-btn" [class.active]="activeTab === 'overview'"
+            (click)="setTab('overview')">Overview</button>
+    <button class="tab-btn" [class.active]="activeTab === 'farmers'"
+            (click)="setTab('farmers')">
+      Registered Farmers
+      <span class="tab-count" *ngIf="farmers.length">{{ farmers.length }}</span>
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'hubs'"
+            (click)="setTab('hubs')">
+      Collection Hubs
+      <span class="tab-count" *ngIf="hubs.length">{{ hubs.length }}</span>
+    </button>
+  </div>
+
+  <!-- ── Overview tab ─────────────────────────────────────────────────────── -->
+  <ng-container *ngIf="activeTab === 'overview' && branch">
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Registered Farmers</div>
+        <div class="stat-value">{{ branch.farmers | number }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Collection Centres</div>
+        <div class="stat-value">{{ branch.centres }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Status</div>
+        <div class="stat-value">
+          <span class="status-badge" [class]="statusClass(branch.status)">{{ branch.status }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <h2 class="card-title">Branch Details</h2>
+      <dl class="detail-list">
+        <div class="detail-row">
+          <dt>Branch Name</dt>
+          <dd>{{ branch.name }}</dd>
+        </div>
+        <div class="detail-row">
+          <dt>Location</dt>
+          <dd>{{ branch.location }}</dd>
+        </div>
+        <div class="detail-row">
+          <dt>Status</dt>
+          <dd><span class="status-badge" [class]="statusClass(branch.status)">{{ branch.status }}</span></dd>
+        </div>
+        <div class="detail-row">
+          <dt>Registered Farmers</dt>
+          <dd>{{ branch.farmers | number }}</dd>
+        </div>
+        <div class="detail-row">
+          <dt>Collection Centres</dt>
+          <dd>{{ branch.centres }}</dd>
+        </div>
+      </dl>
+    </div>
+
+  </ng-container>
+
+  <!-- ── Farmers tab ──────────────────────────────────────────────────────── -->
+  <ng-container *ngIf="activeTab === 'farmers'">
+
+    <div class="filters-bar">
+      <div class="search-input">
+        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+          <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <input type="text" placeholder="Search by name, ID or commodity…"
+               [(ngModel)]="farmerSearch" />
+      </div>
+    </div>
+
+    <div class="table-wrapper" *ngIf="filteredFarmers.length > 0; else noFarmers">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Farmer ID</th>
+            <th>Name</th>
+            <th>Primary Commodity</th>
+            <th>Balance (UGX)</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let f of filteredFarmers">
+            <td class="mono">{{ f.id }}</td>
+            <td class="fw-600">{{ f.name }}</td>
+            <td>{{ f.primaryCommodity }}</td>
+            <td class="mono">{{ f.balance }}</td>
+            <td>
+              <span class="status-pill" [class]="farmerStatusClass(f.status)">{{ f.status }}</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ng-template #noFarmers>
+      <div class="empty-state">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="#D1CFD7" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="9" cy="7" r="4" stroke="#D1CFD7" stroke-width="1.5"/>
+        </svg>
+        <p class="empty-title">No farmers registered</p>
+        <p class="empty-sub">Farmers assigned to this branch will appear here.</p>
+      </div>
+    </ng-template>
+
+  </ng-container>
+
+  <!-- ── Collection Hubs tab ──────────────────────────────────────────────── -->
+  <ng-container *ngIf="activeTab === 'hubs'">
+
+    <div class="filters-bar">
+      <div class="search-input">
+        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+          <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <input type="text" placeholder="Search by name, code or location…"
+               [(ngModel)]="hubSearch" />
+      </div>
+    </div>
+
+    <div class="table-wrapper" *ngIf="filteredHubs.length > 0; else noHubs">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Hub Code</th>
+            <th>Name</th>
+            <th>Location</th>
+            <th>Capacity</th>
+            <th>Load</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let hub of filteredHubs">
+            <td class="mono">{{ hub.hubCode }}</td>
+            <td class="fw-600">{{ hub.name }}</td>
+            <td>
+              <div>{{ hub.location }}</div>
+              <div class="sub-text">{{ hub.district }}</div>
+            </td>
+            <td class="mono">{{ hub.capacity }} MT</td>
+            <td>
+              <div class="load-bar-wrap">
+                <div class="load-bar-track">
+                  <div class="load-bar-fill"
+                       [class]="hubLoadClass(hub)"
+                       [style.width.%]="hubLoadPercent(hub)">
+                  </div>
+                </div>
+                <span class="load-label mono">{{ hub.currentLoad }} / {{ hub.capacity }} MT</span>
+              </div>
+            </td>
+            <td>
+              <span class="status-pill"
+                    [class.pill-active]="hub.status === 'active'"
+                    [class.pill-inactive]="hub.status === 'inactive'">
+                {{ hub.status | uppercase }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ng-template #noHubs>
+      <div class="empty-state">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+          <rect x="2" y="7" width="20" height="14" rx="2" stroke="#D1CFD7" stroke-width="1.5"/>
+          <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" stroke="#D1CFD7" stroke-width="1.5"/>
+        </svg>
+        <p class="empty-title">No collection hubs assigned</p>
+        <p class="empty-sub">Collection hubs linked to this branch will appear here.</p>
+      </div>
+    </ng-template>
+
+  </ng-container>
+
+</div>
+
+<!-- ── Edit Branch Modal ─────────────────────────────────────────────────── -->
+<app-modal
+  [isOpen]="showEditModal"
+  title="Edit Branch"
+  [subtitle]="branch?.name ?? ''"
+  size="md"
+  (closed)="showEditModal = false"
+  (isOpenChange)="showEditModal = $event">
+
+  <div body>
+    <div class="form-group">
+      <label class="form-label" for="edit-name">Branch Name</label>
+      <input id="edit-name" type="text" class="form-input"
+             [(ngModel)]="editForm.name" placeholder="Branch name" />
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="edit-location">Location</label>
+      <input id="edit-location" type="text" class="form-input"
+             [(ngModel)]="editForm.location" placeholder="District, Region" />
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="edit-status">Status</label>
+      <select id="edit-status" class="form-select" [(ngModel)]="editForm.status">
+        <option value="ACTIVE">Active</option>
+        <option value="PENDING">Pending</option>
+      </select>
+    </div>
+  </div>
+
+  <div footer>
+    <app-button variant="ghost" size="md" type="button" (clicked)="showEditModal = false">Cancel</app-button>
+    <app-button variant="primary" size="md" type="button" (clicked)="saveEdit()">Save Changes</app-button>
+  </div>
+
+</app-modal>

@@ -7,6 +7,7 @@ import { API_ENDPOINTS } from '../../core/constants/api-endpoints';
 import { SessionService } from '../../core/services/session.service';
 import { MOCK_BRANCHES, MOCK_INITIAL_STOCK, MOCK_INITIAL_BRANCH_DISBURSEMENTS, MOCK_INITIAL_STOCK_REQUESTS, MOCK_INITIAL_FARMER_ALLOCATIONS } from '../../core/mock/mock-branch';
 import { MOCK_FARMERS } from '../../core/mock/mock-farmer';
+import { USE_MOCK } from '../../core/mock/mock-config';
 
 export type InventoryScope = 'cooperative' | 'branch';
 export type StockStatus = 'healthy' | 'low' | 'out';
@@ -140,10 +141,11 @@ export interface StockRequestPayload {
 
 @Injectable({ providedIn: 'root' })
 export class InventoryService {
-  private readonly stockSubject = new BehaviorSubject<StockItem[]>(MOCK_INITIAL_STOCK as StockItem[]);
-  private readonly branchDisbursementSubject = new BehaviorSubject<BranchDisbursement[]>(MOCK_INITIAL_BRANCH_DISBURSEMENTS as BranchDisbursement[]);
-  private readonly farmerAllocationSubject = new BehaviorSubject<FarmerAllocation[]>(MOCK_INITIAL_FARMER_ALLOCATIONS as FarmerAllocation[]);
-  private readonly stockRequestSubject = new BehaviorSubject<StockRequest[]>(MOCK_INITIAL_STOCK_REQUESTS as StockRequest[]);
+  // When USE_MOCK is false, start empty — real API calls fill these stores.
+  private readonly stockSubject = new BehaviorSubject<StockItem[]>(USE_MOCK ? MOCK_INITIAL_STOCK as StockItem[] : []);
+  private readonly branchDisbursementSubject = new BehaviorSubject<BranchDisbursement[]>(USE_MOCK ? MOCK_INITIAL_BRANCH_DISBURSEMENTS as BranchDisbursement[] : []);
+  private readonly farmerAllocationSubject = new BehaviorSubject<FarmerAllocation[]>(USE_MOCK ? MOCK_INITIAL_FARMER_ALLOCATIONS as FarmerAllocation[] : []);
+  private readonly stockRequestSubject = new BehaviorSubject<StockRequest[]>(USE_MOCK ? MOCK_INITIAL_STOCK_REQUESTS as StockRequest[] : []);
 
   constructor(
     private readonly http: HttpClient,
@@ -161,6 +163,8 @@ export class InventoryService {
   }
 
   listStock(scope: InventoryScope): Observable<StockItem[]> {
+    if (USE_MOCK) return of(this.filterStockForScope(scope));
+
     // Tell the backend WHICH cooperative or branch we want stock for.
     // The backend field names (cooperativeId, branchId) are used as query params.
     const params: Record<string, string> = {};
@@ -180,6 +184,8 @@ export class InventoryService {
   }
 
   addStockItem(payload: AddStockItemPayload): Observable<StockItem> {
+    if (USE_MOCK) return of(this.addMockStockItem(payload));
+
     // The backend DTO uses different field names. We translate here before sending.
     // Note: category, unit, batchReference are not yet in the backend InputStockDTO —
     // they will be ignored by the backend until the DTO is extended.
@@ -212,6 +218,8 @@ export class InventoryService {
     // Until the backend adds a separate "branch disbursement" flow (or makes farmerId
     // optional for cooperative-level issues), this stays on mock data.
     // The catchError mock keeps the UI working in the meantime.
+    if (USE_MOCK) return of(this.addMockBranchDisbursement(payload));
+
     return this.http.post<BranchDisbursement>(
       `${API_ENDPOINTS.COOPERATIVE.INVENTORY}/branch-issues`, payload,
     ).pipe(
@@ -222,6 +230,8 @@ export class InventoryService {
   }
 
   issueStockToFarmer(payload: FarmerStockIssuePayload): Observable<FarmerAllocation> {
+    if (USE_MOCK) return of(this.addMockFarmerAllocation(payload));
+
     // The backend uses different field names and combines repaymentMethod + deductionRate
     // into a single "replacementTerms" string. We build that string here.
     const replacementTerms = `${payload.repaymentMethod} @ ${payload.deductionRate}%`;
@@ -250,6 +260,8 @@ export class InventoryService {
     // farmerId. The backend currently rejects null farmerId on issue, so no real
     // branch disbursement records exist in the database yet.
     // This will be connected once the backend supports the coop→branch flow.
+    if (USE_MOCK) return of([...this.branchDisbursementSubject.value]);
+
     return this.http.get<BranchDisbursement[]>(
       `${API_ENDPOINTS.COOPERATIVE.INVENTORY}/branch-issues`,
     ).pipe(
@@ -274,6 +286,8 @@ export class InventoryService {
   listFarmerAllocations(): Observable<FarmerAllocation[]> {
     const branchId = this.session.branchId();
     const snapshot = this.filterFarmerAllocationsForBranch();
+
+    if (USE_MOCK) return of(snapshot);
 
     // Without a branchId we can't ask the backend for the right records.
     // Return the cached snapshot immediately so the UI isn't empty.
@@ -316,6 +330,8 @@ export class InventoryService {
     // mock response so the UI keeps working.
     // Timeout raised to 8 s so it doesn't appear to succeed before the real backend
     // is wired up (a 2 s timeout that silently "succeeds" via mock is misleading).
+    if (USE_MOCK) return of(this.addMockStockRequest(payload));
+
     return this.http.post<StockRequest>(`${API_ENDPOINTS.BRANCH.INVENTORY}/stock-requests`, payload).pipe(
       timeout(8000),
       tap(req => this.stockRequestSubject.next([req, ...this.stockRequestSubject.value])),
@@ -332,6 +348,8 @@ export class InventoryService {
     // No backend endpoint yet — falls back to cached/mock data.
     // startWith shows data immediately; HTTP result will replace it once the
     // stock-requests endpoint is added to the backend.
+    if (USE_MOCK) return of(snapshot);
+
     return this.http.get<StockRequest[]>(`${API_ENDPOINTS.BRANCH.INVENTORY}/stock-requests`).pipe(
       timeout(8000),
       tap(rows => this.stockRequestSubject.next(rows)),
@@ -343,6 +361,11 @@ export class InventoryService {
   cancelStockRequest(id: string): Observable<void> {
     const removeFromStore = () =>
       this.stockRequestSubject.next(this.stockRequestSubject.value.filter(r => r.id !== id));
+
+    if (USE_MOCK) {
+      removeFromStore();
+      return of(void 0);
+    }
 
     return this.http.delete<void>(`${API_ENDPOINTS.BRANCH.INVENTORY}/stock-requests/${id}`).pipe(
       timeout(8000),

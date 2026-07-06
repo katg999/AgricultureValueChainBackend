@@ -93,6 +93,18 @@ export class RoleFormComponent implements OnInit {
 
   loadRoleData(): void {
     if (!this.roleId) return;
+
+    if (USE_MOCK) {
+      const role = this.rolesService.findById(this.roleId);
+      if (!role) {
+        this.errorMessage = 'Failed to load role data';
+        return;
+      }
+      this.roleForm.patchValue({ name: role.name, description: role.description });
+      this.selectedPermissions.set(this.rolesService.getPermissionsForRole(role));
+      return;
+    }
+
     this.http.get<any>(`${API_ENDPOINTS.ACCESS.ROLES}/${this.roleId}`).subscribe({
       next: (role) => {
         this.roleForm.patchValue({

@@ -1,8 +1,16 @@
 import { CommonModule }            from '@angular/common';
-import { Component }                from '@angular/core';
+import { Component, OnInit }        from '@angular/core';
 import { FormsModule }              from '@angular/forms';
 import { ActivatedRoute, Router }   from '@angular/router';
+import { from }                     from 'rxjs';
 import { permissionGuard } from '../../../../core/guards/permission.guard';
+import {
+  fetchGenderOptions,
+  fetchIrrigationTypes,
+  fetchRegions,
+  fetchLandOwnership,
+  fetchBankOptions,
+} from '../../../../core/mock/mock-reference-data';
 
 
 import { FormShellComponent } from '../../../../shared/components/form-wizard/form-wizard.component';
@@ -25,29 +33,14 @@ import { FormFeedbackService } from '../../../../core/services/form-feedback.ser
   templateUrl: './branch.farmer-register.component.html',
   styleUrl: './branch.farmer-register.component.css',
 })
-export class BranchFarmerRegisterComponent {
+export class BranchFarmerRegisterComponent implements OnInit {
 
-  // FIELD OPTIONS
-  readonly genderOptions = ['Female', 'Male', 'Other', 'Prefer not to say'];
-  readonly irrigationOptions = ['Rain-fed', 'Irrigation', 'Both'];
-  readonly locationOptions = [
-    'Central Region',
-    'Eastern Region',
-    'Northern Region',
-    'Western Region',
-  ];
-  readonly landOwnershipOptions = ['Owned', 'Leased', 'Communal', 'Family Land'];
-  readonly bankOptions = [
-    'Stanbic Bank',
-    'Centenary Bank',
-    'DFCU Bank',
-    'Bank of Africa',
-    'Equity Bank',
-    'Absa Bank',
-    'Post Bank',
-    'Finance Trust Bank',
-    'Other',
-  ];
+  // FIELD OPTIONS — populated from mock-reference-data on init
+  genderOptions:        string[] = [];
+  irrigationOptions:    string[] = [];
+  locationOptions:      string[] = [];
+  landOwnershipOptions: string[] = [];
+  bankOptions:          string[] = [];
   readonly farmImageUrl = 'assets/images/farm-aerial.jpg';
   readonly maxPhotoSizeBytes = 2 * 1024 * 1024;
 
@@ -134,6 +127,15 @@ export class BranchFarmerRegisterComponent {
   // ─────────────────────────────────────────
   // LIFECYCLE
   // ─────────────────────────────────────────
+  ngOnInit(): void {
+    // Load dropdown options from async mock fetch (swap for real HTTP calls when API is ready)
+    from(fetchGenderOptions()).subscribe(v    => this.genderOptions        = v);
+    from(fetchIrrigationTypes()).subscribe(v  => this.irrigationOptions    = v);
+    from(fetchRegions()).subscribe(v          => this.locationOptions       = v);
+    from(fetchLandOwnership()).subscribe(v    => this.landOwnershipOptions  = v);
+    from(fetchBankOptions()).subscribe(v      => this.bankOptions           = v);
+  }
+
   // this method is to be uncommented when the permission guard is implemented and we want to enforce that only branch staff can access this page.
   // ngOnInit(): void {
   //   // const role = this.session.userRole();

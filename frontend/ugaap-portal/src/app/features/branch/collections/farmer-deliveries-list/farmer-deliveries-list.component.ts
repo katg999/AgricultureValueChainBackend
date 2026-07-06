@@ -1,9 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, of } from 'rxjs';
-
-import { MOCK_FARMER_DELIVERY_RECORDS } from '../../../../core/mock/mock-branch';
+import { Observable } from 'rxjs';
 
 import { FarmerDelivery } from '../farmer.delivery.model';
 import { FarmerDeliveryService } from '../farmer.delivery.service';
@@ -66,25 +64,8 @@ export class FarmerDeliveriesListComponent implements OnInit {
     this.batchDelivery = batchId ? this.branchDeliveryService.getDeliveryById(batchId) ?? null : null;
 
     if (batchId) {
-      // Filter mock records for this specific batch and map to FarmerDelivery shape.
-      const batchFarmers: FarmerDelivery[] = MOCK_FARMER_DELIVERY_RECORDS
-        .filter(r => r.deliveryBatchId === batchId)
-        .map(r => ({
-          id:             r.id,
-          farmerId:       r.farmerId,
-          farmerName:     r.farmerName,
-          commodity:      r.commodity,
-          volume:         r.volume,
-          unitPrice:      r.unitPrice,
-          estimatedValue: r.estimatedValue,
-          grade:          r.grade,
-          status:         r.status as FarmerDelivery['status'],
-          season:         r.season as string,
-          session:        r.session as string | undefined,
-          createdAt:      new Date(r.deliveryDate),
-          updatedAt:      new Date(r.deliveryDate),
-        }));
-      this.farmerDeliveries$ = of(batchFarmers);
+      // Delegate batch filtering to the service — respects USE_MOCK.
+      this.farmerDeliveries$ = this.farmerDeliveryService.getByBatchId(batchId);
     } else {
       // No batch filter — show all farmer deliveries for this branch.
       this.farmerDeliveries$ = this.farmerDeliveryService.deliveries$;

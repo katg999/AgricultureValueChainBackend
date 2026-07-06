@@ -60,7 +60,39 @@ import type {
   FarmerRegistrationForm,
 } from '../../core/models/farmer.model';
 import { MOCK_FARMER_LIST, MOCK_COOPERATIVES, buildMockFarmerProfile } from './farmer.mock';
+import {
+  MOCK_INPUT_ALLOCATIONS,
+  MOCK_PRODUCE_DELIVERIES,
+  MOCK_BALANCE_LINES,
+  MOCK_REPAYMENTS,
+  MOCK_FARMER_NOTIFICATIONS,
+} from '../../core/mock/mock-farmer';
 import { USE_MOCK } from '../../core/mock/mock-config';
+
+// ── Farmer activity interfaces ────────────────────────────────────────────────
+// These describe the sub-tab tables on the farmer approval/profile page.
+// Kept here so components don't need a separate service just for tab data.
+
+export interface InputAllocation {
+  item: string; quantity: string; value: number;
+  issueDate: string; recoveryStatus: 'settled' | 'partial' | 'overdue';
+}
+export interface ProduceDelivery {
+  crop: string; weight: string; collectionCentre: string;
+  date: string; grade: string; value: number;
+}
+export interface BalanceLine {
+  description: string; principal: number; recovered: number;
+  outstanding: number; dueDate: string; status: 'settled' | 'partial' | 'overdue';
+}
+export interface Repayment {
+  date: string; method: string; amount: number;
+  reference: string; status: 'settled' | 'pending';
+}
+export interface FarmerNotification {
+  title: string; channel: string; date: string;
+  status: 'open' | 'closed'; readState: 'Unread' | 'Read';
+}
 
 @Injectable({
   providedIn: 'root',
@@ -195,6 +227,11 @@ export class FarmerService {
     branchId: string,
     reason?: string,
   ): Observable<FarmerProfile> {
+    if (USE_MOCK) {
+      const item = this.farmersSubject.value.find((f) => f.id === farmerId);
+      if (item) this._upsertFarmer({ ...item, branchId });
+      return of(buildMockFarmerProfile(farmerId));
+    }
     return this.http.post<FarmerProfile>(
       `${API_ENDPOINTS.COOPERATIVE.FARMER_BY_ID(farmerId)}/link`,
       {
@@ -357,6 +394,47 @@ export class FarmerService {
     return this.http.patch<FarmerProfile>(API_ENDPOINTS.COOPERATIVE.FARMER_REJECT(id), {}).pipe(
       tap((profile) => this._upsertFarmer(this._listItemFromProfile(profile))),
       catchError(() => of(this._updateMockStatus(id, 'Rejected'))),
+    );
+  }
+
+  // ── Farmer activity (profile sub-tabs) ───────────────────────────────────────
+  // Each method returns mock data immediately in USE_MOCK mode, or calls the API
+  // with a mock fallback so the page still works while the backend is being built.
+
+  private readonly _activityBase = '/api/v1/farmers';
+
+  getInputAllocations(farmerId: string): Observable<InputAllocation[]> {
+    if (USE_MOCK) return of(MOCK_INPUT_ALLOCATIONS as InputAllocation[]);
+    return this.http.get<InputAllocation[]>(`${this._activityBase}/${farmerId}/inputs`).pipe(
+      catchError(() => of(MOCK_INPUT_ALLOCATIONS as InputAllocation[])),
+    );
+  }
+
+  getProduceDeliveries(farmerId: string): Observable<ProduceDelivery[]> {
+    if (USE_MOCK) return of(MOCK_PRODUCE_DELIVERIES as ProduceDelivery[]);
+    return this.http.get<ProduceDelivery[]>(`${this._activityBase}/${farmerId}/deliveries`).pipe(
+      catchError(() => of(MOCK_PRODUCE_DELIVERIES as ProduceDelivery[])),
+    );
+  }
+
+  getBalanceLines(farmerId: string): Observable<BalanceLine[]> {
+    if (USE_MOCK) return of(MOCK_BALANCE_LINES as BalanceLine[]);
+    return this.http.get<BalanceLine[]>(`${this._activityBase}/${farmerId}/balance`).pipe(
+      catchError(() => of(MOCK_BALANCE_LINES as BalanceLine[])),
+    );
+  }
+
+  getRepayments(farmerId: string): Observable<Repayment[]> {
+    if (USE_MOCK) return of(MOCK_REPAYMENTS as Repayment[]);
+    return this.http.get<Repayment[]>(`${this._activityBase}/${farmerId}/repayments`).pipe(
+      catchError(() => of(MOCK_REPAYMENTS as Repayment[])),
+    );
+  }
+
+  getNotifications(farmerId: string): Observable<FarmerNotification[]> {
+    if (USE_MOCK) return of(MOCK_FARMER_NOTIFICATIONS as FarmerNotification[]);
+    return this.http.get<FarmerNotification[]>(`${this._activityBase}/${farmerId}/notifications`).pipe(
+      catchError(() => of(MOCK_FARMER_NOTIFICATIONS as FarmerNotification[])),
     );
   }
 

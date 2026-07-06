@@ -19,6 +19,8 @@ import { InputComponent } from '../../../../shared/components/input/input.compon
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { PermissionTabsComponent } from '../../../../shared/components/permission-tabs/permission-tabs.component';
 import { ToastService } from '../../../../core/services/toast.service';
+import { RolesService } from '../../../../core/services/roles.service';
+import { USE_MOCK } from '../../../../core/mock/mock-config';
 
 export interface GeneratedCredentials {
   roleName: string;
@@ -57,6 +59,7 @@ export class RoleFormComponent implements OnInit {
   credentialsCopied = false;
 
   private toast = inject(ToastService);
+  private rolesService = inject(RolesService);
 
   constructor(
     private fb: FormBuilder,
@@ -99,6 +102,18 @@ export class RoleFormComponent implements OnInit {
 
   loadRoleData(): void {
     if (!this.roleId) return;
+
+    if (USE_MOCK) {
+      const role = this.rolesService.findById(this.roleId);
+      if (!role) {
+        this.errorMessage = 'Failed to load role data';
+        return;
+      }
+      this.roleForm.patchValue({ name: role.name, description: role.description });
+      this.selectedPermissions.set(this.rolesService.getPermissionsForRole(role));
+      return;
+    }
+
     this.http.get<any>(API_ENDPOINTS.ACCESS.ROLE_BY_ID(this.roleId)).subscribe({
       next: (role) => {
         this.roleForm.patchValue({
@@ -203,6 +218,16 @@ export class RoleFormComponent implements OnInit {
   private updateRole(): void {
     const { name, description } = this.roleForm.value;
 
+    if (USE_MOCK) {
+      this.rolesService.updateRoleDetails(this.roleId!, {
+        name, description, permissionsCount: this.selectedPermissionsCount,
+      });
+      this.isLoading = false;
+      this.toast.success('Role updated', `"${name}" has been updated successfully.`);
+      this.router.navigate(['/cooperative/roles']);
+      return;
+    }
+
     this.http.put<any>(API_ENDPOINTS.ACCESS.ROLE_BY_ID(this.roleId!), { name, description }).subscribe({
       next: () => {
         this.http.post<any>(API_ENDPOINTS.ACCESS.ROLE_PERMISSIONS(this.roleId!), {
@@ -228,6 +253,12 @@ export class RoleFormComponent implements OnInit {
         this.toast.error('Update failed', msg);
       },
     });
+  }
+
+  // ── Mock helpers ──────────────────────────────────────────────────────────
+
+  private generateMockPassword(): string {
+    return `Temp${Math.floor(1000 + Math.random() * 9000)}!`;
   }
 
   // ── Permission mapping (frontend ids → backend {module, action} pairs) ────
