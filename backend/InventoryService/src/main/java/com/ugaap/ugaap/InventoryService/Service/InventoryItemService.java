@@ -103,6 +103,21 @@ public class InventoryItemService {
         return toDto(item);
     }
 
+    public InventoryItem decreaseQuantityForIssue(InventoryItem item, BigDecimal quantity, UUID userId) {
+        BigDecimal newQty = item.getQuantityAvailable().subtract(quantity);
+        if (newQty.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException(
+                    "Insufficient stock: only " + item.getQuantityAvailable() + " available");
+        }
+
+        item.setQuantityAvailable(newQty);
+        item = itemRepository.save(item);
+
+        audit("InventoryItem", item.getId().toString(), "STOCK_ISSUE", userId,
+                String.format("quantity=-%s", quantity));
+        return item;
+    }
+
     @Transactional(readOnly = true)
     public Page<InventoryItemDto> getLowStockItems(UUID branchId, Pageable pageable) {
         Specification<InventoryItem> spec = (root, query, cb) -> {

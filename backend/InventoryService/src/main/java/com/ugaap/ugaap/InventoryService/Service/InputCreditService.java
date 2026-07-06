@@ -39,6 +39,8 @@ public class InputCreditService {
 
         BigDecimal totalOwed = item.getSellingPrice().multiply(dto.getQuantity());
 
+        inventoryItemService.decreaseQuantityForIssue(item, dto.getQuantity(), userId);
+
         InputCreditLoan loan = InputCreditLoan.builder()
                 .farmerId(dto.getFarmerId())
                 .farmerName(dto.getFarmerName())

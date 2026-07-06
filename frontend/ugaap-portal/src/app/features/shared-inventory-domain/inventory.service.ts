@@ -242,7 +242,11 @@ export class InventoryService {
       `${API_ENDPOINTS.COOPERATIVE.INVENTORY}/branch-issues`, payload,
     ).pipe(
       timeout(8000),
-      tap(d => this.branchDisbursementSubject.next([d, ...this.branchDisbursementSubject.value])),
+      tap(d => {
+        this.branchDisbursementSubject.next([d, ...this.branchDisbursementSubject.value]);
+        const branch = MOCK_BRANCHES.find(row => row.id === payload.branchId);
+        this.decreaseStock(payload.stockItemId, payload.quantity, branch);
+      }),
       catchError(() => of(this.addMockBranchDisbursement(payload))),
     );
   }
@@ -269,7 +273,10 @@ export class InventoryService {
     return this.http.post<any>(API_ENDPOINTS.INVENTORY_BACKEND.CREDITS_ISSUE, body).pipe(
       timeout(8000),
       map(raw => this.mapBackendCreditToFarmerAllocation(raw)),
-      tap(alloc => this.farmerAllocationSubject.next([alloc, ...this.farmerAllocationSubject.value])),
+      tap(alloc => {
+        this.farmerAllocationSubject.next([alloc, ...this.farmerAllocationSubject.value]);
+        this.decreaseStock(payload.stockItemId, payload.quantity);
+      }),
       catchError(() => of(this.addMockFarmerAllocation(payload))),
     );
   }
