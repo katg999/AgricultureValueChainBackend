@@ -34,8 +34,7 @@ const BRANCH_NAMES: Record<string, string> = {
 @Injectable({ providedIn: 'root' })
 export class PaymentBatchService {
   // Tracks the next ID to use when creating a batch locally (while no real API exists).
-  // Starts at 4 because the seed data already uses 1, 2, 3.
-  private nextBatchId = 5; // seed data uses BATCH-001..BATCH-004
+  private nextBatchId = 7; // seed data uses BATCH-001..BATCH-006
 
   // ── Reactive stores ────────────────────────────────────────────────────────
   // BehaviorSubject holds the current value AND emits it to any new subscriber immediately.

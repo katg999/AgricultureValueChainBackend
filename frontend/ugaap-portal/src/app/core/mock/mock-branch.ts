@@ -1,14 +1,14 @@
-// ── Branch-level mock data ────────────────────────────────────────────────────
+// ── Branch-level mock data 
 //
 // Covers: cooperative branch network, stock inventory, branch disbursements,
 // stock requests, farmer input allocations, delivery batches, payment batches.
-// ─────────────────────────────────────────────────────────────────────────────
+// 
 
 import { BranchDelivery } from '../../features/branch/collections/branch.delivery.model';
 import { PaymentBatch } from '../../features/branch/finance/models/batch.models';
 import { FarmerDeliveryRecord } from '../models/farmer-delivery-record.model';
 
-// ── Slim branch options (used by dropdowns across the app) ───────────────────
+//  Slim branch options (used by dropdowns across the app) 
 
 export const MOCK_BRANCHES = [
   { id: 'BR-KLA', name: 'Kampala Central' },
@@ -21,7 +21,7 @@ export const MOCK_BRANCHES = [
   { id: 'BR-MAS', name: 'Masindi Depot'   },
 ];
 
-// ── Cooperative branch network (used by branch-dash and branch-detail) ───────
+//  Cooperative branch network (used by branch-dash and branch-detail) 
 
 export interface CooperativeBranch {
   id: number;
@@ -63,7 +63,7 @@ export const MOCK_AGENTS_TREND_UP          = true;
 export const MOCK_FARMERS_TREND            = '+8%';
 export const MOCK_FARMERS_TREND_UP         = true;
 
-// ── Branch dashboard (branch staff home screen) ───────────────────────────────
+// Branch dashboard (branch staff home screen) 
 
 export interface TodayDelivery {
   ref:    string;
@@ -289,6 +289,34 @@ export const MOCK_PAYMENT_BATCHES: PaymentBatch[] = [
     totalAmount: 33_750_000,
     farmerCount: 7,
     createdAt: new Date('2025-07-01'),
+  },
+  {
+    id: 'BATCH-005',
+    batchName: 'July 2024 Coffee Run',
+    season: 'Season A 2024',
+    openingDate: '2024-07-01',
+    closingDate: '2024-07-31',
+    commodityFilter: 'Coffee',
+    branch: 'Mbale West',
+    branchId: 'BR-MBL',
+    status: 'Disbursed',
+    totalAmount: 3_260_000,
+    farmerCount: 9,
+    createdAt: new Date('2024-08-02'),
+  },
+  {
+    id: 'BATCH-006',
+    batchName: 'June 2024 Maize Run',
+    season: 'Season A 2024',
+    openingDate: '2024-06-01',
+    closingDate: '2024-06-30',
+    commodityFilter: 'Maize',
+    branch: 'Mbale West',
+    branchId: 'BR-MBL',
+    status: 'Rejected',
+    totalAmount: 1_150_000,
+    farmerCount: 4,
+    createdAt: new Date('2024-07-03'),
   },
 ];
 

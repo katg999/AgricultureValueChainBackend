@@ -196,9 +196,10 @@ const BRANCH_CONFIG: DashboardConfig = {
       route: '/branch/finance/batch-processing',
       permissionModule: 'finance',
       children: [
+        { label: 'Batch Farmers',    icon: '', route: '/branch/finance/farmers',          permissions: ['finance.view'] },
         { label: 'Batch Processing', icon: '', route: '/branch/finance/batch-processing', permissions: ['finance.view', 'finance.batches.create'] },
         { label: 'Disbursements',    icon: '', route: '/branch/finance/disbursements',    permissions: ['finance.view'] },
-        { label: 'Batch Farmers',    icon: '', route: '/branch/finance/farmers',          permissions: ['finance.view'] },
+        
       ],
     },
 

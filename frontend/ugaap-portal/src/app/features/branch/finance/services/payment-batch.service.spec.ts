@@ -56,12 +56,13 @@ describe('PaymentBatchService — getBatchStatusCounts', () => {
     service = TestBed.inject(PaymentBatchService);
   });
 
-  it('counts BR-MBL batches correctly by status (BATCH-001 Approved, BATCH-002 Draft)', () => {
+  it('counts BR-MBL batches correctly by status (BATCH-001 Approved, BATCH-002 Draft, BATCH-005 Disbursed)', () => {
     let counts!: Record<string, number>;
     service.getBatchStatusCounts().subscribe(c => (counts = c));
 
     expect(counts['Draft']).toBe(1);
     expect(counts['Approved']).toBe(1);
+    expect(counts['Disbursed']).toBe(1);
   });
 
   it('returns 0, not undefined, for statuses with no matching batches in this branch', () => {
@@ -69,7 +70,6 @@ describe('PaymentBatchService — getBatchStatusCounts', () => {
     service.getBatchStatusCounts().subscribe(c => (counts = c));
 
     expect(counts['Pending Approval']).toBe(0);
-    expect(counts['Disbursed']).toBe(0);
   });
 
   it('never includes a Rejected key in the result', () => {
