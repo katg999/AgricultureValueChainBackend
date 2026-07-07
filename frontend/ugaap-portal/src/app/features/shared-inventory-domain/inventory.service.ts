@@ -226,28 +226,35 @@ export class InventoryService {
     return this.http.post<any>(API_ENDPOINTS.INVENTORY_BACKEND.ITEMS, body).pipe(
       timeout(8000),
       map(raw => this.mapBackendStockToStockItem(raw)),
-      tap(item => this.stockSubject.next([item, ...this.stockSubject.value])),
+      // Backend merges into an existing item (same id) when the name already
+      // exists in scope — replace that row instead of prepending a duplicate.
+      tap(item => this.upsertStockItem(item)),
       catchError(() => of(this.addMockStockItem(payload))),
     );
   }
 
+  // Adds (or subtracts, if negative) `delta` units to an existing stock item.
+  adjustStock(itemId: string, delta: number, reason: string): Observable<StockItem> {
+    return this.http.patch<any>(API_ENDPOINTS.INVENTORY_BACKEND.ITEM_STOCK(itemId), { delta, reason }).pipe(
+      timeout(8000),
+      map(raw => this.mapBackendStockToStockItem(raw)),
+      tap(item => this.upsertStockItem(item)),
+    );
+  }
+
   issueStockToBranch(payload: BranchStockIssuePayload): Observable<BranchDisbursement> {
-    // ── Why this uses mock data only ─────────────────────────────────────────
-    // The backend's POST /api/allocations/issue requires a farmerId (it throws if null).
-    // A coop→branch disbursement has no farmer — it goes directly to a branch.
-    // Until the backend adds a separate "branch disbursement" flow (or makes farmerId
-    // optional for cooperative-level issues), this stays on mock data.
-    // The catchError mock keeps the UI working in the meantime.
+    // POST /branch-issues: decrements the cooperative-level item and credits a
+    // branch-scoped copy of it server-side (BranchStockIssueController).
+    // No catchError-to-mock fallback here — a failed issue (e.g. insufficient
+    // stock) must surface as a real error, not a silently "successful" mock.
     return this.http.post<BranchDisbursement>(
       `${API_ENDPOINTS.COOPERATIVE.INVENTORY}/branch-issues`, payload,
     ).pipe(
       timeout(8000),
       tap(d => {
         this.branchDisbursementSubject.next([d, ...this.branchDisbursementSubject.value]);
-        const branch = MOCK_BRANCHES.find(row => row.id === payload.branchId);
-        this.decreaseStock(payload.stockItemId, payload.quantity, branch);
+        this.decreaseStock(payload.stockItemId, payload.quantity);
       }),
-      catchError(() => of(this.addMockBranchDisbursement(payload))),
     );
   }
 
@@ -270,6 +277,8 @@ export class InventoryService {
       body['customDeductionAmount'] = payload.deductionRate;
     }
 
+    // No catchError-to-mock fallback — a failed issue (e.g. insufficient stock)
+    // must surface as a real error, not a silently "successful" mock.
     return this.http.post<any>(API_ENDPOINTS.INVENTORY_BACKEND.CREDITS_ISSUE, body).pipe(
       timeout(8000),
       map(raw => this.mapBackendCreditToFarmerAllocation(raw)),
@@ -277,16 +286,12 @@ export class InventoryService {
         this.farmerAllocationSubject.next([alloc, ...this.farmerAllocationSubject.value]);
         this.decreaseStock(payload.stockItemId, payload.quantity);
       }),
-      catchError(() => of(this.addMockFarmerAllocation(payload))),
     );
   }
 
   listBranchDisbursements(): Observable<BranchDisbursement[]> {
-    // ── Why this uses mock data only ─────────────────────────────────────────
-    // Branch disbursements (cooperative → branch) would be allocations without a
-    // farmerId. The backend currently rejects null farmerId on issue, so no real
-    // branch disbursement records exist in the database yet.
-    // This will be connected once the backend supports the coop→branch flow.
+    // Falls back to the last cached snapshot on a transient network failure —
+    // this is a read, so staleness is an acceptable tradeoff (unlike issueStockToBranch).
     return this.http.get<BranchDisbursement[]>(
       `${API_ENDPOINTS.COOPERATIVE.INVENTORY}/branch-issues`,
     ).pipe(
@@ -421,72 +426,28 @@ export class InventoryService {
     return item;
   }
 
-  private addMockBranchDisbursement(payload: BranchStockIssuePayload): BranchDisbursement {
-    const stock = this.findStock(payload.stockItemId);
-    const branch = MOCK_BRANCHES.find(row => row.id === payload.branchId) ?? MOCK_BRANCHES[0];
-    const disbursement: BranchDisbursement = {
-      id: `BD-${Date.now()}`,
-      stockItemId: stock.id,
-      branchId: branch.id,
-      branchName: branch.name,
-      itemName: stock.name,
-      itemType: stock.category,
-      quantity: payload.quantity,
-      unit: stock.unit,
-      totalValue: payload.quantity * stock.unitPrice,
-      issueDate: new Date().toISOString().slice(0, 10),
-      status: 'issued',
-    };
-
-    this.decreaseStock(stock.id, payload.quantity, branch);
-    this.branchDisbursementSubject.next([disbursement, ...this.branchDisbursementSubject.value]);
-    return disbursement;
-  }
-
-  private addMockFarmerAllocation(payload: FarmerStockIssuePayload): FarmerAllocation {
-    const stock = this.findStock(payload.stockItemId);
-    const farmer = MOCK_FARMERS.find(row => row.id === payload.farmerId) ?? MOCK_FARMERS[0];
-    const allocation: FarmerAllocation = {
-      id: `AL-${Date.now()}`,
-      stockItemId: stock.id,
-      farmerId: farmer.id,
-      farmerName: farmer.name,
-      branchId: farmer.branchId,
-      branchName: farmer.branchName,
-      itemName: stock.name,
-      itemType: stock.category,
-      quantity: payload.quantity,
-      unit: stock.unit,
-      totalValue: payload.quantity * stock.unitPrice,
-      issueDate: new Date().toISOString().slice(0, 10),
-      outstanding: payload.quantity * stock.unitPrice,
-      status: 'partial',
-    };
-
-    this.decreaseStock(stock.id, payload.quantity);
-    this.farmerAllocationSubject.next([allocation, ...this.farmerAllocationSubject.value]);
-    return allocation;
-  }
-
   private findStock(stockItemId: string): StockItem {
     const pool = this.stockSubject.value.length ? this.stockSubject.value : (MOCK_INITIAL_STOCK as StockItem[]);
     return pool.find(item => item.id === stockItemId) ?? pool[0];
   }
 
-  private decreaseStock(stockItemId: string, quantity: number, branch?: BranchOption): void {
+  // Replaces the row if this id is already cached (e.g. a restock merged into an
+  // existing item), otherwise prepends it as a new row.
+  private upsertStockItem(item: StockItem): void {
+    const items = this.stockSubject.value;
+    const exists = items.some(i => i.id === item.id);
+    this.stockSubject.next(exists ? items.map(i => i.id === item.id ? item : i) : [item, ...items]);
+  }
+
+  private decreaseStock(stockItemId: string, quantity: number): void {
     const items = this.stockSubject.value.map(item => {
       if (item.id !== stockItemId) return item;
 
       const nextQuantity = Math.max(item.quantity - quantity, 0);
-      const branchIds = branch && !item.branchIds.includes(branch.id) ? [...item.branchIds, branch.id] : item.branchIds;
-      const branchNames = branch && !item.branchNames.includes(branch.name) ? [...item.branchNames, branch.name] : item.branchNames;
-
       return {
         ...item,
         quantity: nextQuantity,
         stockStatus: this.toStockStatus(nextQuantity, item.minThreshold),
-        branchIds,
-        branchNames,
         updatedAt: new Date().toISOString().slice(0, 10),
       };
     });
