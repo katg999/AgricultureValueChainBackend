@@ -78,19 +78,6 @@
         </div>
 
         <div class="field">
-          <label class="field-label" for="season">SEASON</label>
-          <select
-            id="season"
-            class="field-select"
-            [(ngModel)]="form.season">
-            <option value="">Select season</option>
-            <option *ngFor="let season of seasons" [value]="season">
-              {{ season }}
-            </option>
-          </select>
-        </div>
-
-        <div class="field">
           <label class="field-label" for="quantity">QUANTITY</label>
           <div class="field-qty-wrapper">
             <app-input

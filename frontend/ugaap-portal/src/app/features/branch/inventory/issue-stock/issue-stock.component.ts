@@ -33,7 +33,6 @@ interface IssueStockForm {
   stockItemId: string;
   branchId: string;
   quantity: string;
-  season: string;
   deductionRate: string;
 }
 
@@ -77,13 +76,10 @@ export class IssueStockComponent implements OnInit {
   stockItems: StockItem[] = [];
   inputTypes: InputType[] = [];
 
-  readonly seasons = ['Wet Season', 'Dry Season'];
-
   form: IssueStockForm = {
     stockItemId: '',
     branchId: '',
     quantity: '',
-    season: '',
     deductionRate: '',
   };
 
@@ -239,7 +235,6 @@ export class IssueStockComponent implements OnInit {
     return Boolean(
       hasDestination &&
         this.form.stockItemId &&
-        this.form.season &&
         Number(this.form.quantity) > 0 &&
         hasRepaymentTerms,
     );
@@ -257,14 +252,11 @@ export class IssueStockComponent implements OnInit {
         stockItemId: this.form.stockItemId,
         branchId: this.form.branchId,
         quantity,
-        season: this.form.season,
       }).subscribe({
         next: () => {
-          this.recentIssuances = this.inventoryService.getRecentBranchDisbursements()
-            .map(r => this.disbursementToIssuance(r));
-          this.resetForm();
           this.toastService.success('Stock issued to branch');
           this.submitting = false;
+          this.router.navigate([this.isCooperativeScope ? '/cooperative/inventory/stock-disbursed' : '/branch/inventory/stock-disbursed']);
         },
         error: (err: HttpErrorResponse) => {
           this.toastService.error('Failed to issue stock', this.extractErrorMessage(err));
@@ -283,16 +275,13 @@ export class IssueStockComponent implements OnInit {
       stockItemId: this.form.stockItemId,
       farmerId: this.selectedFarmer.id,
       quantity,
-      season: this.form.season,
       repaymentMethod: 'post-harvest-deduction' as RepaymentMethod,
       deductionRate: Number(this.form.deductionRate),
     }).subscribe({
       next: () => {
-        this.recentIssuances = this.inventoryService.getRecentFarmerAllocations()
-          .map(r => this.allocationToIssuance(r));
-        this.resetForm();
         this.toastService.success('Input issued to farmer');
         this.submitting = false;
+        this.router.navigate(['/branch/inventory/stock-disbursed']);
       },
       error: (err: HttpErrorResponse) => {
         this.toastService.error('Failed to issue input', this.extractErrorMessage(err));
@@ -415,23 +404,6 @@ export class IssueStockComponent implements OnInit {
       value: row.totalValue,
       issuedAt: row.issueDate,
       destination: row.farmerName,
-    };
-  }
-
-  // Keeps item + season selected — issuing to several farmers/branches in a
-  // row is the common case, and only the recipient + quantity should change
-  // between submits. Clearing everything forced a full reselect each time,
-  // which just looked like the button was stuck disabled.
-  private resetForm(): void {
-    this.farmerSearch = '';
-    this.selectedFarmer = null;
-    this.searchResults = [];
-    this.calculatedValue = 0;
-    this.form = {
-      ...this.form,
-      branchId: '',
-      quantity: '',
-      deductionRate: '',
     };
   }
 

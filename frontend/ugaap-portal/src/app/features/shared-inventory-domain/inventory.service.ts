@@ -64,7 +64,6 @@ export interface BranchStockIssuePayload {
   stockItemId: string;
   branchId: string;
   quantity: number;
-  season: string;
 }
 
 export type RepaymentMethod = 'post-harvest-deduction' | 'installments' | 'lump-sum';
@@ -73,7 +72,6 @@ export interface FarmerStockIssuePayload {
   stockItemId: string;
   farmerId: string;
   quantity: number;
-  season: string;
   repaymentMethod: RepaymentMethod;
   deductionRate: number;
 }
