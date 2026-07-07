@@ -129,6 +129,12 @@ export const API_ENDPOINTS = {
     BATCHES: `${BASE}/api/v1/settlements/batch-recover`,
     BATCH_BY_ID: (id: string) => `${BASE}/api/v1/settlements/${id}`,
     PAYMENT_FARMERS: `${BASE}/api/v1/settlements/farmers`,
+
+    // Farmer disbursement transactions (SettlementController)
+    PAYOUTS: `${BASE}/api/v1/settlements/payouts`,
+    PAYOUT_BY_ID: (id: string) => `${BASE}/api/v1/settlements/payouts/${id}`,
+    PAYOUTS_PENDING: (batchId: string) =>
+      `${BASE}/api/v1/settlements/payouts/pending?batchId=${batchId}`,
   },
 
   USERS: `${BASE}/api/v1/access/users`,

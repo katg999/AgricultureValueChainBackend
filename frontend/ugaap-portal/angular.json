@@ -74,7 +74,13 @@
           "defaultConfiguration": "development"
         },
         "test": {
-          "builder": "@angular/build:unit-test"
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "include": [
+              "src/app/features/branch/finance/**/*.spec.ts",
+              "src/app/shared/components/batch-flow-status/**/*.spec.ts"
+            ]
+          }
         }
       }
     }
