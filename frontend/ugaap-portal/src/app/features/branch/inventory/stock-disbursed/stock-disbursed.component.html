@@ -1,38 +1,58 @@
 <div class="stock-disbursed-page">
 
-  <div class="stats-grid">
+  <div class="stats-grid" *ngIf="isCooperativeScope; else farmerStats">
     <app-stat-card
-      [data]="{ label: 'TOTAL ALLOCATIONS', value: (summary.totalAllocations | number) ?? '', icon: 'clipboard', clickable: true }">
+      [data]="{ label: 'TOTAL ISSUES', value: (summary.totalAllocations | number) ?? '', icon: 'clipboard', clickable: true }">
     </app-stat-card>
 
     <app-stat-card
-      [data]="{ label: 'FULLY RECOVERED', value: (summary.fullyRecovered | number) ?? '', icon: 'check', clickable: true }">
+      [data]="{ label: 'PENDING RECEIPT', value: (summary.issued | number) ?? '', icon: 'alert', thresholds: { warning: 1, direction: 'above' }, clickable: true }">
+    </app-stat-card>
+
+    <app-stat-card
+      [data]="{ label: 'RECEIVED', value: (summary.received | number) ?? '', icon: 'check', clickable: true }">
     </app-stat-card>
 
     <app-stat-card
       [data]="{ label: 'TOTAL VALUE', value: 'UGX ' + ((summary.totalValue | number:'1.0-0') ?? '0'), icon: 'wallet', clickable: true }">
     </app-stat-card>
-
-    <!-- Color reacts to value; tapping focuses on the partial-recovery rows in the table -->
-    <app-stat-card
-      [data]="{
-        label: 'PARTIALLY RECOVERED', value: (summary.partiallyRecovered | number:'1.0-0') ?? '',
-        icon: 'alert', thresholds: { warning: 1, direction: 'above' }, clickable: true
-      }">
-    </app-stat-card>
-
-    <app-stat-card
-      [data]="{
-        label: 'OVERDUE', value: (summary.overdue | number:'1.0-0') ?? '',
-        icon: 'alert', thresholds: { warning: 1, critical: 1, direction: 'above' },
-        route: summary.overdue > 0 ? (isCooperativeScope ? '/cooperative/finance/batch-processing' : '/branch/finance/batch-processing') : undefined
-      }">
-    </app-stat-card>
-
-    <app-stat-card
-      [data]="{ label: 'RECOVERY RATE', value: summary.recoveryRate + '%', icon: 'chart', clickable: true }">
-    </app-stat-card>
   </div>
+
+  <ng-template #farmerStats>
+    <div class="stats-grid">
+      <app-stat-card
+        [data]="{ label: 'TOTAL ALLOCATIONS', value: (summary.totalAllocations | number) ?? '', icon: 'clipboard', clickable: true }">
+      </app-stat-card>
+
+      <app-stat-card
+        [data]="{ label: 'FULLY RECOVERED', value: (summary.fullyRecovered | number) ?? '', icon: 'check', clickable: true }">
+      </app-stat-card>
+
+      <app-stat-card
+        [data]="{ label: 'TOTAL VALUE', value: 'UGX ' + ((summary.totalValue | number:'1.0-0') ?? '0'), icon: 'wallet', clickable: true }">
+      </app-stat-card>
+
+      <!-- Color reacts to value; tapping focuses on the partial-recovery rows in the table -->
+      <app-stat-card
+        [data]="{
+          label: 'PARTIALLY RECOVERED', value: (summary.partiallyRecovered | number:'1.0-0') ?? '',
+          icon: 'alert', thresholds: { warning: 1, direction: 'above' }, clickable: true
+        }">
+      </app-stat-card>
+
+      <app-stat-card
+        [data]="{
+          label: 'OVERDUE', value: (summary.overdue | number:'1.0-0') ?? '',
+          icon: 'alert', thresholds: { warning: 1, critical: 1, direction: 'above' },
+          route: summary.overdue > 0 ? '/branch/finance/batch-processing' : undefined
+        }">
+      </app-stat-card>
+
+      <app-stat-card
+        [data]="{ label: 'RECOVERY RATE', value: summary.recoveryRate + '%', icon: 'chart', clickable: true }">
+      </app-stat-card>
+    </div>
+  </ng-template>
 
   <div class="filter-section">
     <div class="search-input">
@@ -48,6 +68,7 @@
     <app-data-table
       [columns]="cols"
       [rows]="filteredAllocations"
+      [trackByFn]="trackById"
       [paginate]="true"
       emptyIcon="clipboard"
       emptyTitle="No disbursed stock"
@@ -85,7 +106,7 @@
 
 <app-modal
   [(isOpen)]="showDetailModal"
-  [title]="selectedAllocation ? selectedAllocation.id : ''"
+  [title]="selectedAllocation ? selectedAllocation.itemName : ''"
   subtitle="Allocation details"
   size="md"
   (closed)="closeDetailModal()">
@@ -96,7 +117,9 @@
         <dt>{{ destinationLabel }}</dt>
         <dd>{{ selectedAllocation.destinationName }}</dd>
       </div>
-      <div class="detail-row">
+      <!-- Only meaningful for farmer allocations — destinationLabel is already
+           "BRANCH" for cooperative-scope disbursements, so this would duplicate it. -->
+      <div class="detail-row" *ngIf="!isCooperativeScope">
         <dt>BRANCH</dt>
         <dd>{{ selectedAllocation.branch }}</dd>
       </div>
@@ -152,7 +175,7 @@
 
 <app-modal
   [(isOpen)]="showEditModal"
-  [title]="selectedAllocation ? selectedAllocation.id : ''"
+  [title]="selectedAllocation ? selectedAllocation.itemName : ''"
   subtitle="Edit allocation"
   size="md"
   (closed)="closeEditModal()">
