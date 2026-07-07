@@ -5,9 +5,12 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { AlertComponent } from '../../../../shared/components/alert/alert.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
+import { InputComponent } from '../../../../shared/components/input/input.component';
+import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
 import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
 import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
+import { ToastService } from '../../../../core/services/toast.service';
 import {
   InventoryScope,
   InventoryService,
@@ -32,6 +35,8 @@ const THRESHOLD_MULTIPLIER = 4;
     FormsModule,
     AlertComponent,
     ButtonComponent,
+    InputComponent,
+    ModalComponent,
     StatCardComponent,
     DataTableComponent,
     CellDirective,
@@ -44,6 +49,7 @@ export class CurrentStockComponent implements OnInit {
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly inventoryService: InventoryService,
+    private readonly toastService: ToastService,
   ) {}
 
   searchQuery = '';
@@ -73,7 +79,14 @@ export class CurrentStockComponent implements OnInit {
     { key: 'unit',         header: 'UNIT' },
     { key: 'minThreshold', header: 'MIN. THRESHOLD',  class: 'threshold-cell' },
     { key: 'updatedAt',    header: 'ENTRY DATE',       class: 'date-cell' },
+    { key: 'actions',      header: '',                 width: '110px' },
   ];
+
+  showViewModal = false;
+  showAddQtyModal = false;
+  selectedItem: StockItem | null = null;
+  addQtySubmitting = false;
+  addQtyForm: { delta: string; reason: string } = { delta: '', reason: '' };
 
   get addStockRoute(): string {
     return this.isCooperativeScope
@@ -134,6 +147,64 @@ export class CurrentStockComponent implements OnInit {
 
     const percent = (item.quantity / (item.minThreshold * THRESHOLD_MULTIPLIER)) * 100;
     return Math.min(Math.round(percent), 100);
+  }
+
+  trackById(_: number, row: unknown): string {
+    return (row as StockItem).id;
+  }
+
+  viewItem(row: unknown): void {
+    this.selectedItem = row as StockItem;
+    this.showViewModal = true;
+  }
+
+  closeView(): void {
+    this.showViewModal = false;
+    this.selectedItem = null;
+  }
+
+  openAddQuantity(item: StockItem): void {
+    this.selectedItem = item;
+    this.addQtyForm = { delta: '', reason: '' };
+    this.showAddQtyModal = true;
+  }
+
+  switchToAddQuantity(): void {
+    if (!this.selectedItem) return;
+    this.showViewModal = false;
+    this.openAddQuantity(this.selectedItem);
+  }
+
+  closeAddQuantity(): void {
+    this.showAddQtyModal = false;
+    this.selectedItem = null;
+  }
+
+  canSubmitAddQuantity(): boolean {
+    return !this.addQtySubmitting && Number(this.addQtyForm.delta) > 0;
+  }
+
+  submitAddQuantity(): void {
+    if (!this.selectedItem || !this.canSubmitAddQuantity()) return;
+
+    const delta = Number(this.addQtyForm.delta);
+    const reason = this.addQtyForm.reason.trim() || 'Restock';
+    this.addQtySubmitting = true;
+
+    this.inventoryService.adjustStock(this.selectedItem.id, delta, reason).subscribe({
+      next: updated => {
+        this.allItems = this.allItems.map(i => i.id === updated.id ? updated : i);
+        this.recomputeSummary();
+        this.applyFilters();
+        this.addQtySubmitting = false;
+        this.toastService.success('Stock quantity updated');
+        this.closeAddQuantity();
+      },
+      error: () => {
+        this.addQtySubmitting = false;
+        this.toastService.error('Failed to add quantity', 'Please try again.');
+      },
+    });
   }
 
   addStock(): void {

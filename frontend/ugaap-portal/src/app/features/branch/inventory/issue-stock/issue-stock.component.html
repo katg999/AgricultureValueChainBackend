@@ -181,6 +181,7 @@
     <app-data-table
       [columns]="issuanceCols"
       [rows]="recentIssuances"
+      [trackByFn]="trackById"
       [paginate]="true"
       emptyIcon="inventory"
       emptyTitle="No recent issuances"
