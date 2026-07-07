@@ -8,7 +8,8 @@ import java.time.ZonedDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "inventory_items")
+@Table(name = "inventory_items",
+       uniqueConstraints = @UniqueConstraint(name = "uk_inventory_items_sku_branch", columnNames = {"sku", "branch_id"}))
 @Getter
 @Setter
 @NoArgsConstructor
@@ -20,7 +21,9 @@ public class InventoryItem {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "sku", nullable = false, unique = true)
+    // Unique per branch, not globally — the same product can exist as a separate
+    // stock row in each branch (and at cooperative level, where branch_id is null).
+    @Column(name = "sku", nullable = false)
     private String sku;
 
     @Column(name = "item_name", nullable = false)

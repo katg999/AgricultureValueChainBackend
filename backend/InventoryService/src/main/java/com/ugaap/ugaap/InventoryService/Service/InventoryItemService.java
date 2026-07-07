@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -32,9 +33,13 @@ public class InventoryItemService {
     public Page<InventoryItemDto> listItems(UUID branchId, String category, String search, Pageable pageable) {
         Specification<InventoryItem> spec = Specification.where(null);
 
-        if (branchId != null) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("branchId"), branchId));
-        }
+        // Branch staff (X-Branch-Id present) see only their own branch's stock.
+        // Cooperative admins (no branch in their JWT) see only the cooperative-level
+        // pool (branch_id IS NULL) — not every branch's items lumped together, and
+        // not stock that's already been transferred out to a branch.
+        spec = branchId != null
+                ? spec.and((root, query, cb) -> cb.equal(root.get("branchId"), branchId))
+                : spec.and((root, query, cb) -> root.get("branchId").isNull());
         if (category != null && !category.isBlank()) {
             spec = spec.and((root, query, cb) ->
                     cb.equal(cb.lower(root.get("category")), category.toLowerCase()));
@@ -48,6 +53,15 @@ public class InventoryItemService {
     }
 
     public InventoryItemDto createItem(InventoryItemCreateDto dto, UUID branchId, UUID cooperativeId, UUID userId) {
+        // "Add Stock Item" doubles as "restock an existing commodity" — a fresh batch
+        // reference/sku is expected to differ per delivery, so match on item name within
+        // the same scope rather than sku, and add to the existing row instead of
+        // creating a duplicate for the same product.
+        Optional<InventoryItem> existing = findByItemNameInScope(dto.getItemName(), branchId);
+        if (existing.isPresent()) {
+            return restockExisting(existing.get(), dto, userId);
+        }
+
         InventoryItem item = InventoryItem.builder()
                 .sku(dto.getSku())
                 .itemName(dto.getItemName())
@@ -64,6 +78,29 @@ public class InventoryItemService {
         item = itemRepository.save(item);
         log.info("Inventory item created: {} (SKU: {})", item.getId(), item.getSku());
         audit("InventoryItem", item.getId().toString(), "CREATE", userId, null);
+        return toDto(item);
+    }
+
+    private Optional<InventoryItem> findByItemNameInScope(String itemName, UUID branchId) {
+        Specification<InventoryItem> spec = (root, query, cb) ->
+                cb.equal(cb.lower(root.get("itemName")), itemName.toLowerCase());
+        spec = branchId != null
+                ? spec.and((root, query, cb) -> cb.equal(root.get("branchId"), branchId))
+                : spec.and((root, query, cb) -> root.get("branchId").isNull());
+        return itemRepository.findAll(spec).stream().findFirst();
+    }
+
+    private InventoryItemDto restockExisting(InventoryItem item, InventoryItemCreateDto dto, UUID userId) {
+        BigDecimal addedQty = dto.getInitialQuantity() != null ? dto.getInitialQuantity() : BigDecimal.ZERO;
+        item.setQuantityAvailable(item.getQuantityAvailable().add(addedQty));
+        if (dto.getSellingPrice() != null)  item.setSellingPrice(dto.getSellingPrice());
+        if (dto.getBuyingPrice() != null)   item.setBuyingPrice(dto.getBuyingPrice());
+        if (dto.getReorderLevel() != null)  item.setReorderLevel(dto.getReorderLevel());
+
+        item = itemRepository.save(item);
+        log.info("Inventory item restocked: {} (+{})", item.getId(), addedQty);
+        audit("InventoryItem", item.getId().toString(), "RESTOCK", userId,
+                String.format("quantity=+%s", addedQty));
         return toDto(item);
     }
 
@@ -116,6 +153,33 @@ public class InventoryItemService {
         audit("InventoryItem", item.getId().toString(), "STOCK_ISSUE", userId,
                 String.format("quantity=-%s", quantity));
         return item;
+    }
+
+    // Credits `quantity` to the branch's copy of `sourceItem` (same sku, scoped to targetBranchId),
+    // creating that branch-scoped item on first issue. Used by branch stock disbursement — the
+    // counterpart deduction from sourceItem happens separately via decreaseQuantityForIssue.
+    public InventoryItem creditBranchStock(InventoryItem sourceItem, UUID targetBranchId, UUID cooperativeId,
+                                            BigDecimal quantity, UUID userId) {
+        InventoryItem branchItem = itemRepository.findBySkuAndBranchId(sourceItem.getSku(), targetBranchId)
+                .orElseGet(() -> InventoryItem.builder()
+                        .sku(sourceItem.getSku())
+                        .itemName(sourceItem.getItemName())
+                        .category(sourceItem.getCategory())
+                        .unitOfMeasure(sourceItem.getUnitOfMeasure())
+                        .buyingPrice(sourceItem.getBuyingPrice())
+                        .sellingPrice(sourceItem.getSellingPrice())
+                        .reorderLevel(sourceItem.getReorderLevel())
+                        .quantityAvailable(BigDecimal.ZERO)
+                        .branchId(targetBranchId)
+                        .cooperativeId(cooperativeId)
+                        .build());
+
+        branchItem.setQuantityAvailable(branchItem.getQuantityAvailable().add(quantity));
+        branchItem = itemRepository.save(branchItem);
+
+        audit("InventoryItem", branchItem.getId().toString(), "STOCK_CREDIT", userId,
+                String.format("quantity=+%s (branch issue from %s)", quantity, sourceItem.getId()));
+        return branchItem;
     }
 
     @Transactional(readOnly = true)
