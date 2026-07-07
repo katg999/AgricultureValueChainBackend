@@ -40,6 +40,7 @@ export class DataTableComponent implements AfterContentInit, OnInit, OnChanges {
   @Input() emptyRoute?: string;
 
   @Output() rowClick = new EventEmitter<unknown>();
+  @Output() emptyAction = new EventEmitter<void>();
 
   @ContentChildren(CellDirective) private cellDefs!: QueryList<CellDirective>;
   private cellMap = new Map<string, TemplateRef<{ $implicit: unknown }>>();

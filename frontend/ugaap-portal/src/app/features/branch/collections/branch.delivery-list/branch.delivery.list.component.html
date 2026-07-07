@@ -15,7 +15,7 @@
     </div>
 
     <div class="header-actions">
-      <button class="btn primary-action-btn" (click)="addFarmerDelivery()">
+      <button *ngIf="canRecordDelivery" class="btn primary-action-btn" (click)="addFarmerDelivery()">
         <span class="icon-plus">+</span> Add Farmer Delivery
       </button>
     </div>
@@ -27,9 +27,12 @@
        FILTER SECTION
        applyFilter() is triggered whenever values change
        ========================================================= -->
-  <div class="filter-card">
-    <div class="filter-group">
-      <label>Search</label>
+  <div class="filters-bar">
+    <div class="search-input">
+      <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+        <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
       <input
         type="text"
         [(ngModel)]="searchTerm"
@@ -47,8 +50,8 @@
       emptyIcon="truck"
       emptyTitle="No deliveries yet"
       emptyMessage="Record the first farmer delivery to get started."
-      emptyActionLabel="Add Delivery"
-      emptyRoute="/branch/collections/deliveries/add">
+      [emptyActionLabel]="canRecordDelivery ? 'Add Delivery' : ''"
+      (emptyAction)="addFarmerDelivery()">
 
       <ng-template appCell="id" let-row>
         <span class="mono">{{ $any(row).id }}</span>
@@ -99,5 +102,7 @@
       </ng-template>
 
     </app-data-table>
+
+  <app-farmer-delivery *ngIf="showAddModal" (closed)="onAddModalClosed()"></app-farmer-delivery>
 
 </div>

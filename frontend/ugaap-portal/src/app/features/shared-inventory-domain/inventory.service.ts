@@ -7,6 +7,7 @@ import { API_ENDPOINTS } from '../../core/constants/api-endpoints';
 import { SessionService } from '../../core/services/session.service';
 import { MOCK_BRANCHES, MOCK_INITIAL_STOCK, MOCK_INITIAL_BRANCH_DISBURSEMENTS, MOCK_INITIAL_STOCK_REQUESTS, MOCK_INITIAL_FARMER_ALLOCATIONS } from '../../core/mock/mock-branch';
 import { MOCK_FARMERS } from '../../core/mock/mock-farmer';
+import { USE_MOCK } from '../../core/mock/mock-config';
 
 export type InventoryScope = 'cooperative' | 'branch';
 export type StockStatus = 'healthy' | 'low' | 'out';
@@ -141,10 +142,11 @@ export interface StockRequestPayload {
 
 @Injectable({ providedIn: 'root' })
 export class InventoryService {
-  private readonly stockSubject = new BehaviorSubject<StockItem[]>(MOCK_INITIAL_STOCK as StockItem[]);
-  private readonly branchDisbursementSubject = new BehaviorSubject<BranchDisbursement[]>(MOCK_INITIAL_BRANCH_DISBURSEMENTS as BranchDisbursement[]);
-  private readonly farmerAllocationSubject = new BehaviorSubject<FarmerAllocation[]>(MOCK_INITIAL_FARMER_ALLOCATIONS as FarmerAllocation[]);
-  private readonly stockRequestSubject = new BehaviorSubject<StockRequest[]>(MOCK_INITIAL_STOCK_REQUESTS as StockRequest[]);
+  // When USE_MOCK is false, start empty — real API calls fill these stores.
+  private readonly stockSubject = new BehaviorSubject<StockItem[]>(USE_MOCK ? MOCK_INITIAL_STOCK as StockItem[] : []);
+  private readonly branchDisbursementSubject = new BehaviorSubject<BranchDisbursement[]>(USE_MOCK ? MOCK_INITIAL_BRANCH_DISBURSEMENTS as BranchDisbursement[] : []);
+  private readonly farmerAllocationSubject = new BehaviorSubject<FarmerAllocation[]>(USE_MOCK ? MOCK_INITIAL_FARMER_ALLOCATIONS as FarmerAllocation[] : []);
+  private readonly stockRequestSubject = new BehaviorSubject<StockRequest[]>(USE_MOCK ? MOCK_INITIAL_STOCK_REQUESTS as StockRequest[] : []);
 
   constructor(
     private readonly http: HttpClient,
@@ -351,6 +353,8 @@ export class InventoryService {
     // mock response so the UI keeps working.
     // Timeout raised to 8 s so it doesn't appear to succeed before the real backend
     // is wired up (a 2 s timeout that silently "succeeds" via mock is misleading).
+    if (USE_MOCK) return of(this.addMockStockRequest(payload));
+
     return this.http.post<StockRequest>(`${API_ENDPOINTS.BRANCH.INVENTORY}/stock-requests`, payload).pipe(
       timeout(8000),
       tap(req => this.stockRequestSubject.next([req, ...this.stockRequestSubject.value])),
@@ -367,6 +371,8 @@ export class InventoryService {
     // No backend endpoint yet — falls back to cached/mock data.
     // startWith shows data immediately; HTTP result will replace it once the
     // stock-requests endpoint is added to the backend.
+    if (USE_MOCK) return of(snapshot);
+
     return this.http.get<StockRequest[]>(`${API_ENDPOINTS.BRANCH.INVENTORY}/stock-requests`).pipe(
       timeout(8000),
       tap(rows => this.stockRequestSubject.next(rows)),
@@ -378,6 +384,11 @@ export class InventoryService {
   cancelStockRequest(id: string): Observable<void> {
     const removeFromStore = () =>
       this.stockRequestSubject.next(this.stockRequestSubject.value.filter(r => r.id !== id));
+
+    if (USE_MOCK) {
+      removeFromStore();
+      return of(void 0);
+    }
 
     return this.http.delete<void>(`${API_ENDPOINTS.BRANCH.INVENTORY}/stock-requests/${id}`).pipe(
       timeout(8000),

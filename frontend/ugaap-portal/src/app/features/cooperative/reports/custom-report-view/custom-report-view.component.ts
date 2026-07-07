@@ -4,7 +4,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import Chart from 'chart.js/auto';
-import { ReportsStateService, CustomReportConfig } from '../../../../core/services/reports-state.service';
+import { ReportConfigService, CustomReportConfig } from '../../../../core/services/reports-state.service';
 import { ExportService } from '../../../../core/services/export.service';
 import { TableComponent, TableColumn } from '../../../../shared/components/table/table.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge';
@@ -13,7 +13,7 @@ import { ChartCardComponent } from '../../../../shared/components/chart-card/cha
 import { ExportDropdownComponent } from '../../../../shared/components/export-dropdown/export-dropdown.component';
 import { CustomReportBuilderComponent } from '../custom-report-builder/custom-report-builder.component';
 
-import { MOCK_CUSTOM_REPORT_DATA as MOCK_DATA } from '../../../../core/mock/mock-cooperative';
+import { ReportsService } from '../../../../core/services/reports.service';
 
 type BadgeVariant = 'active' | 'pending' | 'inactive' | 'suspended' | 'overdue' | 'settled' | 'partial' | 'verified' | 'failed' | 'draft' | 'open' | 'closed' | 'healthy' | 'low' | 'info';
 
@@ -44,8 +44,9 @@ export class CustomReportViewComponent implements OnInit, AfterViewInit, OnDestr
 
   constructor(
     private router: Router,
-    private stateService: ReportsStateService,
+    private stateService: ReportConfigService,
     private exportService: ExportService,
+    private reportsService: ReportsService,
   ) {}
 
   ngOnInit(): void {
@@ -71,7 +72,7 @@ export class CustomReportViewComponent implements OnInit, AfterViewInit, OnDestr
 
   private buildTableData(): void {
     if (!this.config) return;
-    const raw = MOCK_DATA[this.config.dataSource] || [];
+    const raw = this.reportsService.getCustomReportData(this.config.dataSource);
     const selectedKeys = this.config.columns.filter(c => c.selected).map(c => c.key);
     this.tableData = raw.map(row => {
       const filtered: any = {};
@@ -113,39 +114,39 @@ export class CustomReportViewComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   private initTrendChart(): void {
+    const { labels, data } = this.reportsService.getDeliveryTrendSeries('monthly');
     this.initChart('cv-trend-chart', 'cv-trend', {
       type: 'line',
       data: {
-        labels: ['Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May'],
+        labels,
         datasets: [{
-          label: 'Volume (MT)',
-          data: [92, 108, 134, 156, 148, 215],
-          borderColor: '#F25D27',
-          backgroundColor: 'rgba(242,93,39,0.08)',
+          label: 'Volume (MT)', data,
+          borderColor: '#F25D27', backgroundColor: 'rgba(242,93,39,0.08)',
           fill: true, tension: 0.4, borderWidth: 2.5,
           pointBackgroundColor: '#F25D27', pointRadius: 4,
-        }]
+        }],
       },
       options: {
         responsive: true, maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
-          tooltip: { backgroundColor: '#200B26', titleColor: '#fff', bodyColor: '#E5E7EB', padding: 10 }
+          tooltip: { backgroundColor: '#200B26', titleColor: '#fff', bodyColor: '#E5E7EB', padding: 10 },
         },
         scales: {
           x: { grid: { color: '#F3F4F6' }, ticks: { color: '#9CA3AF', font: { family: 'Inter', size: 11 } } },
-          y: { beginAtZero: true, grid: { color: '#F3F4F6' }, ticks: { color: '#9CA3AF', font: { family: 'Inter', size: 11 } } }
-        }
-      }
+          y: { beginAtZero: true, grid: { color: '#F3F4F6' }, ticks: { color: '#9CA3AF', font: { family: 'Inter', size: 11 } } },
+        },
+      },
     });
   }
 
   private initDistChart(): void {
+    const { labels, data } = this.reportsService.getDeliveryStatusSplit();
     const centerPlugin = {
       id: 'centerText',
       beforeDraw: (chart: Chart) => {
-        const data = chart.data.datasets[0].data as number[];
-        const total = data.reduce((s, v) => s + (v as number), 0);
+        const vals = chart.data.datasets[0].data as number[];
+        const total = vals.reduce((s, v) => s + (v as number), 0);
         const { ctx, chartArea } = chart as any;
         if (!chartArea) return;
         ctx.save();
@@ -155,65 +156,66 @@ export class CustomReportViewComponent implements OnInit, AfterViewInit, OnDestr
         ctx.textBaseline = 'middle';
         ctx.fillText(String(total), (chartArea.left + chartArea.right) / 2, (chartArea.top + chartArea.bottom) / 2);
         ctx.restore();
-      }
+      },
     };
     this.initChart('cv-dist-chart', 'cv-dist', {
       type: 'doughnut',
       data: {
-        labels: ['Pending', 'Graded', 'Paid'],
-        datasets: [{ data: [45, 230, 265], backgroundColor: ['#F59E0B', '#10B981', '#3B82F6'], borderWidth: 0 }]
+        labels,
+        datasets: [{ data, backgroundColor: ['#F59E0B', '#10B981', '#3B82F6'], borderWidth: 0 }],
       },
       options: {
         cutout: '65%', responsive: true, maintainAspectRatio: false,
         plugins: {
           legend: { position: 'bottom', labels: { font: { family: 'Inter', size: 12 }, padding: 16 } },
-          tooltip: { backgroundColor: '#200B26', titleColor: '#fff', bodyColor: '#E5E7EB' }
-        }
+          tooltip: { backgroundColor: '#200B26', titleColor: '#fff', bodyColor: '#E5E7EB' },
+        },
       },
-      plugins: [centerPlugin]
+      plugins: [centerPlugin],
     });
   }
 
   private initBranchChart(): void {
+    const { labels, data } = this.reportsService.getDeliveryByBranch();
     this.initChart('cv-branch-chart', 'cv-branch', {
       type: 'bar',
       data: {
-        labels: ['Hoima', 'Masindi', 'Gulu', 'Lira', 'Mbale', 'Soroti'],
-        datasets: [{ label: 'Volume (MT)', data: [215, 142, 98, 87, 76, 64], backgroundColor: '#F25D27', borderRadius: 6 }]
+        labels,
+        datasets: [{ label: 'Volume (MT)', data, backgroundColor: '#F25D27', borderRadius: 6 }],
       },
       options: {
         responsive: true, maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
-          tooltip: { backgroundColor: '#200B26', titleColor: '#fff', bodyColor: '#E5E7EB' }
+          tooltip: { backgroundColor: '#200B26', titleColor: '#fff', bodyColor: '#E5E7EB' },
         },
         scales: {
           x: { grid: { display: false }, ticks: { color: '#9CA3AF', font: { family: 'Inter', size: 11 } } },
-          y: { beginAtZero: true, grid: { color: '#F3F4F6' }, ticks: { color: '#9CA3AF', font: { family: 'Inter', size: 11 } } }
-        }
-      }
+          y: { beginAtZero: true, grid: { color: '#F3F4F6' }, ticks: { color: '#9CA3AF', font: { family: 'Inter', size: 11 } } },
+        },
+      },
     });
   }
 
   private initPerformersChart(): void {
+    const { labels, data } = this.reportsService.getTopFarmersDelivery();
     this.initChart('cv-perf-chart', 'cv-perf', {
       type: 'bar',
       data: {
-        labels: ['Ogenga Patrick', 'Okello John', 'Mugisha Peter', 'Nakato Sarah', 'Atukunda Mary'],
-        datasets: [{ label: 'Qty (MT)', data: [24.5, 21.3, 18.7, 16.2, 14.8], backgroundColor: '#F25D27', borderRadius: 6 }]
+        labels,
+        datasets: [{ label: 'Qty (MT)', data, backgroundColor: '#F25D27', borderRadius: 6 }],
       },
       options: {
-        indexAxis: 'y' as const,
-        responsive: true, maintainAspectRatio: false,
+        indexAxis: 'y' as const, responsive: true, maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
-          tooltip: { backgroundColor: '#200B26', titleColor: '#fff', bodyColor: '#E5E7EB' }
+          tooltip: { backgroundColor: '#200B26', titleColor: '#fff', bodyColor: '#E5E7EB' },
         },
         scales: {
           x: { beginAtZero: true, grid: { color: '#F3F4F6' }, ticks: { color: '#9CA3AF', font: { family: 'Inter', size: 11 } } },
-          y: { grid: { display: false }, ticks: { color: '#374151', font: { family: 'Inter', size: 11 } } }
-        }
-      }
+          y: { grid: { display: false }, ticks: { color: '#374151', font: { family: 'Inter', size: 11 } } },
+        },
+      },
     });
   }
 

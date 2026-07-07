@@ -20,62 +20,18 @@ import {
 } from '../../../shared-farmer-domain/farmer.service';
 
 import {
-  MOCK_INPUT_ALLOCATIONS,
-  MOCK_PRODUCE_DELIVERIES,
-  MOCK_BALANCE_LINES,
-  MOCK_REPAYMENTS,
-  MOCK_FARMER_NOTIFICATIONS,
-} from '../../../../core/mock/mock-farmer';
-
-//  Local interfaces (table row shapes — only used in this component) 
+  InputAllocation,
+  ProduceDelivery,
+  BalanceLine,
+  Repayment,
+  FarmerNotification,
+} from '../../../shared-farmer-domain/farmer.service';
 
 export interface ProfileTab {
   key:   string;
   label: string;
   badge?: number;
   badgeVariant?: BadgeVariant;
-}
-
-interface InputAllocation {
-  item:           string;
-  quantity:       string;
-  value:          number;
-  issueDate:      string;
-  recoveryStatus: 'settled' | 'partial' | 'overdue';
-}
-
-interface ProduceDelivery {
-  crop:             string;
-  weight:           string;
-  collectionCentre: string;
-  date:             string;
-  grade:            string;
-  value:            number;
-}
-
-interface BalanceLine {
-  description: string;
-  principal:   number;
-  recovered:   number;
-  outstanding: number;
-  dueDate:     string;
-  status:      'settled' | 'partial' | 'overdue';
-}
-
-interface Repayment {
-  date:      string;
-  method:    string;
-  amount:    number;
-  reference: string;
-  status:    'settled' | 'pending';
-}
-
-interface FarmerNotification {
-  title:     string;
-  channel:   string;
-  date:      string;
-  status:    'open' | 'closed';
-  readState: 'Unread' | 'Read';
 }
 
 
@@ -101,12 +57,12 @@ export class FarmerApprovalComponent implements OnInit {
     { key: 'notifications',     label: 'Notifications', badge: 2, badgeVariant: 'info' },
   ];
 
-  // Static detail tables sourced from core/mock/mock-farmer.ts
-  readonly inputAllocations: InputAllocation[] = MOCK_INPUT_ALLOCATIONS as InputAllocation[];
-  readonly deliveries: ProduceDelivery[]       = MOCK_PRODUCE_DELIVERIES as ProduceDelivery[];
-  readonly balanceLines: BalanceLine[]         = MOCK_BALANCE_LINES as BalanceLine[];
-  readonly repayments: Repayment[]             = MOCK_REPAYMENTS as Repayment[];
-  readonly notifications: FarmerNotification[] = MOCK_FARMER_NOTIFICATIONS as FarmerNotification[];
+  // Detail tables — populated from FarmerActivityService in ngOnInit.
+  inputAllocations: InputAllocation[] = [];
+  deliveries:       ProduceDelivery[] = [];
+  balanceLines:     BalanceLine[]     = [];
+  repayments:       Repayment[]       = [];
+  notifications:    FarmerNotification[] = [];
 
   //  Data state
   /**
@@ -144,6 +100,13 @@ export class FarmerApprovalComponent implements OnInit {
       next:  f   => { this.farmer = f;                this.loading = false; },
       error: err => { this.error  = err?.error?.message ?? err.message; this.loading = false; },
     });
+
+    // Load all sub-tab tables — methods live on FarmerService, respect USE_MOCK.
+    this.farmerService.getInputAllocations(farmerId).subscribe(v  => this.inputAllocations = v);
+    this.farmerService.getProduceDeliveries(farmerId).subscribe(v => this.deliveries = v);
+    this.farmerService.getBalanceLines(farmerId).subscribe(v      => this.balanceLines = v);
+    this.farmerService.getRepayments(farmerId).subscribe(v        => this.repayments = v);
+    this.farmerService.getNotifications(farmerId).subscribe(v     => this.notifications = v);
   }
 
   //  Computed properties

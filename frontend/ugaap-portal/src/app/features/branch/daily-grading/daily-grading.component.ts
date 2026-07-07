@@ -12,6 +12,7 @@ import { HttpClient }           from '@angular/common/http';
 import { FormBuilder, Validators } from '@angular/forms';
 
 import { API_ENDPOINTS } from '../../../core/constants/api-endpoints';
+import { USE_MOCK } from '../../../core/mock/mock-config';
 
 export interface DailyGradingEntry {
   id:          string;
@@ -63,6 +64,12 @@ export class DailyGradingComponent implements OnInit {
 
   loadEntries(): void {
     this.loading.set(true);
+    if (USE_MOCK) {
+      // No seed data exists yet for this feature — start from an empty list.
+      this.entries.set([]);
+      this.loading.set(false);
+      return;
+    }
     this.http.get<DailyGradingEntry[]>(API_ENDPOINTS.BRANCH.DAILY_GRADING).subscribe({
       next:  data => { this.entries.set(data);       this.loading.set(false); },
       error: err  => { this.error.set(err.message);   this.loading.set(false); },
@@ -75,6 +82,27 @@ export class DailyGradingComponent implements OnInit {
   submitGrading(): void {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     this.saving.set(true);
+
+    if (USE_MOCK) {
+      const v = this.form.value;
+      const entry: DailyGradingEntry = {
+        id: `DG-${Date.now()}`,
+        farmerId: v.farmerId ?? '',
+        farmerName: v.farmerId ?? '',
+        grade: v.grade ?? '',
+        weightKg: v.weightKg ?? 0,
+        moisture: v.moisture ?? 0,
+        pricePerKg: 0,
+        totalAmount: 0,
+        gradedAt: new Date().toISOString(),
+        gradedBy: '',
+      };
+      this.entries.update(e => [entry, ...e]);
+      this.saving.set(false);
+      this.closeForm();
+      return;
+    }
+
     this.http.post<DailyGradingEntry>(API_ENDPOINTS.BRANCH.DAILY_GRADING, this.form.value).subscribe({
       next: entry => {
         this.entries.update(e => [entry, ...e]);   // Prepend so latest is at top

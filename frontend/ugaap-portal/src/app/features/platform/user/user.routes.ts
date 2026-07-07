@@ -6,7 +6,7 @@ import { permissionGuard } from '../../../core/guards/permission.guard';
 
 export const USER_ROUTES: Routes = [
 
-  // Users list
+  // Users list — inherits parent title 'User Management'; no override needed
   {
     path: '',
     title: 'Users List | UGAAP',
@@ -20,7 +20,8 @@ export const USER_ROUTES: Routes = [
   {
     path: 'add-user',
     title: 'Add User | UGAAP',
-    data: { title: 'Add User', subtitle: 'Create a new platform user account' },
+    canActivate: [permissionGuard],
+    data: { permissions: ['users.create'], title: 'Add User', subtitle: 'Create a new platform administrator account' },
     loadComponent: () =>
       import('./add-user/add-user.component')
         .then(m => m.AddUserComponent),
@@ -28,8 +29,9 @@ export const USER_ROUTES: Routes = [
 
   {
     path: 'user/:id',
-    title: 'User Details | UGAAP',
-    data: { title: 'User Details', subtitle: 'Profile, access history and account settings' },
+    title: 'User | UGAAP',
+    canActivate: [permissionGuard],
+    data: { permissions: ['users.view'], title: 'User Details' },
     loadComponent: () =>
       import('./user-details/user-details.component')
         .then(m => m.UserDetailsComponent),

@@ -1,13 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Title } from '@angular/platform-browser';
 
-// Shared components
 import { TableComponent, TableColumn } from '../../../shared/components/table/table.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { StatCardComponent, StatCardData } from '../../../shared/components/stat-card/stat-card.component';
+// import { PlatformCooperativesService } from '../services/platform-cooperatives.service';
 
 /**
  * Cooperative interface
@@ -25,24 +25,6 @@ interface Cooperative {
   lastActivity: string;
 }
 
-/**
- * Cooperatives List Component
- * 
- * Displays all registered cooperatives in a table view.
- * Provides search, filter, and navigation to onboarding.
- * 
- * Features:
- * - Searchable cooperative list
- * - Status filtering
- * - Country filtering
- * - Add new cooperative
- * - Export report
- * - Click to view details
- * 
- * Flow:
- * List → Click "Add organisation" → Onboarding flow
- * List → Click row → Cooperative details
- */
 @Component({
   selector: 'app-cooperatives-list',
   standalone: true,
@@ -59,9 +41,8 @@ interface Cooperative {
 })
 export class CooperativesListComponent implements OnInit {
 
-  /**
-   * Table columns configuration
-   */
+  // private coopsService = inject(PlatformCooperativesService);
+
   columns: TableColumn[] = [
     { key: 'name', label: 'ORGANISATION NAME', sortable: true, width: '25%' },
     { key: 'country', label: 'COUNTRY', sortable: true, width: '12%' },
@@ -72,111 +53,7 @@ export class CooperativesListComponent implements OnInit {
     { key: 'onboarding', label: 'ONBOARDING', width: '13%' }
   ];
 
-  /**
-   * Cooperative data
-   */
-  cooperatives: Cooperative[] = [
-    {
-      id: 'COOP-UG-092',
-      name: 'Banyankole Kweterana',
-      code: 'COOP-UG-092',
-      country: 'Uganda',
-      branches: 12,
-      activeFarmers: 4250,
-      season: 'Harvest Q3',
-      status: 'active',
-      onboardingProgress: 100,
-      lastActivity: '2 mins ago'
-    },
-    {
-      id: 'COOP-UG-089',
-      name: 'Bugisu Cooperative Union',
-      code: 'COOP-UG-089',
-      country: 'Uganda',
-      branches: 28,
-      activeFarmers: 15800,
-      season: 'Post-Harvest',
-      status: 'pending',
-      onboardingProgress: 75,
-      lastActivity: '1 hour ago'
-    },
-    {
-      id: 'COOP-UG-112',
-      name: 'West Acholi Cooperative',
-      code: 'COOP-UG-112',
-      country: 'Uganda',
-      branches: 8,
-      activeFarmers: 2100,
-      season: 'Planting',
-      status: 'suspended',
-      onboardingProgress: 100,
-      lastActivity: '2 days ago'
-    },
-    {
-      id: 'COOP-UG-015',
-      name: 'Nyari-Kigyezi Cooperative',
-      code: 'COOP-UG-015',
-      country: 'Uganda',
-      branches: 15,
-      activeFarmers: 6720,
-      season: 'Harvest Q3',
-      status: 'active',
-      onboardingProgress: 100,
-      lastActivity: '45 mins ago'
-    },
-    {
-      id: 'COOP-KE-031',
-      name: 'Meru Farmers Alliance',
-      code: 'COOP-KE-031',
-      country: 'Kenya',
-      branches: 5,
-      activeFarmers: 0,
-      season: '—',
-      status: 'rejected',
-      onboardingProgress: 40,
-      lastActivity: '3 days ago'
-    },
-    {
-      id: 'COOP-TZ-018',
-      name: 'Kilimanjaro Growers Co-op',
-      code: 'COOP-TZ-018',
-      country: 'Tanzania',
-      branches: 3,
-      activeFarmers: 0,
-      season: '—',
-      status: 'rejected',
-      onboardingProgress: 20,
-      lastActivity: '1 week ago'
-    },
-    {
-      id: 'COOP-UG-007',
-      name: 'Lango Cotton Cooperative',
-      code: 'COOP-UG-007',
-      country: 'Uganda',
-      branches: 0,
-      activeFarmers: 0,
-      season: '—',
-      status: 'deleted',
-      onboardingProgress: 0,
-      lastActivity: '2 weeks ago'
-    },
-    {
-      id: 'COOP-KE-009',
-      name: 'Nakuru Dairy Farmers Union',
-      code: 'COOP-KE-009',
-      country: 'Kenya',
-      branches: 0,
-      activeFarmers: 0,
-      season: '—',
-      status: 'deleted',
-      onboardingProgress: 0,
-      lastActivity: '1 month ago'
-    },
-  ];
-
-  /**
-   * Filtered data for display
-   */
+  cooperatives: Cooperative[] = [];
   filteredCooperatives: Cooperative[] = [];
 
   /** Summary stat cards — computed once, updated after any mutation */
@@ -202,10 +79,6 @@ export class CooperativesListComponent implements OnInit {
    */
   isLoading = false;
 
-  // ADDED for export 
-  /**
-   * Export loading state
-   */
   isExporting = false;
 
   constructor(private router: Router, private titleService: Title) {}
@@ -253,30 +126,10 @@ export class CooperativesListComponent implements OnInit {
     ];
   }
 
-  /**
-   * Handle search input
-   */
-  onSearch(): void {
-    this.applyFilters();
-  }
+  onSearch(): void { this.applyFilters(); }
+  onStatusChange(): void { this.applyFilters(); }
+  onCountryChange(): void { this.applyFilters(); }
 
-  /**
-   * Handle status filter change
-   */
-  onStatusChange(): void {
-    this.applyFilters();
-  }
-
-  /**
-   * Handle country filter change
-   */
-  onCountryChange(): void {
-    this.applyFilters();
-  }
-
-  /**
-   * Apply all filters
-   */
   applyFilters(): void {
     let filtered = [...this.cooperatives];
 

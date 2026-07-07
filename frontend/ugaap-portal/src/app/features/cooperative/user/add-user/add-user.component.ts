@@ -2,6 +2,8 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
+import { from } from 'rxjs';
+import { fetchGenderOptions } from '../../../../core/mock/mock-reference-data';
 
 import { FormSectionComponent } from '../../../../shared/components/form-section/form-section.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
@@ -10,6 +12,8 @@ import { ToggleSwitchComponent } from '../../../../shared/components/toggle-swit
 import { AlertComponent } from '../../../../shared/components/alert/alert.component';
 import { FormFeedbackService } from '../../../../core/services/form-feedback.service';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
+import { ToastService } from '../../../../core/services/toast.service';
+import { UsersService } from '../users.service';
 
 @Component({
   selector: 'app-add-user',
@@ -35,8 +39,10 @@ export class AddUserComponent implements OnInit {
 
   sendWelcomeEmail = true;
   requireOTP = true;
+  isLoading = false;
+  showConfirmModal = false;
 
-  genderOptions = ['Male', 'Female', 'Other', 'Prefer not to say'];
+  genderOptions: string[] = [];
 
   roleOptions = [
     'Admin',
@@ -45,10 +51,9 @@ export class AddUserComponent implements OnInit {
     'Field Officer'
   ];
 
-  isLoading = false;
-  showConfirmModal = false;
-
   private feedback = inject(FormFeedbackService);
+  private usersService = inject(UsersService);
+  private toast = inject(ToastService);
 
   private readonly fieldLabels: Record<string, string> = {
     fullName: 'Full Name',
@@ -63,10 +68,9 @@ export class AddUserComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.initForm();
-  }
+    // Load gender options from async mock fetch (swap for real HTTP call when API is ready)
+    from(fetchGenderOptions()).subscribe(v => this.genderOptions = v);
 
-  initForm(): void {
     this.userForm = this.fb.group({
       fullName:    ['', [Validators.required]],
       email:       ['', [Validators.required, Validators.email]],
@@ -113,8 +117,19 @@ export class AddUserComponent implements OnInit {
 
   onConfirmSave(): void {
     this.showConfirmModal = false;
-    this.feedback.success('User created', `${this.userForm.value.fullName} has been added successfully.`);
-    this.router.navigate(['/cooperative/users']);
+    this.isLoading = true;
+
+    this.usersService.create(this.userForm.value).subscribe({
+      next: user => {
+        this.isLoading = false;
+        this.feedback.success('User created', `${user.name} has been added successfully.`);
+        this.router.navigate(['/cooperative/users']);
+      },
+      error: err => {
+        this.isLoading = false;
+        this.toast.error('Save failed', err?.error?.message ?? 'Please try again.');
+      },
+    });
   }
 
   isValidDate(dateString: string): boolean {

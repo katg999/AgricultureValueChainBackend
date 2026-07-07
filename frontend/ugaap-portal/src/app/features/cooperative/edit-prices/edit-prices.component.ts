@@ -3,57 +3,16 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 
 import { ToastService }    from '../../../core/services/toast.service';
-import { MOCK_GRADES }     from '../../../core/mock/mock-cooperative';
+import { GradingService }  from '../../../core/services/grading.service';
+import { USE_MOCK }        from '../../../core/mock/mock-config';
+import { FlatPriceEntry, GradePriceEntry } from '../../../core/models/pricing.model';
+import { MOCK_FLAT_PRICE_ENTRIES, MOCK_GRADE_PRICE_ENTRIES } from '../../../core/mock/mock-cooperative';
+import { MOCK_BRANCHES } from '../../../core/mock/mock-branch';
 import { DataTableComponent, TableColumn } from '../../../shared/components/data-table/data-table.component';
 import { CellDirective }   from '../../../shared/components/data-table/cell.directive';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { ModalComponent }  from '../../../shared/components/modal/modal.component';
 import { InputComponent }  from '../../../shared/components/input/input.component';
-
-// ── Data models ───────────────────────────────────────────────────────────────
-
-// One row in the table when grade mode is OFF — commodity has a single flat price.
-export interface FlatPriceEntry {
-  id: string;
-  commodity: string;
-  pricePerKg: number;
-  // 'all' = applies cooperative-wide; a branchId = applies to that branch only
-  // (branch-specific rows override the 'all' row for the same commodity)
-  branch: string;
-  effectiveFrom: string;
-  effectiveTo: string;
-}
-
-// One row in the table when grade mode is ON — price depends on commodity AND grade.
-export interface GradePriceEntry {
-  id: string;
-  commodity: string;
-  gradeCode: string;  // e.g. 'A'
-  gradeName: string;  // e.g. 'Premium' — resolved from grade definitions
-  pricePerKg: number;
-  branch: string;
-  effectiveFrom: string;
-  effectiveTo: string;
-}
-
-// ── Seed data (replaced by real API responses in production) ─────────────────
-
-const SEED_FLAT: FlatPriceEntry[] = [
-  { id: 'FP-1', commodity: 'Maize',  pricePerKg: 2_500, branch: 'all', effectiveFrom: '2026-01-01', effectiveTo: '2026-12-31' },
-  { id: 'FP-2', commodity: 'Coffee', pricePerKg: 6_000, branch: 'all', effectiveFrom: '2026-01-01', effectiveTo: '2026-12-31' },
-  { id: 'FP-3', commodity: 'Beans',  pricePerKg: 2_500, branch: 'all', effectiveFrom: '2026-01-01', effectiveTo: '2026-12-31' },
-  { id: 'FP-4', commodity: 'Rice',   pricePerKg: 3_500, branch: 'all', effectiveFrom: '2026-01-01', effectiveTo: '2026-12-31' },
-];
-
-const SEED_GRADE: GradePriceEntry[] = [
-  { id: 'GP-1', commodity: 'Maize',  gradeCode: 'A', gradeName: 'Premium',   pricePerKg: 3_250, branch: 'all', effectiveFrom: '2026-01-01', effectiveTo: '2026-12-31' },
-  { id: 'GP-2', commodity: 'Maize',  gradeCode: 'B', gradeName: 'Standard',  pricePerKg: 2_500, branch: 'all', effectiveFrom: '2026-01-01', effectiveTo: '2026-12-31' },
-  { id: 'GP-3', commodity: 'Maize',  gradeCode: 'C', gradeName: 'Low Grade', pricePerKg: 1_750, branch: 'all', effectiveFrom: '2026-01-01', effectiveTo: '2026-12-31' },
-  { id: 'GP-4', commodity: 'Coffee', gradeCode: 'A', gradeName: 'Premium',   pricePerKg: 7_800, branch: 'all', effectiveFrom: '2026-01-01', effectiveTo: '2026-12-31' },
-  { id: 'GP-5', commodity: 'Coffee', gradeCode: 'B', gradeName: 'Standard',  pricePerKg: 6_000, branch: 'all', effectiveFrom: '2026-01-01', effectiveTo: '2026-12-31' },
-  { id: 'GP-6', commodity: 'Beans',  gradeCode: 'A', gradeName: 'Premium',   pricePerKg: 3_250, branch: 'all', effectiveFrom: '2026-01-01', effectiveTo: '2026-12-31' },
-  { id: 'GP-7', commodity: 'Beans',  gradeCode: 'B', gradeName: 'Standard',  pricePerKg: 2_500, branch: 'all', effectiveFrom: '2026-01-01', effectiveTo: '2026-12-31' },
-];
 
 @Component({
   selector: 'app-edit-prices',
@@ -72,8 +31,9 @@ const SEED_GRADE: GradePriceEntry[] = [
 })
 export class EditPricesComponent {
 
-  private fb    = inject(FormBuilder);
-  private toast = inject(ToastService);
+  private fb      = inject(FormBuilder);
+  private toast   = inject(ToastService);
+  private grading = inject(GradingService);
 
   // ── Mode toggle ────────────────────────────────────────────────────────────
 
@@ -89,8 +49,9 @@ export class EditPricesComponent {
   // ── Datasets ───────────────────────────────────────────────────────────────
 
   // Two completely separate datasets — the table shows only the active one.
-  flatEntries  = signal<FlatPriceEntry[]>([...SEED_FLAT]);
-  gradeEntries = signal<GradePriceEntry[]>([...SEED_GRADE]);
+  // Start empty when mock mode is off — real API responses will populate these.
+  flatEntries  = signal<FlatPriceEntry[]>(USE_MOCK  ? [...MOCK_FLAT_PRICE_ENTRIES]  : []);
+  gradeEntries = signal<GradePriceEntry[]>(USE_MOCK ? [...MOCK_GRADE_PRICE_ENTRIES] : []);
 
   get activeRows(): (FlatPriceEntry | GradePriceEntry)[] {
     return this.gradeMode() ? this.gradeEntries() : this.flatEntries();
@@ -116,18 +77,12 @@ export class EditPricesComponent {
 
   // ── Reference data ─────────────────────────────────────────────────────────
 
-  // Grade dropdown options pulled from the grade definitions configured in grade-config.
-  readonly gradeOptions = MOCK_GRADES;
+  // Grade dropdown options come from GradingService so they reflect the configured grade definitions.
+  get gradeOptions() { return this.grading.grades; }
 
   readonly branchOptions = [
-    { id: 'all',    name: 'All Branches' },
-    { id: 'BR-KLA', name: 'Kampala Central Branch' },
-    { id: 'BR-JIN', name: 'Jinja Branch' },
-    { id: 'BR-MBA', name: 'Mbarara Branch' },
-    { id: 'BR-FTP', name: 'Fort Portal Branch' },
-    { id: 'BR-ADJ', name: 'Adjumani Branch' },
-    { id: 'BR-GUL', name: 'Gulu Branch' },
-    { id: 'BR-MBL', name: 'Mbale Branch' },
+    { id: 'all', name: 'All Branches' },
+    ...MOCK_BRANCHES,
   ];
 
   branchLabel(id: string): string {

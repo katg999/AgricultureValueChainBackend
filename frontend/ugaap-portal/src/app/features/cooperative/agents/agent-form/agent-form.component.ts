@@ -2,10 +2,6 @@
 //
 // Register / edit a field agent. The same component serves both modes —
 // an :id route param switches it to edit and pre-fills the form.
-// Persistence goes through AgentsService (mock store today, API later).
-//
-// Layout follows the shared <app-form-wizard> shell (the farmer-register
-// design): step 1 captures identity, step 2 the branch assignment.
 
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -47,11 +43,11 @@ export class AgentFormComponent implements OnInit {
   private feedback = inject(FormFeedbackService);
 
   private readonly fieldLabels: Record<string, string> = {
-    fullName:  'Full Name',
+    fullName:   'Full Name',
     nationalId: 'National ID',
-    phone:     'Phone Number',
-    email:     'Email Address',
-    branchId:  'Branch',
+    phone:      'Phone Number',
+    email:      'Email Address',
+    branchId:   'Branch',
   };
 
   agentId: string | null = null;
@@ -76,24 +72,31 @@ export class AgentFormComponent implements OnInit {
     });
 
     if (this.isEditMode && this.agentId) {
-      const agent = this.agentsService.getById(this.agentId);
-      if (!agent) {
-        this.toast.error('Agent not found', 'The agent you tried to edit does not exist.');
-        this.router.navigate(['/cooperative/agents']);
-        return;
-      }
-      this.agentForm.patchValue({
-        fullName:   agent.fullName,
-        phone:      agent.phone,
-        email:      agent.email,
-        nationalId: agent.nationalId,
-        role:       agent.role,
-        branchId:   agent.branchId,
+      this.agentsService.getById(this.agentId).subscribe({
+        next: agent => {
+          if (!agent) {
+            this.toast.error('Agent not found', 'The agent you tried to edit does not exist.');
+            this.router.navigate(['/cooperative/agents']);
+            return;
+          }
+          this.agentForm.patchValue({
+            fullName:   agent.fullName,
+            phone:      agent.phone,
+            email:      agent.email,
+            nationalId: agent.nationalId,
+            role:       agent.role,
+            branchId:   agent.branchId,
+          });
+        },
+        error: () => {
+          this.toast.error('Failed to load agent', 'Could not retrieve agent details.');
+          this.router.navigate(['/cooperative/agents']);
+        },
       });
     }
   }
 
-  // ── Form helpers ──────────────────────────────────────────────────────────
+  // ── Form helpers ──────────────────────────────────────────────────────────────
 
   getFieldError(field: string): string {
     const ctrl = this.agentForm.get(field);
@@ -120,7 +123,7 @@ export class AgentFormComponent implements OnInit {
     return this.branches.find(b => b.id === this.agentForm.value.branchId)?.name ?? '—';
   }
 
-  // ── Save ──────────────────────────────────────────────────────────────────
+  // ── Save ──────────────────────────────────────────────────────────────────────
 
   saveAgent(): void {
     if (this.agentForm.invalid) {
@@ -134,15 +137,26 @@ export class AgentFormComponent implements OnInit {
   onConfirmSave(): void {
     this.showConfirmModal = false;
     const input = this.agentForm.value as AgentInput;
+    this.isSaving = true;
 
-    if (this.isEditMode && this.agentId) {
-      this.agentsService.update(this.agentId, input);
-      this.feedback.success('Agent updated', `${input.fullName}'s details have been saved.`);
-    } else {
-      const agent = this.agentsService.create(input);
-      this.feedback.success('Agent registered', `${agent.fullName} has been registered as ${agent.agentCode}.`);
-    }
+    const op$ = this.isEditMode && this.agentId
+      ? this.agentsService.update(this.agentId, input)
+      : this.agentsService.create(input);
 
-    this.router.navigate(['/cooperative/agents']);
+    op$.subscribe({
+      next: agent => {
+        this.isSaving = false;
+        if (this.isEditMode) {
+          this.feedback.success('Agent updated', `${input.fullName}'s details have been saved.`);
+        } else {
+          this.feedback.success('Agent registered', `${input.fullName} has been registered as ${agent.agentCode}.`);
+        }
+        this.router.navigate(['/cooperative/agents']);
+      },
+      error: err => {
+        this.isSaving = false;
+        this.toast.error('Save failed', err?.error?.message ?? 'Please try again.');
+      },
+    });
   }
 }

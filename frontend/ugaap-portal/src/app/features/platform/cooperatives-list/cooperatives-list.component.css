@@ -57,7 +57,6 @@
 .search-input {
   position: relative;
   flex: 1;
-  max-width: 400px;
 }
 
 .search-icon {
@@ -306,7 +305,6 @@
   }
 
   .search-input {
-    max-width: 100%;
     width: 100%;
   }
 

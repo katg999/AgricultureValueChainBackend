@@ -29,29 +29,12 @@ export const BRANCH_COLLECTIONS_ROUTES: Routes = [
         .then(m => m.FarmerDeliveriesListComponent),
   },
 
-  // Record new delivery
-  {
-    path: 'deliveries/add',
-    canActivate: [permissionGuard],
-    data: { title: 'Record Delivery', permissions: ['collections.record'] },
-    loadComponent: () =>
-      import('./farmer-delivery/farmer-delivery.component')
-        .then(m => m.AddFarmerDeliveryComponent),
-  },
-
-  // Correct an existing delivery
-  {
-    path: 'deliveries/edit/:id',
-    canActivate: [permissionGuard],
-    data: { title: 'Edit Delivery', permissions: ['collections.edit'] },
-    loadComponent: () =>
-      import('./farmer-delivery/farmer-delivery.component')
-        .then(m => m.AddFarmerDeliveryComponent),
-  },
-
-  // Legacy paths used by the branch dashboard — redirect to canonical routes
-  { path: 'farmer-deliveries/create', redirectTo: 'deliveries/add', pathMatch: 'full' },
-  { path: 'farmer-delivery/create',   redirectTo: 'deliveries/add', pathMatch: 'full' },
+  // Add/Edit Farmer Delivery is now an in-page modal on the deliveries list —
+  // legacy paths used by the branch dashboard redirect straight to it.
+  { path: 'deliveries/add',           redirectTo: 'deliveries',     pathMatch: 'full' },
+  { path: 'deliveries/edit/:id',      redirectTo: 'deliveries',     pathMatch: 'full' },
+  { path: 'farmer-deliveries/create', redirectTo: 'deliveries',     pathMatch: 'full' },
+  { path: 'farmer-delivery/create',   redirectTo: 'deliveries',     pathMatch: 'full' },
   { path: 'farmer-deliveries',        redirectTo: 'deliveries',     pathMatch: 'full' },
 
   {
