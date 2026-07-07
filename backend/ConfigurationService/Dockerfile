@@ -9,9 +9,9 @@ RUN mvn clean install -DskipTests
 
 # Now build the actual service — it can now resolve com.ugaap:shared
 WORKDIR /app/ConfigurationService
-COPY AuthenticationService/pom.xml .
+COPY ConfigurationService/pom.xml .
 RUN mvn dependency:go-offline -B
-COPY AuthenticationService/src src
+COPY ConfigurationService/src src
 RUN mvn clean package -DskipTests
 
 # ---- Run stage ----

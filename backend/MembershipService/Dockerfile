@@ -11,7 +11,7 @@ RUN mvn clean install -DskipTests
 WORKDIR /app/MembershipService
 COPY MembershipService/pom.xml .
 RUN mvn dependency:go-offline -B
-COPY MemberhsipService/src src
+COPY MembershipService/src src
 RUN mvn clean package -DskipTests
 
 # ---- Run stage ----
