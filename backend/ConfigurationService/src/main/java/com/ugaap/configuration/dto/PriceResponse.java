@@ -10,9 +10,11 @@ import java.util.UUID;
 @Builder
 public class PriceResponse {
     private UUID       id;
-    private String     gradeName;
-    private String     gradeCode;
-    private UUID       branchId;       // null = global
+    private String     commodityName;
+    private String     commodityCode;
+    private String     gradeName;    // null for flat prices
+    private String     gradeCode;    // null for flat prices
+    private String     branchName;
     private BigDecimal currentPrice;
     private BigDecimal newPrice;
     private BigDecimal changePercent;

@@ -1,5 +1,6 @@
 export interface FarmerDelivery {
   id: string;
+  branchDeliveryId?: string;  // links this record back to its parent BranchDelivery batch
   farmerId?: string;
   farmerName: string;
   commodity: string;

@@ -16,13 +16,15 @@ import { InputComponent } from '../../../../shared/components/input/input.compon
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { PermissionTabsComponent } from '../../../../shared/components/permission-tabs/permission-tabs.component';
 import { ToastService } from '../../../../core/services/toast.service';
+import { RolesService } from '../../../../core/services/roles.service';
+import { USE_MOCK } from '../../../../core/mock/mock-config';
 
 export interface GeneratedCredentials {
   roleName: string;
-  username: string;
-  fullName: string;
-  email: string;
-  temporaryPassword: string;
+  // username: string;
+  // fullName: string;
+  // email: string;
+  // temporaryPassword: string;
 }
 
 @Component({
@@ -63,6 +65,8 @@ export class RoleFormComponent implements OnInit {
     private http: HttpClient,
     private cdr: ChangeDetectorRef,
   ) {}
+
+  allPermissions: any[] = [];
 
   ngOnInit(): void {
     this.roleId = this.route.snapshot.paramMap.get('id');
@@ -107,6 +111,18 @@ export class RoleFormComponent implements OnInit {
 
   loadRoleData(): void {
     if (!this.roleId) return;
+
+    if (USE_MOCK) {
+      const role = this.rolesService.findById(this.roleId);
+      if (!role) {
+        this.errorMessage = 'Failed to load role data';
+        return;
+      }
+      this.roleForm.patchValue({ name: role.name, description: role.description });
+      this.selectedPermissions.set(this.rolesService.getPermissionsForRole(role));
+      return;
+    }
+
     this.http.get<any>(API_ENDPOINTS.ACCESS.ROLE_BY_ID(this.roleId)).subscribe({
       next: (role) => {
         this.roleForm.patchValue({
@@ -152,20 +168,20 @@ export class RoleFormComponent implements OnInit {
 
   // ── Credential helpers ────────────────────────────────────────────────────
 
-  copyAllCredentials(): void {
-    if (!this.generatedCredentials) return;
-    const { fullName, roleName, username, email, temporaryPassword } = this.generatedCredentials;
-    const text = `Full name: ${fullName}\nRole: ${roleName}\nUsername: ${username}\nEmail: ${email}\nPassword: ${temporaryPassword}`;
-    navigator.clipboard.writeText(text).then(() => {
-      this.credentialsCopied = true;
-      setTimeout(() => (this.credentialsCopied = false), 3000);
-    });
-  }
+  // copyAllCredentials(): void {
+  //   if (!this.generatedCredentials) return;
+  //   const { fullName, roleName, username, email, temporaryPassword } = this.generatedCredentials;
+  //   const text = `Full name: ${fullName}\nRole: ${roleName}\nUsername: ${username}\nEmail: ${email}\nPassword: ${temporaryPassword}`;
+  //   navigator.clipboard.writeText(text).then(() => {
+  //     this.credentialsCopied = true;
+  //     setTimeout(() => (this.credentialsCopied = false), 3000);
+  //   });
+  // }
 
-  dismissCredentials(): void {
-    this.generatedCredentials = null;
-    this.router.navigate(['/cooperative/roles']);
-  }
+  // dismissCredentials(): void {
+  //   this.generatedCredentials = null;
+  //   this.router.navigate(['/cooperative/roles']);
+  // }
 
   // ── Save ──────────────────────────────────────────────────────────────────
 

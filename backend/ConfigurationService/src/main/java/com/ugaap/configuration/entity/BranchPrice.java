@@ -10,8 +10,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(schema = "config", name = "branch_prices",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"grade_id", "branch_id"}))
+@Table(schema = "config", name = "branch_prices")
 @Data
 @Builder
 @NoArgsConstructor
@@ -23,12 +22,16 @@ public class BranchPrice {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "grade_id", nullable = false)
+    @JoinColumn(name = "commodity_id", nullable = false)
+    private Commodity commodity;
+
+    // null means this is a FLAT price (no grade differentiation)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "grade_id")
     private Grade grade;
 
-    // null means price applies to ALL branches
-    @Column(name = "branch_id")
-    private UUID branchId;
+    @Column(name = "branch_name", nullable = false)
+    private String branchName;
 
     @Column(nullable = false, precision = 12, scale = 2)
     @Builder.Default

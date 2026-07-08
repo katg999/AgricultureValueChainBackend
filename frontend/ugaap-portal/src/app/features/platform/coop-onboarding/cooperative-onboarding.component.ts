@@ -71,7 +71,7 @@ export class CooperativeOnboardingComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private cooperativeService: CooperativeService,
+    private cooperativeService: PlatformCooperativesService,
     private titleService: Title,
     private toast: ToastService,
     private feedback: FormFeedbackService,

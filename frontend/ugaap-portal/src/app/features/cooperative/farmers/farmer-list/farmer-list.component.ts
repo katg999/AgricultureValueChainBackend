@@ -5,7 +5,6 @@ import { Router } from '@angular/router';
 import { BehaviorSubject, combineLatest, map, Observable, Subject, takeUntil, tap } from 'rxjs';
 
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
-import { InputComponent } from '../../../../shared/components/input/input.component';
 import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
 import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
 import { FarmerListItem, FarmerService } from '../../../shared-farmer-domain/farmer.service';
@@ -14,7 +13,7 @@ import { ToastService } from '../../../../core/services/toast.service';
 @Component({
   selector: 'app-farmer-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, InputComponent, DataTableComponent, CellDirective],
+  imports: [CommonModule, FormsModule, DataTableComponent, CellDirective],
   templateUrl: './farmer-list.component.html',
   styleUrl: './farmer-list.component.css',
 })

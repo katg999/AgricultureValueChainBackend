@@ -2,6 +2,8 @@ import {
   Component,
   OnInit,
   OnDestroy,
+  Output,
+  EventEmitter,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
 } from '@angular/core';
@@ -15,11 +17,9 @@ import {
   ValidatorFn,
   ValidationErrors,
 } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, merge, EMPTY } from 'rxjs';
+import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import { SessionService } from '../../../../core/services/session.service';
 import { DeliverySessionConfigService } from '../../../../core/services/delivery-session-config.service';
 import { SeasonConfigService } from '../../../../core/services/season-config.service';
 import { AlertComponent } from '../../../../shared/components/alert/alert.component';
@@ -36,24 +36,10 @@ export interface Farmer {
   id: string;
   name: string;
   phone: string;
-  branch: string;
   branchId: string | null;
   currentSeason: Season;
   currentSession?: DeliverySession;
 }
-
-const BRANCH_NAMES: Record<string, string> = {
-  'BR-KLA': 'Kampala Central',
-  'BR-JIN': 'Jinja East',
-  'BR-MBA': 'Mbarara South',
-  'BR-FTP': 'Fort Portal West',
-  'BR-ADJ': 'Adjumani East',
-  'BR-GUL': 'Gulu North',
-  'BR-MBL': 'Mbale West',
-  'BR-KIB': 'Kiboga Central',
-  'BR-LIR': 'Lira Town',
-  'BR-MBA2': 'Mbale East',
-};
 
 export function ugandaPhoneValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
@@ -96,7 +82,8 @@ export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
   formSubmitAttempted = false;
   useGrades = false;
 
-  readonly branches = Object.values(BRANCH_NAMES);
+  @Output() closed = new EventEmitter<void>();
+
   readonly commodities = [
     'Maize',
     'Coffee',
@@ -136,11 +123,8 @@ export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly fb: FormBuilder,
-    private readonly router: Router,
-    private readonly route: ActivatedRoute,
     private readonly cdr: ChangeDetectorRef,
     private readonly deliveryService: FarmerDeliveryService,
-    private readonly session: SessionService,
     private readonly sessionConfig: DeliverySessionConfigService,
     private readonly seasonConfig: SeasonConfigService,
     public readonly pricingService: CooperativePricingService,
@@ -155,8 +139,6 @@ export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
       this.updateGradeValidators();
       this.cdr.markForCheck();
     });
-
-    this.watchValueChanges();
 
     this.deliveryService.deliveries$.pipe(takeUntil(this.destroy$)).subscribe((records) => {
       if (records && records.length > 0) {
@@ -177,13 +159,10 @@ export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
     this.deliveryForm = this.fb.group({
       farmerSearch: ['', Validators.required],
       phone: ['', [ugandaPhoneValidator()]],
-      branch: [BRANCH_NAMES[this.session.branchId() ?? ''] ?? '', Validators.required],
       commodity: ['', Validators.required],
       grade: [''],
       volume: [null, [Validators.required, positiveNumberValidator()]],
       volumeUnit: ['KG'],
-      unitPrice: [{ value: null, disabled: true }],
-      estimatedValue: [{ value: null, disabled: true }],
       notes: [''],
       season: [this.seasonConfig.activeSeason() ?? 'Wet Season', Validators.required],
       session: [this.sessionOptions[0] ?? null],
@@ -212,7 +191,6 @@ export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
           id: r.farmerId,
           name: r.farmerName,
           phone: r.notes || '',
-          branch: BRANCH_NAMES[this.session.branchId() ?? ''] ?? '',
           branchId: null,
           currentSeason: r.season as Season,
           currentSession: r.session as DeliverySession,
@@ -220,38 +198,6 @@ export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
       }
       return acc;
     }, []);
-  }
-
-  private watchValueChanges(): void {
-    this.deliveryForm
-      .get('volume')
-      ?.valueChanges.pipe(takeUntil(this.destroy$))
-      .subscribe(() => this.calcEstValue());
-
-    merge(
-      this.deliveryForm.get('commodity')?.valueChanges ?? EMPTY,
-      this.deliveryForm.get('grade')?.valueChanges ?? EMPTY,
-    )
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => this.updateUnitPrice());
-  }
-
-  private updateUnitPrice(): void {
-    const commodity = this.deliveryForm.get('commodity')?.value ?? '';
-    const gradeCode = this.deliveryForm.get('grade')?.value ?? '';
-    const branchId = this.session.branchId() ?? '';
-
-    const price = commodity
-      ? this.pricingService.getUnitPrice(
-          branchId,
-          commodity,
-          this.useGrades ? gradeCode : undefined,
-        )
-      : 0;
-
-    this.deliveryForm.patchValue({ unitPrice: price || null }, { emitEvent: false });
-    this.calcEstValue();
-    this.cdr.markForCheck();
   }
 
   onFarmerSearch(event: Event): void {
@@ -276,7 +222,6 @@ export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
             id: r.memberId,
             name: r.fullName,
             phone: '',
-            branch: '',
             branchId: r.branchId,
             currentSeason: this.seasonConfig.activeSeason() ?? 'Wet Season',
           }));
@@ -303,7 +248,6 @@ export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
     this.deliveryForm.patchValue({
       farmerSearch: `${farmer.name} (${farmer.id})`,
       phone: farmer.phone,
-      branch: farmer.branchId ?? 'N/A', // use branchId as display value
       season: farmer.currentSeason,
       session,
     });
@@ -315,7 +259,6 @@ export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
     this.deliveryForm.patchValue({
       farmerSearch: '',
       phone: '',
-      branch: BRANCH_NAMES[this.session.branchId() ?? ''] ?? '',
     });
     this.cdr.markForCheck();
   }
@@ -333,14 +276,6 @@ export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
       .slice(0, 2)
       .map((w) => w.charAt(0).toUpperCase())
       .join('');
-  }
-
-  calcEstValue(): void {
-    const volume = parseFloat(this.deliveryForm.get('volume')?.value) || 0;
-    const unitPrice = parseFloat(this.deliveryForm.getRawValue().unitPrice) || 0;
-    const gross = volume * unitPrice;
-    this.deliveryForm.patchValue({ estimatedValue: gross > 0 ? gross : null });
-    this.cdr.markForCheck();
   }
 
   onSubmit(): void {
@@ -400,7 +335,7 @@ export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
     this.submitted = true;
     this.successMessage = `Delivery for ${farmerName} logged successfully to the ledger.`;
     this.cdr.markForCheck();
-    setTimeout(() => this.goToBranchDeliveries(), 1500);
+    setTimeout(() => this.closed.emit(), 1500);
   }
 
   private onSaveError(err: any): void {
@@ -409,10 +344,6 @@ export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
     this.errorMessage =
       err.error?.message || 'Failed to record entry. Please check server connections and retry.';
     this.cdr.markForCheck();
-  }
-
-  goToBranchDeliveries(): void {
-    this.router.navigate(['/branch/collections/deliveries']);
   }
 
   sessionLabel(id: DeliverySession | undefined): string {
@@ -425,5 +356,3 @@ export class FarmerDeliveriesComponent implements OnInit, OnDestroy {
     return ctrl.invalid && (ctrl.touched || this.formSubmitAttempted);
   }
 }
-
-export { FarmerDeliveriesComponent as AddFarmerDeliveryComponent };

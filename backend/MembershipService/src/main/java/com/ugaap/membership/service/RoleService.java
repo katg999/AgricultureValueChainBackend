@@ -24,7 +24,7 @@ public class RoleService {
     private final RoleRepository       roleRepository;
     private final PermissionRepository permissionRepository;
 
-    // ── Create role ───────────────────────────────────────────
+    // ── Create role with permissions ─────────────────────────
 
     @Transactional
     public AccessManagementDto.RoleResponse createRole(
@@ -38,16 +38,18 @@ public class RoleService {
                             + "' already exists for this tenant");
         }
 
+        Set<Permission> permissions = resolvePermissions(request.getPermissions());
+
         Role role = Role.builder()
                 .tenantId(request.getTenantId())
                 .name(request.getName())
                 .description(request.getDescription())
-                .permissions(new HashSet<>())
+                .permissions(permissions)
                 .build();
 
         roleRepository.save(role);
-        log.info("Role created: name={}, tenantId={}",
-                request.getName(), request.getTenantId());
+        log.info("Role created: name={}, tenantId={}, permissionCount={}",
+                request.getName(), request.getTenantId(), permissions.size());
 
         return mapToResponse(role);
     }
@@ -61,21 +63,26 @@ public class RoleService {
                 .toList();
     }
 
-    // ── Assign permissions to role ────────────────────────────
+    // ── Delete role ───────────────────────────────────────────
 
     @Transactional
-    public AccessManagementDto.RoleResponse assignPermissions(
-            String roleId,
-            AccessManagementDto.AssignPermissionsRequest request) {
-
+    public void deleteRole(String roleId) {
         Role role = roleRepository.findById(UUID.fromString(roleId))
-                .orElseThrow(() -> new AuthException("Role not found: " + roleId));
+                .orElseThrow(() -> new AuthException(
+                        "Role not found: " + roleId));
+        roleRepository.delete(role);
+        log.info("Role deleted: roleId={}", roleId);
+    }
 
+    // ── Helpers ───────────────────────────────────────────────
+
+    private Set<Permission> resolvePermissions(List<AccessManagementDto.PermissionRequest> requests) {
         Set<Permission> permissions = new HashSet<>();
 
-        for (AccessManagementDto.PermissionRequest pr : request.getPermissions()) {
+        for (AccessManagementDto.PermissionRequest pr : requests) {
 
-            // Split comma-separated modules and actions, This allows to accept any structure from the frontend either comma separated values or individual objects
+            // Split comma-separated modules and actions, allowing either comma-separated
+            // values or individual objects from the frontend
             String[] modules = pr.getModule().split(",");
             String[] actions = pr.getAction().split(",");
 
@@ -98,25 +105,8 @@ public class RoleService {
             }
         }
 
-        role.setPermissions(permissions);
-        roleRepository.save(role);
-
-        log.info("Permissions assigned to roleId={}, count={}", roleId, permissions.size());
-        return mapToResponse(role);
+        return permissions;
     }
-
-    // ── Delete role ───────────────────────────────────────────
-
-    @Transactional
-    public void deleteRole(String roleId) {
-        Role role = roleRepository.findById(UUID.fromString(roleId))
-                .orElseThrow(() -> new AuthException(
-                        "Role not found: " + roleId));
-        roleRepository.delete(role);
-        log.info("Role deleted: roleId={}", roleId);
-    }
-
-    // ── Helper ────────────────────────────────────────────────
 
     private AccessManagementDto.RoleResponse mapToResponse(Role role) {
         List<AccessManagementDto.PermissionResponse> permissions =
@@ -136,5 +126,18 @@ public class RoleService {
                 .description(role.getDescription())
                 .permissions(permissions)
                 .build();
+    }
+
+    // RoleService
+    @Transactional
+    public AccessManagementDto.RoleResponse updateRole(String roleId, AccessManagementDto.CreateRoleRequest request) {
+        Role role = roleRepository.findById(UUID.fromString(roleId))
+                .orElseThrow(() -> new AuthException("Role not found: " + roleId));
+        role.setName(request.getName());
+        role.setDescription(request.getDescription());
+        role.setPermissions(resolvePermissions(request.getPermissions()));
+        roleRepository.save(role);
+        log.info("Role updated: roleId={}, permissionCount={}", roleId, role.getPermissions().size());
+        return mapToResponse(role);
     }
 }

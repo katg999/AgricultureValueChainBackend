@@ -32,7 +32,7 @@
             {{ useGrades ? 'and grade' : '' }}, then enter the volume delivered.
           </p>
         </div>
-        <button class="btn-close" type="button" (click)="goToBranchDeliveries()" aria-label="Close">
+        <button class="btn-close" type="button" (click)="closed.emit()" aria-label="Close">
           &#x2715;
         </button>
       </div>
@@ -129,7 +129,7 @@
         </div>
 
         <div class="afd-field-row">
-          <div class="field-group" [class.has-error]="isFieldInvalid('volume')">
+          <div class="field-group field-group--full" [class.has-error]="isFieldInvalid('volume')">
             <label for="volume">Volume</label>
             <div class="input-with-unit">
               <input
@@ -138,7 +138,6 @@
                 formControlName="volume"
                 placeholder="0"
                 min="0"
-                (input)="calcEstValue()"
               />
               <select title="volume-unit" formControlName="volumeUnit">
                 <option value="KG">KG</option>
@@ -147,38 +146,10 @@
             </div>
             <div class="field-error" *ngIf="isFieldInvalid('volume')">Volume is required.</div>
           </div>
-
-          <div class="field-group">
-            <label for="branch">Branch</label>
-            <input id="branch" type="text" formControlName="branch" readonly />
-          </div>
-        </div>
-
-        <div class="afd-field-row">
-          <div class="field-group">
-            <label for="unit-price">Unit Price (UGX/KG)</label>
-            <input
-              id="unit-price"
-              type="number"
-              formControlName="unitPrice"
-              placeholder="Select commodity first"
-              readonly
-            />
-          </div>
-          <div class="field-group">
-            <label for="est-value">Gross Value (UGX)</label>
-            <input
-              id="est-value"
-              type="number"
-              formControlName="estimatedValue"
-              placeholder="0"
-              readonly
-            />
-          </div>
         </div>
 
         <div class="afd-modal-footer">
-          <button type="button" class="btn-cancel" (click)="goToBranchDeliveries()">Cancel</button>
+          <button type="button" class="btn-cancel" (click)="closed.emit()">Cancel</button>
           <button type="submit" class="btn-primary" [disabled]="isSaving || isFormBlocked">
             <span class="spinner" *ngIf="isSaving" aria-hidden="true"></span>
             {{ isSaving ? 'Saving...' : 'Save Delivery' }}

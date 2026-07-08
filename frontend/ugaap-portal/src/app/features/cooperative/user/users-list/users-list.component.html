@@ -10,31 +10,27 @@
     <div class="stats-grid">
       <app-stat-card [delay]="0" [data]="{
         label: 'Total Users',
-        value: 480,
-        icon: 'users',
-        trend: '+12%',
-        trendUp: true
+        value: totalUsers,
+        icon: 'users'
       }"></app-stat-card>
 
       <app-stat-card [delay]="80" [data]="{
         label: 'Active Users',
-        value: 304,
+        value: activeUsers,
         icon: 'check',
-        trend: '+8%',
-        trendUp: true,
         status: 'active'
       }"></app-stat-card>
 
       <app-stat-card [delay]="160" [data]="{
         label: 'Inactive Users',
-        value: 103,
+        value: inactiveUsers,
         icon: 'alert',
         status: 'warning'
       }"></app-stat-card>
 
       <app-stat-card [delay]="240" [data]="{
         label: 'Locked Accounts',
-        value: 3,
+        value: lockedAccounts,
         icon: 'shield',
         status: 'critical'
       }"></app-stat-card>

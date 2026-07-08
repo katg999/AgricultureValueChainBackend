@@ -116,7 +116,7 @@ const COOPERATIVE_ADMIN_CONFIG: DashboardConfig = {
   navItems: [
     { label: 'Main', icon: 'home', route: '/cooperative/dashboard', permissionModule: 'dashboard' },
 
-    // Organisation Setup — branches, hubs, profile, bank accounts
+    // Organisation Profile — view and edit cooperative details
     {
       label: 'Organisation Setup',
       icon: 'building',

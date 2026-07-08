@@ -56,25 +56,21 @@ export interface PermissionService {
 
 export const PERMISSION_CATALOG: PermissionService[] = [
 
-  {
-    key: 'dashboard', name: 'Dashboard', icon: 'dashboard',
-    scopes: ['platform', 'cooperative', 'branch'],
-    permissions: [
-      { id: 'dashboard.view',    label: 'View dashboard',        description: 'See the landing dashboard with KPI cards' },
-      { id: 'dashboard.metrics', label: 'View detailed metrics', description: 'Drill into charts and trend breakdowns' },
-    ],
-  },
+  // {
+  //   key: 'dashboard', name: 'Dashboard', icon: 'dashboard',
+  //   scopes: ['platform', 'cooperative', 'branch'],
+  //   permissions: [
+  //     { id: 'dashboard.view',    label: 'View dashboard',        description: 'See the landing dashboard with KPI cards' },
+  //     { id: 'dashboard.metrics', label: 'View detailed metrics', description: 'Drill into charts and trend breakdowns' },
+  //   ],
+  // },
 
   {
-    key: 'organisation', name: 'Organisation Setup', icon: 'building',
+    key: 'organisation', name: 'Organisation Profile', icon: 'building',
     scopes: ['cooperative'],
     permissions: [
-      { id: 'organisation.view',    label: 'View organisation',         description: 'Open the organisation setup section' },
-      { id: 'organisation.create',  label: 'Onboard organisation',      description: 'Start the onboarding wizard' },
-      { id: 'organisation.edit',    label: 'Edit organisation details', description: 'Change registration and contact details' },
-      { id: 'organisation.submit',  label: 'Submit for approval',       description: 'Send changes into the maker-checker queue' },
-      { id: 'organisation.approve', label: 'Approve changes',           description: 'Checker approval of submitted changes' },
-      { id: 'organisation.reject',  label: 'Reject changes',            description: 'Checker rejection of submitted changes' },
+      { id: 'organisation.view', label: 'View organisation profile',  description: 'Open the organisation profile page' },
+      { id: 'organisation.edit', label: 'Edit organisation profile', description: 'Update registration, contact and bank details' },
     ],
   },
 

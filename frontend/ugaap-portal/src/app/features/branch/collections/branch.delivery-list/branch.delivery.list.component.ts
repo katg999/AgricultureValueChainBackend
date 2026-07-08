@@ -11,6 +11,8 @@ import { BranchDeliveryService } from '../branch.delivery.service';
 import { SessionService } from '../../../../core/services/session.service';
 import { DeliverySessionConfigService } from '../../../../core/services/delivery-session-config.service';
 import { ToastService } from '../../../../core/services/toast.service';
+import { PermissionsService } from '../../../../core/services/permissions.service';
+import { FarmerDeliveriesComponent } from '../farmer-delivery/farmer-delivery.component';
 
 @Component({
   selector: 'app-branch-deliveries',
@@ -20,6 +22,7 @@ import { ToastService } from '../../../../core/services/toast.service';
     FormsModule,
     DataTableComponent,
     CellDirective,
+    FarmerDeliveriesComponent,
   ],
   templateUrl: './branch.delivery.list.component.html',
   styleUrls: ['./branch.delivery.list.component.css'],
@@ -55,6 +58,12 @@ export class BranchDeliveriesComponent implements OnInit, OnDestroy {
     return Array.from({ length: Math.ceil(this.totalCount / this.itemsPerPage) }, (_, i) => i + 1);
   }
 
+  showAddModal = false;
+
+  get canRecordDelivery(): boolean {
+    return this.permissions.hasAny(['collections.record']);
+  }
+
   openActionMenuId: string | null = null;
   menuPosition: { top?: number; bottom?: number; right: number } = { right: 0 };
 
@@ -70,6 +79,7 @@ export class BranchDeliveriesComponent implements OnInit, OnDestroy {
     private session: SessionService,
     private sessionConfig: DeliverySessionConfigService,
     private toast: ToastService,
+    private permissions: PermissionsService,
   ) {}
 
   ngOnInit(): void {
@@ -144,7 +154,15 @@ export class BranchDeliveriesComponent implements OnInit, OnDestroy {
   }
 
   addFarmerDelivery(): void {
-    this.router.navigate(['/branch/collections/deliveries/add']);
+    if (!this.canRecordDelivery) return;
+    this.showAddModal = true;
+  }
+
+  // Re-run the fetch that ngOnInit does, since staying on this page (instead of
+  // navigating away and back) no longer triggers it automatically.
+  onAddModalClosed(): void {
+    this.showAddModal = false;
+    this.svc.getDeliveries().subscribe();
   }
 
   // Navigate to the farmer list scoped to this delivery batch.

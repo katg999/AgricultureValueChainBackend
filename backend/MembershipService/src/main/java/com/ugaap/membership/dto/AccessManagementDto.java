@@ -68,6 +68,9 @@ public class AccessManagementDto {
 
         private String description;
         private String tenantId; // null = platform-wide
+
+        @NotNull(message = "Permissions are required")
+        private List<PermissionRequest> permissions;
     }
 
     @Data
@@ -91,14 +94,8 @@ public class AccessManagementDto {
         private String description;
     }
 
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
-    public static class AssignPermissionsRequest {
-        @NotNull
-        private List<PermissionRequest> permissions;
-    }
+
+
 
     @Data
     @Builder
