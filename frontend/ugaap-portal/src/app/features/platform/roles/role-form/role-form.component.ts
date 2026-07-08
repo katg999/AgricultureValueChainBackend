@@ -11,6 +11,8 @@ import { InputComponent } from '../../../../shared/components/input/input.compon
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { PermissionTabsComponent } from '../../../../shared/components/permission-tabs/permission-tabs.component';
 import { ToastService } from '../../../../core/services/toast.service';
+import { USE_MOCK } from '../../../../core/mock/mock-config';
+import { RolesService } from '../../../../core/services/roles.service';
 
 @Component({
   selector: 'app-role-form',
@@ -43,6 +45,7 @@ export class RoleFormComponent implements OnInit {
     private router: Router,
     private http: HttpClient,
     private toast: ToastService,
+    private rolesService: RolesService,
   ) {}
 
   ngOnInit(): void {
