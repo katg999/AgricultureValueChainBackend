@@ -9,15 +9,15 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { Title } from '@angular/platform-browser';
 import { finalize, timeout } from 'rxjs';
 
-import { FormShellComponent }   from '../../../shared/components/form-wizard/form-wizard.component';
+import { FormShellComponent } from '../../../shared/components/form-wizard/form-wizard.component';
 import { FormSectionComponent } from '../../../shared/components/form-section/form-section.component';
-import { InputComponent }       from '../../../shared/components/input/input.component';
-import { ButtonComponent }      from '../../../shared/components/button/button.component';
-import { ModalComponent }       from '../../../shared/components/modal/modal.component';
-import { AlertComponent }       from '../../../shared/components/alert/alert.component';
-import { CooperativeService }      from '../../../core/services/cooperative.service';
-import { ToastService }            from '../../../core/services/toast.service';
-import { FormFeedbackService }     from '../../../core/services/form-feedback.service';
+import { InputComponent } from '../../../shared/components/input/input.component';
+import { ButtonComponent } from '../../../shared/components/button/button.component';
+import { ModalComponent } from '../../../shared/components/modal/modal.component';
+import { AlertComponent } from '../../../shared/components/alert/alert.component';
+import { CooperativeService } from '../../../core/services/cooperative.service';
+import { ToastService } from '../../../core/services/toast.service';
+import { FormFeedbackService } from '../../../core/services/form-feedback.service';
 
 @Component({
   selector: 'app-cooperative-onboarding',
@@ -37,7 +37,6 @@ import { FormFeedbackService }     from '../../../core/services/form-feedback.se
   styleUrls: ['./cooperative-onboarding.component.css'],
 })
 export class CooperativeOnboardingComponent implements OnInit {
-
   profileForm!: FormGroup;
 
   // Admin photo previews — stored as base64 strings, not part of the FormGroup
@@ -51,19 +50,19 @@ export class CooperativeOnboardingComponent implements OnInit {
   isLoading = false;
 
   private readonly fieldLabels: Record<string, string> = {
-    name:                  'Cooperative Name',
-    registrationNumber:    'Registration Number',
-    defaultBranchName:     'Default Branch Name',
-    address:               'Address',
-    country:               'Country',
-    accountName:           'Account Name',
-    accountNumber:         'Account Number',
-    admin1FullName:        'Admin 1 Full Name',
-    admin1Email:           'Admin 1 Email',
-    admin1Phone:           'Admin 1 Phone',
-    admin2FullName:        'Admin 2 Full Name',
-    admin2Email:           'Admin 2 Email',
-    admin2Phone:           'Admin 2 Phone',
+    name: 'Cooperative Name',
+    registrationNumber: 'Registration Number',
+    defaultBranchName: 'Default Branch Name',
+    address: 'Address',
+    country: 'Country',
+    accountName: 'Account Name',
+    accountNumber: 'Account Number',
+    admin1FullName: 'Admin 1 Full Name',
+    admin1Email: 'Admin 1 Email',
+    admin1Phone: 'Admin 1 Phone',
+    admin2FullName: 'Admin 2 Full Name',
+    admin2Email: 'Admin 2 Email',
+    admin2Phone: 'Admin 2 Phone',
   };
 
   // Gender options shared by both admin sections
@@ -88,38 +87,38 @@ export class CooperativeOnboardingComponent implements OnInit {
   initProfileForm(): void {
     this.profileForm = this.fb.group({
       // Section 1 — Identity
-      name:                  ['', Validators.required],
-      registrationNumber:    ['', Validators.required],
-      defaultBranchName:     ['', Validators.required],
+      name: ['', Validators.required],
+      registrationNumber: ['', Validators.required],
+      defaultBranchName: ['', Validators.required],
       defaultBranchLocation: [''],
 
       // Section 2 — Address
-      address:    ['', Validators.required],
-      country:    ['', Validators.required],
-      poBox:      [''],
+      address: ['', Validators.required],
+      country: ['', Validators.required],
+      poBox: [''],
       websiteUrl: [''],
 
       // Section 4 — Bank Account (fixed to Pearl Bank)
-      bankName:      ['Pearl Bank'],
-      bankBranch:    [''],
-      accountName:   ['', Validators.required],
+      bankName: ['Pearl Bank'],
+      bankBranch: [''],
+      accountName: ['', Validators.required],
       accountNumber: ['', [Validators.required, Validators.pattern(/^\d{6,20}$/)]],
 
       // Section 5 — Admin 1 (formerly Maker)
-      admin1FullName:    ['', Validators.required],
-      admin1Email:       ['', [Validators.required, Validators.email]],
-      admin1Phone:       ['', Validators.required],
+      admin1FullName: ['', Validators.required],
+      admin1Email: ['', [Validators.required, Validators.email]],
+      admin1Phone: ['', Validators.required],
       admin1DateOfBirth: [''],
-      admin1NationalId:  ['', Validators.pattern(/^[A-Z0-9]{14}$/)],
-      admin1Gender:      ['Female'],
+      admin1NationalId: ['', Validators.pattern(/^[A-Z0-9]{14}$/)],
+      admin1Gender: ['Female'],
 
       // Section 6 — Admin 2 (formerly Checker)
-      admin2FullName:    ['', Validators.required],
-      admin2Email:       ['', [Validators.required, Validators.email]],
-      admin2Phone:       ['', Validators.required],
+      admin2FullName: ['', Validators.required],
+      admin2Email: ['', [Validators.required, Validators.email]],
+      admin2Phone: ['', Validators.required],
       admin2DateOfBirth: [''],
-      admin2NationalId:  ['', Validators.pattern(/^[A-Z0-9]{14}$/)],
-      admin2Gender:      ['Female'],
+      admin2NationalId: ['', Validators.pattern(/^[A-Z0-9]{14}$/)],
+      admin2Gender: ['Female'],
     });
   }
 
@@ -137,7 +136,10 @@ export class CooperativeOnboardingComponent implements OnInit {
     if (file) this.handleAdminPhoto(file, 1);
   }
 
-  removeAdmin1Photo(): void { this.admin1Photo = ''; this.admin1PhotoName = ''; }
+  removeAdmin1Photo(): void {
+    this.admin1Photo = '';
+    this.admin1PhotoName = '';
+  }
 
   // ── Photo handling — Admin 2 ──────────────────────────────────────────────
 
@@ -153,20 +155,23 @@ export class CooperativeOnboardingComponent implements OnInit {
     if (file) this.handleAdminPhoto(file, 2);
   }
 
-  removeAdmin2Photo(): void { this.admin2Photo = ''; this.admin2PhotoName = ''; }
+  removeAdmin2Photo(): void {
+    this.admin2Photo = '';
+    this.admin2PhotoName = '';
+  }
 
   private handleAdminPhoto(file: File, which: 1 | 2): void {
     const maxBytes = 5 * 1024 * 1024; // 5 MB
     if (!['image/jpeg', 'image/png'].includes(file.type) || file.size > maxBytes) return;
 
     if (which === 1) this.admin1PhotoName = file.name;
-    else             this.admin2PhotoName = file.name;
+    else this.admin2PhotoName = file.name;
 
     const reader = new FileReader();
     reader.onload = () => {
       const result = typeof reader.result === 'string' ? reader.result : '';
       if (which === 1) this.admin1Photo = result;
-      else              this.admin2Photo = result;
+      else this.admin2Photo = result;
     };
     reader.readAsDataURL(file);
   }
@@ -200,68 +205,73 @@ export class CooperativeOnboardingComponent implements OnInit {
     const v = this.profileForm.value;
 
     const payload = {
-      name:               v.name,
+      name: v.name,
       registrationNumber: v.registrationNumber,
-      address:            v.address,
-      country:            v.country,
-      poBox:              v.poBox,
-      websiteUrl:         v.websiteUrl,
-      defaultBranchName:     v.defaultBranchName,
+      address: v.address,
+      country: v.country,
+      poBox: v.poBox,
+      websiteUrl: v.websiteUrl,
+      defaultBranchName: v.defaultBranchName,
       defaultBranchLocation: v.defaultBranchLocation,
 
       bankDetails: {
-        bankName:      v.bankName,
-        bankBranch:    v.bankBranch,
-        accountName:   v.accountName,
+        bankName: v.bankName,
+        bankBranch: v.bankBranch,
+        accountName: v.accountName,
         accountNumber: v.accountNumber,
       },
 
       // Admin accounts sent as part of the cooperative creation payload
       admin1: {
-        fullName:    v.admin1FullName,
-        email:       v.admin1Email,
-        phone:       v.admin1Phone,
+        fullName: v.admin1FullName,
+        email: v.admin1Email,
+        phone: v.admin1Phone,
         dateOfBirth: v.admin1DateOfBirth,
-        nationalId:  v.admin1NationalId,
-        gender:      v.admin1Gender,
+        nationalId: v.admin1NationalId,
+        gender: v.admin1Gender,
         photoBase64: this.admin1Photo || null,
       },
       admin2: {
-        fullName:    v.admin2FullName,
-        email:       v.admin2Email,
-        phone:       v.admin2Phone,
+        fullName: v.admin2FullName,
+        email: v.admin2Email,
+        phone: v.admin2Phone,
         dateOfBirth: v.admin2DateOfBirth,
-        nationalId:  v.admin2NationalId,
-        gender:      v.admin2Gender,
+        nationalId: v.admin2NationalId,
+        gender: v.admin2Gender,
         photoBase64: this.admin2Photo || null,
       },
     };
 
-    this.cooperativeService.createCooperative(payload).pipe(
-      timeout(30_000),
-      finalize(() => { this.isLoading = false; }),
-    ).subscribe({
-      next: () => {
-        this.showConfirmModal = false;
-        this.toast.success(
-          'Cooperative activated',
-          `${v.name} has been registered and both admin accounts created.`,
-        );
-        this.router.navigate(['/platform/cooperatives']);
-      },
-      error: (err) => {
-        this.feedback.serverError(err);
-      },
-    });
+    this.cooperativeService
+      .createCooperative(payload)
+      .pipe(
+        timeout(30_000),
+        finalize(() => {
+          this.isLoading = false;
+        }),
+      )
+      .subscribe({
+        next: () => {
+          this.showConfirmModal = false;
+          this.toast.success(
+            'Cooperative activated',
+            `${v.name} has been registered and both admin accounts created.`,
+          );
+          this.router.navigate(['/platform/cooperatives']);
+        },
+        error: (err) => {
+          this.feedback.serverError(err);
+        },
+      });
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
-getFieldError(fieldName: string): string {
+  getFieldError(fieldName: string): string {
     const control = this.profileForm.get(fieldName);
     if (control?.touched && control?.errors) {
       if (control.errors['required']) return 'This field is required';
-      if (control.errors['email'])    return 'Invalid email format';
+      if (control.errors['email']) return 'Invalid email format';
       if (control.errors['pattern']) {
         if (fieldName === 'accountNumber') return 'Account number must be 6–20 digits';
         if (fieldName === 'admin1NationalId' || fieldName === 'admin2NationalId')

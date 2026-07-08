@@ -8,147 +8,139 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 //const BASE = 'http://localhost:8083'; // API-Gateway call
-const BASE = 'http://192.168.100.20:8083';
+const BASE = 'http://192.168.100.20:8083'; // Local gateway — used until remaining services are deployed
+
+const AUTH_BASE = 'https://agriculturevaluechainbackend.onrender.com'; // Deployed AuthenticationService
+const MEMBERSHIP_BASE = 'https://agriculturevaluechainbackend-1.onrender.com'; // Deployed MembershipService
 
 export const API_ENDPOINTS = {
   // ── Authentication ──────────────────────────────────────────────────────────
   AUTH: {
-    LOGIN: `${BASE}/auth/login`,
-    LOGOUT: `${BASE}/auth/logout`,
-    VERIFY_OTP: `${BASE}/auth/login/verify-otp`,
-    VERIFY_PASSWORD_RESET_OTP: `${BASE}/auth/password-reset/verify-otp`,
-    REFRESH_TOKEN: `${BASE}/auth/refresh-token`,
-    FORGOT_PASSWORD: `${BASE}/auth/password-reset/request`,
-    RESET_PASSWORD: `${BASE}/auth/password-reset/set-password`,
-    RESEND_OTP: `${BASE}/auth/resend-otp`,
+    LOGIN: `${AUTH_BASE}/auth/login`,
+    LOGOUT: `${AUTH_BASE}/auth/logout`,
+    VERIFY_OTP: `${AUTH_BASE}/auth/login/verify-otp`,
+    VERIFY_PASSWORD_RESET_OTP: `${AUTH_BASE}/auth/password-reset/verify-otp`,
+    REFRESH_TOKEN: `${AUTH_BASE}/auth/refresh-token`,
+    FORGOT_PASSWORD: `${AUTH_BASE}/auth/password-reset/request`,
+    RESET_PASSWORD: `${AUTH_BASE}/auth/password-reset/set-password`,
+    RESEND_OTP: `${AUTH_BASE}/auth/resend-otp`,
   },
 
   // ── Platform Admin ──────────────────────────────────────────────────────────
   PLATFORM: {
-    COOPERATIVES: `${BASE}/api/v1/cooperatives`,
-    COOPERATIVE_BY_ID: (id: string) => `${BASE}/api/v1/cooperatives/${id}`,
-    ACTIVATE_COOPERATIVE: (id: string) => `${BASE}/api/v1/cooperatives/${id}/activate`,
-    DEACTIVATE_COOPERATIVE: (id: string) => `${BASE}/api/v1/cooperatives/${id}/deactivate`,
+    COOPERATIVES: `${MEMBERSHIP_BASE}/api/v1/cooperatives`,
+    COOPERATIVE_BY_ID: (id: string) => `${MEMBERSHIP_BASE}/api/v1/cooperatives/${id}`,
+    ACTIVATE_COOPERATIVE: (id: string) => `${MEMBERSHIP_BASE}/api/v1/cooperatives/${id}/activate`,
+    DEACTIVATE_COOPERATIVE: (id: string) =>
+      `${MEMBERSHIP_BASE}/api/v1/cooperatives/${id}/deactivate`,
   },
 
   // ── Cooperative Admin ───────────────────────────────────────────────────────
   COOPERATIVE: {
-    DASHBOARD: `${BASE}/api/v1/cooperatives/dashboard`,
-    GRADING: `${BASE}/api/v1/cooperatives/grading`,
-    PRICING: `${BASE}/api/v1/cooperatives/pricing`,
+    DASHBOARD: `${MEMBERSHIP_BASE}/api/v1/cooperatives/dashboard`,
+    GRADING: `${BASE}/api/v1/grades`, // ConfigurationService — not yet deployed
+    PRICING: `${MEMBERSHIP_BASE}/api/v1/cooperatives/pricing`,
 
-    // Farmers (Mapped to FarmerController)
-    FARMERS: `${BASE}/api/v1/farmers/search`,
-    FARMER_BY_ID: (id: string) => `${BASE}/api/v1/farmers/${id}`,
-    FARMER_APPROVE: (id: string) => `${BASE}/api/v1/farmers/${id}/approve`,
-    FARMER_REJECT: (id: string) => `${BASE}/api/v1/farmers/${id}/reject`,
+    FARMERS: `${MEMBERSHIP_BASE}/api/v1/farmers/search`,
+    FARMER_BY_ID: (id: string) => `${MEMBERSHIP_BASE}/api/v1/farmers/${id}`,
+    FARMER_APPROVE: (id: string) => `${MEMBERSHIP_BASE}/api/v1/farmers/${id}/approve`,
+    FARMER_REJECT: (id: string) => `${MEMBERSHIP_BASE}/api/v1/farmers/${id}/reject`,
 
-    ALL: `${BASE}/api/v1/cooperatives`,
+    ALL: `${MEMBERSHIP_BASE}/api/v1/cooperatives`,
 
-    // Branches
-    BRANCHES: `${BASE}/api/v1/cooperatives/branches`,
-    BRANCH_BY_ID: (id: string) => `${BASE}/api/v1/cooperatives/branches/${id}`,
+    BRANCHES: `${MEMBERSHIP_BASE}/api/v1/cooperatives/branches`,
+    BRANCH_BY_ID: (id: string) => `${MEMBERSHIP_BASE}/api/v1/cooperatives/branches/${id}`,
 
-    // Cooperative collections aggregation (Mapped to CooperativeCollectionController)
-    COLLECTIONS: `${BASE}/cooperative/collections`,
+    COLLECTIONS: `${MEMBERSHIP_BASE}/cooperative/collections`,
 
-    // Session/season configuration (Mapped to CooperativeCollectionController)
-    SESSION_CONFIG: `${BASE}/cooperative/session-config`,
-    SEASON_CONFIG: `${BASE}/cooperative/season-config`,
+    SESSION_CONFIG: `${MEMBERSHIP_BASE}/cooperative/session-config`,
+    SEASON_CONFIG: `${MEMBERSHIP_BASE}/cooperative/season-config`,
 
-    PAYMENT_BATCHES: `${BASE}/api/v1/settlements/batches`,
-    PAYMENT_FARMERS: `${BASE}/api/v1/settlements/farmers`,
+    PAYMENT_BATCHES: `${BASE}/api/v1/settlements/batches`, // not yet deployed
+    PAYMENT_FARMERS: `${BASE}/api/v1/settlements/farmers`, // not yet deployed
 
-    // Inventory Service (Staged Next Deployment)
-    INVENTORY: `${BASE}/api/v1/inventory`,
-    USERS: `${BASE}/api/v1/access/users`,
-    USER_BY_ID: (id: string) => `${BASE}/api/v1/access/users/${id}`,
+    INVENTORY: `${BASE}/api/v1/inventory`, // InventoryService — not yet deployed
+    USERS: `${MEMBERSHIP_BASE}/api/v1/access/users`,
+    USER_BY_ID: (id: string) => `${MEMBERSHIP_BASE}/api/v1/access/users/${id}`,
 
-    AGENTS: `${BASE}/api/v1/cooperatives/agents`,
-    AGENT_BY_ID: (id: string) => `${BASE}/api/v1/cooperatives/agents/${id}`,
-    AGENT_DEACTIVATE: (id: string) => `${BASE}/api/v1/cooperatives/agents/${id}/deactivate`,
-    AGENT_ACTIVATE: (id: string) => `${BASE}/api/v1/cooperatives/agents/${id}/activate`,
+    AGENTS: `${MEMBERSHIP_BASE}/api/v1/cooperatives/agents`,
+    AGENT_BY_ID: (id: string) => `${MEMBERSHIP_BASE}/api/v1/cooperatives/agents/${id}`,
+    AGENT_DEACTIVATE: (id: string) =>
+      `${MEMBERSHIP_BASE}/api/v1/cooperatives/agents/${id}/deactivate`,
+    AGENT_ACTIVATE: (id: string) => `${MEMBERSHIP_BASE}/api/v1/cooperatives/agents/${id}/activate`,
 
-    // Collection hubs
-    COLLECTION_HUBS: `${BASE}/cooperative/collection-hubs`,
-    COLLECTION_HUB_BY_ID: (id: string) => `${BASE}/cooperative/collection-hubs/${id}`,
-    COLLECTION_HUB_ACTIVATE: (id: string) => `${BASE}/cooperative/collection-hubs/${id}/activate`,
+    COLLECTION_HUBS: `${MEMBERSHIP_BASE}/cooperative/collection-hubs`,
+    COLLECTION_HUB_BY_ID: (id: string) => `${MEMBERSHIP_BASE}/cooperative/collection-hubs/${id}`,
+    COLLECTION_HUB_ACTIVATE: (id: string) =>
+      `${MEMBERSHIP_BASE}/cooperative/collection-hubs/${id}/activate`,
     COLLECTION_HUB_DEACTIVATE: (id: string) =>
-      `${BASE}/cooperative/collection-hubs/${id}/deactivate`,
+      `${MEMBERSHIP_BASE}/cooperative/collection-hubs/${id}/deactivate`,
   },
 
-  // ── Branches Infrastructure ──────────────────────────────────────────────────
   BRANCHES: {
-    CREATE: `${BASE}/api/v1/branches`,
-    LIST: (tenantId: string) => `${BASE}/api/v1/branches?tenantId=${tenantId}`,
-    BY_ID: (id: string) => `${BASE}/api/v1/branches/${id}`,
+    CREATE: `${MEMBERSHIP_BASE}/api/v1/branches`,
+    LIST: (tenantId: string) => `${MEMBERSHIP_BASE}/api/v1/branches?tenantId=${tenantId}`,
+    BY_ID: (id: string) => `${MEMBERSHIP_BASE}/api/v1/branches/${id}`,
   },
 
-  // ── Members (Farmer registration — membership-service) ───────────────────────
   MEMBERS: {
-    REGISTER: `${BASE}/api/v1/members`,
-    BY_ID: (id: string) => `${BASE}/api/v1/members/${id}`,
+    REGISTER: `${MEMBERSHIP_BASE}/api/v1/members`,
+    BY_ID: (id: string) => `${MEMBERSHIP_BASE}/api/v1/members/${id}`,
     LIST: (tenantId: string, branchId?: string) =>
       branchId
-        ? `${BASE}/api/v1/members?tenantId=${tenantId}&branchId=${branchId}`
-        : `${BASE}/api/v1/members?tenantId=${tenantId}`,
+        ? `${MEMBERSHIP_BASE}/api/v1/members?tenantId=${tenantId}&branchId=${branchId}`
+        : `${MEMBERSHIP_BASE}/api/v1/members?tenantId=${tenantId}`,
   },
 
-  // ── Branch Staff ────────────────────────────────────────────────────────────
-  // Scoped to a single branch (X-Branch-ID header set by interceptor)
-  // ── Branch Staff operations ──────────────────────────────────────────────────
   BRANCH: {
-    DASHBOARD: `${BASE}/api/v1/branches/dashboard`,
-    DAILY_GRADING: `${BASE}/api/v1/branches/daily-grading`,
+    DASHBOARD: `${MEMBERSHIP_BASE}/api/v1/branches/dashboard`,
+    DAILY_GRADING: `${MEMBERSHIP_BASE}/api/v1/branches/daily-grading`,
 
-    // Branch collections aggregation (Mapped to BranchCollectionController)
-    COLLECTIONS: `${BASE}/branch/collections`,
+    COLLECTIONS: `${MEMBERSHIP_BASE}/branch/collections`,
 
-    // Branch farmer delivery ledger entry CRUD (Mapped to BranchCollectionController)
-    FARMER_DELIVERIES: `${BASE}/branch/farmer-deliveries`,
-    FARMER_DELIVERY_BY_ID: (id: string) => `${BASE}/branch/farmer-deliveries/${id}`,
-    // Backward-compat alias (some components/services may reference this old key)
-    FARMER_DELIVERIES_BY_ID: (id: string) => `${BASE}/branch/farmer-deliveries/${id}`,
+    FARMER_DELIVERIES: `${MEMBERSHIP_BASE}/branch/farmer-deliveries`,
+    FARMER_DELIVERY_BY_ID: (id: string) => `${MEMBERSHIP_BASE}/branch/farmer-deliveries/${id}`,
+    FARMER_DELIVERIES_BY_ID: (id: string) => `${MEMBERSHIP_BASE}/branch/farmer-deliveries/${id}`,
 
-    // Farmer Registry Lookup (FarmerController)
-    FARMERS: `${BASE}/api/v1/farmers/search`,
-    FARMER_BY_ID: (id: string) => `${BASE}/api/v1/farmers/${id}`,
+    FARMERS: `${MEMBERSHIP_BASE}/api/v1/farmers/search`,
+    FARMER_BY_ID: (id: string) => `${MEMBERSHIP_BASE}/api/v1/farmers/${id}`,
 
-    // Branch-level farmer-deliveries listing (Mapped to BranchCollectionController)
-    // (This reuses the same endpoint as FARMER_DELIVERIES with GET semantics)
+    INVENTORY: `${BASE}/api/v1/inventory/branch`, // not yet deployed
 
-    // Branch Inventory Hooks (Prepared for INVENTORY-SERVICE)
-    INVENTORY: `${BASE}/api/v1/inventory/branch`,
-
-    // Inter-Service Settlements Synchronizer (SettlementController)
-    BATCHES: `${BASE}/api/v1/settlements/batch-recover`,
-    BATCH_BY_ID: (id: string) => `${BASE}/api/v1/settlements/${id}`,
-    PAYMENT_FARMERS: `${BASE}/api/v1/settlements/farmers`,
+    BATCHES: `${BASE}/api/v1/settlements/batch-recover`, // not yet deployed
+    BATCH_BY_ID: (id: string) => `${BASE}/api/v1/settlements/${id}`, // not yet deployed
+    PAYMENT_FARMERS: `${BASE}/api/v1/settlements/farmers`, // not yet deployed
   },
 
-  USERS: `${BASE}/api/v1/access/users`,
+  USERS: `${MEMBERSHIP_BASE}/api/v1/access/users`,
 
-  // ── Inventory Service — real backend paths ──────────────────────────────────
-  // The COOPERATIVE.INVENTORY and BRANCH.INVENTORY constants above are the
-  // PLANNED gateway routes (not yet wired in the gateway config).
-  // These paths below are where the InventoryService microservice actually listens.
-  // The frontend uses these directly until the gateway routing is set up.
   INVENTORY_BACKEND: {
-    STOCK_ALL: `${BASE}/api/input-stock/all`, // GET ?cooperativeId=X or ?branchId=X
-    STOCK_CREATE: `${BASE}/api/input-stock`, // POST — add new stock
-    ALLOCATION_ISSUE: `${BASE}/api/allocations/issue`,
+    STOCK_ALL: `${BASE}/api/input-stock/all`, // not yet deployed
+    STOCK_CREATE: `${BASE}/api/input-stock`, // not yet deployed
+    ALLOCATION_ISSUE: `${BASE}/api/allocations/issue`, // not yet deployed
     ALLOCATIONS_BY_BRANCH: (branchId: string) => `${BASE}/api/allocations/branch/${branchId}`,
     ALLOCATIONS_BY_COOP: (coopId: string) => `${BASE}/api/allocations/cooperative/${coopId}`,
   },
 
-  // ── Access Control (Roles & Permissions) ───────────────────────────────────
-  // Scoped to the current cooperative; used by the User management feature
+  CONFIGURATION: {
+    GRADES: `${BASE}/api/v1/grades`, // not yet deployed
+    GRADE_BY_ID: (id: string) => `${BASE}/api/v1/grades/${id}`,
+
+    COMMODITIES: `${BASE}/api/v1/commodities`,
+    COMMODITY_BY_ID: (id: string) => `${BASE}/api/v1/commodities/${id}`,
+
+    PRICE_FLAT: `${BASE}/api/v1/prices/flat`,
+    PRICE_GRADE: `${BASE}/api/v1/prices/grade`,
+    PRICES_ALL: `${BASE}/api/v1/prices`,
+    PRICES_BY_BRANCH: (branchName: string) =>
+      `${BASE}/api/v1/prices/branch/${encodeURIComponent(branchName)}`,
+    PRICES_BY_COMMODITY: (commodityId: string) => `${BASE}/api/v1/prices/commodity/${commodityId}`,
+  },
+
   ACCESS: {
-    ROLES: `${BASE}/api/v1/access/roles`,
-    ROLE_BY_ID: (id: string) => `${BASE}/api/v1/access/roles/${id}`,
-    ROLE_PERMISSIONS: (id: string) => `${BASE}/api/v1/access/roles/${id}/permissions`,
-    USERS: `${BASE}/api/v1/access/users`,
-    USER_BY_ID: (id: string) => `${BASE}/api/v1/access/users/${id}`,
+    ROLES: `${MEMBERSHIP_BASE}/api/v1/access/roles`,
+    ROLE_BY_ID: (id: string) => `${MEMBERSHIP_BASE}/api/v1/access/roles/${id}`,
+    USERS: `${MEMBERSHIP_BASE}/api/v1/access/users`,
+    USER_BY_ID: (id: string) => `${MEMBERSHIP_BASE}/api/v1/access/users/${id}`,
   },
 } as const;
-
