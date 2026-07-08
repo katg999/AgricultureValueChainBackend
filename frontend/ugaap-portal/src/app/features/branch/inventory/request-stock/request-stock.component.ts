@@ -298,7 +298,7 @@ export class RequestStockComponent implements OnInit {
     }
   }
 
-  trackById(_: number, row: StockRequest): string { return row.id; }
+  trackById(_: number, row: unknown): string { return (row as StockRequest).id; }
 
   get today(): string { return new Date().toISOString().slice(0, 10); }
 

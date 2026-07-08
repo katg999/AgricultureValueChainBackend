@@ -12,6 +12,7 @@ import { DataTableComponent, TableColumn } from '../../../../shared/components/d
 import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
 import {
   BranchDisbursement,
+  BranchOption,
   FarmerAllocation,
   InventoryScope,
   InventoryService,
@@ -44,6 +45,10 @@ interface Summary {
   partiallyRecovered: number;
   overdue: number;
   recoveryRate: number;
+  // Branch-disbursement-only counts — "recovery" isn't a concept that applies to
+  // a coop-to-branch stock transfer, so these replace the farmer-loan stats above.
+  issued: number;
+  received: number;
 }
 
 
@@ -86,6 +91,8 @@ export class StockDisbursedComponent implements OnInit {
   allocations: Allocation[] = [];
 
   filteredAllocations: Allocation[] = [];
+
+  branches: BranchOption[] = [];
 
   constructor(
     private readonly router: Router,
@@ -136,6 +143,22 @@ export class StockDisbursedComponent implements OnInit {
 
   get summary(): Summary {
     const totalValue = this.allocations.reduce((sum, row) => sum + row.totalValue, 0);
+
+    if (this.isCooperativeScope) {
+      // Branch disbursements only ever carry 'issued' | 'received' — recovery
+      // stats don't apply to a stock transfer, so don't fake numbers for them.
+      return {
+        totalAllocations: this.allocations.length,
+        totalValue,
+        issued: this.allocations.filter(row => row.status === 'issued').length,
+        received: this.allocations.filter(row => row.status === 'received').length,
+        fullyRecovered: 0,
+        partiallyRecovered: 0,
+        overdue: 0,
+        recoveryRate: 0,
+      };
+    }
+
     const fullyRecovered = this.allocations.filter(row => row.status === 'settled').length;
     const partiallyRecovered = this.allocations.filter(row => row.status === 'partial').length;
     const overdue = this.allocations.filter(row => row.status === 'overdue').length;
@@ -151,6 +174,8 @@ export class StockDisbursedComponent implements OnInit {
       partiallyRecovered,
       overdue,
       recoveryRate: totalValue > 0 ? Math.round((recoveredValue / totalValue) * 100) : 0,
+      issued: 0,
+      received: 0,
     };
   }
 
@@ -188,9 +213,14 @@ export class StockDisbursedComponent implements OnInit {
 
     // Both paths map to the same Allocation shape so the template doesn't care which.
     if (this.isCooperativeScope) {
-      this.inventoryService.listBranchDisbursementsForRole$().subscribe(rows => {
-        this.allocations = rows.map(row => this.fromBranchDisbursement(row));
-        this.applyFilters();
+      // Fetch branches first — the backend disbursement rows don't carry a branch
+      // name, only an id, so we resolve it client-side from this list.
+      this.inventoryService.getBranches().subscribe(branches => {
+        this.branches = branches;
+        this.inventoryService.listBranchDisbursementsForRole$().subscribe(rows => {
+          this.allocations = rows.map(row => this.fromBranchDisbursement(row));
+          this.applyFilters();
+        });
       });
       return;
     }
@@ -320,17 +350,18 @@ export class StockDisbursedComponent implements OnInit {
     return status;
   }
 
-  trackById(_: number, row: Allocation): string {
-    return row.id;
+  trackById(_: number, row: unknown): string {
+    return (row as Allocation).id;
   }
 
   private fromBranchDisbursement(row: BranchDisbursement): Allocation {
+    const branchName = this.branches.find(b => b.id === row.branchId)?.name || row.branchName || row.branchId;
     return {
       id: row.id,
-      destinationName: row.branchName,
+      destinationName: branchName,
       destinationId: row.branchId,
-      farmerName: row.branchName,
-      branch: row.branchName,
+      farmerName: branchName,
+      branch: branchName,
       itemName: row.itemName,
       itemType: row.itemType,
       quantity: `${row.quantity} ${row.unit}`,

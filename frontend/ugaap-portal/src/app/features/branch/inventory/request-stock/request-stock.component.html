@@ -53,6 +53,7 @@
       <app-data-table
         [columns]="cols"
         [rows]="filteredRequests"
+        [trackByFn]="trackById"
         [paginate]="true"
         emptyIcon="clipboard"
         emptyTitle="No stock requests"
@@ -224,7 +225,7 @@
 <!-- ── Detail Modal ──────────────────────────────────────────────────────── -->
 <app-modal
   [(isOpen)]="showDetailModal"
-  [title]="selectedRequest ? selectedRequest.id : ''"
+  [title]="selectedRequest ? selectedRequest.itemName : ''"
   subtitle="Request details"
   size="md"
   (closed)="closeDetailModal()">

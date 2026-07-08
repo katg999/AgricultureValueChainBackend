@@ -17,7 +17,6 @@ export const USER_ROUTES: Routes = [
         .then(m => m.UsersListComponent),
   },
 
-  // Add new user
   {
     path: 'add-user',
     title: 'Add User | UGAAP',
@@ -28,7 +27,6 @@ export const USER_ROUTES: Routes = [
         .then(m => m.AddUserComponent),
   },
 
-  // User detail view
   {
     path: 'user/:id',
     title: 'User | UGAAP',
