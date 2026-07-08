@@ -9,7 +9,7 @@ export const BRANCH_ROUTES: Routes = [
     pathMatch: 'full',
   },
 
-  // ── Dashboard — no guard; every authenticated branch user sees their dashboard
+  //  Dashboard — no guard; every authenticated branch user sees their dashboard
   {
     path: 'dashboard',
     data: { title: 'Dashboard', subtitle: 'Your branch at a glance' },
@@ -18,7 +18,7 @@ export const BRANCH_ROUTES: Routes = [
         .then(m => m.BranchDashboardComponent),
   },
 
-  // ── Collections ──────────────────────────────────────────────────────────────
+  // Collections 
   {
     path: 'collections',
     canActivate: [permissionGuard],
@@ -33,7 +33,7 @@ export const BRANCH_ROUTES: Routes = [
     pathMatch: 'full',
   },
 
-  // ── Farmers ──────────────────────────────────────────────────────────────────
+  //  Farmers 
   {
     path: 'farmers',
     canActivate: [permissionGuard],
@@ -48,7 +48,7 @@ export const BRANCH_ROUTES: Routes = [
     pathMatch: 'full',
   },
 
-  // ── Finance ──────────────────────────────────────────────────────────────────
+  // ── Finance 
   {
     path: 'finance',
     redirectTo: 'finance/batch-processing',
