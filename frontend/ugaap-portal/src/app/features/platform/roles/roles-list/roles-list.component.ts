@@ -1,11 +1,12 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
+import { InputComponent } from '../../../../shared/components/input/input.component';
+import { StatCardComponent, StatCardData } from '../../../../shared/components/stat-card/stat-card.component';
 import { RoleCardData } from '../../../../shared/components/role-card/role-card.component';
-import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
 import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
 import { ToastService } from '../../../../core/services/toast.service';
@@ -19,9 +20,10 @@ import { RolesService, RoleRecord } from '../../../../core/services/roles.servic
     RouterModule,
     FormsModule,
     ButtonComponent,
+    InputComponent,
+    StatCardComponent,
     DataTableComponent,
     CellDirective,
-    EmptyStateComponent,
   ],
   templateUrl: './roles-list.component.html',
   styleUrls: ['./roles-list.component.css']
@@ -29,6 +31,7 @@ import { RolesService, RoleRecord } from '../../../../core/services/roles.servic
 export class RolesListComponent implements OnInit {
 
   searchQuery = '';
+  stats: StatCardData[] = [];
 
   cols: TableColumn[] = [
     { key: 'name',             header: 'Role' },
@@ -40,22 +43,64 @@ export class RolesListComponent implements OnInit {
 
   roles: RoleRecord[] = [];
 
-  private toast        = inject(ToastService);
-  private rolesService = inject(RolesService);
-
-  constructor(private router: Router) {}
-
-  ngOnInit(): void {
-    this.rolesService.list().subscribe(roles => { this.roles = roles; });
+  private buildStats(): StatCardData[] {
+    const systemCount = this.roles.filter(r => r.isSystem).length;
+    const customCount = this.roles.filter(r => !r.isSystem).length;
+    const totalUsers  = this.roles.reduce((sum, r) => sum + r.usersCount, 0);
+    return [
+      {
+        label:  'Total Roles',
+        value:  this.roles.length,
+        icon:   'shield',
+        trend:  'All role definitions',
+        status: 'active',
+      },
+      {
+        label:  'System Roles',
+        value:  systemCount,
+        icon:   'settings',
+        trend:  'Built-in · read-only',
+        status: 'active',
+      },
+      {
+        label:  'Custom Roles',
+        value:  customCount,
+        icon:   'clipboard',
+        trend:  'Editable by admins',
+        status: 'active',
+      },
+      {
+        label:     'Users Assigned',
+        value:     totalUsers,
+        icon:      'users',
+        trend:     'Tap to view all users',
+        trendUp:   true,
+        status:    'active',
+        clickable: true,
+        route:     '/platform/users',
+      },
+    ];
   }
 
-  get filteredRoles(): RoleRecord[] {
+  get filteredRoles(): RoleCardData[] {
     const q = this.searchQuery.trim().toLowerCase();
     if (!q) return this.roles;
     return this.roles.filter(r =>
       r.name.toLowerCase().includes(q) ||
       r.description.toLowerCase().includes(q),
     );
+  }
+
+  private toast = inject(ToastService);
+  private rolesService = inject(RolesService);
+
+  constructor(private router: Router) {}
+
+  ngOnInit(): void {
+    this.rolesService.list().subscribe(roles => {
+      this.roles = roles;
+      this.stats = this.buildStats();
+    });
   }
 
   createNewRole(): void {
@@ -83,9 +128,9 @@ export class RolesListComponent implements OnInit {
       return;
     }
     if (confirm(`Delete the "${role.name}" role? This cannot be undone.`)) {
-      this.rolesService.deleteRole(role.id).subscribe(() => {
-        this.toast.success('Role deleted', `"${role.name}" has been removed.`);
-      });
+      this.roles = this.roles.filter(r => r.id !== role.id);
+      this.stats = this.buildStats();
+      this.toast.success('Role deleted', `"${role.name}" has been removed.`);
     }
   }
 

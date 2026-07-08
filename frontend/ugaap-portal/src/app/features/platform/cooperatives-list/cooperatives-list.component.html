@@ -5,26 +5,30 @@
 -->
 
 <div class="page">
-  <!-- Page Header -->
-  <div class="page-header">
-    <div class="page-header-actions">
-      <!-- Export Report Button -->
-      <app-button
-        variant="ghost"
-        size="md"
-        (clicked)="onExportReport()">
+
+  <!-- ── Page Heading ──────────────────────────────────────────────────────── -->
+  <div class="page-heading">
+    <div class="heading-text">
+      <h1 class="page-title">Cooperatives</h1>
+      <p class="page-subtitle">Monitor and manage all registered organisations</p>
+    </div>
+    <div class="heading-actions">
+      <app-button variant="ghost" size="md" (clicked)="onExportReport()">
         Export report
       </app-button>
-
-      <!-- Add Organisation Button -->
-      <app-button
-        variant="primary"
-        size="md"
-        iconLeft="+"
-        (clicked)="onAddCooperative()">
+      <app-button variant="primary" size="md" iconLeft="+" (clicked)="onAddCooperative()">
         Add organisation
       </app-button>
     </div>
+  </div>
+
+  <!-- ── Summary Stats ─────────────────────────────────────────────────────── -->
+  <div class="stats-grid">
+    <app-stat-card
+      *ngFor="let s of stats; let i = index"
+      [data]="s"
+      [delay]="i * 80">
+    </app-stat-card>
   </div>
 
   <!-- Filters Bar -->

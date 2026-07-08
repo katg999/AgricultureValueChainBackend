@@ -114,12 +114,26 @@ export const API_ENDPOINTS = {
 
   USERS: `${MEMBERSHIP_BASE}/api/v1/access/users`,
 
+  // ── Inventory Service — /api/v1/inventory/** via API Gateway ────────────────
   INVENTORY_BACKEND: {
-    STOCK_ALL: `${BASE}/api/input-stock/all`, // not yet deployed
-    STOCK_CREATE: `${BASE}/api/input-stock`, // not yet deployed
-    ALLOCATION_ISSUE: `${BASE}/api/allocations/issue`, // not yet deployed
-    ALLOCATIONS_BY_BRANCH: (branchId: string) => `${BASE}/api/allocations/branch/${branchId}`,
-    ALLOCATIONS_BY_COOP: (coopId: string) => `${BASE}/api/allocations/cooperative/${coopId}`,
+    // Stock items (InventoryItemController)
+    ITEMS:              `${BASE}/api/v1/inventory/items`,
+    ITEM_BY_ID:         (id: string) => `${BASE}/api/v1/inventory/items/${id}`,
+    ITEM_STOCK:         (id: string) => `${BASE}/api/v1/inventory/items/${id}/stock`,
+    LOW_STOCK:          `${BASE}/api/v1/inventory/items/low-stock`,
+
+    // Input credit loans (InputCreditController)
+    CREDITS:            `${BASE}/api/v1/inventory/credits`,
+    CREDITS_ISSUE:      `${BASE}/api/v1/inventory/credits/issue`,
+    CREDIT_BY_ID:       (id: string) => `${BASE}/api/v1/inventory/credits/${id}`,
+    CREDITS_BY_FARMER:  (farmerId: string) => `${BASE}/api/v1/inventory/credits/farmer/${farmerId}`,
+    CREDIT_STATUS:      (loanId: string) => `${BASE}/api/v1/inventory/credits/${loanId}/status`,
+
+    // Repayments & deductions (DeductionController)
+    BATCH_DEDUCTION:    `${BASE}/api/v1/inventory/deductions/batch`,
+    FINANCE_BATCH:      `${BASE}/api/v1/inventory/deductions/finance-batch`,
+    MANUAL_REPAYMENT:   `${BASE}/api/v1/inventory/deductions/manual`,
+    FARMER_SUMMARY:     (farmerId: string) => `${BASE}/api/v1/inventory/deductions/farmer/${farmerId}/summary`,
   },
 
   CONFIGURATION: {

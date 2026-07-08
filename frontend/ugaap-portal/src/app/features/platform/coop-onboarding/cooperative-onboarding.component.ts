@@ -2,7 +2,7 @@
 // its default branch, bank details, and both admin (Admin 1 / Admin 2) accounts
 // in one submission.  No step wizard; all validation runs at final submit.
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -75,6 +75,7 @@ export class CooperativeOnboardingComponent implements OnInit {
     private titleService: Title,
     private toast: ToastService,
     private feedback: FormFeedbackService,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {

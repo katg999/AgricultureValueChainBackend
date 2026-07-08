@@ -13,7 +13,7 @@
     </thead>
     <tbody>
       <tr
-        *ngFor="let row of displayedRows"
+        *ngFor="let row of displayedRows; trackBy: resolvedTrackBy"
         [class.row-clickable]="clickable"
         (click)="onRowClick(row)">
         <td

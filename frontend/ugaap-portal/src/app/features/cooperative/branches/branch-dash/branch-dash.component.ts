@@ -9,11 +9,22 @@ import { StatCardComponent } from '../../../../shared/components/stat-card/stat-
 import { ToastService } from '../../../../core/services/toast.service';
 import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
 import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
-import { BranchService, CooperativeBranch } from '../../../../core/services/branch.service';
+import { BranchService } from '../../../../core/services/branch.service';
+import { SessionService } from '../../../../core/services/session.service';
 
 interface ActivityItem {
   title: string;
   time: string;
+}
+
+interface CooperativeBranch {
+  id: number;
+  name: string;
+  location: string;
+  farmers: number;
+  centres: number;
+  status: 'ACTIVE' | 'PENDING';
+  branchCode?: string;
 }
 
 @Component({
@@ -51,7 +62,12 @@ export class BranchDashboardComponent implements OnInit {
   itemsPerPage = 5;
   activeMenuId: number | null = null;
 
-  private toast = inject(ToastService);
+  // Static value for "Assigned Users"
+
+
+  private toast   = inject(ToastService);
+  private session = inject(SessionService);
+
   private branchService = inject(BranchService);
 
   // Exposed to template for the stat cards
@@ -61,17 +77,14 @@ export class BranchDashboardComponent implements OnInit {
   get farmersTrend(): string | undefined   { return this.branchService.farmersTrend; }
   get farmersTrendUp(): boolean | undefined { return this.branchService.farmersTrendUp; }
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    
+  ) {}
 
   ngOnInit(): void {
-    this.branchService.listCooperativeBranches().subscribe(branches => {
-      this.branches = branches;
-    });
-
-    this.branchService.getActivities().subscribe(activities => {
-      this.activities = activities;
-    });
-
+    this.loadBranchData();
+    this.loadRecentActivities();
     this.applyNavigationState();
   }
 
@@ -80,15 +93,10 @@ export class BranchDashboardComponent implements OnInit {
     if (!state?.newBranch) return;
 
     const nb = state.newBranch;
-    // Push through the service so branches$ stays the single source of truth
-    this.branchService.addCooperativeBranch({
-      name: nb.name, location: nb.location,
-      farmers: 0, centres: 0, status: 'PENDING', branchCode: '',
-    });
-    // Subscribe once more to pick up the newly added branch
-    this.branchService.branches$.subscribe(branches => {
-      this.branches = branches;
-    });
+    this.branches = [
+      { id: Date.now(), name: nb.name, location: nb.location, farmers: 0, centres: 0, status: 'PENDING' },
+      ...this.branches,
+    ];
 
     this.toast.success('Branch registered', `${nb.name} has been added and is pending activation.`);
     history.replaceState({}, '');
@@ -168,5 +176,37 @@ export class BranchDashboardComponent implements OnInit {
 
   openMapView(): void {
     this.toast.info('Coming soon', 'Interactive map view is being built and will be available soon.');
+  }
+
+  // ---------- Data Loaders ----------
+  private loadBranchData(): void {
+    const tenantId = this.session.tenantId();
+    if (!tenantId) return;
+
+    this.branchService.listBranches(tenantId).subscribe({
+      next: (rows) => {
+        this.branches = rows.map((b, i) => ({
+          id: i + 1,
+          name: b.name,
+          location: b.location ?? '',
+          farmers: 0,
+          centres: 0,
+          status: (b.status === 'ACTIVE' ? 'ACTIVE' : 'PENDING') as 'ACTIVE' | 'PENDING',
+        }));
+      },
+      error: () => {
+        this.toast.error('Failed to load branches', 'Could not fetch branch data from the server.');
+      },
+    });
+  }
+
+  private loadRecentActivities(): void {
+    this.activities = [
+      { title: 'New branch registered in Gulu', time: '2 hours ago' },
+      { title: 'Collection centre added in Mbarara', time: 'Yesterday' },
+      { title: 'Farmer enrollment increased by 12% in Kampala', time: '3 days ago' },
+      { title: 'Field agent assignment updated for Jinja', time: '5 days ago' },
+      { title: 'Weekly collection report generated', time: '1 week ago' },
+    ];
   }
 }
