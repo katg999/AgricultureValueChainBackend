@@ -10,8 +10,9 @@ import { FormSectionComponent } from '../../../../shared/components/form-section
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { PermissionTabsComponent } from '../../../../shared/components/permission-tabs/permission-tabs.component';
-import { RolesService } from '../../../../core/services/roles.service';
+import { ToastService } from '../../../../core/services/toast.service';
 import { USE_MOCK } from '../../../../core/mock/mock-config';
+import { RolesService } from '../../../../core/services/roles.service';
 
 @Component({
   selector: 'app-role-form',
@@ -43,6 +44,7 @@ export class RoleFormComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private http: HttpClient,
+    private toast: ToastService,
     private rolesService: RolesService,
   ) {}
 
@@ -129,7 +131,7 @@ export class RoleFormComponent implements OnInit {
           typeof p === 'string'
             ? p
             : `${String(p.module).toLowerCase()}.${String(p.action).toLowerCase()}`,
-        );
+        ).filter(id => !id.startsWith('dashboard'));
         this.selectedPermissions.set(ids);
       },
       error: (err) => {
@@ -150,6 +152,103 @@ export class RoleFormComponent implements OnInit {
       return;
     }
 
-    this.router.navigate(['/platform/roles']);
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    if (this.isEditMode) {
+      this.updateRole();
+      return;
+    }
+
+    const { name, description, tenantId } = this.roleForm.value;
+
+    this.http.post<any>(API_ENDPOINTS.ACCESS.ROLES, { name, description, tenantId }).subscribe({
+      next: (roleRes) => {
+        this.http.post<any>(API_ENDPOINTS.ACCESS.ROLE_PERMISSIONS(roleRes.roleId || roleRes.id), {
+          permissions: this.toBackendPermissions(),
+        }).subscribe({
+          next: () => {
+            this.isLoading = false;
+            this.toast.success('Role created', `"${name}" has been created successfully.`);
+            this.router.navigate(['/platform/roles']);
+          },
+          error: (err) => {
+            this.isLoading = false;
+            const msg = err?.error?.message ?? 'Role created but permissions could not be assigned.';
+            this.errorMessage = msg;
+            this.toast.error('Permissions failed', msg);
+          },
+        });
+      },
+      error: (err) => {
+        this.isLoading = false;
+        const msg = err?.error?.message ?? 'Failed to save the role. Please try again.';
+        this.errorMessage = msg;
+        this.toast.error('Save failed', msg);
+      },
+    });
+  }
+
+  private updateRole(): void {
+    const { name, description } = this.roleForm.value;
+
+    this.http.put<any>(API_ENDPOINTS.ACCESS.ROLE_BY_ID(this.roleId!), { name, description }).subscribe({
+      next: () => {
+        this.http.post<any>(API_ENDPOINTS.ACCESS.ROLE_PERMISSIONS(this.roleId!), {
+          permissions: this.toBackendPermissions(),
+        }).subscribe({
+          next: () => {
+            this.isLoading = false;
+            this.toast.success('Role updated', `"${name}" has been updated successfully.`);
+            this.router.navigate(['/platform/roles']);
+          },
+          error: (err) => {
+            this.isLoading = false;
+            const msg = err?.error?.message ?? 'Role updated but permissions could not be saved.';
+            this.errorMessage = msg;
+            this.toast.error('Permissions failed', msg);
+          },
+        });
+      },
+      error: (err) => {
+        this.isLoading = false;
+        const msg = err?.error?.message ?? 'Failed to update the role. Please try again.';
+        this.errorMessage = msg;
+        this.toast.error('Update failed', msg);
+      },
+    });
+  }
+
+  private toBackendPermissions(): { module: string; action: string; description: string }[] {
+    const moduleMap: Record<string, string> = {
+      organisation: 'BRANCHES', configuration: 'ACCESS_MANAGEMENT',
+      collections: 'INVENTORY', farmers: 'MEMBERSHIP', agents: 'MEMBERSHIP',
+      branches: 'BRANCHES', inventory: 'INVENTORY', finance: 'INVENTORY',
+      users: 'MEMBERSHIP', roles: 'ACCESS_MANAGEMENT', reports: 'REPORTING',
+      cooperatives: 'BRANCHES', settings: 'ACCESS_MANAGEMENT',
+    };
+    const actionMap: Record<string, string> = {
+      view: 'VIEW', metrics: 'VIEW', performance: 'VIEW', disburse: 'VIEW', export: 'VIEW',
+      create: 'CREATE', register: 'CREATE', record: 'CREATE', onboard: 'CREATE',
+      receive: 'CREATE', request: 'CREATE', issue: 'CREATE', generate: 'CREATE',
+      build: 'CREATE', edit: 'EDIT', transfer: 'EDIT', adjust: 'EDIT', assign: 'EDIT',
+      submit: 'EDIT', grade: 'EDIT', process: 'EDIT', reset_password: 'EDIT',
+      approve: 'APPROVE', reject: 'APPROVE', delete: 'DELETE', deactivate: 'DELETE', suspend: 'DELETE',
+    };
+
+    const seen = new Set<string>();
+    const out: { module: string; action: string; description: string }[] = [];
+
+    for (const id of this.selectedPermissions()) {
+      const parts = id.split('.');
+      const module = moduleMap[parts[0]];
+      const action = actionMap[parts[parts.length - 1]];
+      if (!module || !action) continue;
+      const key = `${module}:${action}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({ module, action, description: id });
+    }
+    return out;
   }
 }
