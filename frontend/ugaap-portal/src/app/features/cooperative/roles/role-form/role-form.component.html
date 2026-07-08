@@ -1,7 +1,7 @@
 <div class="page">
 
 <!-- GENERATED CREDENTIALS CARD — shown after successful role + user creation -->
-<div class="credentials-shell" *ngIf="generatedCredentials">
+<!-- <div class="credentials-shell" *ngIf="generatedCredentials">
   <div class="credentials-card">
 
     <div class="credentials-header">
@@ -52,7 +52,7 @@
     </div>
 
   </div>
-</div>
+</div> -->
 
 <!-- MAIN FORM (hidden once credentials are shown) -->
 <ng-container *ngIf="!generatedCredentials">
@@ -104,7 +104,7 @@
       </app-form-section>
 
       <!-- ── 2. USER DETAILS (create only) ── -->
-      <app-form-section *ngIf="!isEditMode" [number]="2" title="User Details" iconName="user"
+      <!-- <app-form-section *ngIf="!isEditMode" [number]="2" title="User Details" iconName="user"
                         desc="First account created with this role">
 
         <div class="fields-grid cols-3">
@@ -144,13 +144,14 @@
             <p class="field-hint">Include country code</p>
           </div>
         </div>
-      </app-form-section>
+      </app-form-section> -->
 
-      <!-- ── 2 (edit) / 3 (create). PERMISSIONS ── -->
-      <app-form-section [number]="isEditMode ? 2 : 3" title="Permissions" iconName="list"
+      <!-- ── 2. PERMISSIONS ── -->
+      <app-form-section [number]="2" title="Permissions" iconName="key"
                         [desc]="permissionsDesc">
 
-        <app-permission-tabs scope="cooperative" [(selected)]="selectedPermissions">
+        <app-permission-tabs scope="cooperative" 
+          [(selected)]="selectedPermissions">
         </app-permission-tabs>
 
         <div *ngIf="errorMessage" class="save-error" role="alert">{{ errorMessage }}</div>
