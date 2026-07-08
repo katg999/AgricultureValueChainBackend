@@ -117,14 +117,17 @@ export class GradingService {
 
   loadFromApi(): void {
     this.loading.set(true);
+    // On failure, fall back to an empty list — not mock data — so a broken/unreachable
+    // real API is visibly empty instead of silently showing fake grades (USE_MOCK is
+    // only consulted for the initial BehaviorSubject seed, never here).
     this.http.get<Grade[]>(API_ENDPOINTS.COOPERATIVE.GRADING).pipe(
       tap(data => this._grades.next(data)),
-      catchError(() => { this._grades.next(MOCK_GRADES as Grade[]); return of([]); }),
+      catchError(() => { this._grades.next([]); return of([]); }),
     ).subscribe(() => this.loading.set(false));
 
     this.http.get<BranchGradeSummary[]>(API_ENDPOINTS.COOPERATIVE.BRANCHES).pipe(
       tap(data => this._branches.next(data)),
-      catchError(() => { this._branches.next(MOCK_BRANCH_GRADE_SUMMARIES as BranchGradeSummary[]); return of([]); }),
+      catchError(() => { this._branches.next([]); return of([]); }),
     ).subscribe();
   }
 
