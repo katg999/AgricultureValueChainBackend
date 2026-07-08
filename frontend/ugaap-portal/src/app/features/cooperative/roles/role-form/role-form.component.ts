@@ -1,10 +1,6 @@
-// Create / edit a cooperative role, and provision the first user for it.
-//
-// Save flow (three chained calls):
-//   1. POST /access/roles                  → create the role
-//   2. POST /access/roles/:id/permissions  → attach selected permissions
-//   3. POST /access/users                  → create the user, returns generated
-//      credentials which are displayed once for the admin to copy.
+// Save flow (two chained calls):
+//   1. POST /access/roles  → create role with permissions in one shot
+//   2. POST /access/users  → create the first user, returns generated credentials
 
 import { Component, OnInit, inject, signal, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -13,6 +9,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { HttpClient } from '@angular/common/http';
 
 import { API_ENDPOINTS } from '../../../../core/constants/api-endpoints';
+import { SessionService } from '../../../../core/services/session.service';
 import { FormShellComponent } from '../../../../shared/components/form-wizard/form-wizard.component';
 import { FormSectionComponent } from '../../../../shared/components/form-section/form-section.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
@@ -59,7 +56,7 @@ export class RoleFormComponent implements OnInit {
   credentialsCopied = false;
 
   private toast = inject(ToastService);
-  private rolesService = inject(RolesService);
+  private session = inject(SessionService);
 
   constructor(
     private fb: FormBuilder,
@@ -76,29 +73,41 @@ export class RoleFormComponent implements OnInit {
     this.isEditMode = !!this.roleId;
 
     if (this.isEditMode) {
+      // Edit mode: name + description only — tenantId comes from session
       this.roleForm = this.fb.group({
-        name:        ['', Validators.required],
+        name: ['', Validators.required],
         description: ['', Validators.required],
       });
 
       const state = history.state;
       if (state?.role) {
         this.roleForm.patchValue({
-          name:        state.role.name,
+          name: state.role.name,
           description: state.role.description,
         });
+        // Pre-fill permissions from navigation state if carried
+        if (state.role.permissions?.length) {
+          this.selectedPermissions.set(this.fromBackendPermissions(state.role.permissions));
+        }
       } else {
         this.loadRoleData();
       }
     } else {
+      // Create mode: role details + first user account
+      // tenantId is NOT in the form — pulled from session in saveRole()
       this.roleForm = this.fb.group({
-        name:        ['', Validators.required],
+        name: ['', Validators.required],
         description: ['', Validators.required],
+        fullName: ['', Validators.required],
+        email: ['', [Validators.required, Validators.email]],
+        phone: ['', [Validators.required, Validators.pattern(/^\+\d{1,3}\d{4,14}$/)]],
       });
     }
   }
 
   // ── Data loading (edit mode) ──────────────────────────────────────────────
+  // GET /roles/{id} now returns permissions inside RoleResponse,
+  // so one call is enough — no separate loadRolePermissions() needed.
 
   loadRoleData(): void {
     if (!this.roleId) return;
@@ -120,7 +129,10 @@ export class RoleFormComponent implements OnInit {
           name: role.name,
           description: role.description,
         });
-        this.loadRolePermissions();
+        // Permissions come back as { module, action, description }[] in RoleResponse
+        if (role.permissions?.length) {
+          this.selectedPermissions.set(this.fromBackendPermissions(role.permissions));
+        }
       },
       error: (err) => {
         this.errorMessage = err?.error?.message ?? 'Failed to load role data';
@@ -128,31 +140,11 @@ export class RoleFormComponent implements OnInit {
     });
   }
 
-  loadRolePermissions(): void {
-    if (!this.roleId) return;
-    this.http.get<any[]>(API_ENDPOINTS.ACCESS.ROLE_PERMISSIONS(this.roleId)).subscribe({
-      next: (permissions) => {
-        const ids = permissions.map(p =>
-          typeof p === 'string'
-            ? p.toLowerCase()
-            : `${String(p.module).toLowerCase()}.${String(p.action).toLowerCase()}`,
-        )
-        .filter(id => !id.startsWith('dashboard')); // Exclude dashboard permissions from selection
-
-        this.allPermissions = permissions.filter(
-          p => String(p.module).toLowerCase() !== 'dashboard'
-        );
-        this.selectedPermissions.set(ids);
-      },
-      error: (err) => {
-        this.errorMessage = err?.error?.message ?? 'Failed to load permissions';
-      },
-    });
-  }
-
   // ── Helpers ───────────────────────────────────────────────────────────────
 
-  get selectedPermissionsCount(): number { return this.selectedPermissions().length; }
+  get selectedPermissionsCount(): number {
+    return this.selectedPermissions().length;
+  }
 
   get permissionsDesc(): string {
     const n = this.selectedPermissionsCount;
@@ -163,11 +155,16 @@ export class RoleFormComponent implements OnInit {
     const ctrl = this.roleForm.get(field);
     if (ctrl?.touched && ctrl?.errors) {
       if (ctrl.errors['required']) return 'This field is required';
+      if (ctrl.errors['email']) return 'Please enter a valid email address';
+      if (ctrl.errors['pattern'] && field === 'phone')
+        return 'Include country code (e.g. +256712345678)';
     }
     return '';
   }
 
-  cancel(): void { this.router.navigate(['/cooperative/roles']); }
+  cancel(): void {
+    this.router.navigate(['/cooperative/roles']);
+  }
 
   // ── Credential helpers ────────────────────────────────────────────────────
 
@@ -194,7 +191,19 @@ export class RoleFormComponent implements OnInit {
       return;
     }
     if (this.selectedPermissionsCount === 0) {
-      this.toast.warning('No permissions selected', 'Please select at least one permission before saving.');
+      this.toast.warning(
+        'No permissions selected',
+        'Please select at least one permission before saving.',
+      );
+      return;
+    }
+
+    const tenantId = this.session.tenantId();
+    if (!tenantId) {
+      this.toast.error(
+        'No tenant context',
+        'Cannot create a role without a tenant. Please log in again.',
+      );
       return;
     }
 
@@ -202,82 +211,150 @@ export class RoleFormComponent implements OnInit {
     this.errorMessage = '';
 
     if (this.isEditMode) {
-      this.updateRole();
+      this.updateRole(tenantId);
       return;
     }
 
-    const { name, description } = this.roleForm.value;
+    const { name, description, fullName, email, phone } = this.roleForm.value;
 
-    this.isLoading = false;
-    this.toast.success('Role created', `"${name}" created successfully.`);
-    this.router.navigate(['/cooperative/roles']);
+    // Step 1 — create role + permissions in one call
+    this.http
+      .post<any>(API_ENDPOINTS.ACCESS.ROLES, {
+        name,
+        description,
+        tenantId,
+        permissions: this.toBackendPermissions(),
+      })
+      .subscribe({
+        next: (roleRes) => {
+          // Step 2 — create the first user for this role
+          this.http
+            .post<any>(API_ENDPOINTS.ACCESS.USERS, {
+              fullName,
+              email,
+              phone,
+              tenantId,
+              branchId: history.state?.branchId ?? null,
+              roleId: roleRes.roleId,
+            })
+            .subscribe({
+              next: (userRes) => {
+                this.isLoading = false;
+                this.generatedCredentials = {
+                  roleName: userRes.roleName,
+                  username: userRes.username,
+                  fullName: userRes.fullName,
+                  email: userRes.email,
+                  temporaryPassword: userRes.temporaryPassword,
+                };
+                this.cdr.detectChanges();
+                this.toast.success(
+                  'Role created',
+                  `"${name}" and user account set up successfully.`,
+                );
+              },
+              error: (err) => {
+                this.isLoading = false;
+                const msg = err?.error?.message ?? 'Role saved but user creation failed.';
+                this.errorMessage = msg;
+                this.toast.error('User creation failed', msg);
+              },
+            });
+        },
+        error: (err) => {
+          this.isLoading = false;
+          const msg = err?.error?.message ?? 'Failed to save the role. Please try again.';
+          this.errorMessage = msg;
+          this.toast.error('Save failed', msg);
+        },
+      });
   }
 
   // ── Update (edit mode) ────────────────────────────────────────────────────
+  // TODO: needs a PUT /access/roles/{id} backend endpoint that accepts
+  // { name, description, permissions[] } — same shape as CreateRoleRequest
+  // minus tenantId (tenantId never changes after creation).
 
-  private updateRole(): void {
+  private updateRole(tenantId: string): void {
     const { name, description } = this.roleForm.value;
 
-    if (USE_MOCK) {
-      this.rolesService.updateRoleDetails(this.roleId!, {
-        name, description, permissionsCount: this.selectedPermissionsCount,
+    this.http
+      .put<any>(API_ENDPOINTS.ACCESS.ROLE_BY_ID(this.roleId!), {
+        name,
+        description,
+        tenantId,
+        permissions: this.toBackendPermissions(),
+      })
+      .subscribe({
+        next: () => {
+          this.isLoading = false;
+          this.toast.success('Role updated', `"${name}" has been updated successfully.`);
+          this.router.navigate(['/cooperative/roles']);
+        },
+        error: (err) => {
+          this.isLoading = false;
+          const msg = err?.error?.message ?? 'Failed to update the role. Please try again.';
+          this.errorMessage = msg;
+          this.toast.error('Update failed', msg);
+        },
       });
-      this.isLoading = false;
-      this.toast.success('Role updated', `"${name}" has been updated successfully.`);
-      this.router.navigate(['/cooperative/roles']);
-      return;
-    }
-
-    this.http.put<any>(API_ENDPOINTS.ACCESS.ROLE_BY_ID(this.roleId!), { name, description }).subscribe({
-      next: () => {
-        this.http.post<any>(API_ENDPOINTS.ACCESS.ROLE_PERMISSIONS(this.roleId!), {
-          permissions: this.toBackendPermissions(),
-        }).subscribe({
-          next: () => {
-            this.isLoading = false;
-            this.toast.success('Role updated', `"${name}" has been updated successfully.`);
-            this.router.navigate(['/cooperative/roles']);
-          },
-          error: (err) => {
-            this.isLoading = false;
-            const msg = err?.error?.message ?? 'Role updated but permissions could not be saved.';
-            this.errorMessage = msg;
-            this.toast.error('Permissions failed', msg);
-          },
-        });
-      },
-      error: (err) => {
-        this.isLoading = false;
-        const msg = err?.error?.message ?? 'Failed to update the role. Please try again.';
-        this.errorMessage = msg;
-        this.toast.error('Update failed', msg);
-      },
-    });
   }
 
-  // ── Mock helpers ──────────────────────────────────────────────────────────
-
-  private generateMockPassword(): string {
-    return `Temp${Math.floor(1000 + Math.random() * 9000)}!`;
-  }
-
-  // ── Permission mapping (frontend ids → backend {module, action} pairs) ────
+  // ── Permission mapping ────────────────────────────────────────────────────
+  // Frontend catalog ids (e.g. "farmers.approve") → backend { module, action }
+  // Module values MUST match Permission.Module enum exactly:
+  //   BRANCHES | ORGANISATION_SETUP | CONFIGURATION | COLLECTIONS | FARMERS
+  //   AGENTS | COLLECTION_HUBS | INVENTORY | FINANCE | USER_MANAGEMENT
+  //   ROLES_AND_PERMISSIONS | REPORTS
 
   private toBackendPermissions(): { module: string; action: string; description: string }[] {
     const moduleMap: Record<string, string> = {
-      organisation: 'BRANCHES', configuration: 'ACCESS_MANAGEMENT',
-      collections: 'INVENTORY', farmers: 'MEMBERSHIP', agents: 'MEMBERSHIP',
-      branches: 'BRANCHES', inventory: 'INVENTORY', finance: 'INVENTORY',
-      users: 'MEMBERSHIP', roles: 'ACCESS_MANAGEMENT', reports: 'REPORTING',
-      cooperatives: 'BRANCHES', settings: 'ACCESS_MANAGEMENT',
+      dashboard: 'REPORTS',
+      organisation: 'ORGANISATION_SETUP',
+      configuration: 'CONFIGURATION',
+      collections: 'COLLECTIONS',
+      farmers: 'FARMERS',
+      agents: 'AGENTS',
+      collection_hubs: 'COLLECTION_HUBS',
+      branches: 'BRANCHES',
+      inventory: 'INVENTORY',
+      finance: 'FINANCE',
+      users: 'USER_MANAGEMENT',
+      roles: 'ROLES_AND_PERMISSIONS',
+      reports: 'REPORTS',
+      cooperatives: 'BRANCHES', // no COOPERATIVES module on backend
+      settings: 'CONFIGURATION', // no SETTINGS module on backend
     };
+
+    // Action values MUST match Permission.Action enum: VIEW | CREATE | EDIT | APPROVE | DELETE
     const actionMap: Record<string, string> = {
-      view: 'VIEW', metrics: 'VIEW', performance: 'VIEW', disburse: 'VIEW', export: 'VIEW',
-      create: 'CREATE', register: 'CREATE', record: 'CREATE', onboard: 'CREATE',
-      receive: 'CREATE', request: 'CREATE', issue: 'CREATE', generate: 'CREATE',
-      build: 'CREATE', edit: 'EDIT', transfer: 'EDIT', adjust: 'EDIT', assign: 'EDIT',
-      submit: 'EDIT', grade: 'EDIT', process: 'EDIT', reset_password: 'EDIT',
-      approve: 'APPROVE', reject: 'APPROVE', delete: 'DELETE', deactivate: 'DELETE', suspend: 'DELETE',
+      view: 'VIEW',
+      metrics: 'VIEW',
+      performance: 'VIEW',
+      disburse: 'VIEW',
+      export: 'VIEW',
+      create: 'CREATE',
+      register: 'CREATE',
+      record: 'CREATE',
+      onboard: 'CREATE',
+      receive: 'CREATE',
+      request: 'CREATE',
+      issue: 'CREATE',
+      generate: 'CREATE',
+      build: 'CREATE',
+      edit: 'EDIT',
+      transfer: 'EDIT',
+      adjust: 'EDIT',
+      assign: 'EDIT',
+      submit: 'EDIT',
+      grade: 'EDIT',
+      process: 'EDIT',
+      reset_password: 'EDIT',
+      approve: 'APPROVE',
+      reject: 'APPROVE',
+      delete: 'DELETE',
+      deactivate: 'DELETE',
+      suspend: 'DELETE',
     };
 
     const seen = new Set<string>();
@@ -294,5 +371,41 @@ export class RoleFormComponent implements OnInit {
       out.push({ module, action, description: id });
     }
     return out;
+  }
+
+  // ── Reverse mapping (backend → frontend ids for edit pre-fill) ────────────
+  // RoleResponse.permissions is { module, action }[] — map back to catalog ids
+  // so the permission tabs render the correct checked state.
+
+  private fromBackendPermissions(permissions: { module: string; action: string }[]): string[] {
+    const reverseModule: Record<string, string> = {
+      BRANCHES: 'branches',
+      ORGANISATION_SETUP: 'organisation',
+      CONFIGURATION: 'configuration',
+      COLLECTIONS: 'collections',
+      FARMERS: 'farmers',
+      AGENTS: 'agents',
+      COLLECTION_HUBS: 'collection_hubs',
+      INVENTORY: 'inventory',
+      FINANCE: 'finance',
+      USER_MANAGEMENT: 'users',
+      ROLES_AND_PERMISSIONS: 'roles',
+      REPORTS: 'reports',
+    };
+    const reverseAction: Record<string, string> = {
+      VIEW: 'view',
+      CREATE: 'create',
+      EDIT: 'edit',
+      APPROVE: 'approve',
+      DELETE: 'delete',
+    };
+
+    return permissions
+      .map((p) => {
+        const m = reverseModule[p.module];
+        const a = reverseAction[p.action];
+        return m && a ? `${m}.${a}` : null;
+      })
+      .filter((id): id is string => id !== null);
   }
 }
