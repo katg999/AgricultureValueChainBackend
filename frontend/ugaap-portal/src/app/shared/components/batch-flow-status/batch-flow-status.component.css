@@ -1,0 +1,38 @@
+.batch-flow-status {
+  background: var(--surface-lowest, #fff);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(32,11,38,.06);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rejected-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rejected-note {
+  color: var(--muted-purple, #6b6b6b);
+  font-size: 14px;
+}
+
+.progress-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.progress-row app-progress-bar {
+  flex: 1;
+}
+
+.progress-count {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--secondary);
+  white-space: nowrap;
+}

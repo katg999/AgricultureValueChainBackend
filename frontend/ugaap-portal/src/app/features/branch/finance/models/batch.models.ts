@@ -12,6 +12,40 @@ export type BatchStatus = 'Draft' | 'Pending Approval' | 'Approved' | 'Rejected'
 // PaymentMethod = how a farmer gets paid. Same idea — locked to specific values.
 export type PaymentMethod = 'Mobile Money' | 'Bank Transfer' | 'Cash';
 
+// PayoutChannel = the real-money rail used to pay a farmer electronically.
+// Distinct from PaymentMethod above: PaymentMethod is what the farmer record
+// was seeded with (a coarse category); PayoutChannel is the specific channel
+// an officer confirms before disbursing — see defaultPayoutChannel() in
+// payment.service.ts for how one maps to the other.
+export type PayoutChannel = 'MTN' | 'AIRTEL' | 'WENDI' | 'POSTBANK';
+
+// The lifecycle of one farmer's payout attempt, mirroring the backend's
+// transaction status enum exactly — the frontend never invents its own states.
+// TIER_LIMIT_EXCEEDED and FAILED_REVERSED are both terminal (need a retry);
+// SETTLED is terminal (done). The rest are in-flight.
+export type PayoutTransactionStatus =
+  | 'INITIATED'
+  | 'VALIDATING'
+  | 'TIER_LIMIT_EXCEEDED'
+  | 'FUNDS_LOCKED'
+  | 'CHANNEL_PROCESSING'
+  | 'SETTLED'
+  | 'FAILED_REVERSED';
+
+// One farmer's payout attempt within a batch disbursement.
+// idempotencyKey is generated fresh per attempt (including retries) so a
+// duplicate network request never creates two payouts for the same attempt.
+export interface PayoutTransaction {
+  transactionId: string;
+  farmerId: string;
+  batchId: string;
+  channel: PayoutChannel;
+  amount: number; // whole UGX — Math.round()-ed before send/store
+  status: PayoutTransactionStatus;
+  idempotencyKey: string;
+  createdAt: Date;
+}
+
 // FarmerRecord = one farmer who appears in a payment batch.
 // hasBankDetails is the key flag — false means we can't pay them, so they get excluded.
 // bankAccount / bankCode are needed to generate the bank payment file.
@@ -33,6 +67,7 @@ export interface FarmerRecord {
   deliveryDate: string;
   session?: DeliverySession;
   paymentMethod: PaymentMethod;
+  payoutChannel?: PayoutChannel; // officer-confirmed channel for this disbursement, if picked
   netPayable: number;
   hasBankDetails: boolean;
   bankAccount: string;

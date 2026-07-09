@@ -1,49 +1,62 @@
 <!-- batch-farmers.component.html
      Shows only the ELIGIBLE farmers for ONE specific batch (identified by the :id URL param).
-     Three sections:
-       1. Page header: back button + batch metadata (name, season, date range)
+     Sections:
+       1. Page header: back button + batch metadata + Disburse Batch button (when Approved)
        2. Summary bar: count + total payout amount
-       3. Farmers grouped Day -> Session -> Farmer table, for payment processing order
+       3. Farmers grouped Day -> Session -> Farmer table, with channel/status/fee/retry per row
 -->
 
 <div class="farmers-page">
 
   <!-- ── 1. Page header ──────────────────────────────────────────────────── -->
   <div class="page-header">
-    <!-- (click)="goBack()" navigates back to the batch list -->
     <button class="back-btn" type="button" (click)="goBack()">← Back to Batches</button>
 
-    <!-- 'batch' starts as undefined (the lookup happens in ngOnInit).
-         @if (batch) waits until it's loaded before trying to access batch.batchName etc.
-         @else shows a fallback message in case the ID in the URL doesn't match any batch. -->
     @if (batch) {
       <h1>{{ batch.batchName }}</h1>
-      <!-- &nbsp;·&nbsp; = a "·" bullet separator with non-breaking spaces on each side
-           so it doesn't awkwardly wrap onto its own line on small screens -->
       <p>
         {{ batch.season }} &nbsp;·&nbsp;
         {{ batch.openingDate }} — {{ batch.closingDate }} &nbsp;·&nbsp;
         {{ batch.commodityFilter }} &nbsp;·&nbsp; {{ batch.branch }}
       </p>
+
+      @if (batch.status === 'Approved') {
+        <div class="disburse-action">
+          <app-button
+            variant="primary"
+            [disabled]="isSubmitting"
+            [loading]="isSubmitting"
+            loadingText="Disbursing..."
+            (clicked)="disburseBatch()">
+            Disburse Batch
+          </app-button>
+        </div>
+      }
     } @else {
       <h1>Batch not found</h1>
     }
   </div>
 
+  <!-- ── Batch lifecycle status (stepper + settle progress + failure alert) ─ -->
+  @if (batch) {
+    <app-batch-flow-status
+      [status]="batch.status"
+      [totalFarmers]="eligibleFarmers.length"
+      [settledCount]="settledCount"
+      [hasFailures]="hasFailures">
+    </app-batch-flow-status>
+  }
+
   <!-- ── 2. Summary bar ──────────────────────────────────────────────────── -->
-  <!-- Only shown when there are farmers — no point showing "0 eligible farmers / Total: UGX 0" -->
   @if (farmers.length > 0) {
     <div class="summary-bar">
       <span><strong>{{ farmers.length }}</strong> eligible farmers</span>
       <span class="divider">|</span>
-      <!-- totalAmount is a getter in the .ts file — it calls reduce() on the farmers array -->
       <span>Total: <strong class="mono">{{ formatCurrency(totalAmount) }}</strong></span>
     </div>
   }
 
   <!-- ── 3. Farmers grouped Day -> Session ───────────────────────────────── -->
-  <!-- Unlike the other farmer pages, this one doesn't use an Observable —
-       dayGroups is a plain array built synchronously in ngOnInit from the service. -->
   @for (dayGroup of dayGroups; track dayGroup.day) {
     <div class="day-group">
       <div class="day-group-header">
@@ -65,21 +78,58 @@
                   <th>Farmer ID</th>
                   <th>Name</th>
                   <th>Commodity</th>
-                  <th>Branch</th>
-                  <th>Payment Method</th>
+                  <th>Channel</th>
                   <th class="numeric">Net Payable</th>
+                  <th class="numeric">Fee</th>
+                  <th>Status</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
-                <!-- track f.farmerId = stable identity for each row — avoids unnecessary re-renders -->
                 @for (f of sessionGroup.farmers; track f.farmerId) {
                   <tr>
                     <td class="mono">{{ f.farmerId }}</td>
                     <td>{{ f.fullName }}</td>
                     <td>{{ f.commodity }}</td>
-                    <td>{{ f.branch }}</td>
-                    <td>{{ f.paymentMethod }}</td>
+                    <td>
+                      @if (f.paymentMethod === 'Cash') {
+                        <app-badge variant="inactive">Cash — not digital</app-badge>
+                      } @else {
+                        <select 
+                          title="channel-select"
+                          class="channel-select"
+                          [disabled]="isChannelLocked(f.farmerId)"
+                          [value]="channelFor(f.farmerId)"
+                          (change)="setChannel(f.farmerId, $any($event.target).value)">
+                          @for (option of channelOptions; track option) {
+                            <option [value]="option">{{ option }}</option>
+                          }
+                        </select>
+                      }
+                    </td>
                     <td class="numeric mono">{{ formatCurrency(f.netPayable) }}</td>
+                    <td class="numeric mono">{{ formatCurrency(feeFor(f)) }}</td>
+                    <td>
+                      @if (f.paymentMethod !== 'Cash') {
+                        <app-badge [variant]="transactionFor(f.farmerId)?.status === 'SETTLED' ? 'settled' : (canRetry(f.farmerId) ? 'failed' : (transactionFor(f.farmerId) ? 'pending' : 'info'))">
+                          @switch (transactionFor(f.farmerId)?.status) {
+                            @case ('INITIATED') { Initiated }
+                            @case ('VALIDATING') { Validating... }
+                            @case ('TIER_LIMIT_EXCEEDED') { Tier limit exceeded }
+                            @case ('FUNDS_LOCKED') { Funds locked }
+                            @case ('CHANNEL_PROCESSING') { Sending... }
+                            @case ('SETTLED') { Settled }
+                            @case ('FAILED_REVERSED') { Failed (reversed) }
+                            @default { Not started }
+                          }
+                        </app-badge>
+                      }
+                    </td>
+                    <td>
+                      @if (canRetry(f.farmerId)) {
+                        <app-button variant="secondary" size="sm" (clicked)="retry(f)">Retry</app-button>
+                      }
+                    </td>
                   </tr>
                 }
               </tbody>

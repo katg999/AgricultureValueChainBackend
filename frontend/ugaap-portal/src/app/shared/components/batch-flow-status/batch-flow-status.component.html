@@ -1,0 +1,26 @@
+<!-- batch-flow-status.component.html
+     Shows a batch's lifecycle stage (stepper), settle progress once
+     disbursement has started, and a failure banner when retries are needed.
+     Rejected is a terminal off-ramp, not a step on the line, so it gets its
+     own badge instead of the stepper. -->
+<div class="batch-flow-status">
+  @if (isRejected) {
+    <div class="rejected-row">
+      <app-badge variant="failed">Rejected</app-badge>
+      <span class="rejected-note">This batch was rejected and will not be disbursed.</span>
+    </div>
+  } @else {
+    <app-stepper [steps]="steps" [currentStep]="currentStep"></app-stepper>
+
+    @if (showProgress) {
+      <div class="progress-row">
+        <app-progress-bar [percentage]="progressPercentage" [variant]="progressVariant"></app-progress-bar>
+        <span class="progress-count">{{ settledCount }} of {{ totalFarmers }} settled</span>
+      </div>
+    }
+  }
+
+  @if (hasFailures) {
+    <app-alert variant="warning" [message]="failureMessage"></app-alert>
+  }
+</div>

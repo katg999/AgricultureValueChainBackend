@@ -125,3 +125,21 @@ tbody tr:hover { background: #faf9fb; }
     table { min-width: 760px; }
   }
 }
+
+.disburse-action { margin-top: 12px; }
+
+.channel-select {
+  font-family: var(--font-human);
+  font-size: 13px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid #e5e1e8;
+  background: #fff;
+  color: #2b2b2b;
+}
+
+.channel-select:disabled {
+  background: #f2f2f2;
+  color: #6b6b6b;
+  cursor: not-allowed;
+}
