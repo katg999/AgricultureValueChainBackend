@@ -1,82 +1,97 @@
 <div class="page">
-
-<!-- GENERATED CREDENTIALS CARD — shown after successful role + user creation -->
-<div class="credentials-shell" *ngIf="generatedCredentials">
-  <div class="credentials-card">
-
-    <div class="credentials-header">
-      <div class="credentials-icon">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <rect x="3" y="11" width="18" height="11" rx="2"/>
-          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-        </svg>
+  <!-- GENERATED CREDENTIALS CARD — shown after successful role + user creation -->
+  <div class="credentials-shell" *ngIf="generatedCredentials">
+    <div class="credentials-card">
+      <div class="credentials-header">
+        <div class="credentials-icon">
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <rect x="3" y="11" width="18" height="11" rx="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="credentials-title">Account created successfully</h3>
+          <p class="credentials-subtitle">
+            Share these login credentials with the user. The temporary password will not be shown
+            again.
+          </p>
+        </div>
       </div>
-      <div>
-        <h3 class="credentials-title">Account created successfully</h3>
-        <p class="credentials-subtitle">
-          Share these login credentials with the user. The temporary password will not be shown again.
-        </p>
+
+      <div class="credentials-grid">
+        <div class="credential-item">
+          <span class="credential-label">Full name</span>
+          <span class="credential-value">{{ generatedCredentials.fullName }}</span>
+        </div>
+        <div class="credential-item">
+          <span class="credential-label">Role</span>
+          <span class="credential-value">{{ generatedCredentials.roleName }}</span>
+        </div>
+        <div class="credential-item">
+          <span class="credential-label">Username</span>
+          <span class="credential-value">{{ generatedCredentials.username }}</span>
+        </div>
+        <div class="credential-item">
+          <span class="credential-label">Email</span>
+          <span class="credential-value">{{ generatedCredentials.email }}</span>
+        </div>
+        <div class="credential-item">
+          <span class="credential-label">Temporary password</span>
+          <span class="credential-value credential-password">{{
+            generatedCredentials.temporaryPassword
+          }}</span>
+        </div>
+      </div>
+
+      <div class="credentials-actions">
+        <button type="button" class="btn-copy" (click)="copyAllCredentials()">
+          {{ credentialsCopied ? '✓ Copied' : 'Copy credentials' }}
+        </button>
+        <button type="button" class="btn-done" (click)="dismissCredentials()">Done</button>
       </div>
     </div>
-
-    <div class="credentials-grid">
-      <div class="credential-item">
-        <span class="credential-label">Full name</span>
-        <span class="credential-value">{{ generatedCredentials.fullName }}</span>
-      </div>
-      <div class="credential-item">
-        <span class="credential-label">Role</span>
-        <span class="credential-value">{{ generatedCredentials.roleName }}</span>
-      </div>
-      <div class="credential-item">
-        <span class="credential-label">Username</span>
-        <span class="credential-value">{{ generatedCredentials.username }}</span>
-      </div>
-      <div class="credential-item">
-        <span class="credential-label">Email</span>
-        <span class="credential-value">{{ generatedCredentials.email }}</span>
-      </div>
-      <div class="credential-item">
-        <span class="credential-label">Temporary password</span>
-        <span class="credential-value credential-password">{{ generatedCredentials.temporaryPassword }}</span>
-      </div>
-    </div>
-
-    <div class="credentials-actions">
-      <button type="button" class="btn-copy" (click)="copyAllCredentials()">
-        {{ credentialsCopied ? '✓ Copied' : 'Copy credentials' }}
-      </button>
-      <button type="button" class="btn-done" (click)="dismissCredentials()">Done</button>
-    </div>
-
   </div>
-</div>
 
-<!-- MAIN FORM (hidden once credentials are shown) -->
-<ng-container *ngIf="!generatedCredentials">
-  <form [formGroup]="roleForm" (ngSubmit)="saveRole()">
+  <!-- MAIN FORM (hidden once credentials are shown) -->
+  <ng-container *ngIf="!generatedCredentials">
+    <form [formGroup]="roleForm" (ngSubmit)="saveRole()">
+      <app-form-shell
+        [title]="isEditMode ? 'Edit Role' : 'Create Role'"
+        [subtitle]="
+          isEditMode
+            ? 'Update the role details and permissions.'
+            : 'Define the role, create its first user, and assign permissions.'
+        "
+      >
+        <!-- ── 1. ROLE DETAILS ── -->
+        <app-form-section
+          [number]="1"
+          title="Role Details"
+          iconName="shield"
+          desc="Name and describe this role"
+        >
+          <div class="fields-grid cols-2">
+            <app-input
+              label="Role name"
+              placeholder="e.g. Logistics Manager"
+              type="text"
+              [required]="true"
+              [error]="getFieldError('name')"
+              formControlName="name"
+            >
+            </app-input>
 
-    <app-form-shell
-      [title]="isEditMode ? 'Edit Role' : 'Create Role'"
-      [subtitle]="isEditMode ? 'Update the role details and permissions.' : 'Define the role, create its first user, and assign permissions.'">
-
-      <!-- ── 1. ROLE DETAILS ── -->
-      <app-form-section [number]="1" title="Role Details" iconName="shield"
-                        desc="Name and describe this role">
-
-        <div class="fields-grid cols-2">
-          <app-input
-            label="Role name"
-            placeholder="e.g. Logistics Manager"
-            type="text"
-            [required]="true"
-            [error]="getFieldError('name')"
-            formControlName="name">
-          </app-input>
-
-          <!-- <div class="input-group">
+            <!-- <div class="input-group">
             <app-input
               label="Tenant ID"
               placeholder="e.g. ugaap-farmers"
@@ -87,85 +102,93 @@
             </app-input>
             <p class="field-hint">Pre-filled from onboarding context</p>
           </div>-->
-        </div>
-
-        <div class="input-group mt-16">
-          <label class="input-label">Description <span class="required-mark">*</span></label>
-          <textarea
-            class="form-input"
-            placeholder="Brief description of what this role can do…"
-            formControlName="description"
-            [class.input-error]="getFieldError('description')"
-            rows="3"></textarea>
-          <p class="field-error" *ngIf="getFieldError('description')">
-            {{ getFieldError('description') }}
-          </p>
-        </div>
-      </app-form-section>
-
-      <!-- ── 2. USER DETAILS (create only) ── -->
-      <app-form-section *ngIf="!isEditMode" [number]="2" title="User Details" iconName="user"
-                        desc="First account created with this role">
-
-        <div class="fields-grid cols-3">
-          <div class="input-group">
-            <app-input
-              label="Full name"
-              placeholder="e.g. Brian Katende"
-              type="text"
-              [required]="true"
-              [error]="getFieldError('fullName')"
-              formControlName="fullName">
-            </app-input>
-            <p class="field-hint">Full legal name of the user</p>
           </div>
 
-          <div class="input-group">
-            <app-input
-              label="Email address"
-              placeholder="e.g. brian@cooperative.ug"
-              type="email"
-              [required]="true"
-              [error]="getFieldError('email')"
-              formControlName="email">
-            </app-input>
-            <p class="field-hint">A system account will be created for this email</p>
+          <div class="input-group mt-16">
+            <label class="input-label">Description <span class="required-mark">*</span></label>
+            <textarea
+              class="form-input"
+              placeholder="Brief description of what this role can do…"
+              formControlName="description"
+              [class.input-error]="getFieldError('description')"
+              rows="3"
+            ></textarea>
+            <p class="field-error" *ngIf="getFieldError('description')">
+              {{ getFieldError('description') }}
+            </p>
           </div>
+        </app-form-section>
 
-          <div class="input-group">
-            <app-input
-              label="Phone number"
-              placeholder="+256712345678"
-              type="tel"
-              [required]="true"
-              [error]="getFieldError('phone')"
-              formControlName="phone">
-            </app-input>
-            <p class="field-hint">Include country code</p>
+        <!-- ── 2. USER DETAILS (create only) ── -->
+        <app-form-section
+          *ngIf="!isEditMode"
+          [number]="2"
+          title="User Details"
+          iconName="user"
+          desc="First account created with this role"
+        >
+          <div class="fields-grid cols-3">
+            <div class="input-group">
+              <app-input
+                label="Full name"
+                placeholder="e.g. Brian Katende"
+                type="text"
+                [required]="true"
+                [error]="getFieldError('fullName')"
+                formControlName="fullName"
+              >
+              </app-input>
+              <p class="field-hint">Full legal name of the user</p>
+            </div>
+
+            <div class="input-group">
+              <app-input
+                label="Email address"
+                placeholder="e.g. brian@cooperative.ug"
+                type="email"
+                [required]="true"
+                [error]="getFieldError('email')"
+                formControlName="email"
+              >
+              </app-input>
+              <p class="field-hint">A system account will be created for this email</p>
+            </div>
+
+            <div class="input-group">
+              <app-input
+                label="Phone number"
+                placeholder="+256712345678"
+                type="tel"
+                [required]="true"
+                [error]="getFieldError('phone')"
+                formControlName="phone"
+              >
+              </app-input>
+              <p class="field-hint">Include country code</p>
+            </div>
           </div>
-        </div>
-      </app-form-section>
+        </app-form-section>
 
-      <!-- ── 2 (edit) / 3 (create). PERMISSIONS ── -->
-      <app-form-section [number]="isEditMode ? 2 : 3" title="Permissions" iconName="list"
-                        [desc]="permissionsDesc">
+        <!-- ── 2 (edit) / 3 (create). PERMISSIONS ── -->
+        <app-form-section
+          [number]="isEditMode ? 2 : 3"
+          title="Permissions"
+          iconName="list"
+          [desc]="permissionsDesc"
+        >
+          <app-permission-tabs scope="cooperative" [(selected)]="selectedPermissions">
+          </app-permission-tabs>
 
-        <app-permission-tabs scope="cooperative" [(selected)]="selectedPermissions">
-        </app-permission-tabs>
+          <div *ngIf="errorMessage" class="save-error" role="alert">{{ errorMessage }}</div>
+        </app-form-section>
+      </app-form-shell>
 
-        <div *ngIf="errorMessage" class="save-error" role="alert">{{ errorMessage }}</div>
-      </app-form-section>
-
-    </app-form-shell>
-
-    <div class="form-actions">
-      <button type="button" class="btn-secondary" (click)="cancel()">Cancel</button>
-      <app-button variant="primary" size="lg" type="submit" [disabled]="isLoading">
-        {{ isLoading ? 'Saving…' : (isEditMode ? 'Save changes' : 'Create role') }}
-      </app-button>
-    </div>
-
-  </form>
-</ng-container>
-
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="cancel()">Cancel</button>
+        <app-button variant="primary" size="lg" type="submit" [disabled]="isLoading">
+          {{ isLoading ? 'Saving…' : isEditMode ? 'Save changes' : 'Create role' }}
+        </app-button>
+      </div>
+    </form>
+  </ng-container>
 </div>

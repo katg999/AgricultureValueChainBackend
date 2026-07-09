@@ -6,20 +6,42 @@ import { Title } from '@angular/platform-browser';
 
 import { TableComponent, TableColumn } from '../../../shared/components/table/table.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
-import { PlatformCooperativesService, PlatformCooperative } from '../../../core/services/platform-cooperatives.service';
+import { StatCardComponent, StatCardData } from '../../../shared/components/stat-card/stat-card.component';
+// import { PlatformCooperativesService } from '../services/platform-cooperatives.service';
 
-type Cooperative = PlatformCooperative;
+/**
+ * Cooperative interface
+ */
+interface Cooperative {
+  id: string;
+  name: string;
+  code: string;
+  country: string;
+  branches: number;
+  activeFarmers: number;
+  season: string;
+  status: 'active' | 'pending' | 'suspended' | 'rejected' | 'deleted';
+  onboardingProgress: number;
+  lastActivity: string;
+}
 
 @Component({
   selector: 'app-cooperatives-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, TableComponent, ButtonComponent],
+  imports: [
+    CommonModule,
+    RouterModule,
+    FormsModule,
+    TableComponent,
+    ButtonComponent,
+    StatCardComponent,
+  ],
   templateUrl: './cooperatives-list.component.html',
   styleUrls: ['./cooperatives-list.component.css']
 })
 export class CooperativesListComponent implements OnInit {
 
-  private coopsService = inject(PlatformCooperativesService);
+  // private coopsService = inject(PlatformCooperativesService);
 
   columns: TableColumn[] = [
     { key: 'name', label: 'ORGANISATION NAME', sortable: true, width: '25%' },
@@ -33,6 +55,9 @@ export class CooperativesListComponent implements OnInit {
 
   cooperatives: Cooperative[] = [];
   filteredCooperatives: Cooperative[] = [];
+
+  /** Summary stat cards — computed once, updated after any mutation */
+  stats: StatCardData[] = [];
 
   /**
    * Search query
@@ -60,10 +85,45 @@ export class CooperativesListComponent implements OnInit {
 
   ngOnInit(): void {
     this.titleService.setTitle('Cooperatives List | UGAAP');
-    this.coopsService.list().subscribe(coops => {
-      this.cooperatives = coops;
-      this.filteredCooperatives = [...coops];
-    });
+    this.filteredCooperatives = [...this.cooperatives];
+    this.stats = this.buildStats();
+  }
+
+  private buildStats(): StatCardData[] {
+    const count = (s: Cooperative['status']) =>
+      this.cooperatives.filter(c => c.status === s).length;
+    return [
+      {
+        label:  'Active',
+        value:  count('active'),
+        icon:   'check',
+        trend:  'Fully onboarded',
+        trendUp: true,
+        status: 'active',
+      },
+      {
+        label:   'Pending Review',
+        value:   count('pending'),
+        icon:    'clock',
+        trend:   'Awaiting approval',
+        trendUp: false,
+        status:  'warning',
+      },
+      {
+        label:   'Rejected',
+        value:   count('rejected'),
+        icon:    'alert',
+        trend:   'Requires follow-up',
+        trendUp: false,
+        status:  'critical',
+      },
+      {
+        label:  'Deleted',
+        value:  count('deleted'),
+        icon:   'settings',
+        trend:  'Archived records',
+      },
+    ];
   }
 
   onSearch(): void { this.applyFilters(); }
@@ -185,30 +245,22 @@ export class CooperativesListComponent implements OnInit {
    */
   getStatusVariant(status: string): 'active' | 'pending' | 'suspended' {
     switch (status) {
-      case 'active':
-        return 'active';
-      case 'pending':
-        return 'pending';
-      case 'suspended':
-        return 'suspended';
-      default:
-        return 'pending';
+      case 'active':    return 'active';
+      case 'pending':   return 'pending';
+      case 'rejected':  return 'suspended';
+      case 'deleted':   return 'suspended';
+      default:          return 'pending';
     }
   }
 
-  /**
-   * Get display text for status
-   */
   getStatusText(status: string): string {
     switch (status) {
-      case 'active':
-        return 'ACTIVE';
-      case 'pending':
-        return 'PENDING SETUP';
-      case 'suspended':
-        return 'SUSPENDED';
-      default:
-        return status.toUpperCase();
+      case 'active':    return 'ACTIVE';
+      case 'pending':   return 'PENDING SETUP';
+      case 'suspended': return 'SUSPENDED';
+      case 'rejected':  return 'REJECTED';
+      case 'deleted':   return 'DELETED';
+      default:          return status.toUpperCase();
     }
   }
 

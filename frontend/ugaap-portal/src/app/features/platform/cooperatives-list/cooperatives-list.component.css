@@ -3,38 +3,44 @@
     */
 
 
-/* 
-   PAGE HEADER
-    */
+/* ── Page heading ─────────────────────────────────────────────────────────── */
 
-.page-header {
+.page-heading {
   display: flex;
-  align-items: flex-start;
-  justify-content: flex-end;
-  margin-bottom: 32px;
-}
-
-.page-header-content {
-  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
 }
 
 .page-title {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
   color: var(--secondary);
-  margin: 0 0 8px 0;
+  margin: 0 0 2px;
+  line-height: 1.2;
 }
 
 .page-subtitle {
-  font-size: 14px;
-  color: #6B6B7B;
+  font-size: 13px;
+  color: #6B7280;
   margin: 0;
 }
 
-.page-header-actions {
+.heading-actions {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
+}
+
+/* ── Stat cards ───────────────────────────────────────────────────────────── */
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
 }
 
 /* 
@@ -278,17 +284,18 @@
    RESPONSIVE DESIGN
     */
 
-@media (max-width: 1024px) {  .page-header {
+@media (max-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .page-heading {
     flex-direction: column;
-    gap: 20px;
+    align-items: flex-start;
   }
 
-  .page-header-actions {
+  .heading-actions {
     width: 100%;
-  }
-
-  .page-header-actions app-button {
-    flex: 1;
   }
 }
 
@@ -321,11 +328,8 @@
   }
 }
 
-@media (max-width: 480px) {  .page-title {
-    font-size: 24px;
-  }
-
-  .page-subtitle {
-    font-size: 13px;
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }

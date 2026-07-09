@@ -22,6 +22,7 @@
 		<module>MembershipService</module>
 		<module>ConfigurationService</module>
 		<module>CollectionService</module>
+		<module>InventoryService</module>
 
 	</modules>
 

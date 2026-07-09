@@ -39,6 +39,9 @@ public class SecurityConfig {
                         // ✅ Auth endpoints
                         .requestMatchers("/auth/**").permitAll()
 
+                        // Internal provisioning — open for local dev; lock down before going to prod
+                        .requestMatchers("/internal/credentials/**").permitAll()
+
                         // Everything else secured
                         .anyRequest().authenticated()
                 );

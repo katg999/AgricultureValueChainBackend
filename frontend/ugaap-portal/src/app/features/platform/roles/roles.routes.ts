@@ -1,34 +1,44 @@
 import { Routes } from '@angular/router';
 import { permissionGuard } from '../../../core/guards/permission.guard';
 
-// Platform roles management routes.
-// Mounted at /platform/roles via platform.routes.ts.
-
 export const ROLES_ROUTES: Routes = [
 
-  // Default — roles list (inherits parent title 'Roles & Permissions')
   {
     path: '',
     title: 'Roles List | UGAAP',
-    canActivate: [permissionGuard],
-    data: { permissions: ['roles.view'] },
+    data: { title: 'Roles & Permissions', subtitle: 'Manage who can do what across the platform' },
     loadComponent: () =>
       import('./roles-list/roles-list.component')
         .then(m => m.RolesListComponent),
   },
 
-  // Canonical list path
   {
     path: 'roles-list',
     title: 'Roles List | UGAAP',
-    canActivate: [permissionGuard],
-    data: { permissions: ['roles.view'] },
+    data: { title: 'Roles & Permissions', subtitle: 'Manage who can do what across the platform' },
     loadComponent: () =>
       import('./roles-list/roles-list.component')
         .then(m => m.RolesListComponent),
   },
 
-  // Role detail
+  {
+    path: 'role-form',
+    title: 'Create Role | UGAAP',
+    data: { title: 'Create Role', subtitle: 'Define a new role and its permissions' },
+    loadComponent: () =>
+      import('./role-form/role-form.component')
+        .then(m => m.RoleFormComponent),
+  },
+
+  {
+    path: 'role-form/:id',
+    title: 'Edit Role | UGAAP',
+    data: { title: 'Edit Role', subtitle: 'Update role permissions and settings' },
+    loadComponent: () =>
+      import('./role-form/role-form.component')
+        .then(m => m.RoleFormComponent),
+  },
+
   {
     path: ':id',
     title: 'Role Details | UGAAP',
