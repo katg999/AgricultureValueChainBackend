@@ -95,7 +95,8 @@
                       @if (f.paymentMethod === 'Cash') {
                         <app-badge variant="inactive">Cash — not digital</app-badge>
                       } @else {
-                        <select
+                        <select 
+                          title="channel-select"
                           class="channel-select"
                           [disabled]="isChannelLocked(f.farmerId)"
                           [value]="channelFor(f.farmerId)"

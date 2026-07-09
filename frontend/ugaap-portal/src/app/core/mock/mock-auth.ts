@@ -15,6 +15,6 @@ export const DEV_MOCK_USER: AuthUser = {
   role: 'cooperative_admin',
   tenantId: 'dev-tenant',
   cooperativeId: 'COOP-001',
-  branchId: 'BR-MBL', // Mbale West — has the most seed delivery data
+  branchId: 'BR-MBL',
   permissions: [],
 };

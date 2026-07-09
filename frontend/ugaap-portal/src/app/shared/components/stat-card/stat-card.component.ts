@@ -12,7 +12,7 @@
 // • icon field accepts an icon NAME string (e.g. 'users', 'box', 'wallet')
 //   mapped to inline SVG via iconMap — not an emoji.
 
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, OnDestroy, SimpleChanges, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 
@@ -293,7 +293,7 @@ export interface StatCardData {
     }
   `]
 })
-export class StatCardComponent implements OnInit, OnDestroy {
+export class StatCardComponent implements OnInit, OnChanges, OnDestroy {
 
   @Input() data!: StatCardData;
 
@@ -337,6 +337,29 @@ export class StatCardComponent implements OnInit, OnDestroy {
   constructor(private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
+    this.updateDisplay();
+  }
+
+  // Callers bind `[data]="{ ... }"` with a fresh object literal on every change
+  // detection cycle, so `data` "changes" constantly by reference even when the
+  // actual value is identical — only re-render when the value itself moved,
+  // otherwise the count-up animation would restart on every CD tick. Without
+  // this, ngOnInit's one-time read means a card that renders before its async
+  // data arrives (the common case — summary starts at 0 while HTTP is in
+  // flight) shows 0 forever and never picks up the real value.
+  ngOnChanges(changes: SimpleChanges): void {
+    const change = changes['data'];
+    if (!change || change.firstChange) return;
+
+    const previousValue = change.previousValue?.value;
+    const currentValue = change.currentValue?.value;
+    if (previousValue !== currentValue) {
+      this.updateDisplay();
+    }
+  }
+
+  private updateDisplay(): void {
+    if (this.rafId !== undefined) cancelAnimationFrame(this.rafId);
     if (this.isAnimatable(this.data.value)) {
       this.runCountUp(this.toNumber(this.data.value));
     } else {
