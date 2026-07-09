@@ -332,7 +332,7 @@ export class InventoryService {
     // is wired up (a 2 s timeout that silently "succeeds" via mock is misleading).
     if (USE_MOCK) return of(this.addMockStockRequest(payload));
 
-    return this.http.post<StockRequest>(`${API_ENDPOINTS.BRANCH.INVENTORY}/stock-requests`, payload).pipe(
+    return this.http.post<StockRequest>(`${API_ENDPOINTS.BRANCH.STOCK_REQUESTS}/stock-requests`, payload).pipe(
       timeout(8000),
       tap(req => this.stockRequestSubject.next([req, ...this.stockRequestSubject.value])),
       catchError(() => of(this.addMockStockRequest(payload))),
@@ -350,7 +350,7 @@ export class InventoryService {
     // stock-requests endpoint is added to the backend.
     if (USE_MOCK) return of(snapshot);
 
-    return this.http.get<StockRequest[]>(`${API_ENDPOINTS.BRANCH.INVENTORY}/stock-requests`).pipe(
+    return this.http.get<StockRequest[]>(`${API_ENDPOINTS.BRANCH.STOCK_REQUESTS}/stock-requests`).pipe(
       timeout(8000),
       tap(rows => this.stockRequestSubject.next(rows)),
       catchError(() => of(snapshot)),
@@ -367,7 +367,7 @@ export class InventoryService {
       return of(void 0);
     }
 
-    return this.http.delete<void>(`${API_ENDPOINTS.BRANCH.INVENTORY}/stock-requests/${id}`).pipe(
+    return this.http.delete<void>(`${API_ENDPOINTS.BRANCH.STOCK_REQUESTS}/stock-requests/${id}`).pipe(
       timeout(8000),
       tap(() => removeFromStore()),
       catchError((): Observable<void> => {

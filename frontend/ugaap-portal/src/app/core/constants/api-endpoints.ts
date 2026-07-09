@@ -65,6 +65,9 @@ export const API_ENDPOINTS = {
     PAYMENT_FARMERS: `${BASE}/api/v1/settlements/farmers`,
 
     // Inventory Service (Staged Next Deployment)
+    // Planned gateway route for coop→branch stock issuance — backend has no branch-issues
+    // endpoint yet; POST /api/allocations/issue requires a farmerId, so this stays mocked
+    // until the backend accepts branch-only issues.
     INVENTORY: `${BASE}/api/v1/inventory`,
     USERS: `${BASE}/api/v1/access/users`,
     USER_BY_ID: (id: string) => `${BASE}/api/v1/access/users/${id}`,
@@ -122,8 +125,10 @@ export const API_ENDPOINTS = {
     // Branch-level farmer-deliveries listing (Mapped to BranchCollectionController)
     // (This reuses the same endpoint as FARMER_DELIVERIES with GET semantics)
 
-    // Branch Inventory Hooks (Prepared for INVENTORY-SERVICE)
-    INVENTORY: `${BASE}/api/v1/inventory/branch`,
+    // Branch stock requests (Prepared for INVENTORY-SERVICE)
+    // Planned gateway route — no backend equivalent exists yet, unlike stock/allocations
+    // which already have real endpoints under INVENTORY_BACKEND.
+    STOCK_REQUESTS: `${BASE}/api/v1/inventory/branch`,
 
     // Inter-Service Settlements Synchronizer (SettlementController)
     BATCHES: `${BASE}/api/v1/settlements/batch-recover`,
@@ -140,16 +145,16 @@ export const API_ENDPOINTS = {
   USERS: `${BASE}/api/v1/access/users`,
 
   // ── Inventory Service — real backend paths ──────────────────────────────────
-  // The COOPERATIVE.INVENTORY and BRANCH.INVENTORY constants above are the
-  // PLANNED gateway routes (not yet wired in the gateway config).
-  // These paths below are where the InventoryService microservice actually listens.
-  // The frontend uses these directly until the gateway routing is set up.
+  // The COOPERATIVE.INVENTORY and BRANCH.STOCK_REQUESTS constants above are planned
+  // gateway routes with no backend behind them yet (see comments there for what each
+  // is actually for). These paths below are where the InventoryService microservice
+  // actually listens today; the frontend calls them directly until gateway routing
+  // is set up.
   INVENTORY_BACKEND: {
     STOCK_ALL: `${BASE}/api/input-stock/all`, // GET ?cooperativeId=X or ?branchId=X
     STOCK_CREATE: `${BASE}/api/input-stock`, // POST — add new stock
     ALLOCATION_ISSUE: `${BASE}/api/allocations/issue`,
     ALLOCATIONS_BY_BRANCH: (branchId: string) => `${BASE}/api/allocations/branch/${branchId}`,
-    ALLOCATIONS_BY_COOP: (coopId: string) => `${BASE}/api/allocations/cooperative/${coopId}`,
   },
 
   // ── Access Control (Roles & Permissions) ───────────────────────────────────
