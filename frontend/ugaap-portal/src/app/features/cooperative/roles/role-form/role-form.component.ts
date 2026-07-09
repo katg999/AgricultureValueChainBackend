@@ -21,10 +21,10 @@ import { USE_MOCK } from '../../../../core/mock/mock-config';
 
 export interface GeneratedCredentials {
   roleName: string;
-  // username: string;
-  // fullName: string;
-  // email: string;
-  // temporaryPassword: string;
+  username: string;
+  fullName: string;
+  email: string;
+  temporaryPassword: string;
 }
 
 @Component({
@@ -64,6 +64,7 @@ export class RoleFormComponent implements OnInit {
     private router: Router,
     private http: HttpClient,
     private cdr: ChangeDetectorRef,
+    private rolesService: RolesService,
   ) {}
 
   allPermissions: any[] = [];
@@ -168,20 +169,20 @@ export class RoleFormComponent implements OnInit {
 
   // ── Credential helpers ────────────────────────────────────────────────────
 
-  // copyAllCredentials(): void {
-  //   if (!this.generatedCredentials) return;
-  //   const { fullName, roleName, username, email, temporaryPassword } = this.generatedCredentials;
-  //   const text = `Full name: ${fullName}\nRole: ${roleName}\nUsername: ${username}\nEmail: ${email}\nPassword: ${temporaryPassword}`;
-  //   navigator.clipboard.writeText(text).then(() => {
-  //     this.credentialsCopied = true;
-  //     setTimeout(() => (this.credentialsCopied = false), 3000);
-  //   });
-  // }
+  copyAllCredentials(): void {
+    if (!this.generatedCredentials) return;
+    const { fullName, roleName, username, email, temporaryPassword } = this.generatedCredentials;
+    const text = `Full name: ${fullName}\nRole: ${roleName}\nUsername: ${username}\nEmail: ${email}\nPassword: ${temporaryPassword}`;
+    navigator.clipboard.writeText(text).then(() => {
+      this.credentialsCopied = true;
+      setTimeout(() => (this.credentialsCopied = false), 3000);
+    });
+  }
 
-  // dismissCredentials(): void {
-  //   this.generatedCredentials = null;
-  //   this.router.navigate(['/cooperative/roles']);
-  // }
+  dismissCredentials(): void {
+    this.generatedCredentials = null;
+    this.router.navigate(['/cooperative/roles']);
+  }
 
   // ── Save ──────────────────────────────────────────────────────────────────
 
