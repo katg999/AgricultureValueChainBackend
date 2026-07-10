@@ -25,6 +25,7 @@ public class InternalCredentialsController {
         AuthService.CredentialsResult result = authService.provisionCredentials(
                 UUID.fromString(request.getUserId()),
                 request.getUsername(),
+                request.getFullName(),
                 request.getEmail(),
                 request.getPlainPassword()
         );
@@ -50,6 +51,7 @@ public class InternalCredentialsController {
         @NotBlank private String userId;
         @NotBlank private String username;
         @NotBlank private String email;
+        @NotBlank private String fullName;
         @NotBlank private String plainPassword;
     }
 

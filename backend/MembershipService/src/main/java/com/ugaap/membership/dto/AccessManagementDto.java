@@ -37,7 +37,11 @@ public class AccessManagementDto {
 
         @NotNull(message = "Role ID is required")
         private UUID roleId;
+        private String dateOfBirth;
+        private String nationalId;
+        private String gender;
     }
+
 
     @Data
     @Builder

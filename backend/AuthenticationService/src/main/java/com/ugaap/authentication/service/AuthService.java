@@ -218,6 +218,7 @@ public class AuthService {
     public CredentialsResult provisionCredentials(UUID userId,
                                                   String username,
                                                   String email,
+                                                  String fullName,
                                                   String plainPassword) {
         if (credentialsRepository.existsByEmail(email)) {
             throw new AuthException("Email already registered: " + email);
@@ -241,8 +242,14 @@ public class AuthService {
         saveAuditLog(userId, email, AuditLog.EventType.REGISTRATION,
                 "system", "internal-provisioning", true, null);
 
-        log.info("Credentials provisioned for userId={}, username={}",
-                userId, username);
+        // ← ADD
+        try {
+            emailService.sendWelcomeCredentials(email, fullName, username, plainPassword);
+        } catch (IOException e) {
+            log.error("Failed to send welcome email to {}: {}", email, e.getMessage());
+        }
+
+        log.info("Credentials provisioned for userId={}, username={}", userId, username);
 
         return new CredentialsResult(userId, username, email);
     }

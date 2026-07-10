@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -55,6 +56,24 @@ public class User {
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+
+
+    @Column(name = "date_of_birth")
+    private LocalDate dateOfBirth;
+
+    @Column(name = "national_id")
+    private String nationalId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "gender")
+    private Gender gender;
+
+    @Column(name = "profile_photo_url")
+    private String profilePhotoUrl;
+
+    public enum Gender {
+        MALE, FEMALE, OTHER
+    }
 
     public enum UserStatus {
         ACTIVE, INACTIVE, SUSPENDED

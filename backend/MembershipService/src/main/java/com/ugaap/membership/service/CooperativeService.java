@@ -12,6 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.ugaap.membership.Entity.Role;
 import com.ugaap.membership.repository.RoleRepository;
+import com.ugaap.membership.dto.AccessManagementDto;
+import com.ugaap.shared.util.MinioService;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.text.Normalizer;
 import java.util.List;
@@ -29,10 +32,14 @@ public class CooperativeService {
     private final BranchRepository branchRepository;
     private final RlsContextApplier rlsContextApplier;
     private final RoleRepository roleRepository;
+    private final UserService userService;
+    private final MinioService minioService;
+
 
     @Transactional
     public CooperativeDto.CreateResponse onboardCooperative(
             CooperativeDto.CreateRequest request,
+            MultipartFile adminPhoto,              // ← ADD
             String performedBy) {
 
         // 1. Uniqueness guard
@@ -48,12 +55,12 @@ public class CooperativeService {
         if (cooperativeRepository.existsByTenantId(tenantId)) {
             tenantId = tenantId + "-" + System.currentTimeMillis();
         }
+        final String finalTenantId = tenantId;
 
         // 3. Persist Cooperative
         Cooperative cooperative = Cooperative.builder()
                 .tenantId(tenantId)
                 .name(request.getName())
-                //.cooperativeId(UUID.randomUUID())
                 .registrationNumber(request.getRegistrationNumber())
                 .address(request.getAddress())
                 .accountName(request.getAccountName())
@@ -68,8 +75,7 @@ public class CooperativeService {
                 .build();
 
         cooperative = cooperativeRepository.save(cooperative);
-        log.info("Cooperative created: tenantId={}, name={}",
-                tenantId, cooperative.getName());
+        log.info("Cooperative created: tenantId={}, name={}", tenantId, cooperative.getName());
 
         // 4. Create default HQ branch
         String branchCode = (tenantId + "-HQ").toUpperCase();
@@ -85,18 +91,52 @@ public class CooperativeService {
         defaultBranch = branchRepository.save(defaultBranch);
         log.info("Default branch created: branchCode={}", branchCode);
 
-
         // 5. Seed MAKER and CHECKER roles for this tenant
         seedAdminRoles(tenantId);
         log.info("Admin roles seeded for tenantId={}", tenantId);
+
+        // 6. Create the Cooperative Admin (Maker) user — provisions
+        //    credentials + emails them via AuthenticationService/SendGrid
+        var makerRole = roleRepository
+                .findByNameAndTenantId("COOPERATIVE_ADMIN_MAKER", tenantId)
+                .orElseThrow(() -> new IllegalStateException(
+                        "COOPERATIVE_ADMIN_MAKER role missing right after seeding for tenant: "
+                                + finalTenantId));   // ← use finalTenantId here
+
+        AccessManagementDto.UserResponse adminUser = userService.createUser(
+                AccessManagementDto.CreateUserRequest.builder()
+                        .fullName(request.getAdminFullName())
+                        .email(request.getAdminEmail())
+                        .phone(request.getAdminPhone())
+                        .tenantId(tenantId)
+                        .roleId(makerRole.getRoleId())
+                        .dateOfBirth(request.getAdminDateOfBirth())
+                        .nationalId(request.getAdminNationalId())
+                        .gender(request.getAdminGender())
+                        .build(),
+                performedBy
+        );
+
+        // 7. Upload admin photo (optional) and attach it
+        String adminPhotoUrl = (adminPhoto != null && !adminPhoto.isEmpty())
+                ? minioService.uploadProfilePhoto(adminPhoto, tenantId, adminUser.getUserId())
+                : minioService.generateDefaultAvatar(request.getAdminFullName());
+        userService.updateProfilePhoto(adminUser.getUserId(), adminPhotoUrl);
+
+        log.info("Cooperative admin created and activated for tenantId={}, userId={}",
+                tenantId, adminUser.getUserId());
 
         return CooperativeDto.CreateResponse.builder()
                 .tenantId(tenantId)
                 .cooperativeId(cooperative.getCooperativeId().toString())
                 .defaultBranchId(defaultBranch.getBranchId().toString())
                 .defaultBranchCode(branchCode)
-                .message("Cooperative onboarded successfully. " +
-                        "Create admin roles and users via Access Management.")
+                .message("Cooperative onboarded and activated. Admin credentials emailed to "
+                        + request.getAdminEmail() + ".")
+                .adminUserId(adminUser.getUserId())
+                .adminUsername(adminUser.getUsername())
+                .adminEmail(adminUser.getEmail())
+                .adminTemporaryPassword(adminUser.getTemporaryPassword())
                 .build();
     }
 

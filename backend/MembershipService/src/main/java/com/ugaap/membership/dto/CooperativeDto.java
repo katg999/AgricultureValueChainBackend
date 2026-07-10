@@ -42,6 +42,21 @@ public class CooperativeDto {
         private String defaultBranchName;
 
         private String defaultBranchLocation;
+
+        // ── Cooperative Admin (Maker) ──────────────────────────
+        @NotBlank(message = "Admin full name is required")
+        private String adminFullName;
+
+        @NotBlank(message = "Admin email is required")
+        @Email(message = "Invalid email format")
+        private String adminEmail;
+
+        @NotBlank(message = "Admin phone is required")
+        private String adminPhone;
+
+        private String adminDateOfBirth;   // "YYYY-MM-DD", optional
+        private String adminNationalId;    // optional
+        private String adminGender;        // optional
     }
 
     @Data
@@ -52,6 +67,12 @@ public class CooperativeDto {
         private String defaultBranchId;
         private String defaultBranchCode;
         private String message;
+
+        // Admin credentials, returned once ──────────────────
+        private String adminUserId;
+        private String adminUsername;
+        private String adminEmail;
+        private String adminTemporaryPassword;
     }
 
     @Data

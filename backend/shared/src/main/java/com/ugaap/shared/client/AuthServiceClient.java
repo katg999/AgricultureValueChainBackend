@@ -50,6 +50,7 @@ public class AuthServiceClient {
             String userId,
             String username,
             String email,
+            String fullName,
             String plainPassword
     ) {}
 

@@ -102,6 +102,7 @@ public class UserService {
                     new AuthServiceClient.CredentialsProvisionRequest(
                             userId.toString(),
                             username,
+                            request.getFullName(),
                             request.getEmail(),
                             plainPassword
                     )
@@ -175,10 +176,17 @@ public class UserService {
     // ── Helpers ───────────────────────────────────────────────
 
     private String generateUsername(String tenantId) {
-        // e.g. tenantId = "umoja-farmers" → prefix = "UMOJA"
         String prefix = tenantId.split("-")[0].toUpperCase();
         long count = userRepository.countByTenantId(tenantId) + 1;
-        return String.format("%s%05d", prefix, count);
+        String candidate = String.format("%s%05d", prefix, count);
+
+        // Guard against cross-tenant prefix collisions (e.g. two
+        // cooperatives whose names start with the same word)
+        while (userRepository.existsByUsername(candidate)) {
+            count++;
+            candidate = String.format("%s%05d", prefix, count);
+        }
+        return candidate;
     }
 
     private String generatePassword(String tenantId) {
@@ -217,5 +225,13 @@ public class UserService {
                 .mustChangePassword(user.isMustChangePassword())
                 .temporaryPassword(temporaryPassword)
                 .build();
+    }
+
+    @Transactional
+    public void updateProfilePhoto(String userId, String photoUrl) {
+        User user = userRepository.findById(UUID.fromString(userId))
+                .orElseThrow(() -> new AuthException("User not found: " + userId));
+        user.setProfilePhotoUrl(photoUrl);
+        userRepository.save(user);
     }
 }

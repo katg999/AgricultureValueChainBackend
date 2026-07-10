@@ -10,7 +10,7 @@ import java.util.UUID;
 @Entity
 @Table(
         name = "sessions",
-        schema = "ugaap_auth",
+        schema = "auth",
         indexes = {
                 @Index(name = "idx_sessions_user_id", columnList = "user_id"),
                 @Index(name = "idx_sessions_refresh_token", columnList = "refresh_token")

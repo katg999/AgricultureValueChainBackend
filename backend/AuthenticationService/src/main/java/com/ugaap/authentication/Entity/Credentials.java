@@ -10,7 +10,7 @@ import java.util.UUID;
 @Entity
 @Table(
         name = "credentials",
-        schema = "ugaap_auth",
+        schema = "auth",
         uniqueConstraints = {
                 @UniqueConstraint(columnNames = "username"),
                 @UniqueConstraint(columnNames = "email")
