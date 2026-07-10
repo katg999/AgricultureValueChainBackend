@@ -6,6 +6,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { Component, OnInit, signal, inject } from '@angular/core';
+import { toSignal }             from '@angular/core/rxjs-interop';
 import { CommonModule }         from '@angular/common';
 import { ReactiveFormsModule }  from '@angular/forms';
 import { HttpClient }           from '@angular/common/http';
@@ -13,19 +14,7 @@ import { FormBuilder, Validators } from '@angular/forms';
 
 import { API_ENDPOINTS } from '../../../core/constants/api-endpoints';
 import { USE_MOCK } from '../../../core/mock/mock-config';
-
-export interface DailyGradingEntry {
-  id:          string;
-  farmerId:    string;
-  farmerName:  string;
-  grade:       string;
-  weightKg:    number;
-  moisture:    number;
-  pricePerKg:  number;
-  totalAmount: number;
-  gradedAt:    string;
-  gradedBy:    string;
-}
+import { GradingService, DailyGradingEntry } from '../../../core/services/grading.service';
 
 @Component({
   selector: 'app-daily-grading',
@@ -37,8 +26,9 @@ export interface DailyGradingEntry {
 export class DailyGradingComponent implements OnInit {
 
   // Use inject() so fb is available when `form` is initialised below
-  private http = inject(HttpClient);
-  private fb   = inject(FormBuilder);
+  private http            = inject(HttpClient);
+  private fb              = inject(FormBuilder);
+  private gradingService  = inject(GradingService);
 
   // ── Form ──────────────────────────────────────────────────────────────────
   form = this.fb.group({
@@ -47,6 +37,11 @@ export class DailyGradingComponent implements OnInit {
     weightKg: [0, [Validators.required, Validators.min(0.1)]],
     moisture: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
   });
+
+  // ── Grade config for the dropdown ────────────────────────────────────────
+  // Wraps the service's grades$ so the template updates itself once an async
+  // API load resolves, instead of only reflecting whatever was loaded first.
+  grades = toSignal(this.gradingService.grades$, { initialValue: this.gradingService.grades });
 
   // ── State ─────────────────────────────────────────────────────────────────
   entries  = signal<DailyGradingEntry[]>([]);
@@ -60,7 +55,12 @@ export class DailyGradingComponent implements OnInit {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
   });
 
-  ngOnInit(): void { this.loadEntries(); }
+  ngOnInit(): void {
+    this.loadEntries();
+    // Cache is only empty on a cold start in real-API mode (mock mode seeds it
+    // synchronously) — avoid re-fetching grade config on every visit.
+    if (this.gradingService.grades.length === 0) this.gradingService.loadFromApi();
+  }
 
   loadEntries(): void {
     this.loading.set(true);
@@ -83,27 +83,13 @@ export class DailyGradingComponent implements OnInit {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     this.saving.set(true);
 
-    if (USE_MOCK) {
-      const v = this.form.value;
-      const entry: DailyGradingEntry = {
-        id: `DG-${Date.now()}`,
-        farmerId: v.farmerId ?? '',
-        farmerName: v.farmerId ?? '',
-        grade: v.grade ?? '',
-        weightKg: v.weightKg ?? 0,
-        moisture: v.moisture ?? 0,
-        pricePerKg: 0,
-        totalAmount: 0,
-        gradedAt: new Date().toISOString(),
-        gradedBy: '',
-      };
-      this.entries.update(e => [entry, ...e]);
-      this.saving.set(false);
-      this.closeForm();
-      return;
-    }
-
-    this.http.post<DailyGradingEntry>(API_ENDPOINTS.BRANCH.DAILY_GRADING, this.form.value).subscribe({
+    const v = this.form.getRawValue();
+    this.gradingService.submitDailyEntry({
+      farmerId: v.farmerId ?? '',
+      grade:    v.grade ?? '',
+      weightKg: v.weightKg ?? 0,
+      moisture: v.moisture ?? 0,
+    }).subscribe({
       next: entry => {
         this.entries.update(e => [entry, ...e]);   // Prepend so latest is at top
         this.saving.set(false);

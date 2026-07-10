@@ -285,6 +285,12 @@ const BRANCH_CONFIG: DashboardConfig = {
           route: '/branch/finance/farmers',
           permissions: ['finance.view'],
         },
+        {
+          label: 'Disbursements',
+          icon: '',
+          route: '/branch/finance/disbursements',
+          permissions: ['finance.view'],
+        },
       ],
     },
 

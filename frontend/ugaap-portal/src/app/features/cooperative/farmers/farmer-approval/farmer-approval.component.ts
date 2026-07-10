@@ -27,6 +27,8 @@ import {
   FarmerNotification,
 } from '../../../shared-farmer-domain/farmer.service';
 
+import { PermissionsService } from '../../../../core/services/permissions.service';
+
 export interface ProfileTab {
   key:   string;
   label: string;
@@ -74,14 +76,15 @@ export class FarmerApprovalComponent implements OnInit {
   loading = false;
   error: string | null = null;
 
-  get isBranchView(): boolean {
-    return this.router.url.startsWith('/branch');
+  get canApprove(): boolean {
+    return this.permissions.has('farmers.approve');
   }
 
   constructor(
     private router:        Router,
     private route:         ActivatedRoute,
     private farmerService: FarmerService,
+    private permissions:   PermissionsService,
   ) {}
 
   // Lifecycle methods 
@@ -164,13 +167,14 @@ export class FarmerApprovalComponent implements OnInit {
   onApprove(): void {
     if (!this.farmer) return;
     if (!confirm(`Approve ${this.farmer.fullName} and notify the branch?`)) return;
-    
+
     this.farmerService.approve(this.farmer.id).subscribe({
-      next:  updated => { this.farmer = updated;
-        //redirect admin back to list after approval
-        this.router.navigate(['/cooperative/farmers']);
-       },
-      error: err     => { this.error  = err?.error?.message ?? 'Approve failed.'; },
+      next:  updated => {
+        this.farmer = updated;
+        const base = this.router.url.startsWith('/branch') ? '/branch/farmers' : '/cooperative/farmers';
+        this.router.navigate([base]);
+      },
+      error: err => { this.error = err?.error?.message ?? 'Approve failed.'; },
     });
   }
 }

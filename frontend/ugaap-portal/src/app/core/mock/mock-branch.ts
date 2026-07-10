@@ -1,14 +1,14 @@
-// ── Branch-level mock data ────────────────────────────────────────────────────
+//  Branch-level mock data 
 //
 // Covers: cooperative branch network, stock inventory, branch disbursements,
 // stock requests, farmer input allocations, delivery batches, payment batches.
-// ─────────────────────────────────────────────────────────────────────────────
+// 
 
 import { BranchDelivery } from '../../features/branch/collections/branch.delivery.model';
 import { PaymentBatch } from '../../features/branch/finance/models/batch.models';
 import { FarmerDeliveryRecord } from '../models/farmer-delivery-record.model';
 
-// ── Slim branch options (used by dropdowns across the app) ───────────────────
+//  Slim branch options (used by dropdowns across the app) 
 
 export const MOCK_BRANCHES = [
   { id: 'BR-KLA', name: 'Kampala Central' },
@@ -21,7 +21,7 @@ export const MOCK_BRANCHES = [
   { id: 'BR-MAS', name: 'Masindi Depot'   },
 ];
 
-// ── Cooperative branch network (used by branch-dash and branch-detail) ───────
+//  Cooperative branch network (used by branch-dash and branch-detail) 
 
 export interface CooperativeBranch {
   id: number;
@@ -63,7 +63,7 @@ export const MOCK_AGENTS_TREND_UP          = true;
 export const MOCK_FARMERS_TREND            = '+8%';
 export const MOCK_FARMERS_TREND_UP         = true;
 
-// ── Branch dashboard (branch staff home screen) ───────────────────────────────
+// Branch dashboard (branch staff home screen) 
 
 export interface TodayDelivery {
   ref:    string;
@@ -116,7 +116,7 @@ export const MOCK_BRANCH_DASH_ACTIVITIES = [
   { title: 'Stock level updated',    subtitle: 'Warehouse capacity at 68%',                   timestamp: '3 hrs ago',   color: '#9CA3AF' },
 ];
 
-// ── Stock inventory ───────────────────────────────────────────────────────────
+//  Stock inventory 
 
 export const MOCK_INITIAL_STOCK = [
   {
@@ -149,7 +149,7 @@ export const MOCK_INITIAL_STOCK = [
   },
 ];
 
-// ── Branch disbursements ──────────────────────────────────────────────────────
+//Branch disbursements 
 
 export const MOCK_INITIAL_BRANCH_DISBURSEMENTS = [
   { id: 'BD-1001', stockItemId: 'STK-001', branchId: 'BR-KLA', branchName: 'Kampala Central', itemName: 'NPK Fertilizer',        itemType: 'FERTILIZER', quantity:  80, unit: 'Bags',  totalValue: 14400000, issueDate: '2026-05-18', status: 'received' as const },
@@ -159,7 +159,7 @@ export const MOCK_INITIAL_BRANCH_DISBURSEMENTS = [
   { id: 'BD-1004', stockItemId: 'STK-002', branchId: 'BR-MBL', branchName: 'Mbale West',      itemName: 'Maize Seeds (Longe 5)', itemType: 'SEEDS',      quantity: 200, unit: 'Kgs',   totalValue:  3000000, issueDate: '2026-05-21', status: 'issued'   as const },
 ];
 
-// ── Stock requests ────────────────────────────────────────────────────────────
+// Stock requests 
 
 export const MOCK_INITIAL_STOCK_REQUESTS = [
   { id: 'REQ-1001', itemName: 'NPK Fertilizer',        category: 'FERTILIZER', unit: 'Bags',  quantity:  50, urgency: 'high'   as const, preferredDeliveryDate: '2026-06-20', reason: 'Seasonal demand increase from registered farmers',       submittedAt: '2026-06-08', submittedBy: 'Branch Staff', branchId: 'BR-MBL', branchName: 'Mbale West', status: 'approved'  as const, reviewedAt: '2026-06-09', reviewedBy: 'Coop Admin' },
@@ -169,7 +169,7 @@ export const MOCK_INITIAL_STOCK_REQUESTS = [
   { id: 'REQ-1005', itemName: 'Protective Gloves',     category: 'TOOLS',      unit: 'Pieces',quantity:  40, urgency: 'low'    as const, preferredDeliveryDate: '2026-06-30', reason: 'Safety equipment for input distribution staff',            submittedAt: '2026-06-11', submittedBy: 'Branch Staff', branchId: 'BR-MBL', branchName: 'Mbale West', status: 'pending'   as const },
 ];
 
-// ── Farmer input allocations ──────────────────────────────────────────────────
+//  Farmer input allocations 
 
 export const MOCK_INITIAL_FARMER_ALLOCATIONS = [
   { id: 'AL-1001', stockItemId: 'STK-001', farmerId: 'UG-F-01001', farmerName: 'Amina Nakato',   branchId: 'BR-KLA', branchName: 'Kampala Central', itemName: 'NPK Fertilizer',        itemType: 'FERTILIZER', quantity:  4, unit: 'Bags',  totalValue:  720000, issueDate: '2026-05-21', outstanding:       0, status: 'settled' as const },
@@ -181,22 +181,22 @@ export const MOCK_INITIAL_FARMER_ALLOCATIONS = [
   { id: 'AL-1006', stockItemId: 'STK-002', farmerId: 'UG-F-01008', farmerName: 'Rose Atukunda',  branchId: 'BR-MBL', branchName: 'Mbale West',      itemName: 'Maize Seeds (Longe 5)', itemType: 'SEEDS',      quantity: 20, unit: 'Kgs',   totalValue:  300000, issueDate: '2026-05-25', outstanding:  300000, status: 'overdue' as const },
 ];
 
-// ── Branch delivery batches ───────────────────────────────────────────────────
+// Branch delivery batches 
 
 export const MOCK_BRANCH_DELIVERIES: BranchDelivery[] = [
-  // ── Wet Season ──────────────────────────────────────────────────────────────
+  //  Wet Season 
   { id: 'BD-001', branchId: 'BR-KLA', branchName: 'Kampala Central',   farmerCount: 6, commodity: 'Maize',    volume: 12400, estimatedValue: 31000000, status: 'Approved', season: 'Wet Season',                       createdAt: new Date('2025-05-10'), updatedAt: new Date('2025-05-12') },
   { id: 'BD-002', branchId: 'BR-JIN', branchName: 'Jinja East',        farmerCount: 5, commodity: 'Coffee',   volume:  3200, estimatedValue: 19200000, status: 'Pending',  season: 'Wet Season', session: 'midday',    createdAt: new Date('2025-05-15'), updatedAt: new Date('2025-05-15') },
   { id: 'BD-003', branchId: 'BR-MBA', branchName: 'Mbarara South',     farmerCount: 5, commodity: 'Beans',    volume:  8750, estimatedValue: 21875000, status: 'Pending',  season: 'Wet Season',                       createdAt: new Date('2025-05-18'), updatedAt: new Date('2025-05-18') },
   { id: 'BD-006', branchId: 'BR-FTP', branchName: 'Fort Portal West',  farmerCount: 5, commodity: 'Tea',      volume:  6800, estimatedValue: 17000000, status: 'Pending',  season: 'Wet Season', session: 'morning',   createdAt: new Date('2025-05-22'), updatedAt: new Date('2025-05-22') },
   { id: 'BD-007', branchId: 'BR-ADJ', branchName: 'Adjumani East',     farmerCount: 4, commodity: 'Maize',    volume:  5100, estimatedValue: 12750000, status: 'Approved', season: 'Wet Season', session: 'midday',    createdAt: new Date('2025-05-25'), updatedAt: new Date('2025-05-26') },
-  // ── Dry Season ──────────────────────────────────────────────────────────────
+  // Dry Season 
   { id: 'BD-004', branchId: 'BR-GUL', branchName: 'Gulu North',        farmerCount: 4, commodity: 'Sesame',   volume:  4100, estimatedValue: 12300000, status: 'Rejected', season: 'Dry Season', session: 'afternoon', createdAt: new Date('2025-05-08'), updatedAt: new Date('2025-05-09') },
   { id: 'BD-005', branchId: 'BR-MBL', branchName: 'Mbale West',        farmerCount: 6, commodity: 'Sunflower',volume:  9300, estimatedValue: 18600000, status: 'Approved', season: 'Dry Season', session: 'morning',   createdAt: new Date('2025-05-20'), updatedAt: new Date('2025-05-21') },
   { id: 'BD-008', branchId: 'BR-KIB', branchName: 'Kiboga Central',    farmerCount: 4, commodity: 'Vanilla',  volume:   820, estimatedValue: 24600000, status: 'Approved', season: 'Dry Season', session: 'midday',    createdAt: new Date('2025-05-12'), updatedAt: new Date('2025-05-13') },
   { id: 'BD-009', branchId: 'BR-LIR', branchName: 'Lira Town',         farmerCount: 5, commodity: 'Sesame',   volume:  6200, estimatedValue: 15500000, status: 'Pending',  season: 'Dry Season', session: 'afternoon', createdAt: new Date('2025-05-16'), updatedAt: new Date('2025-05-16') },
   { id: 'BD-010', branchId: 'BR-MBA2',branchName: 'Mbale East',        farmerCount: 5, commodity: 'Coffee',   volume:  2800, estimatedValue: 16800000, status: 'Approved', season: 'Dry Season', session: 'morning',   createdAt: new Date('2025-05-19'), updatedAt: new Date('2025-05-20') },
-  // ── Mbale West (BR-MBL) — additional delivery history ───────────────────────
+  // Mbale West (BR-MBL) — additional delivery history 
   { id: 'BD-011', branchId: 'BR-MBL', branchName: 'Mbale West', farmerCount: 3, commodity: 'Coffee',    volume:  655, estimatedValue:  3930000, status: 'Approved', season: 'Wet Season', session: 'midday',    createdAt: new Date('2025-06-05'), updatedAt: new Date('2025-06-06') },
   { id: 'BD-012', branchId: 'BR-MBL', branchName: 'Mbale West', farmerCount: 4, commodity: 'Maize',     volume: 1070, estimatedValue:  2675000, status: 'Pending',  season: 'Dry Season', session: 'afternoon', createdAt: new Date('2025-06-20'), updatedAt: new Date('2025-06-20') },
   { id: 'BD-013', branchId: 'BR-MBL', branchName: 'Mbale West', farmerCount: 3, commodity: 'Beans',     volume:  525, estimatedValue:  1312500, status: 'Approved', season: 'Wet Season', session: 'morning',   createdAt: new Date('2025-07-10'), updatedAt: new Date('2025-07-11') },
@@ -207,7 +207,8 @@ export const MOCK_BRANCH_DELIVERIES: BranchDelivery[] = [
   { id: 'BD-018', branchId: 'BR-MBL', branchName: 'Mbale West', farmerCount: 3, commodity: 'Millet',    volume:  635, estimatedValue:  1397000, status: 'Approved', season: 'Dry Season', session: 'afternoon', createdAt: new Date('2025-09-19'), updatedAt: new Date('2025-09-20') },
   { id: 'BD-019', branchId: 'BR-MBL', branchName: 'Mbale West', farmerCount: 4, commodity: 'Coffee',    volume:  775, estimatedValue:  4650000, status: 'Approved', season: 'Wet Season', session: 'morning',   createdAt: new Date('2025-10-03'), updatedAt: new Date('2025-10-04') },
   { id: 'BD-020', branchId: 'BR-MBL', branchName: 'Mbale West', farmerCount: 3, commodity: 'Maize',     volume:  825, estimatedValue:  2062500, status: 'Pending',  season: 'Dry Season', session: 'midday',    createdAt: new Date('2025-10-17'), updatedAt: new Date('2025-10-17') },
-  // ── Cross-branch batches (cooperative view) ──────────────────────────────────
+  
+  // Cross-branch batches (cooperative view) 
   { id: 'BD-021', branchId: 'BR-KLA',  branchName: 'Kampala Central', farmerCount: 7, commodity: 'Beans',    volume: 11000, estimatedValue: 27500000, status: 'Approved', season: 'Dry Season',                       createdAt: new Date('2025-06-04'), updatedAt: new Date('2025-06-05') },
   { id: 'BD-022', branchId: 'BR-KLA',  branchName: 'Kampala Central', farmerCount: 5, commodity: 'Coffee',   volume:  2100, estimatedValue: 12600000, status: 'Pending',  season: 'Dry Season',                       createdAt: new Date('2025-07-14'), updatedAt: new Date('2025-07-14') },
   { id: 'BD-023', branchId: 'BR-JIN',  branchName: 'Jinja East',      farmerCount: 6, commodity: 'Maize',    volume:  9800, estimatedValue: 24500000, status: 'Approved', season: 'Dry Season', session: 'midday',    createdAt: new Date('2025-06-11'), updatedAt: new Date('2025-06-12') },
@@ -228,7 +229,7 @@ export const MOCK_BRANCH_DELIVERIES: BranchDelivery[] = [
   { id: 'BD-038', branchId: 'BR-MBA2', branchName: 'Mbale East',      farmerCount: 5, commodity: 'Beans',    volume:  8600, estimatedValue: 21500000, status: 'Pending',  season: 'Dry Season', session: 'afternoon', createdAt: new Date('2025-10-24'), updatedAt: new Date('2025-10-24') },
 ];
 
-// ── Branch-level payment batches ──────────────────────────────────────────────
+// Branch-level payment batches
 
 export const MOCK_PAYMENT_BATCHES: PaymentBatch[] = [
   {
@@ -289,6 +290,34 @@ export const MOCK_PAYMENT_BATCHES: PaymentBatch[] = [
     totalAmount: 33_750_000,
     farmerCount: 7,
     createdAt: new Date('2025-07-01'),
+  },
+  {
+    id: 'BATCH-005',
+    batchName: 'July 2024 Coffee Run',
+    season: 'Season A 2024',
+    openingDate: '2024-07-01',
+    closingDate: '2024-07-31',
+    commodityFilter: 'Coffee',
+    branch: 'Mbale West',
+    branchId: 'BR-MBL',
+    status: 'Disbursed',
+    totalAmount: 3_260_000,
+    farmerCount: 9,
+    createdAt: new Date('2024-08-02'),
+  },
+  {
+    id: 'BATCH-006',
+    batchName: 'June 2024 Maize Run',
+    season: 'Season A 2024',
+    openingDate: '2024-06-01',
+    closingDate: '2024-06-30',
+    commodityFilter: 'Maize',
+    branch: 'Mbale West',
+    branchId: 'BR-MBL',
+    status: 'Rejected',
+    totalAmount: 1_150_000,
+    farmerCount: 4,
+    createdAt: new Date('2024-07-03'),
   },
 ];
 

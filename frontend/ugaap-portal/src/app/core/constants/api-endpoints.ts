@@ -33,11 +33,16 @@ export const API_ENDPOINTS = {
     ACTIVATE_COOPERATIVE: (id: string) => `${MEMBERSHIP_BASE}/api/v1/cooperatives/${id}/activate`,
     DEACTIVATE_COOPERATIVE: (id: string) =>
       `${MEMBERSHIP_BASE}/api/v1/cooperatives/${id}/deactivate`,
+    USERS: `${BASE}/api/v1/platform/users`, // not yet deployed
+    USER_BY_ID: (id: string) => `${BASE}/api/v1/platform/users/${id}`, // not yet deployed
+    USER_LOGIN_HISTORY: (id: string) => `${BASE}/api/v1/platform/users/${id}/login-history`, // not yet deployed
   },
 
   // ── Cooperative Admin ───────────────────────────────────────────────────────
   COOPERATIVE: {
     DASHBOARD: `${MEMBERSHIP_BASE}/api/v1/cooperatives/dashboard`,
+    PROFILE: `${BASE}/api/v1/cooperatives/profile`, // not yet deployed
+    BANK_ACCOUNTS: `${BASE}/api/v1/cooperatives/bank-accounts`, // not yet deployed
     GRADING: `${BASE}/api/v1/grades`, // ConfigurationService — not yet deployed
     PRICING: `${MEMBERSHIP_BASE}/api/v1/cooperatives/pricing`,
 
@@ -59,6 +64,9 @@ export const API_ENDPOINTS = {
     PAYMENT_BATCHES: `${BASE}/api/v1/settlements/batches`, // not yet deployed
     PAYMENT_FARMERS: `${BASE}/api/v1/settlements/farmers`, // not yet deployed
 
+    // Planned gateway route for coop→branch stock issuance — backend has no branch-issues
+    // endpoint yet; POST /api/allocations/issue requires a farmerId, so this stays mocked
+    // until the backend accepts branch-only issues.
     INVENTORY: `${BASE}/api/v1/inventory`, // InventoryService — not yet deployed
     USERS: `${MEMBERSHIP_BASE}/api/v1/access/users`,
     USER_BY_ID: (id: string) => `${MEMBERSHIP_BASE}/api/v1/access/users/${id}`,
@@ -105,35 +113,56 @@ export const API_ENDPOINTS = {
     FARMERS: `${MEMBERSHIP_BASE}/api/v1/farmers/search`,
     FARMER_BY_ID: (id: string) => `${MEMBERSHIP_BASE}/api/v1/farmers/${id}`,
 
-    INVENTORY: `${BASE}/api/v1/inventory/branch`, // not yet deployed
+    // Branch-level farmer-deliveries listing (Mapped to BranchCollectionController)
+    // (This reuses the same endpoint as FARMER_DELIVERIES with GET semantics)
 
-    BATCHES: `${BASE}/api/v1/settlements/batch-recover`, // not yet deployed
-    BATCH_BY_ID: (id: string) => `${BASE}/api/v1/settlements/${id}`, // not yet deployed
-    PAYMENT_FARMERS: `${BASE}/api/v1/settlements/farmers`, // not yet deployed
+    // Branch stock requests (Prepared for INVENTORY-SERVICE)
+    // Planned gateway route — no backend equivalent exists yet, unlike stock/allocations
+    // which already have real endpoints under INVENTORY_BACKEND.
+    STOCK_REQUESTS: `${BASE}/api/v1/inventory/branch`,
+
+    // Inter-Service Settlements Synchronizer (SettlementController)
+    BATCHES: `${BASE}/api/v1/settlements/batch-recover`,
+    BATCH_BY_ID: (id: string) => `${BASE}/api/v1/settlements/${id}`,
+    PAYMENT_FARMERS: `${BASE}/api/v1/settlements/farmers`,
+
+    // Farmer disbursement transactions (SettlementController)
+    PAYOUTS: `${BASE}/api/v1/settlements/payouts`,
+    PAYOUT_BY_ID: (id: string) => `${BASE}/api/v1/settlements/payouts/${id}`,
+    PAYOUTS_PENDING: (batchId: string) =>
+      `${BASE}/api/v1/settlements/payouts/pending?batchId=${batchId}`,
   },
 
   USERS: `${MEMBERSHIP_BASE}/api/v1/access/users`,
 
-  // ── Inventory Service — /api/v1/inventory/** via API Gateway ────────────────
+  // ── Inventory Service — real backend paths ──────────────────────────────────
+  // The COOPERATIVE.INVENTORY and BRANCH.STOCK_REQUESTS constants above are the
+  // PLANNED gateway routes (not yet wired in the gateway config).
+  // These paths below are where the InventoryService microservice actually listens.
+  // The frontend uses these directly until the gateway routing is set up.
   INVENTORY_BACKEND: {
     // Stock items (InventoryItemController)
-    ITEMS:              `${BASE}/api/v1/inventory/items`,
-    ITEM_BY_ID:         (id: string) => `${BASE}/api/v1/inventory/items/${id}`,
-    ITEM_STOCK:         (id: string) => `${BASE}/api/v1/inventory/items/${id}/stock`,
-    LOW_STOCK:          `${BASE}/api/v1/inventory/items/low-stock`,
+    ITEMS: `${BASE}/api/v1/inventory/items`,
+    ITEM_BY_ID: (id: string) => `${BASE}/api/v1/inventory/items/${id}`,
+    ITEM_STOCK: (id: string) => `${BASE}/api/v1/inventory/items/${id}/stock`,
+    LOW_STOCK: `${BASE}/api/v1/inventory/items/low-stock`,
 
     // Input credit loans (InputCreditController)
-    CREDITS:            `${BASE}/api/v1/inventory/credits`,
-    CREDITS_ISSUE:      `${BASE}/api/v1/inventory/credits/issue`,
-    CREDIT_BY_ID:       (id: string) => `${BASE}/api/v1/inventory/credits/${id}`,
-    CREDITS_BY_FARMER:  (farmerId: string) => `${BASE}/api/v1/inventory/credits/farmer/${farmerId}`,
-    CREDIT_STATUS:      (loanId: string) => `${BASE}/api/v1/inventory/credits/${loanId}/status`,
+    CREDITS: `${BASE}/api/v1/inventory/credits`,
+    CREDITS_ISSUE: `${BASE}/api/v1/inventory/credits/issue`,
+    CREDIT_BY_ID: (id: string) => `${BASE}/api/v1/inventory/credits/${id}`,
+    CREDITS_BY_FARMER: (farmerId: string) => `${BASE}/api/v1/inventory/credits/farmer/${farmerId}`,
+    CREDIT_STATUS: (loanId: string) => `${BASE}/api/v1/inventory/credits/${loanId}/status`,
 
     // Repayments & deductions (DeductionController)
-    BATCH_DEDUCTION:    `${BASE}/api/v1/inventory/deductions/batch`,
-    FINANCE_BATCH:      `${BASE}/api/v1/inventory/deductions/finance-batch`,
-    MANUAL_REPAYMENT:   `${BASE}/api/v1/inventory/deductions/manual`,
-    FARMER_SUMMARY:     (farmerId: string) => `${BASE}/api/v1/inventory/deductions/farmer/${farmerId}/summary`,
+    BATCH_DEDUCTION: `${BASE}/api/v1/inventory/deductions/batch`,
+    FINANCE_BATCH: `${BASE}/api/v1/inventory/deductions/finance-batch`,
+    MANUAL_REPAYMENT: `${BASE}/api/v1/inventory/deductions/manual`,
+    FARMER_SUMMARY: (farmerId: string) =>
+      `${BASE}/api/v1/inventory/deductions/farmer/${farmerId}/summary`,
+
+    // Branch stock issues (BranchStockIssueController)
+    BRANCH_ISSUES: `${BASE}/api/v1/inventory/branch-issues`,
   },
 
   CONFIGURATION: {
@@ -154,6 +183,7 @@ export const API_ENDPOINTS = {
   ACCESS: {
     ROLES: `${MEMBERSHIP_BASE}/api/v1/access/roles`,
     ROLE_BY_ID: (id: string) => `${MEMBERSHIP_BASE}/api/v1/access/roles/${id}`,
+    ROLE_PERMISSIONS: (id: string) => `${MEMBERSHIP_BASE}/api/v1/access/roles/${id}/permissions`,
     USERS: `${MEMBERSHIP_BASE}/api/v1/access/users`,
     USER_BY_ID: (id: string) => `${MEMBERSHIP_BASE}/api/v1/access/users/${id}`,
   },

@@ -46,8 +46,6 @@ export class RoleFormComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private http: HttpClient,
-    private toast: ToastService,
-    private rolesService: RolesService,
   ) {}
 
   ngOnInit(): void {

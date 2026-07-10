@@ -22,8 +22,8 @@ import { BranchDashboardService, TodayDelivery } from '../../../core/services/br
 })
 export class BranchDashboardComponent implements OnInit {
 
-  private session   = inject(SessionService);
-  private dashboard = inject(BranchDashboardService);
+  private session            = inject(SessionService);
+  private dashboard          = inject(BranchDashboardService);
 
   readonly user = this.session.currentUser;
   get userName(): string { return this.user()?.fullName ?? 'Branch Staff'; }
