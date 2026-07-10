@@ -56,6 +56,17 @@
     </div>
   </div>
 
+  <div class="status-tabs">
+    <button
+      *ngFor="let tab of statusTabs"
+      type="button"
+      class="status-tab"
+      [class.active]="selectedStatus === tab.value"
+      (click)="setStatusFilter(tab.value)">
+      {{ tab.label }}
+    </button>
+  </div>
+
   <div *ngIf="filteredFarmers$ | async as filteredFarmers">
 
     <app-data-table

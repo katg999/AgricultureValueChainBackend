@@ -14,6 +14,7 @@ import {
   BatchFilterCriteria,
   PaymentBatch,
   BatchStatus,
+  ActiveBatchStatus,
   DayGroup,
   SessionGroup,
 } from '../models/batch.models';
@@ -33,22 +34,23 @@ const BRANCH_NAMES: Record<string, string> = {
 @Injectable({ providedIn: 'root' })
 export class PaymentBatchService {
   // Tracks the next ID to use when creating a batch locally (while no real API exists).
-  // Starts at 4 because the seed data already uses 1, 2, 3.
-  private nextBatchId = 5; // seed data uses BATCH-001..BATCH-004
-
-  // Farmer seed sourced from core/mock/mock-farmer.ts — cast satisfies FarmerRecord[].
-  private readonly farmerSeed: FarmerRecord[] = MOCK_PAYMENT_FARMERS as FarmerRecord[];
-
-  // Placeholder batches so the list page has something to display immediately.
-  private readonly batchSeed: PaymentBatch[] = MOCK_PAYMENT_BATCHES;
+  private nextBatchId = 7; // seed data uses BATCH-001..BATCH-006
 
   // ── Reactive stores ────────────────────────────────────────────────────────
   // BehaviorSubject holds the current value AND emits it to any new subscriber immediately.
   // Think of it as a live variable — when you call .next(newValue), everyone watching updates.
   // [...spread] creates a copy so the seed data stays untouched.
   // When USE_MOCK is false, start empty — the real API call fills these.
-  private readonly batches$ = new BehaviorSubject<PaymentBatch[]>(USE_MOCK ? [...this.batchSeed] : []);
-  private readonly farmers$ = new BehaviorSubject<FarmerRecord[]>(USE_MOCK ? [...this.farmerSeed] : []);
+  //
+  // Seeded directly from the imported mock constants (not via an intermediate
+  // `this.xSeed` field) — under this repo's Vitest/esbuild test builder,
+  // specific combinations of test entry-point bundles have been observed to
+  // execute class-field initializers out of declaration order, leaving a
+  // same-class field referenced via `this.` still `undefined` at the point a
+  // later field's initializer runs. Referencing the module-level constant
+  // directly removes that cross-field ordering dependency entirely.
+  private readonly batches$ = new BehaviorSubject<PaymentBatch[]>(USE_MOCK ? [...MOCK_PAYMENT_BATCHES] : []);
+  private readonly farmers$ = new BehaviorSubject<FarmerRecord[]>(USE_MOCK ? [...(MOCK_PAYMENT_FARMERS as FarmerRecord[])] : []);
 
   // HttpClient is Angular's tool for making HTTP requests (GET, POST, DELETE, etc.)
   constructor(
@@ -75,6 +77,21 @@ export class PaymentBatchService {
     }
     const branchId = this.session.branchId();
     return this.batches$.pipe(map(rows => rows.filter(b => b.branchId === branchId)));
+  }
+
+  // Per-status batch counts for the logged-in branch, for dashboard tiles.
+  // Rejected is deliberately excluded — it's a terminal off-ramp, not part of
+  // the active pipeline. Every remaining key is always present, even at 0.
+  getBatchStatusCounts(): Observable<Record<ActiveBatchStatus, number>> {
+    return this.getBatches().pipe(
+      map(batches => {
+        const counts = { Draft: 0, 'Pending Approval': 0, Approved: 0, Disbursed: 0 } as Record<ActiveBatchStatus, number>;
+        for (const b of batches) {
+          if (b.status in counts) counts[b.status as ActiveBatchStatus]++;
+        }
+        return counts;
+      }),
+    );
   }
 
   // Changes a batch's status in memory and then tries to sync it to the API.
@@ -143,8 +160,8 @@ export class PaymentBatchService {
   matchFarmers(criteria: BatchFilterCriteria): { eligible: FarmerRecord[]; excluded: FarmerRecord[] } {
     const filtered = this.applyFilter(this.farmersInOwnBranch(), criteria);
     return {
-      eligible: filtered.filter(f => f.hasBankDetails),      // can be paid
-      excluded: filtered.filter(f => !f.hasBankDetails),     // missing bank info
+      eligible: filtered.filter(f => this.isPayable(f)),
+      excluded: filtered.filter(f => !this.isPayable(f)),
     };
   }
 
@@ -184,7 +201,7 @@ export class PaymentBatchService {
   getFarmersForBatch(batchId: string): FarmerRecord[] {
     const batch = this.getBatchById(batchId);
     if (!batch) return [];
-    return this.applyFilter(this.farmersInOwnBranch(), batch).filter(f => f.hasBankDetails);
+    return this.applyFilter(this.farmersInOwnBranch(), batch).filter(f => this.isPayable(f));
   }
 
   // Exposes the farmer pool as an Observable, scoped to the logged-in branch —
@@ -244,7 +261,7 @@ export class PaymentBatchService {
     const batch = this.getBatchByIdAcrossBranches(batchId);
     if (!batch) return [];
     const inBranch = this.farmers$.value.filter(f => f.branchId === batch.branchId);
-    return this.applyFilter(inBranch, batch).filter(f => f.hasBankDetails);
+    return this.applyFilter(inBranch, batch).filter(f => this.isPayable(f));
   }
 
   // Buckets farmers by deliveryDate, then within each day by session (in the fixed
@@ -281,6 +298,14 @@ export class PaymentBatchService {
   }
 
   // ── Private helpers ────────────────────────────────────────────────────────
+
+  // A farmer is payable only once BOTH conditions hold: bank details are on
+  // file AND their onboarding was actually approved. Pending/Rejected/
+  // Suspended farmers must never be matched into a batch, even if their
+  // bank details are otherwise complete.
+  private isPayable(f: FarmerRecord): boolean {
+    return f.hasBankDetails && f.status === 'Active';
+  }
 
   private farmersInOwnBranch(): FarmerRecord[] {
     const branchId = this.session.branchId();

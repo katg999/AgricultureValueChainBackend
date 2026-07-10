@@ -6,6 +6,7 @@ import { catchError, tap } from 'rxjs/operators';
 import { API_ENDPOINTS }               from '../constants/api-endpoints';
 import { MOCK_GRADES, MOCK_BRANCH_GRADE_SUMMARIES } from '../mock/mock-cooperative';
 import { USE_MOCK }                    from '../mock/mock-config';
+import { SessionService }              from './session.service';
 
 // Interfaces live here so both grade-config and edit-prices can import from one place.
 export interface Grade {
@@ -26,6 +27,19 @@ export interface BranchGradeSummary {
   grades:     { name: string; code: string; pricePerKg: number }[];
 }
 
+export interface DailyGradingEntry {
+  id:          string;
+  farmerId:    string;
+  farmerName:  string;
+  grade:       string;
+  weightKg:    number;
+  moisture:    number;
+  pricePerKg:  number;
+  totalAmount: number;
+  gradedAt:    string;
+  gradedBy:    string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class GradingService {
 
@@ -38,7 +52,10 @@ export class GradingService {
   // True while an API request is in-flight — components can show a spinner.
   readonly loading = signal(false);
 
-  constructor(private readonly http: HttpClient) {
+  constructor(
+    private readonly http: HttpClient,
+    private readonly session: SessionService,
+  ) {
     // In live mode, kick off the initial load immediately at service startup.
     if (!USE_MOCK) this.loadFromApi();
   }
@@ -100,14 +117,17 @@ export class GradingService {
 
   loadFromApi(): void {
     this.loading.set(true);
+    // On failure, fall back to an empty list — not mock data — so a broken/unreachable
+    // real API is visibly empty instead of silently showing fake grades (USE_MOCK is
+    // only consulted for the initial BehaviorSubject seed, never here).
     this.http.get<Grade[]>(API_ENDPOINTS.COOPERATIVE.GRADING).pipe(
       tap(data => this._grades.next(data)),
-      catchError(() => { this._grades.next(MOCK_GRADES as Grade[]); return of([]); }),
+      catchError(() => { this._grades.next([]); return of([]); }),
     ).subscribe(() => this.loading.set(false));
 
     this.http.get<BranchGradeSummary[]>(API_ENDPOINTS.COOPERATIVE.BRANCHES).pipe(
       tap(data => this._branches.next(data)),
-      catchError(() => { this._branches.next(MOCK_BRANCH_GRADE_SUMMARIES as BranchGradeSummary[]); return of([]); }),
+      catchError(() => { this._branches.next([]); return of([]); }),
     ).subscribe();
   }
 
@@ -124,5 +144,38 @@ export class GradingService {
         return of(void 0);
       }),
     );
+  }
+  // Records one graded delivery. In mock mode we simulate the server response,
+  // pricing it from the current branch's grade summary (loaded via loadFromApi).
+  submitDailyEntry(data: {
+    farmerId: string;
+    grade:    string;
+    weightKg: number;
+    moisture: number;
+  }): Observable<DailyGradingEntry> {
+    if (USE_MOCK) {
+      const pricePerKg = this.resolvePricePerKg(data.grade);
+      const entry: DailyGradingEntry = {
+        id: `DG-${Date.now()}`,
+        farmerId: data.farmerId,
+        farmerName: data.farmerId,
+        grade: data.grade,
+        weightKg: data.weightKg,
+        moisture: data.moisture,
+        pricePerKg,
+        totalAmount: data.weightKg * pricePerKg,
+        gradedAt: new Date().toISOString(),
+        gradedBy: this.session.currentUser()?.fullName ?? '',
+      };
+      return of(entry);
+    }
+    return this.http.post<DailyGradingEntry>(API_ENDPOINTS.BRANCH.DAILY_GRADING, data);
+  }
+
+  // Looks up today's price for a grade code from the logged-in user's branch —
+  // falls back to 0 if the branch or grade isn't in the loaded configuration yet.
+  private resolvePricePerKg(gradeCode: string): number {
+    const branch = this._branches.value.find(b => b.id === this.session.branchId());
+    return branch?.grades.find(g => g.code === gradeCode)?.pricePerKg ?? 0;
   }
 }

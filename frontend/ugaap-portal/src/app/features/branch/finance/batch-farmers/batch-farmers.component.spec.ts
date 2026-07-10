@@ -34,6 +34,7 @@ const mobileMoneyFarmer: FarmerRecord = {
   paymentMethod: 'Mobile Money',
   netPayable: 450000,
   hasBankDetails: true,
+  status: 'Active',
   bankAccount: '9876100001',
   bankCode: 'STBK',
 };
@@ -314,5 +315,66 @@ describe('BatchFarmersComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.debugElement.query(By.css('app-alert'))).toBeTruthy();
+  });
+});
+
+describe('BatchFarmersComponent — session filtering', () => {
+  let fixture: ComponentFixture<BatchFarmersComponent>;
+  let component: BatchFarmersComponent;
+
+  const morningFarmer: FarmerRecord = { ...mobileMoneyFarmer, farmerId: 'F-001', session: 'morning' };
+  const middayFarmer: FarmerRecord = { ...mobileMoneyFarmer, farmerId: 'F-002', session: 'midday' };
+  const unassignedFarmer: FarmerRecord = { ...mobileMoneyFarmer, farmerId: 'F-003', session: undefined };
+
+  beforeEach(async () => {
+    const fakePaymentService = {
+      watchTransactions: vi.fn(() => new Subject().asObservable()),
+      disburseBatch: vi.fn(),
+      retryFarmer: vi.fn(),
+      checkPendingPayouts: vi.fn(() => of([])),
+    };
+    const fakePaymentBatchService = {
+      getAllFarmers: vi.fn(() => of([morningFarmer, middayFarmer, unassignedFarmer])),
+      getBatchById: vi.fn(() => batch),
+      getFarmersForBatch: vi.fn(() => [morningFarmer, middayFarmer, unassignedFarmer]),
+      groupFarmersByDayAndSession: vi.fn(() => []),
+      updateBatchStatus: vi.fn(),
+    };
+
+    await TestBed.configureTestingModule({
+      imports: [BatchFarmersComponent],
+      providers: [
+        { provide: PaymentService, useValue: fakePaymentService },
+        { provide: PaymentBatchService, useValue: fakePaymentBatchService },
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { paramMap: { get: () => 'BATCH-001' } } },
+        },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(BatchFarmersComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('defaults to showing every farmer regardless of session', () => {
+    expect(component.filteredFarmers.map(f => f.farmerId).sort()).toEqual(['F-001', 'F-002', 'F-003']);
+  });
+
+  it('narrows to only the selected session', () => {
+    component.setSessionFilter('midday');
+    expect(component.filteredFarmers.map(f => f.farmerId)).toEqual(['F-002']);
+  });
+
+  it('filters to farmers with no recorded session via the "unassigned" bucket', () => {
+    component.setSessionFilter('unassigned');
+    expect(component.filteredFarmers.map(f => f.farmerId)).toEqual(['F-003']);
+  });
+
+  it('returns to showing everyone when switching back to All', () => {
+    component.setSessionFilter('midday');
+    component.setSessionFilter('');
+    expect(component.filteredFarmers.length).toBe(3);
   });
 });

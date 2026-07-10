@@ -21,6 +21,15 @@ import { BranchDashboardService } from '../../../../core/services/branch-dashboa
 export class BranchFarmerListComponent implements OnInit, OnDestroy {
   searchQuery = '';
   openKebabId: string | null = null;
+  selectedStatus = '';
+
+  readonly statusTabs: Array<{ label: string; value: string }> = [
+    { label: 'All',       value: '' },
+    { label: 'Pending',   value: 'Pending' },
+    { label: 'Active',    value: 'Active' },
+    { label: 'Rejected',  value: 'Rejected' },
+    { label: 'Suspended', value: 'Suspended' },
+  ];
 
   cols: TableColumn[] = [
     { key: 'id',               header: 'FARMER ID',        class: 'farmer-id' },
@@ -41,7 +50,7 @@ export class BranchFarmerListComponent implements OnInit, OnDestroy {
   error: string | null = null;
 
   private readonly destroy$ = new Subject<void>();
-  private readonly filterState$ = new BehaviorSubject({ searchQuery: '' });
+  private readonly filterState$ = new BehaviorSubject({ searchQuery: '', selectedStatus: '' });
   private readonly branchDash = inject(BranchDashboardService);
 
   constructor(
@@ -72,7 +81,12 @@ export class BranchFarmerListComponent implements OnInit, OnDestroy {
   }
 
   applyFilter(): void {
-    this.filterState$.next({ searchQuery: this.searchQuery });
+    this.filterState$.next({ searchQuery: this.searchQuery, selectedStatus: this.selectedStatus });
+  }
+
+  setStatusFilter(status: string): void {
+    this.selectedStatus = status;
+    this.applyFilter();
   }
 
   refresh(): void {
@@ -139,19 +153,20 @@ export class BranchFarmerListComponent implements OnInit, OnDestroy {
 
   private filterFarmers(
     farmers: FarmerListItem[],
-    filter: { searchQuery: string },
+    filter: { searchQuery: string; selectedStatus: string },
   ): FarmerListItem[] {
     const q = filter.searchQuery.trim().toLowerCase();
-    if (!q) return farmers;
 
-    return farmers.filter(
-      (farmer) =>
+    return farmers.filter(farmer => {
+      const matchStatus = !filter.selectedStatus || farmer.status === filter.selectedStatus;
+      const matchSearch = !q ||
         farmer.id.toLowerCase().includes(q) ||
         farmer.name.toLowerCase().includes(q) ||
         farmer.branch.toLowerCase().includes(q) ||
         farmer.primaryCommodity.toLowerCase().includes(q) ||
         farmer.status.toLowerCase().includes(q) ||
-        farmer.stage.toLowerCase().includes(q),
-    );
+        farmer.stage.toLowerCase().includes(q);
+      return matchStatus && matchSearch;
+    });
   }
 }

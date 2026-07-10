@@ -4,10 +4,15 @@
 // is expected, it'll tell you before the app even runs.
 
 import { DeliverySession } from '../../collections/branch.delivery.model';
+import { FarmerStatus } from '../../../../core/models/farmer.model';
 
 // BatchStatus = the lifecycle of a batch. It starts as Draft, moves forward or gets rejected.
 // Using a union type (with |) means the value can ONLY be one of these exact strings — nothing else.
 export type BatchStatus = 'Draft' | 'Pending Approval' | 'Approved' | 'Rejected' | 'Disbursed';
+
+// The active disbursement pipeline, excluding the terminal Rejected off-ramp —
+// used wherever a view aggregates batches by stage (e.g. dashboard tiles).
+export type ActiveBatchStatus = Exclude<BatchStatus, 'Rejected'>;
 
 // PaymentMethod = how a farmer gets paid. Same idea — locked to specific values.
 export type PaymentMethod = 'Mobile Money' | 'Bank Transfer' | 'Cash';
@@ -70,6 +75,7 @@ export interface FarmerRecord {
   payoutChannel?: PayoutChannel; // officer-confirmed channel for this disbursement, if picked
   netPayable: number;
   hasBankDetails: boolean;
+  status: FarmerStatus; // onboarding status — only 'Active' farmers are batch-eligible
   bankAccount: string;
   bankCode: string;
   email?: string;

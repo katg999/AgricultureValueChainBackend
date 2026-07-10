@@ -1,0 +1,44 @@
+<!-- disbursements.html
+     Lists only Approved batches — the ones ready to be paid out.
+     Clicking "Disburse" jumps straight to that batch's farmers/payout screen
+     (the same page reached today via Batch Processing's "View Farmers" action).
+-->
+
+<div class="disbursements-page">
+
+  <!-- ── Stat tiles ───────────────────────────────────────────────────────── -->
+  <div class="stats-grid">
+    <app-stat-card
+      *ngFor="let stat of batchStats; let i = index; trackBy: trackByLabel"
+      [data]="stat"
+      [delay]="i * 80">
+    </app-stat-card>
+  </div>
+
+  <div class="page-header">
+    <p>Approved batches ready for farmer payout.</p>
+  </div>
+
+  <ng-container *ngIf="readyBatches$ | async as batches">
+    <app-data-table
+      [columns]="cols"
+      [rows]="batches"
+      [paginate]="true"
+      emptyIcon="finance"
+      emptyTitle="Nothing to disburse"
+      emptyMessage="No batches are currently Approved. Approve a batch from Batch Processing to see it here.">
+
+      <ng-template appCell="totalAmount" let-row>
+        {{ formatCurrency($any(row).totalAmount) }}
+      </ng-template>
+
+      <ng-template appCell="actions" let-row>
+        <button type="button" class="btn primary-action-btn disburse-btn" (click)="disburse($any(row))">
+          Disburse
+        </button>
+      </ng-template>
+
+    </app-data-table>
+  </ng-container>
+
+</div>

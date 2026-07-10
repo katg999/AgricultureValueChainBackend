@@ -2,26 +2,28 @@
      Shows only the ELIGIBLE farmers for ONE specific batch (identified by the :id URL param).
      Sections:
        1. Page header: back button + batch metadata + Disburse Batch button (when Approved)
-       2. Summary bar: count + total payout amount
-       3. Farmers grouped Day -> Session -> Farmer table, with channel/status/fee/retry per row
+       2. Summary bar: count + total payout amount (reflects the current session filter)
+       3. Session filter tabs + farmers table (app-data-table), with channel/status/fee/retry per row
 -->
 
 <div class="farmers-page">
 
-  <!-- ── 1. Page header ──────────────────────────────────────────────────── -->
+  <!--  1. Page header  -->
   <div class="page-header">
     <button class="back-btn" type="button" (click)="goBack()">← Back to Batches</button>
 
     @if (batch) {
-      <h1>{{ batch.batchName }}</h1>
-      <p>
-        {{ batch.season }} &nbsp;·&nbsp;
-        {{ batch.openingDate }} — {{ batch.closingDate }} &nbsp;·&nbsp;
-        {{ batch.commodityFilter }} &nbsp;·&nbsp; {{ batch.branch }}
-      </p>
+      <div class="header-content-wrapper">
+        <div>
+          <h1>{{ batch.batchName }}</h1>
+          <p>
+            {{ batch.season }} &nbsp;·&nbsp;
+            {{ batch.openingDate }} — {{ batch.closingDate }} &nbsp;·&nbsp;
+            {{ batch.commodityFilter }} &nbsp;·&nbsp; {{ batch.branch }}
+          </p>
+        </div>
 
-      @if (batch.status === 'Approved') {
-        <div class="disburse-action">
+        @if (batch.status === 'Approved') {
           <app-button
             variant="primary"
             [disabled]="isSubmitting"
@@ -30,8 +32,8 @@
             (clicked)="disburseBatch()">
             Disburse Batch
           </app-button>
-        </div>
-      }
+        }
+      </div>
     } @else {
       <h1>Batch not found</h1>
     }
@@ -48,102 +50,90 @@
   }
 
   <!-- ── 2. Summary bar ──────────────────────────────────────────────────── -->
-  @if (farmers.length > 0) {
+  @if (filteredFarmers.length > 0) {
     <div class="summary-bar">
-      <span><strong>{{ farmers.length }}</strong> eligible farmers</span>
+      <span><strong>{{ filteredFarmers.length }}</strong> eligible farmers</span>
       <span class="divider">|</span>
       <span>Total: <strong class="mono">{{ formatCurrency(totalAmount) }}</strong></span>
     </div>
   }
 
-  <!-- ── 3. Farmers grouped Day -> Session ───────────────────────────────── -->
-  @for (dayGroup of dayGroups; track dayGroup.day) {
-    <div class="day-group">
-      <div class="day-group-header">
-        <h2>{{ dayGroup.day }}</h2>
-        <span class="mono">{{ formatCurrency(dayGroup.subtotal) }}</span>
-      </div>
+  <!-- ── 3. Session filter tabs ───────────────────────────────────────────── -->
+  <div class="session-tabs">
+    @for (tab of sessionTabs; track tab.value) {
+      <button
+        type="button"
+        class="session-tab"
+        [class.active]="selectedSession === tab.value"
+        (click)="setSessionFilter(tab.value)">
+        {{ tab.label }}
+      </button>
+    }
+  </div>
 
-      @for (sessionGroup of dayGroup.sessions; track sessionGroup.session) {
-        <div class="table-card session-group">
-          <div class="session-group-header">
-            <h3>{{ sessionLabel(sessionGroup.session) }}</h3>
-            <span class="mono">{{ formatCurrency(sessionGroup.subtotal) }}</span>
-          </div>
+  <!-- ── 4. Farmers table ─────────────────────────────────────────────────── -->
+  <app-data-table
+    [columns]="cols"
+    [rows]="filteredFarmers"
+    [paginate]="true"
+    emptyIcon="farmer"
+    emptyTitle="No farmers in this batch"
+    emptyMessage="No farmers matched the commodity and branch filters for this batch.">
 
-          <div class="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>Farmer ID</th>
-                  <th>Name</th>
-                  <th>Commodity</th>
-                  <th>Channel</th>
-                  <th class="numeric">Net Payable</th>
-                  <th class="numeric">Fee</th>
-                  <th>Status</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (f of sessionGroup.farmers; track f.farmerId) {
-                  <tr>
-                    <td class="mono">{{ f.farmerId }}</td>
-                    <td>{{ f.fullName }}</td>
-                    <td>{{ f.commodity }}</td>
-                    <td>
-                      @if (f.paymentMethod === 'Cash') {
-                        <app-badge variant="inactive">Cash — not digital</app-badge>
-                      } @else {
-                        <select 
-                          title="channel-select"
-                          class="channel-select"
-                          [disabled]="isChannelLocked(f.farmerId)"
-                          [value]="channelFor(f.farmerId)"
-                          (change)="setChannel(f.farmerId, $any($event.target).value)">
-                          @for (option of channelOptions; track option) {
-                            <option [value]="option">{{ option }}</option>
-                          }
-                        </select>
-                      }
-                    </td>
-                    <td class="numeric mono">{{ formatCurrency(f.netPayable) }}</td>
-                    <td class="numeric mono">{{ formatCurrency(feeFor(f)) }}</td>
-                    <td>
-                      @if (f.paymentMethod !== 'Cash') {
-                        <app-badge [variant]="transactionFor(f.farmerId)?.status === 'SETTLED' ? 'settled' : (canRetry(f.farmerId) ? 'failed' : (transactionFor(f.farmerId) ? 'pending' : 'info'))">
-                          @switch (transactionFor(f.farmerId)?.status) {
-                            @case ('INITIATED') { Initiated }
-                            @case ('VALIDATING') { Validating... }
-                            @case ('TIER_LIMIT_EXCEEDED') { Tier limit exceeded }
-                            @case ('FUNDS_LOCKED') { Funds locked }
-                            @case ('CHANNEL_PROCESSING') { Sending... }
-                            @case ('SETTLED') { Settled }
-                            @case ('FAILED_REVERSED') { Failed (reversed) }
-                            @default { Not started }
-                          }
-                        </app-badge>
-                      }
-                    </td>
-                    <td>
-                      @if (canRetry(f.farmerId)) {
-                        <app-button variant="secondary" size="sm" (clicked)="retry(f)">Retry</app-button>
-                      }
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
+    <ng-template appCell="deliveryDate" let-row>
+      {{ $any(row).deliveryDate }}
+    </ng-template>
+
+    <ng-template appCell="session" let-row>
+      {{ sessionLabel($any(row).session ?? null) }}
+    </ng-template>
+
+    <ng-template appCell="channel" let-row>
+      @if ($any(row).paymentMethod === 'Cash') {
+        <app-badge variant="inactive">Cash — not digital</app-badge>
+      } @else {
+        <select title="select channel"
+          class="channel-select"
+          [disabled]="isChannelLocked($any(row).farmerId)"
+          [value]="channelFor($any(row).farmerId)"
+          (change)="setChannel($any(row).farmerId, $any($event.target).value)">
+          @for (option of channelOptions; track option) {
+            <option [value]="option">{{ option }}</option>
+          }
+        </select>
+      }
+    </ng-template>
+
+    <ng-template appCell="netPayable" let-row>
+      {{ formatCurrency($any(row).netPayable) }}
+    </ng-template>
+
+    <ng-template appCell="fee" let-row>
+      {{ formatCurrency(feeFor($any(row))) }}
+    </ng-template>
+
+    <ng-template appCell="status" let-row>
+      @if ($any(row).paymentMethod !== 'Cash') {
+        <div class="status-cell">
+          <app-badge [variant]="transactionFor($any(row).farmerId)?.status === 'SETTLED' ? 'settled' : (canRetry($any(row).farmerId) ? 'failed' : (transactionFor($any(row).farmerId) ? 'pending' : 'info'))">
+            @switch (transactionFor($any(row).farmerId)?.status) {
+              @case ('INITIATED') { Initiated }
+              @case ('VALIDATING') { Validating... }
+              @case ('TIER_LIMIT_EXCEEDED') { Tier limit exceeded }
+              @case ('FUNDS_LOCKED') { Funds locked }
+              @case ('CHANNEL_PROCESSING') { Sending... }
+              @case ('SETTLED') { Settled }
+              @case ('FAILED_REVERSED') { Failed (reversed) }
+              @default { Not started }
+            }
+          </app-badge>
+          @if (canRetry($any(row).farmerId)) {
+            <app-button variant="secondary" size="sm" (clicked)="retry($any(row))">Retry</app-button>
+          }
         </div>
       }
-    </div>
-  } @empty {
-    <app-empty-state
-      icon="farmer"
-      title="No farmers in this batch"
-      message="No farmers matched the commodity and branch filters for this batch.">
-    </app-empty-state>
-  }
+    </ng-template>
+
+  </app-data-table>
 
 </div>

@@ -11,25 +11,29 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PaymentBatchService } from '../services/payment-batch.service';
 import { PaymentService, computePayoutFee, defaultPayoutChannel } from '../services/payment.service';
 import {
-  DayGroup,
   FarmerRecord,
   PaymentBatch,
   PayoutChannel,
   PayoutTransaction,
 } from '../models/batch.models';
-import { DeliverySession } from '../../collections/branch.delivery.model';
+import { ALL_DELIVERY_SESSIONS, DeliverySession } from '../../collections/branch.delivery.model';
 import { DeliverySessionConfigService } from '../../../../core/services/delivery-session-config.service';
-import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { BatchFlowStatusComponent } from '../../../../shared/components/batch-flow-status/batch-flow-status.component';
+import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
+import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
 
 const ALL_PAYOUT_CHANNELS: PayoutChannel[] = ['MTN', 'AIRTEL', 'WENDI', 'POSTBANK'];
+
+// The session filter's value space is a DeliverySession, plus 'unassigned' for
+// farmers with no recorded session, plus '' for "no filter" (All tab).
+export type SessionFilterValue = DeliverySession | 'unassigned' | '';
 
 @Component({
   selector: 'app-batch-farmers',
   standalone: true,
-  imports: [CommonModule, EmptyStateComponent, BadgeComponent, ButtonComponent, BatchFlowStatusComponent],
+  imports: [CommonModule, BadgeComponent, ButtonComponent, BatchFlowStatusComponent, DataTableComponent, CellDirective],
   templateUrl: './batch-farmers.component.html',
   styleUrls: ['./batch-farmers.component.css'],
 })
@@ -45,9 +49,29 @@ export class BatchFarmersComponent implements OnInit {
   batch: PaymentBatch | undefined;
   farmers: FarmerRecord[] = [];
 
-  // Same farmers as above, organised for payment processing: each day broken
-  // into its (up to) 3 sessions, in chronological/session order.
-  dayGroups: DayGroup[] = [];
+  // '' = All (no filter). Drives the session tabs above the farmers table.
+  selectedSession: SessionFilterValue = '';
+
+  readonly sessionTabs: Array<{ label: string; value: SessionFilterValue }> = [
+    { label: 'All', value: '' },
+    ...ALL_DELIVERY_SESSIONS.map(session => ({
+      label: this.sessionConfig.getLabel(session),
+      value: session as SessionFilterValue,
+    })),
+    { label: 'Unassigned', value: 'unassigned' },
+  ];
+
+  readonly cols: TableColumn[] = [
+    { key: 'farmerId',    header: 'Farmer ID',   class: 'mono' },
+    { key: 'fullName',    header: 'Name' },
+    { key: 'commodity',   header: 'Commodity' },
+    { key: 'deliveryDate',header: 'Day' },
+    { key: 'session',     header: 'Session' },
+    { key: 'channel',     header: 'Channel' },
+    { key: 'netPayable',  header: 'Net Payable', align: 'right', class: 'mono' },
+    { key: 'fee',         header: 'Fee',         align: 'right', class: 'mono' },
+    { key: 'status',      header: 'Status' },
+  ];
 
   readonly channelOptions = ALL_PAYOUT_CHANNELS;
   // Officer-editable channel per farmer, seeded from defaultPayoutChannel().
@@ -74,7 +98,6 @@ export class BatchFarmersComponent implements OnInit {
     this.svc.getAllFarmers().subscribe(() => {
       this.batch = this.svc.getBatchById(id);
       this.farmers = this.svc.getFarmersForBatch(id); // only eligible farmers (hasBankDetails: true)
-      this.dayGroups = this.svc.groupFarmersByDayAndSession(this.farmers);
 
       for (const farmer of this.farmers) {
         const channel = defaultPayoutChannel(farmer.paymentMethod);
@@ -94,14 +117,31 @@ export class BatchFarmersComponent implements OnInit {
       });
   }
 
+  // Farmers narrowed to the currently selected session tab ('' = All,
+  // 'unassigned' = no session recorded — mirrors the trailing bucket
+  // groupFarmersByDayAndSession() used to render as its own section).
+  get filteredFarmers(): FarmerRecord[] {
+    if (this.selectedSession === '') return this.farmers;
+    if (this.selectedSession === 'unassigned') return this.farmers.filter(f => !f.session);
+    return this.farmers.filter(f => f.session === this.selectedSession);
+  }
+
+  setSessionFilter(value: SessionFilterValue): void {
+    this.selectedSession = value;
+  }
+
   // A getter recalculates every time the template reads it.
   // reduce() walks the array, accumulating a running total.
+  // Reflects the current session filter, same as filteredFarmers, so the
+  // summary bar always matches what's actually shown in the table.
   get totalAmount(): number {
-    return this.farmers.reduce((sum, f) => sum + f.netPayable, 0);
+    return this.filteredFarmers.reduce((sum, f) => sum + f.netPayable, 0);
   }
 
   // Cash farmers can't be paid through this flow — excluded the same way
   // hasBankDetails: false farmers are already excluded from a batch.
+  // Unaffected by the session filter — disbursement/completion logic always
+  // acts on every eligible farmer in the batch, not just the visible subset.
   get eligibleFarmers(): FarmerRecord[] {
     return this.farmers.filter(f => f.paymentMethod !== 'Cash');
   }
