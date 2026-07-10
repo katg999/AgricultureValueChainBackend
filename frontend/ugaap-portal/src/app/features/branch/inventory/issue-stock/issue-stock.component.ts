@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 
@@ -32,7 +33,6 @@ interface IssueStockForm {
   stockItemId: string;
   branchId: string;
   quantity: string;
-  season: string;
   deductionRate: string;
 }
 
@@ -76,13 +76,10 @@ export class IssueStockComponent implements OnInit {
   stockItems: StockItem[] = [];
   inputTypes: InputType[] = [];
 
-  readonly seasons = ['Wet Season', 'Dry Season'];
-
   form: IssueStockForm = {
     stockItemId: '',
     branchId: '',
     quantity: '',
-    season: '',
     deductionRate: '',
   };
 
@@ -110,11 +107,11 @@ export class IssueStockComponent implements OnInit {
     private readonly router: Router,
     private readonly inventoryService: InventoryService,
     private readonly toastService: ToastService,
+    private readonly cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
-    this.branches = this.inventoryService.getBranches();
-    this.farmers = this.inventoryService.getFarmersForCurrentBranch();
+    this.inventoryService.getFarmersForCurrentBranch().subscribe(f => this.farmers = f);
 
     // Populate the dropdown immediately from cache, then overwrite when HTTP responds.
     const snapshot = this.inventoryService.getStockItems(this.scope);
@@ -140,7 +137,17 @@ export class IssueStockComponent implements OnInit {
       }));
     });
 
-    this.loadRecentIssuances();
+    if (this.isCooperativeScope) {
+      // Recent issuances resolve branch names from this.branches — load it first
+      // so the table never flashes a raw branch ID before quietly fixing itself.
+      this.inventoryService.getBranches().subscribe(b => {
+        this.branches = b;
+        this.loadRecentIssuances();
+      });
+    } else {
+      this.inventoryService.getBranches().subscribe(b => this.branches = b);
+      this.loadRecentIssuances();
+    }
   }
 
   // URL is the source of truth — the router already sent users to the right prefix.
@@ -228,7 +235,6 @@ export class IssueStockComponent implements OnInit {
     return Boolean(
       hasDestination &&
         this.form.stockItemId &&
-        this.form.season &&
         Number(this.form.quantity) > 0 &&
         hasRepaymentTerms,
     );
@@ -246,17 +252,14 @@ export class IssueStockComponent implements OnInit {
         stockItemId: this.form.stockItemId,
         branchId: this.form.branchId,
         quantity,
-        season: this.form.season,
       }).subscribe({
         next: () => {
-          this.recentIssuances = this.inventoryService.getRecentBranchDisbursements()
-            .map(r => this.disbursementToIssuance(r));
-          this.resetForm();
           this.toastService.success('Stock issued to branch');
           this.submitting = false;
+          this.router.navigate([this.isCooperativeScope ? '/cooperative/inventory/stock-disbursed' : '/branch/inventory/stock-disbursed']);
         },
-        error: () => {
-          this.toastService.error('Failed to issue stock', 'Please try again.');
+        error: (err: HttpErrorResponse) => {
+          this.toastService.error('Failed to issue stock', this.extractErrorMessage(err));
           this.submitting = false;
         },
       });
@@ -272,30 +275,34 @@ export class IssueStockComponent implements OnInit {
       stockItemId: this.form.stockItemId,
       farmerId: this.selectedFarmer.id,
       quantity,
-      season: this.form.season,
       repaymentMethod: 'post-harvest-deduction' as RepaymentMethod,
       deductionRate: Number(this.form.deductionRate),
     }).subscribe({
       next: () => {
-        this.recentIssuances = this.inventoryService.getRecentFarmerAllocations()
-          .map(r => this.allocationToIssuance(r));
-        this.resetForm();
         this.toastService.success('Input issued to farmer');
         this.submitting = false;
+        this.router.navigate(['/branch/inventory/stock-disbursed']);
       },
-      error: () => {
-        this.toastService.error('Failed to issue input', 'Please try again.');
+      error: (err: HttpErrorResponse) => {
+        this.toastService.error('Failed to issue input', this.extractErrorMessage(err));
         this.submitting = false;
       },
     });
+  }
+
+  // Backend's GlobalExceptionHandler returns { message: "..." } for validation
+  // failures (insufficient stock, not found, etc.) — surface that instead of a
+  // generic "please try again" that hides the actual reason.
+  private extractErrorMessage(err: HttpErrorResponse): string {
+    return err.error?.message ?? 'Please try again.';
   }
 
   cancel(): void {
     this.router.navigate([this.isCooperativeScope ? '/cooperative/inventory/current-stock' : '/branch/inventory/current-stock']);
   }
 
-  trackById(_: number, row: RecentIssuance): string {
-    return row.id;
+  trackById(_: number, row: unknown): string {
+    return (row as RecentIssuance).id;
   }
 
   // position:fixed + getBoundingClientRect so the dropdown escapes overflow:hidden parents.
@@ -349,30 +356,39 @@ export class IssueStockComponent implements OnInit {
         .map(r => this.disbursementToIssuance(r));
       this.inventoryService.listBranchDisbursementsForRole$().subscribe(rows => {
         this.recentIssuances = rows.slice(0, 5).map(r => this.disbursementToIssuance(r));
+        this.cdr.detectChanges();
       });
     } else {
       this.recentIssuances = this.inventoryService.getRecentFarmerAllocations()
         .map(r => this.allocationToIssuance(r));
       this.inventoryService.listFarmerAllocations().subscribe(rows => {
         this.recentIssuances = rows.slice(0, 5).map(r => this.allocationToIssuance(r));
+        this.cdr.detectChanges();
       });
     }
   }
 
   private disbursementToIssuance(row: BranchDisbursement): RecentIssuance {
+    const branchName = this.resolveBranchName(row.branchId, row.branchName);
     return {
       id: row.id,
-      farmerName: row.branchName,
+      farmerName: branchName,
       farmerId: row.branchId,
-      initials: this.getInitials(row.branchName),
+      initials: this.getInitials(branchName),
       avatarColor: '#533c59',
       item: row.itemName,
       itemCategory: row.itemType,
       quantity: `${row.quantity} ${row.unit}`,
       value: row.totalValue,
       issuedAt: row.issueDate,
-      destination: row.branchName,
+      destination: branchName,
     };
+  }
+
+  // Backend doesn't resolve branch names (branches live in a different service) —
+  // look it up from the branch list this page already fetches.
+  private resolveBranchName(branchId: string, fallback: string): string {
+    return this.branches.find(b => b.id === branchId)?.name || fallback || branchId;
   }
 
   private allocationToIssuance(row: FarmerAllocation): RecentIssuance {
@@ -388,20 +404,6 @@ export class IssueStockComponent implements OnInit {
       value: row.totalValue,
       issuedAt: row.issueDate,
       destination: row.farmerName,
-    };
-  }
-
-  private resetForm(): void {
-    this.farmerSearch = '';
-    this.selectedFarmer = null;
-    this.searchResults = [];
-    this.calculatedValue = 0;
-    this.form = {
-      stockItemId: '',
-      branchId: '',
-      quantity: '',
-      season: '',
-      deductionRate: '',
     };
   }
 

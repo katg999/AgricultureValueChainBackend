@@ -1,11 +1,3 @@
-<!-- 
-  Roles List Page
-  
-  Manage system and custom roles with permissions
--->
-
-
-
 <div class="page">
   <div class="page-container">
     
@@ -29,31 +21,54 @@
         Create new role
       </app-button>
     </div>
-    <!-- Roles Grid - USING REUSABLE COMPONENT -->
-    <app-data-table
-    [columns]="cols"
-    [rows]="filteredRoles"
-    [paginate]="true"
-    [clickable]="true"
-    emptyIcon="shield"
-    emptyTitle="No roles found"
-    emptyMessage="Try adjusting your search, or create a new role."
-    emptyActionLabel="Create Role"
-    emptyRoute="/cooperative/roles/create"
-    (rowClick)="viewRole($any($event))">
 
-    <ng-template appCell="name" let-row>
-      <div class="role-name-cell">
-        <span class="role-name">{{ $any(row).name }}</span>
-        <span class="role-desc">{{ $any(row).description }}</span>
+    <!-- ── Summary Stats ───────────────────────────────────────────────────── -->
+    <div class="stats-grid">
+      <app-stat-card
+        *ngFor="let s of stats; let i = index"
+        [data]="s"
+        [delay]="i * 80">
+      </app-stat-card>
+    </div>
+
+    <!-- ── Search toolbar ─────────────────────────────────────────────────── -->
+    <div class="toolbar">
+      <div class="search-wrap">
+        <app-input
+          type="text"
+          placeholder="Search roles..."
+          [(ngModel)]="searchQuery">
+        </app-input>
       </div>
-    </ng-template>
+    </div>
 
-    <ng-template appCell="type" let-row>
-      <span class="badge" [class.badge-system]="$any(row).isSystem" [class.badge-custom]="!$any(row).isSystem">
-        {{ $any(row).isSystem ? 'System' : 'Custom' }}
-      </span>
-    </ng-template>
+    <!-- ── Roles Table ─────────────────────────────────────────────────────── -->
+    <app-data-table
+      [columns]="cols"
+      [rows]="filteredRoles"
+      [paginate]="true"
+      [clickable]="true"
+      emptyIcon="shield"
+      emptyTitle="No roles found"
+      emptyMessage="Try adjusting your search, or create a new role."
+      emptyActionLabel="Create Role"
+      emptyRoute="/platform/roles/role-form"
+      (rowClick)="viewRole($any($event))">
+
+      <ng-template appCell="name" let-row>
+        <div class="role-name-cell">
+          <span class="role-name">{{ $any(row).name }}</span>
+          <span class="role-desc">{{ $any(row).description }}</span>
+        </div>
+      </ng-template>
+
+      <ng-template appCell="type" let-row>
+        <span class="badge"
+              [class.badge-system]="$any(row).isSystem"
+              [class.badge-custom]="!$any(row).isSystem">
+          {{ $any(row).isSystem ? 'System' : 'Custom' }}
+        </span>
+      </ng-template>
 
     <ng-template appCell="actions" let-row>
       <div class="action-buttons" (click)="$event.stopPropagation()">
@@ -74,15 +89,7 @@
       </div>
     </ng-template>
 
-  </app-data-table>
-    <app-empty-state
-      *ngIf="filteredRoles.length === 0"
-      icon="shield"
-      title="No roles found"
-      message="Try adjusting your search, or create a new role."
-      actionLabel="Create Role"
-      route="/platform/roles/role-form">
-    </app-empty-state>
+    </app-data-table>
 
   </div>
 </div>
