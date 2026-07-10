@@ -6,6 +6,5 @@
 //   USE_MOCK = false → services call the real API at localhost:8083.
 //
 // Flip the flag, save, and the app hot-reloads instantly.
-// ─────────────────────────────────────────────────────────────────────────────
 
 export const USE_MOCK = true;
