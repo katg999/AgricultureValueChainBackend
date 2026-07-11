@@ -2,39 +2,18 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormsModule } from '@angular/forms';
+import { from } from 'rxjs';
+import { fetchGenderOptions } from '../../../../core/mock/mock-reference-data';
 
-// Shared components
-import { LogoComponent } from '../../../../shared/components/logo/logo.component';
-import { InputComponent } from '../../../../shared/components/input/input.component';
-import { ButtonComponent } from '../../../../shared/components/button/button.component';
-import { InfoCardComponent } from '../../../../shared/components/info-card/info-card.component';
+import { FormShellComponent }   from '../../../../shared/components/form-wizard/form-wizard.component';
+import { FormSectionComponent } from '../../../../shared/components/form-section/form-section.component';
+import { InputComponent }       from '../../../../shared/components/input/input.component';
+import { ButtonComponent }      from '../../../../shared/components/button/button.component';
 import { ToggleSwitchComponent } from '../../../../shared/components/toggle-switch/toggle-switch.component';
-import { PasswordStrengthComponent } from '../../../../shared/components/password-strength/password-strength.component';
-import { AlertComponent } from '../../../../shared/components/alert/alert.component';
+import { AlertComponent }       from '../../../../shared/components/alert/alert.component';
+import { ModalComponent }       from '../../../../shared/components/modal/modal.component';
+import { FormFeedbackService }  from '../../../../core/services/form-feedback.service';
 
-/**
- * Add New User Component
- * 
- * Form for creating new platform or cooperative admin users.
- * Collects personal details and account access settings.
- * 
- * Sections:
- * 1. Personal Details - Name, email, phone, DOB, National ID, gender
- * 2. Account Access - Role, temporary password, welcome email, OTP
- * 
- * Features:
- * - Multi-section form with validation
- * - Password strength indicator
- * - Toggle switches for options
- * - Date input with format validation (YYYY-MM-DD)
- * - Gender dropdown
- * - Role dropdown
- * - Reusable input component with built-in password toggle
- * - Form submission
- * 
- * Flow:
- * Add User → Save → Users List
- */
 @Component({
   selector: 'app-add-user',
   standalone: true,
@@ -43,38 +22,26 @@ import { AlertComponent } from '../../../../shared/components/alert/alert.compon
     RouterModule,
     ReactiveFormsModule,
     FormsModule,
-    LogoComponent,
+    FormShellComponent,
+    FormSectionComponent,
     InputComponent,
     ButtonComponent,
-    InfoCardComponent,
     ToggleSwitchComponent,
-    PasswordStrengthComponent,
-    AlertComponent
+    AlertComponent,
+    ModalComponent,
   ],
   templateUrl: './add-user.component.html',
   styleUrls: ['./add-user.component.css']
 })
 export class AddUserComponent implements OnInit {
 
-  /**
-   * User form
-   */
   userForm!: FormGroup;
 
-  /**
-   * Toggle options
-   */
   sendWelcomeEmail = true;
   requireOTP = true;
 
-  /**
-   * Gender options
-   */
-  genderOptions = ['Male', 'Female', 'Other', 'Prefer not to say'];
+  genderOptions: string[] = [];
 
-  /**
-   * Role options
-   */
   roleOptions = [
     'Admin',
     'Maker',
@@ -84,144 +51,89 @@ export class AddUserComponent implements OnInit {
     'Field Officer'
   ];
 
-  /**
-   * Loading state
-   */
   isLoading = false;
+  showConfirmModal = false;
+
+  private readonly fieldLabels: Record<string, string> = {
+    fullName: 'Full Name',
+    email:    'Email Address',
+    phone:    'Phone Number',
+    role:     'Role',
+  };
 
   constructor(
     private fb: FormBuilder,
     private router: Router,
+    private feedback: FormFeedbackService,
   ) {}
 
   ngOnInit(): void {
+    // Load gender options from async mock fetch (swap for real HTTP call when API is ready)
+    from(fetchGenderOptions()).subscribe(v => this.genderOptions = v);
+
     this.initForm();
   }
 
-  /**
-   * Initialize form
-   */
   initForm(): void {
     this.userForm = this.fb.group({
-      // Personal Details
-      fullName: ['', [Validators.required]],
-      email: ['okeyo@gmail.com', [Validators.required, Validators.email]],
-      phone: ['', [Validators.required, Validators.pattern(/^\+256\s?\d{3}\s?\d{3}\s?\d{3}$/)]],
-      dateOfBirth: [''], // Optional, but if provided must be valid date
-      nationalId: [''],
-      gender: ['Female'],
-
-      // Account Access
-      role: ['Admin', [Validators.required]],
-      tempPassword: ['', [Validators.required, Validators.minLength(8)]],
-      confirmPassword: ['', [Validators.required]]
-    }, {
-      validators: this.passwordMatchValidator
+      fullName:    ['', [Validators.required]],
+      email:       ['', [Validators.required, Validators.email]],
+      phone:       ['', [Validators.required, Validators.pattern(/^\+256\s?\d{3}\s?\d{3}\s?\d{3}$/)]],
+      dateOfBirth: [''],
+      nationalId:  ['', Validators.pattern(/^[A-Z0-9]{14}$/)],
+      gender:      ['Female'],
+      role:        ['Admin', [Validators.required]],
     });
   }
 
-  /**
-   * Password match validator
-   */
-  passwordMatchValidator(form: FormGroup): { [key: string]: boolean } | null {
-    const password = form.get('tempPassword')?.value;
-    const confirm = form.get('confirmPassword')?.value;
-    
-    if (password && confirm && password !== confirm) {
-      return { passwordMismatch: true };
-    }
-    return null;
-  }
-
-  /**
-   * Get form field error
-   */
   getFieldError(fieldName: string): string {
     const control = this.userForm.get(fieldName);
     if (control?.touched && control?.errors) {
       if (control.errors['required']) return 'This field is required';
-      if (control.errors['email']) return 'Invalid email address';
-      if (control.errors['minLength']) return 'Password must be at least 8 characters';
+      if (control.errors['email'])    return 'Invalid email address';
       if (control.errors['pattern']) {
-        if (fieldName === 'phone') return 'Invalid phone format. Use: +256 700 000000';
+        if (fieldName === 'phone')      return 'Invalid phone format. Use: +256 700 000000';
+        if (fieldName === 'nationalId') return 'Must be exactly 14 alphanumeric characters';
       }
     }
-    
-    // Check password mismatch
-    if (fieldName === 'confirmPassword' && this.userForm.errors?.['passwordMismatch']) {
-      return 'Passwords do not match';
-    }
-    
     return '';
   }
 
-  /**
-   * Get current password for strength meter
-   */
-  get currentPassword(): string {
-    return this.userForm.get('tempPassword')?.value || '';
-  }
-
-  /**
-   * Cancel and go back
-   */
   cancel(): void {
     this.router.navigate(['/platform/users']);
-
   }
 
-  /**
-   * Save user
-   */
   saveUser(): void {
     if (this.userForm.invalid) {
       this.userForm.markAllAsTouched();
-      return; // stop here if the form isn't ready!
-
-    }
-
-
-    // Validate date format if provided
-    const dob = this.userForm.get('dateOfBirth')?.value;
-    if (dob && !this.isValidDate(dob)) {
-      alert('Invalid date format. Please use YYYY-MM-DD');
+      this.feedback.formError(this.userForm, this.fieldLabels);
       return;
     }
 
-    this.isLoading = true;
+    const dob = this.userForm.get('dateOfBirth')?.value;
+    if (dob && !this.isValidDate(dob)) {
+      this.feedback.fieldError(['Date of Birth (invalid format, use YYYY-MM-DD)']);
+      return;
+    }
 
-    const userData = {
-      ...this.userForm.value,
-      sendWelcomeEmail: this.sendWelcomeEmail,
-      requireOTP: this.requireOTP,
-      // Format date consistently for DB
-      dateOfBirth: this.userForm.value.dateOfBirth ? 
-      this.formatDateForDB(this.userForm.value.dateOfBirth) : null
-    };
-
-    console.log('Saving user:', userData);
-  
-
-    // Simulate API calletTimeout(() => {
-    //   this.isLoading = false;
-    //   this.router.navigate(['/platform/users']);
-    // }, 2000);
+    this.showConfirmModal = true;
   }
 
-  /**
-   * Validate date format (YYYY-MM-DD)
-   */
+  onConfirmSave(): void {
+    this.showConfirmModal = false;
+    this.isLoading = true;
+    this.feedback.success('User created', `${this.userForm.value.fullName} has been added successfully.`);
+    this.isLoading = false;
+    this.router.navigate(['/platform/users']);
+  }
+
   isValidDate(dateString: string): boolean {
     const regex = /^\d{4}-\d{2}-\d{2}$/;
     if (!regex.test(dateString)) return false;
-
     const date = new Date(dateString);
     return date instanceof Date && !isNaN(date.getTime());
   }
 
-  /**
-   * Format date for database (YYYY-MM-DD)
-   */
   formatDateForDB(dateString: string): string {
     const date = new Date(dateString);
     const year = date.getFullYear();

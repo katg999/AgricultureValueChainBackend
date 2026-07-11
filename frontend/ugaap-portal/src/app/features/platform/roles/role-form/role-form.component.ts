@@ -1,30 +1,17 @@
-// features/platform/roles/role-form/role-form.component.ts
-//
-// Create / edit a platform-level role.
-//
-// Layout follows the shared <app-form-wizard> shell (the farmer-register
-// design): role details → permissions. Permissions are picked through
-// <app-permission-tabs> (scope="platform") — one tab per service, each broken
-// down into granular actions. Selected ids are plain strings like
-// "cooperatives.approve".
-
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 
 import { API_ENDPOINTS } from '../../../../core/constants/api-endpoints';
-import { FormWizardComponent, WizardStep } from '../../../../shared/components/form-wizard/form-wizard.component';
+import { SessionService } from '../../../../core/services/session.service';
+import { FormShellComponent } from '../../../../shared/components/form-wizard/form-wizard.component';
+import { FormSectionComponent } from '../../../../shared/components/form-section/form-section.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { PermissionTabsComponent } from '../../../../shared/components/permission-tabs/permission-tabs.component';
-
-/** Form controls validated before leaving each step */
-const STEP_FIELDS: string[][] = [
-  ['name', 'description', 'tenantId'],
-  [],   // permissions step is validated by selection count on save
-];
+import { ToastService } from '../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-role-form',
@@ -33,7 +20,8 @@ const STEP_FIELDS: string[][] = [
     CommonModule,
     RouterModule,
     ReactiveFormsModule,
-    FormWizardComponent,
+    FormShellComponent,
+    FormSectionComponent,
     InputComponent,
     ButtonComponent,
     PermissionTabsComponent,
@@ -48,14 +36,10 @@ export class RoleFormComponent implements OnInit {
   isLoading = false;
   errorMessage = '';
 
-  readonly steps: WizardStep[] = [
-    { label: 'Role details' },
-    { label: 'Permissions' },
-  ];
-  currentStep = 0;
-
-  /** Permission ids granted to this role — two-way bound to the tab picker */
   readonly selectedPermissions = signal<string[]>([]);
+
+  private toast = inject(ToastService);
+  private session = inject(SessionService);
 
   constructor(
     private fb: FormBuilder,
@@ -69,14 +53,6 @@ export class RoleFormComponent implements OnInit {
     this.isEditMode = !!this.roleId;
     this.initForm();
 
-    if (!this.isEditMode) {
-      const navigation = this.router.getCurrentNavigation();
-      const state = navigation?.extras?.state || history.state;
-      if (state?.tenantId) {
-        this.roleForm.patchValue({ tenantId: state.tenantId });
-      }
-    }
-
     if (this.isEditMode) {
       this.loadRoleData();
     }
@@ -86,105 +62,47 @@ export class RoleFormComponent implements OnInit {
     this.roleForm = this.fb.group({
       name: ['', Validators.required],
       description: ['', Validators.required],
-      tenantId: ['', Validators.required],
     });
   }
 
-  // ── Step navigation ───────────────────────────────────────────────────────
-
-  /** Moving forward validates the current step's controls first */
-  nextStep(): void {
-    if (!this.validateStep(this.currentStep)) return;
-    this.currentStep = Math.min(this.currentStep + 1, this.steps.length - 1);
-  }
-
-  prevStep(): void {
-    this.currentStep = Math.max(this.currentStep - 1, 0);
-  }
-
-  /** Sidebar clicks: backward always allowed, forward gated by validation */
-  goToStep(index: number): void {
-    if (index <= this.currentStep) {
-      this.currentStep = index;
-      return;
-    }
-    if (this.validateStep(this.currentStep)) {
-      this.currentStep = index;
-    }
-  }
-
-  private validateStep(step: number): boolean {
-    const fields = STEP_FIELDS[step] ?? [];
-    let valid = true;
-    for (const field of fields) {
-      const ctrl = this.roleForm.get(field);
-      ctrl?.markAsTouched();
-      if (ctrl?.invalid) valid = false;
-    }
-    return valid;
-  }
-
-  // ── Data loading ──────────────────────────────────────────────────────────
-
-  loadRoleData(): void {
-    if (!this.roleId) return;
-    this.errorMessage = '';
-
-    // Fetch role details
-    this.http.get<any>(`${API_ENDPOINTS.ACCESS.ROLES}/${this.roleId}`).subscribe({
-      next: (role) => {
-        this.roleForm.patchValue({
-          name: role.name,
-          description: role.description,
-          tenantId: role.tenantId,
-        });
-        // After role details, load assigned permissions
-        this.loadRolePermissions();
-      },
-      error: (err) => {
-        console.error('Failed to load role:', err);
-        this.errorMessage = err?.error?.message || 'Failed to load role data';
-      },
-    });
-  }
-
-  loadRolePermissions(): void {
-    if (!this.roleId) return;
-    this.http.get<any[]>(API_ENDPOINTS.ACCESS.ROLE_PERMISSIONS(this.roleId)).subscribe({
-      next: (permissions) => {
-        // Accept either plain ids ("farmers.view") or legacy
-        // { module, action } pairs ("FARMERS"/"VIEW" → "farmers.view").
-        const ids = permissions.map(p =>
-          typeof p === 'string'
-            ? p
-            : `${String(p.module).toLowerCase()}.${String(p.action).toLowerCase()}`,
-        );
-        this.selectedPermissions.set(ids);
-      },
-      error: (err) => {
-        console.error('Failed to load permissions:', err);
-        this.errorMessage = err?.error?.message || 'Failed to load permissions';
-        this.isLoading = false;
-      },
-    });
-  }
+  // ── Helpers ───────────────────────────────────────────────────────────────
 
   get selectedPermissionsCount(): number {
     return this.selectedPermissions().length;
   }
 
-  // ── Form helpers ──────────────────────────────────────────────────────────
+  get permissionsDesc(): string {
+    const n = this.selectedPermissionsCount;
+    return `${n} permission${n === 1 ? '' : 's'} selected`;
+  }
 
   getFieldError(fieldName: string): string {
-    const control = this.roleForm.get(fieldName);
-    if (control?.touched && control?.errors) {
-      if (control.errors['required']) return 'This field is required';
+    const ctrl = this.roleForm.get(fieldName);
+    if (ctrl?.touched && ctrl?.errors) {
+      if (ctrl.errors['required']) return 'This field is required';
     }
     return '';
   }
 
   cancel(): void {
     this.router.navigate(['/platform/roles']);
+  }
+
+  // ── Data loading ──────────────────────────────────────────────────────────
+
+  loadRoleData(): void {
+    if (!this.roleId) return;
+    this.http.get<any>(API_ENDPOINTS.ACCESS.ROLE_BY_ID(this.roleId)).subscribe({
+      next: (role) => {
+        this.roleForm.patchValue({ name: role.name, description: role.description });
+        if (role.permissions?.length) {
+          this.selectedPermissions.set(this.fromBackendPermissions(role.permissions));
+        }
+      },
+      error: (err) => {
+        this.errorMessage = err?.error?.message ?? 'Failed to load role data';
+      },
+    });
   }
 
   // ── Save ──────────────────────────────────────────────────────────────────
@@ -195,53 +113,144 @@ export class RoleFormComponent implements OnInit {
       return;
     }
     if (this.selectedPermissionsCount === 0) {
-      alert('Please select at least one permission');
+      this.toast.warning(
+        'No permissions selected',
+        'Please select at least one permission before saving.',
+      );
       return;
     }
 
-    const rolePayload = {
-      name: this.roleForm.value.name,
-      description: this.roleForm.value.description,
-      tenantId: this.roleForm.value.tenantId,
-    };
-    const permissionsPayload = { permissions: this.selectedPermissions() };
-    this.router.navigate(['/platform/roles']);
+    const tenantId = this.session.tenantId();
+    if (!tenantId) {
+      this.toast.error('No tenant context', 'Cannot save role without a tenant context.');
+      return;
+    }
 
-    // if (this.isEditMode && this.roleId) {
-    //   // UPDATE existing role
-    //   this.http.post(`${API_ENDPOINTS.ACCESS.ROLES}/${this.roleId}`, rolePayload).subscribe({
-    //     next: () => {
-    //       this.http.post(API_ENDPOINTS.ACCESS.ROLE_PERMISSIONS(this.roleId!), permissionsPayload).subscribe({
-    //         next: () => this.router.navigate(['/platform/roles']),
-    //         error: (err) => {
-    //           console.error('Failed to update permissions:', err);
-    //           this.errorMessage = err?.error?.message || 'Role updated but permissions failed';
-    //         },
-    //       });
-    //     },
-    //     error: (err) => {
-    //       console.error('Failed to update role:', err);
-    //       this.errorMessage = err?.error?.message || 'Failed to update role';
-    //     },
-    //   });
-    // } else {
-    //   // CREATE new role
-    //   this.http.post(API_ENDPOINTS.ACCESS.ROLES, rolePayload).subscribe({
-    //     next: (roleResponse: any) => {
-    //       const newRoleId = roleResponse.roleId;
-    //       this.http.post(API_ENDPOINTS.ACCESS.ROLE_PERMISSIONS(newRoleId), permissionsPayload).subscribe({
-    //         next: () => this.router.navigate(['/platform/roles'], { queryParams: { created: 'true' } }),
-    //         error: (err) => {
-    //           console.error('Permission assignment failed:', err);
-    //           this.errorMessage = err?.error?.message || 'Role created but permissions failed';
-    //         },
-    //       });
-    //     },
-    //     error: (err) => {
-    //       console.error('Role creation failed:', err);
-    //       this.errorMessage = err?.error?.message || 'Failed to create role';
-    //     },
-    //   });
-    // }
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    const { name, description } = this.roleForm.value;
+    const payload = { name, description, tenantId, permissions: this.toBackendPermissions() };
+
+    const request$ = this.isEditMode
+      ? this.http.put<any>(API_ENDPOINTS.ACCESS.ROLE_BY_ID(this.roleId!), payload)
+      : this.http.post<any>(API_ENDPOINTS.ACCESS.ROLES, payload);
+
+    request$.subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.toast.success(
+          this.isEditMode ? 'Role updated' : 'Role created',
+          `"${name}" has been ${this.isEditMode ? 'updated' : 'created'} successfully.`,
+        );
+        this.router.navigate(['/platform/roles']);
+      },
+      error: (err) => {
+        this.isLoading = false;
+        const msg = err?.error?.message ?? 'Failed to save the role. Please try again.';
+        this.errorMessage = msg;
+        this.toast.error('Save failed', msg);
+      },
+    });
+  }
+
+  // ── Permission mapping (frontend ids → backend { module, action }) ─────────
+
+  private toBackendPermissions(): { module: string; action: string; description: string }[] {
+    const moduleMap: Record<string, string> = {
+      dashboard: 'REPORTS',
+      organisation: 'ORGANISATION_SETUP',
+      configuration: 'CONFIGURATION',
+      collections: 'COLLECTIONS',
+      farmers: 'FARMERS',
+      agents: 'AGENTS',
+      collection_hubs: 'COLLECTION_HUBS',
+      branches: 'BRANCHES',
+      inventory: 'INVENTORY',
+      finance: 'FINANCE',
+      users: 'USER_MANAGEMENT',
+      roles: 'ROLES_AND_PERMISSIONS',
+      reports: 'REPORTS',
+      cooperatives: 'BRANCHES',
+      settings: 'CONFIGURATION',
+    };
+    const actionMap: Record<string, string> = {
+      view: 'VIEW',
+      metrics: 'VIEW',
+      performance: 'VIEW',
+      disburse: 'VIEW',
+      export: 'VIEW',
+      create: 'CREATE',
+      register: 'CREATE',
+      record: 'CREATE',
+      onboard: 'CREATE',
+      receive: 'CREATE',
+      request: 'CREATE',
+      issue: 'CREATE',
+      generate: 'CREATE',
+      build: 'CREATE',
+      edit: 'EDIT',
+      transfer: 'EDIT',
+      adjust: 'EDIT',
+      assign: 'EDIT',
+      submit: 'EDIT',
+      grade: 'EDIT',
+      process: 'EDIT',
+      reset_password: 'EDIT',
+      approve: 'APPROVE',
+      reject: 'APPROVE',
+      delete: 'DELETE',
+      deactivate: 'DELETE',
+      suspend: 'DELETE',
+    };
+
+    const seen = new Set<string>();
+    const out: { module: string; action: string; description: string }[] = [];
+
+    for (const id of this.selectedPermissions()) {
+      const parts = id.split('.');
+      const module = moduleMap[parts[0]];
+      const action = actionMap[parts[parts.length - 1]];
+      if (!module || !action) continue;
+      const key = `${module}:${action}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({ module, action, description: id });
+    }
+    return out;
+  }
+
+  // ── Reverse mapping (backend → frontend ids for edit pre-fill) ────────────
+
+  private fromBackendPermissions(permissions: { module: string; action: string }[]): string[] {
+    const reverseModule: Record<string, string> = {
+      BRANCHES: 'branches',
+      ORGANISATION_SETUP: 'organisation',
+      CONFIGURATION: 'configuration',
+      COLLECTIONS: 'collections',
+      FARMERS: 'farmers',
+      AGENTS: 'agents',
+      COLLECTION_HUBS: 'collection_hubs',
+      INVENTORY: 'inventory',
+      FINANCE: 'finance',
+      USER_MANAGEMENT: 'users',
+      ROLES_AND_PERMISSIONS: 'roles',
+      REPORTS: 'reports',
+    };
+    const reverseAction: Record<string, string> = {
+      VIEW: 'view',
+      CREATE: 'create',
+      EDIT: 'edit',
+      APPROVE: 'approve',
+      DELETE: 'delete',
+    };
+
+    return permissions
+      .map((p) => {
+        const m = reverseModule[p.module];
+        const a = reverseAction[p.action];
+        return m && a ? `${m}.${a}` : null;
+      })
+      .filter((id): id is string => id !== null);
   }
 }

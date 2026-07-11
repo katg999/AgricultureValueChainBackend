@@ -1,51 +1,59 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { BehaviorSubject, combineLatest, map, Observable, tap } from 'rxjs';
+import { Observable } from 'rxjs';
 
 import { FarmerDelivery } from '../farmer.delivery.model';
 import { FarmerDeliveryService } from '../farmer.delivery.service';
 import { BranchDelivery, DeliverySession, DeliveryStatus } from '../branch.delivery.model';
 import { BranchDeliveryService } from '../branch.delivery.service';
-import { SessionService } from '../../../../core/services/session.service';
 import { DeliverySessionConfigService } from '../../../../core/services/delivery-session-config.service';
 import { CooperativePricingService } from '../../../../core/services/cooperative-pricing.service';
+import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
+import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
 
 @Component({
   selector: 'app-farmer-deliveries-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, DataTableComponent, CellDirective],
   templateUrl: './farmer-deliveries-list.component.html',
   styleUrl: './farmer-deliveries-list.component.css',
 })
-export class FarmerDeliveriesListComponent implements OnInit, OnDestroy {
+export class FarmerDeliveriesListComponent implements OnInit {
   farmerDeliveries$!: Observable<FarmerDelivery[]>;
-  paginatedFarmerDeliveries$!: Observable<FarmerDelivery[]>;
-  // Set when navigated here via a delivery row's "View" action — scopes the list to that batch.
+
+  // Set when navigated here from a delivery batch row — scopes context info in the header.
   batchDelivery: BranchDelivery | null = null;
-  // 'cooperative' when drilled into from the cooperative deliveries view; affects back-link.
   fromContext: 'cooperative' | 'branch' = 'branch';
 
-  currentPage = 1;
-  readonly itemsPerPage = 10;
-  totalCount = 0;
-
-  get startIndex(): number { return this.totalCount === 0 ? 0 : (this.currentPage - 1) * this.itemsPerPage + 1; }
-  get endIndex(): number { return Math.min(this.currentPage * this.itemsPerPage, this.totalCount); }
-  get pagesArray(): number[] {
-    return Array.from({ length: Math.ceil(this.totalCount / this.itemsPerPage) }, (_, i) => i + 1);
+  // Grade column is inserted conditionally when the cooperative has grade pricing enabled.
+  get columns(): TableColumn[] {
+    const base: TableColumn[] = [
+      { key: 'id',         header: 'Farmer ID', class: 'mono' },
+      { key: 'farmerName', header: 'Name' },
+      { key: 'commodity',  header: 'Commodity' },
+    ];
+    if (this.pricingService.useGrades) {
+      base.push({ key: 'grade', header: 'Grade' });
+    }
+    return [
+      ...base,
+      { key: 'volume',         header: 'Volume' },
+      { key: 'unitPrice',      header: 'Unit Price' },
+      { key: 'estimatedValue', header: 'Gross Value' },
+      { key: 'season',         header: 'Season' },
+      { key: 'session',        header: 'Session' },
+      { key: 'status',         header: 'Status' },
+    ];
   }
-
-  private readonly pageState$ = new BehaviorSubject<number>(1);
 
   constructor(
     private readonly farmerDeliveryService: FarmerDeliveryService,
     private readonly branchDeliveryService: BranchDeliveryService,
-    private readonly session: SessionService,
     private readonly sessionConfig: DeliverySessionConfigService,
     private readonly router: Router,
     private readonly route: ActivatedRoute,
-    // Must be public so the template can access pricingService.useGrades directly.
+    // Public so the template and the columns getter can access useGrades.
     public readonly pricingService: CooperativePricingService,
   ) {}
 
@@ -55,48 +63,13 @@ export class FarmerDeliveriesListComponent implements OnInit, OnDestroy {
     this.fromContext   = from === 'cooperative' ? 'cooperative' : 'branch';
     this.batchDelivery = batchId ? this.branchDeliveryService.getDeliveryById(batchId) ?? null : null;
 
-    // Use the stream exposed by the service, falling back to a generic all$ observable if needed.
-    const farmerDeliveryServiceAny = this.farmerDeliveryService as any;
-    this.farmerDeliveries$ = (farmerDeliveryServiceAny.allForRole$
-      ? farmerDeliveryServiceAny.allForRole$(
-          this.session.branchId(),
-          this.session.userRole(),
-          batchId,
-        )
-      : farmerDeliveryServiceAny.all$) as Observable<FarmerDelivery[]>;
-
-    // Paginate the (already-filtered) list. tap() captures the total count
-    // for the pagination footer before the slice happens.
-    this.paginatedFarmerDeliveries$ = combineLatest([this.farmerDeliveries$, this.pageState$]).pipe(
-      tap(([deliveries]) => { this.totalCount = deliveries.length; }),
-      map(([deliveries, page]) =>
-        deliveries.slice((page - 1) * this.itemsPerPage, page * this.itemsPerPage),
-      ),
-    );
-  }
-
-  ngOnDestroy(): void {
-    this.pageState$.complete();
-  }
-
-  prevPage(): void {
-    if (this.currentPage > 1) {
-      this.currentPage--;
-      this.pageState$.next(this.currentPage);
-    }
-  }
-
-  nextPage(): void {
-    if (this.endIndex < this.totalCount) {
-      this.currentPage++;
-      this.pageState$.next(this.currentPage);
-    }
-  }
-
-  goToPage(page: number): void {
-    if (page !== this.currentPage) {
-      this.currentPage = page;
-      this.pageState$.next(page);
+    if (batchId) {
+      // Delegate batch filtering to the service — respects USE_MOCK.
+      this.farmerDeliveries$ = this.farmerDeliveryService.getByBatchId(batchId);
+    } else {
+      // No batch filter — show all farmer deliveries for this branch.
+      this.farmerDeliveries$ = this.farmerDeliveryService.deliveries$;
+      this.farmerDeliveryService.getPaginated(0, 200).subscribe({ error: () => {} });
     }
   }
 
@@ -111,13 +84,9 @@ export class FarmerDeliveriesListComponent implements OnInit, OnDestroy {
     this.router.navigate(['/branch/collections/farmers']);
   }
 
-  trackByIndex(index: number): number {
-    return index;
-  }
-
   statusClass(status: DeliveryStatus): string {
     const map: Record<DeliveryStatus, string> = {
-      Pending: 'status-pending',
+      Pending:  'status-pending',
       Approved: 'status-approved',
       Rejected: 'status-rejected',
     };
@@ -128,15 +97,7 @@ export class FarmerDeliveriesListComponent implements OnInit, OnDestroy {
     return new Intl.NumberFormat('en-UG').format(value);
   }
 
-  netPayment(farmer: FarmerDelivery): number {
-    return (farmer.estimatedValue || 0) - ((farmer as any).inputLoanDeduction || 0);
-  }
-
-  sessionLabel(id: DeliverySession | undefined): string {
-    return this.sessionConfig.getLabel(id);
-  }
-
-  trackByFarmerDeliveryId(_index: number, item: FarmerDelivery): string {
-    return item.id;
+  sessionLabel(id: string | undefined): string {
+    return this.sessionConfig.getLabel(id as DeliverySession | undefined);
   }
 }

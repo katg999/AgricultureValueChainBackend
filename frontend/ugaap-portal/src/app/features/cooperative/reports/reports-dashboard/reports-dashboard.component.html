@@ -59,10 +59,10 @@
     <div class="tab-content">
 
       <div class="stats-grid">
-        <app-stats-card label="Total Deliveries" value="540 MT"  trend="+12%" icon="box"    variant="default"></app-stats-card>
-        <app-stats-card label="Daily Average"    value="18 MT"   trend="+5%"  icon="chart"  variant="success"></app-stats-card>
-        <app-stats-card label="Peak Delivery"    value="45 MT"                icon="chart"  variant="default"></app-stats-card>
-        <app-stats-card label="Active Farmers"   value="142"     trend="+8%"  icon="farmer" variant="success"></app-stats-card>
+        <app-stat-card [data]="{label: 'Total Deliveries', value: '540 MT', trend: '+12%', trendUp: true,  icon: 'box'}"></app-stat-card>
+        <app-stat-card [data]="{label: 'Daily Average',    value: '18 MT',   trend: '+5%',  trendUp: true,  icon: 'chart',  status: 'active'}"></app-stat-card>
+        <app-stat-card [data]="{label: 'Peak Delivery',    value: '45 MT',                                  icon: 'chart'}"></app-stat-card>
+        <app-stat-card [data]="{label: 'Active Farmers',   value: 142,       trend: '+8%',  trendUp: true,  icon: 'farmer', status: 'active'}"></app-stat-card>
       </div>
 
       <div class="charts-grid">
@@ -120,10 +120,10 @@
     <div class="tab-content">
 
       <div class="stats-grid">
-        <app-stats-card label="Grade A Volume" value="338 MT"  trend="+3%"  icon="scale"  variant="success"></app-stats-card>
-        <app-stats-card label="Grade B Volume" value="188 MT"  trend="-1%"  icon="scale"  variant="default"></app-stats-card>
-        <app-stats-card label="Total Rejected" value="44 MT"   trend="-5%"  icon="alert"  variant="danger"></app-stats-card>
-        <app-stats-card label="Avg Quality"    value="81%"     trend="+2%"  icon="check"  variant="success"></app-stats-card>
+        <app-stat-card [data]="{label: 'Grade A Volume', value: '338 MT', trend: '+3%',  trendUp: true,  icon: 'scale', status: 'active'}"></app-stat-card>
+        <app-stat-card [data]="{label: 'Grade B Volume', value: '188 MT', trend: '-1%',  trendUp: false, icon: 'scale'}"></app-stat-card>
+        <app-stat-card [data]="{label: 'Total Rejected', value: '44 MT',  trend: '-5%',  trendUp: false, icon: 'alert', status: 'critical'}"></app-stat-card>
+        <app-stat-card [data]="{label: 'Avg Quality',    value: '81%',    trend: '+2%',  trendUp: true,  icon: 'check', status: 'active'}"></app-stat-card>
       </div>
 
       <div class="charts-grid">
@@ -176,10 +176,10 @@
     <div class="tab-content">
 
       <div class="stats-grid">
-        <app-stats-card label="Total Disbursed"  value="168.5M UGX" trend="+14%" icon="wallet"  variant="success"></app-stats-card>
-        <app-stats-card label="Recovery Rate"    value="78%"         trend="+5%"  icon="chart"   variant="success"></app-stats-card>
-        <app-stats-card label="Outstanding"      value="36.8M UGX"  trend="-3%"  icon="alert"   variant="warning"></app-stats-card>
-        <app-stats-card label="Overdue Farmers"  value="12"          trend="+2"   icon="alert"   variant="danger"></app-stats-card>
+        <app-stat-card [data]="{label: 'Total Disbursed',  value: '168.5M UGX', trend: '+14%', trendUp: true,  icon: 'wallet', status: 'active'}"></app-stat-card>
+        <app-stat-card [data]="{label: 'Recovery Rate',    value: '78%',        trend: '+5%',  trendUp: true,  icon: 'chart',  status: 'active'}"></app-stat-card>
+        <app-stat-card [data]="{label: 'Outstanding',      value: '36.8M UGX', trend: '-3%',  trendUp: false, icon: 'alert',  status: 'warning'}"></app-stat-card>
+        <app-stat-card [data]="{label: 'Overdue Farmers',  value: 12,           trend: '+2',   trendUp: false, icon: 'alert',  status: 'critical'}"></app-stat-card>
       </div>
 
       <div class="charts-grid">
@@ -232,10 +232,10 @@
     <div class="tab-content">
 
       <div class="stats-grid">
-        <app-stats-card label="Total Members"   value="542"  trend="+8%"  icon="users"  variant="default"></app-stats-card>
-        <app-stats-card label="Active Members"  value="425"  trend="+3%"  icon="check"  variant="success"></app-stats-card>
-        <app-stats-card label="New This Season" value="64"   trend="+12%" icon="users"  variant="success"></app-stats-card>
-        <app-stats-card label="Inactive"        value="117"  trend="-2%"  icon="alert"  variant="warning"></app-stats-card>
+        <app-stat-card [data]="{label: 'Total Members',   value: 542, trend: '+8%',  trendUp: true,  icon: 'users'}"></app-stat-card>
+        <app-stat-card [data]="{label: 'Active Members',  value: 425, trend: '+3%',  trendUp: true,  icon: 'check', status: 'active'}"></app-stat-card>
+        <app-stat-card [data]="{label: 'New This Season', value: 64,  trend: '+12%', trendUp: true,  icon: 'users', status: 'active'}"></app-stat-card>
+        <app-stat-card [data]="{label: 'Inactive',        value: 117, trend: '-2%',  trendUp: false, icon: 'alert', status: 'warning'}"></app-stat-card>
       </div>
 
       <div class="charts-grid">

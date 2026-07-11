@@ -40,13 +40,12 @@
   </div>
 
   <!-- ── 3. Search input ─────────────────────────────────────────────────── -->
-  <!-- [(ngModel)]="searchTerm" = two-way binding: the input shows searchTerm,
-       and when the user types, searchTerm updates instantly.
-       (input) fires on every keystroke — calls applyFilter() which pushes new values
-       to the BehaviorSubject, which triggers a re-filter of the table automatically. -->
-  <div class="filter-card">
-    <div class="filter-group">
-      <label>Search</label>
+  <div class="filters-bar">
+    <div class="search-input">
+      <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+        <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
       <input
         type="text"
         [(ngModel)]="searchTerm"
@@ -67,10 +66,6 @@
       [emptyMessage]="(totalBatchCount$ | async) === 0 ? 'Create your first batch to start grouping farmer payments for disbursement.' : 'No batches match the selected filters. Try adjusting the status or search term.'"
       emptyActionLabel="Create Batch"
       emptyRoute="/branch/finance/batch-create">
-
-      <ng-template appCell="dateRange" let-row>
-        <span class="mono date-range">{{ $any(row).openingDate }} — {{ $any(row).closingDate }}</span>
-      </ng-template>
 
       <ng-template appCell="totalAmount" let-row>
         {{ formatCurrency($any(row).totalAmount) }}
@@ -100,7 +95,6 @@
               [style.bottom]="menuPosition.bottom !== undefined ? menuPosition.bottom + 'px' : 'auto'"
               [style.right.px]="menuPosition.right">
               <button type="button" (click)="viewFarmers($any(row))">View Farmers</button>
-              <button type="button" [disabled]="$any(row).status === 'Draft'" (click)="exportPaymentFile($any(row))">Export Payment File</button>
               <button type="button" [disabled]="$any(row).status !== 'Draft'" (click)="submitForApproval($any(row))">Submit for Approval</button>
               <button type="button" class="danger" [disabled]="$any(row).status !== 'Draft'" (click)="deleteBatch($any(row))">Delete</button>
             </div>

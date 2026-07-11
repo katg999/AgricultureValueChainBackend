@@ -1,7 +1,6 @@
-/* configuration.component.css */
+﻿/* configuration.component.css */
 
 .page {
-  padding: 32px;
   display: flex;
   flex-direction: column;
   gap: 20px;

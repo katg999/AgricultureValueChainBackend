@@ -19,55 +19,21 @@ import {
   OnboardingStep,
 } from '../../../shared-farmer-domain/farmer.service';
 
-//  Local interfaces (table row shapes — only used in this component) 
+import {
+  InputAllocation,
+  ProduceDelivery,
+  BalanceLine,
+  Repayment,
+  FarmerNotification,
+} from '../../../shared-farmer-domain/farmer.service';
+
+import { PermissionsService } from '../../../../core/services/permissions.service';
 
 export interface ProfileTab {
   key:   string;
   label: string;
   badge?: number;
   badgeVariant?: BadgeVariant;
-}
-
-interface InputAllocation {
-  item:           string;
-  quantity:       string;
-  value:          number;
-  issueDate:      string;
-  recoveryStatus: 'settled' | 'partial' | 'overdue';
-}
-
-interface ProduceDelivery {
-  crop:             string;
-  weight:           string;
-  collectionCentre: string;
-  date:             string;
-  grade:            string;
-  value:            number;
-}
-
-interface BalanceLine {
-  description: string;
-  principal:   number;
-  recovered:   number;
-  outstanding: number;
-  dueDate:     string;
-  status:      'settled' | 'partial' | 'overdue';
-}
-
-interface Repayment {
-  date:      string;
-  method:    string;
-  amount:    number;
-  reference: string;
-  status:    'settled' | 'pending';
-}
-
-interface FarmerNotification {
-  title:     string;
-  channel:   string;
-  date:      string;
-  status:    'open' | 'closed';
-  readState: 'Unread' | 'Read';
 }
 
 
@@ -93,36 +59,12 @@ export class FarmerApprovalComponent implements OnInit {
     { key: 'notifications',     label: 'Notifications', badge: 2, badgeVariant: 'info' },
   ];
 
-  // Static detail tables (will come from API in a future iteration) 
-  readonly inputAllocations: InputAllocation[] = [
-    { item: 'NPK Fertilizer',   quantity: '8 Bags',        value: 640000, issueDate: '18 Jan 2024', recoveryStatus: 'partial'  },
-    { item: 'Coffee Seedlings', quantity: '250 Seedlings',  value: 375000, issueDate: '22 Jan 2024', recoveryStatus: 'settled'  },
-    { item: 'Pesticide Kit',    quantity: '3 Kits',         value: 210000, issueDate: '04 Feb 2024', recoveryStatus: 'overdue'  },
-  ];
-
-  readonly deliveries: ProduceDelivery[] = [
-    { crop: 'Coffee', weight: '420 Kg', collectionCentre: 'Kasese Coffee Growers Union', date: '16 Mar 2024', grade: 'A', value: 2520000 },
-    { crop: 'Maize',  weight: '180 Kg', collectionCentre: 'Kasese Coffee Growers Union', date: '28 Mar 2024', grade: 'B', value:  324000 },
-    { crop: 'Vanilla',weight: '32 Kg',  collectionCentre: 'Kasese Coffee Growers Union', date: '09 Apr 2024', grade: 'A', value:  960000 },
-  ];
-
-  readonly balanceLines: BalanceLine[] = [
-    { description: 'NPK Fertilizer allocation',    principal: 640000, recovered: 360000, outstanding: 280000, dueDate: '30 Apr 2024', status: 'partial'  },
-    { description: 'Coffee seedlings allocation',  principal: 375000, recovered: 375000, outstanding:      0, dueDate: '15 Apr 2024', status: 'settled'  },
-    { description: 'Pesticide kit allocation',     principal: 210000, recovered:      0, outstanding: 210000, dueDate: '20 Apr 2024', status: 'overdue'  },
-  ];
-
-  readonly repayments: Repayment[] = [
-    { date: '20 Mar 2024', method: 'Produce deduction', amount: 240000, reference: 'RCPT-2041', status: 'settled' },
-    { date: '05 Apr 2024', method: 'Mobile money',      amount: 120000, reference: 'MM-88921',  status: 'settled' },
-    { date: '18 Apr 2024', method: 'Branch cash desk',  amount:  75000, reference: 'BR-1209',   status: 'pending' },
-  ];
-
-  readonly notifications: FarmerNotification[] = [
-    { title: 'Farm verification visit scheduled',            channel: 'SMS',          date: '18 Apr 2024', status: 'open',   readState: 'Unread' },
-    { title: 'Outstanding pesticide kit balance reminder',   channel: 'SMS',          date: '15 Apr 2024', status: 'open',   readState: 'Unread' },
-    { title: 'Coffee seedlings allocation recovered',        channel: 'Branch notice', date: '12 Apr 2024', status: 'closed', readState: 'Read'   },
-  ];
+  // Detail tables — populated from FarmerActivityService in ngOnInit.
+  inputAllocations: InputAllocation[] = [];
+  deliveries:       ProduceDelivery[] = [];
+  balanceLines:     BalanceLine[]     = [];
+  repayments:       Repayment[]       = [];
+  notifications:    FarmerNotification[] = [];
 
   //  Data state
   /**
@@ -134,14 +76,15 @@ export class FarmerApprovalComponent implements OnInit {
   loading = false;
   error: string | null = null;
 
-  get isBranchView(): boolean {
-    return this.router.url.startsWith('/branch');
+  get canApprove(): boolean {
+    return this.permissions.has('farmers.approve');
   }
 
   constructor(
     private router:        Router,
     private route:         ActivatedRoute,
     private farmerService: FarmerService,
+    private permissions:   PermissionsService,
   ) {}
 
   // Lifecycle methods 
@@ -160,6 +103,13 @@ export class FarmerApprovalComponent implements OnInit {
       next:  f   => { this.farmer = f;                this.loading = false; },
       error: err => { this.error  = err?.error?.message ?? err.message; this.loading = false; },
     });
+
+    // Load all sub-tab tables — methods live on FarmerService, respect USE_MOCK.
+    this.farmerService.getInputAllocations(farmerId).subscribe(v  => this.inputAllocations = v);
+    this.farmerService.getProduceDeliveries(farmerId).subscribe(v => this.deliveries = v);
+    this.farmerService.getBalanceLines(farmerId).subscribe(v      => this.balanceLines = v);
+    this.farmerService.getRepayments(farmerId).subscribe(v        => this.repayments = v);
+    this.farmerService.getNotifications(farmerId).subscribe(v     => this.notifications = v);
   }
 
   //  Computed properties
@@ -217,13 +167,14 @@ export class FarmerApprovalComponent implements OnInit {
   onApprove(): void {
     if (!this.farmer) return;
     if (!confirm(`Approve ${this.farmer.fullName} and notify the branch?`)) return;
-    
+
     this.farmerService.approve(this.farmer.id).subscribe({
-      next:  updated => { this.farmer = updated;
-        //redirect admin back to list after approval
-        this.router.navigate(['/cooperative/farmers']);
-       },
-      error: err     => { this.error  = err?.error?.message ?? 'Approve failed.'; },
+      next:  updated => {
+        this.farmer = updated;
+        const base = this.router.url.startsWith('/branch') ? '/branch/farmers' : '/cooperative/farmers';
+        this.router.navigate([base]);
+      },
+      error: err => { this.error = err?.error?.message ?? 'Approve failed.'; },
     });
   }
 }

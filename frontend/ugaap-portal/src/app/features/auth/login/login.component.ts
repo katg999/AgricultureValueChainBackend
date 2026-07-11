@@ -126,15 +126,23 @@ export class LoginComponent implements OnInit {
         if (isMakerOrChecker) {
           const hasCompletedSetup = localStorage.getItem(`setup_complete_${data.userId}`);
           if (!hasCompletedSetup) {
+            // First time logging in — send to setup wizard before accessing the app.
             this.router.navigateByUrl('/auth/first-time-login');
           } else {
-            this.router.navigateByUrl('/branch/farmers/list');
+            // Returning user: session.setSession() was called above, so the role is stored.
+            // homeRoute() checks the role and picks the correct dashboard:
+            //   Platform admin  → /platform/dashboard
+            //   Cooperative admin → /cooperative/dashboard
+            //   Branch staff    → /branch/dashboard
+            // This replaces the old hardcoded path ('/branch/farmers/list') which ignored the user's level.
+            this.router.navigateByUrl(this.dashboardConfig.homeRoute());
           }
           return;
         }
 
         if (isPlatformAdmin) {
-          this.router.navigateByUrl('/platform/dashboard');
+          // Same pattern — let homeRoute() decide the destination based on the stored role.
+          this.router.navigateByUrl(this.dashboardConfig.homeRoute());
           return;
         }
 

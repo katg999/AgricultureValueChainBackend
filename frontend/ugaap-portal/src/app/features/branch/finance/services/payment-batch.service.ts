@@ -14,307 +14,43 @@ import {
   BatchFilterCriteria,
   PaymentBatch,
   BatchStatus,
+  ActiveBatchStatus,
   DayGroup,
   SessionGroup,
 } from '../models/batch.models';
+import { MOCK_PAYMENT_BATCHES } from '../../../../core/mock/mock-branch';
+import { MOCK_PAYMENT_FARMERS } from '../../../../core/mock/mock-farmer';
+import { USE_MOCK } from '../../../../core/mock/mock-config';
 
 // Display name for each branch this feature knows about — every batch/farmer record
 // is scoped to exactly one of these via branchId, matched against the logged-in session.
 const BRANCH_NAMES: Record<string, string> = {
   'BR-MBL': 'Mbale West',
   'BR-KAS': 'Kasese',
+  'BR-MBA': 'Mbarara Branch',
 };
 
 // providedIn: 'root' = one shared instance for the whole app
 @Injectable({ providedIn: 'root' })
 export class PaymentBatchService {
   // Tracks the next ID to use when creating a batch locally (while no real API exists).
-  // Starts at 4 because the seed data already uses 1, 2, 3.
-  private nextBatchId = 4;
-
-  // ── Seed data ──────────────────────────────────────────────────────────────
-  // These are placeholder farmers so the preview/filter logic works without a backend.
-  // hasBankDetails: false = these farmers will be excluded from any payment batch.
-  private readonly farmerSeed: FarmerRecord[] = [
-    {
-      farmerId: 'F-001',
-      fullName: 'Okello James',
-      commodity: 'Coffee',
-      branch: 'Mbale West',
-      branchId: 'BR-MBL',
-      deliveryDate: '2024-09-15',
-      session: 'morning',
-      paymentMethod: 'Mobile Money',
-      netPayable: 450_000,
-      hasBankDetails: true,
-      bankAccount: '9876100001',
-      bankCode: 'STBK', // Stanbic Bank Uganda
-      email: 'okello.james@gmail.com',
-      address: 'Mbale, Eastern Uganda',
-    },
-    {
-      farmerId: 'F-002',
-      fullName: 'Nakato Sarah',
-      commodity: 'Maize',
-      branch: 'Kasese',
-      branchId: 'BR-KAS',
-      deliveryDate: '2024-09-18',
-      session: 'morning',
-      paymentMethod: 'Bank Transfer',
-      netPayable: 320_000,
-      hasBankDetails: true,
-      bankAccount: '9876100002',
-      bankCode: 'DFCU', // DFCU Bank Uganda
-      email: 'nakato.sarah@gmail.com',
-      address: 'Kasese, Western Uganda',
-    },
-    {
-      farmerId: 'F-003',
-      fullName: 'Mugisha Peter',
-      commodity: 'Coffee',
-      branch: 'Mbale West',
-      branchId: 'BR-MBL',
-      deliveryDate: '2024-09-20',
-      session: 'morning',
-      paymentMethod: 'Mobile Money',
-      netPayable: 610_000,
-      hasBankDetails: true,
-      bankAccount: '9876100003',
-      bankCode: 'CNTB', // Centenary Bank Uganda
-      email: '',
-      address: 'Mbale, Eastern Uganda',
-    },
-    {
-      farmerId: 'F-004',
-      fullName: 'Atim Grace',
-      commodity: 'Maize',
-      branch: 'Mbale West',
-      branchId: 'BR-MBL',
-      deliveryDate: '2024-09-21',
-      session: 'morning',
-      paymentMethod: 'Cash',
-      netPayable: 180_000,
-      hasBankDetails: false, // excluded — no bank account on file
-      bankAccount: '',
-      bankCode: '',
-    },
-    {
-      farmerId: 'F-005',
-      fullName: 'Byamugisha Joel',
-      commodity: 'Coffee',
-      branch: 'Kasese',
-      branchId: 'BR-KAS',
-      deliveryDate: '2024-09-22',
-      session: 'morning',
-      paymentMethod: 'Bank Transfer',
-      netPayable: 540_000,
-      hasBankDetails: true,
-      bankAccount: '9876100005',
-      bankCode: 'ABSA', // Absa Bank Uganda
-      email: 'byamugisha.joel@gmail.com',
-      address: 'Kasese, Western Uganda',
-    },
-    {
-      farmerId: 'F-006',
-      fullName: 'Nantongo Ruth',
-      commodity: 'Maize',
-      branch: 'Kasese',
-      branchId: 'BR-KAS',
-      deliveryDate: '2024-09-23',
-      session: 'morning',
-      paymentMethod: 'Mobile Money',
-      netPayable: 275_000,
-      hasBankDetails: false, // excluded — no bank account on file
-      bankAccount: '',
-      bankCode: '',
-    },
-
-    // ── Extra farmers sharing dates with the ones above, across different sessions —
-    // so a batch's farmers can actually be grouped Day -> Session -> Farmers. ──
-    {
-      farmerId: 'F-007',
-      fullName: 'Namatovu Joyce',
-      commodity: 'Coffee',
-      branch: 'Mbale West',
-      branchId: 'BR-MBL',
-      deliveryDate: '2024-09-15',
-      session: 'midday',
-      paymentMethod: 'Mobile Money',
-      netPayable: 390_000,
-      hasBankDetails: true,
-      bankAccount: '9876100007',
-      bankCode: 'STBK',
-      email: 'namatovu.joyce@gmail.com',
-      address: 'Mbale, Eastern Uganda',
-    },
-    {
-      farmerId: 'F-008',
-      fullName: 'Wasswa Ali',
-      commodity: 'Coffee',
-      branch: 'Mbale West',
-      branchId: 'BR-MBL',
-      deliveryDate: '2024-09-15',
-      session: 'afternoon',
-      paymentMethod: 'Bank Transfer',
-      netPayable: 510_000,
-      hasBankDetails: true,
-      bankAccount: '9876100008',
-      bankCode: 'CNTB',
-      email: 'wasswa.ali@gmail.com',
-      address: 'Mbale, Eastern Uganda',
-    },
-    {
-      farmerId: 'F-009',
-      fullName: 'Nabirye Patience',
-      commodity: 'Coffee',
-      branch: 'Mbale West',
-      branchId: 'BR-MBL',
-      deliveryDate: '2024-09-20',
-      session: 'midday',
-      paymentMethod: 'Mobile Money',
-      netPayable: 430_000,
-      hasBankDetails: true,
-      bankAccount: '9876100009',
-      bankCode: 'DFCU',
-      email: 'nabirye.patience@gmail.com',
-      address: 'Mbale, Eastern Uganda',
-    },
-    {
-      farmerId: 'F-010',
-      fullName: 'Mukiibi Daniel',
-      commodity: 'Coffee',
-      branch: 'Mbale West',
-      branchId: 'BR-MBL',
-      deliveryDate: '2024-09-20',
-      session: 'afternoon',
-      paymentMethod: 'Cash',
-      netPayable: 290_000,
-      hasBankDetails: true,
-      bankAccount: '9876100010',
-      bankCode: 'ABSA',
-      email: 'mukiibi.daniel@gmail.com',
-      address: 'Mbale, Eastern Uganda',
-    },
-    {
-      farmerId: 'F-011',
-      fullName: 'Kirabo Esther',
-      commodity: 'Maize',
-      branch: 'Kasese',
-      branchId: 'BR-KAS',
-      deliveryDate: '2024-09-18',
-      session: 'midday',
-      paymentMethod: 'Bank Transfer',
-      netPayable: 350_000,
-      hasBankDetails: true,
-      bankAccount: '9876100011',
-      bankCode: 'DFCU',
-      email: 'kirabo.esther@gmail.com',
-      address: 'Kasese, Western Uganda',
-    },
-    {
-      farmerId: 'F-012',
-      fullName: 'Were Hassan',
-      commodity: 'Maize',
-      branch: 'Kasese',
-      branchId: 'BR-KAS',
-      deliveryDate: '2024-09-18',
-      session: 'afternoon',
-      paymentMethod: 'Mobile Money',
-      netPayable: 410_000,
-      hasBankDetails: true,
-      bankAccount: '9876100012',
-      bankCode: 'STBK',
-      email: 'were.hassan@gmail.com',
-      address: 'Kasese, Western Uganda',
-    },
-    {
-      farmerId: 'F-013',
-      fullName: 'Nansubuga Joan',
-      commodity: 'Coffee',
-      branch: 'Mbale West',
-      branchId: 'BR-MBL',
-      deliveryDate: '2024-09-25',
-      session: 'morning',
-      paymentMethod: 'Mobile Money',
-      netPayable: 470_000,
-      hasBankDetails: true,
-      bankAccount: '9876100013',
-      bankCode: 'CNTB',
-      email: 'nansubuga.joan@gmail.com',
-      address: 'Mbale, Eastern Uganda',
-    },
-    {
-      farmerId: 'F-014',
-      fullName: 'Ssekandi Brian',
-      commodity: 'Coffee',
-      branch: 'Mbale West',
-      branchId: 'BR-MBL',
-      deliveryDate: '2024-09-25',
-      session: 'midday',
-      paymentMethod: 'Bank Transfer',
-      netPayable: 380_000,
-      hasBankDetails: true,
-      bankAccount: '9876100014',
-      bankCode: 'ABSA',
-      email: 'ssekandi.brian@gmail.com',
-      address: 'Mbale, Eastern Uganda',
-    },
-  ];
-
-  // Placeholder batches so the list page has something to display immediately.
-  // Each batch belongs to exactly one branch — there's no "All Branches" batch,
-  // since a branch can only ever create batches scoped to itself.
-  private readonly batchSeed: PaymentBatch[] = [
-    {
-      id: 'BATCH-001',
-      batchName: 'August 2024 Coffee Run',
-      season: 'Season A 2024',
-      openingDate: '2024-08-01',
-      closingDate: '2024-08-31',
-      commodityFilter: 'Coffee',
-      branch: 'Mbale West',
-      branchId: 'BR-MBL',
-      status: 'Approved',
-      totalAmount: 4_800_000,
-      farmerCount: 12,
-      createdAt: new Date('2024-09-01'),
-    },
-    {
-      id: 'BATCH-002',
-      batchName: 'September 2024 Payment Run',
-      season: 'Season B 2024',
-      openingDate: '2024-09-01',
-      closingDate: '2024-09-30',
-      commodityFilter: 'All Commodities',
-      branch: 'Mbale West',
-      branchId: 'BR-MBL',
-      status: 'Draft',
-      totalAmount: 1_920_000,
-      farmerCount: 5,
-      createdAt: new Date('2024-10-02'),
-    },
-    {
-      id: 'BATCH-003',
-      batchName: 'Kasese Maize October',
-      season: 'Season B 2024',
-      openingDate: '2024-10-01',
-      closingDate: '2024-10-15',
-      commodityFilter: 'Maize',
-      branch: 'Kasese',
-      branchId: 'BR-KAS',
-      status: 'Pending Approval',
-      totalAmount: 595_000,
-      farmerCount: 2,
-      createdAt: new Date('2024-10-16'),
-    },
-  ];
+  private nextBatchId = 7; // seed data uses BATCH-001..BATCH-006
 
   // ── Reactive stores ────────────────────────────────────────────────────────
   // BehaviorSubject holds the current value AND emits it to any new subscriber immediately.
   // Think of it as a live variable — when you call .next(newValue), everyone watching updates.
   // [...spread] creates a copy so the seed data stays untouched.
-  private readonly batches$ = new BehaviorSubject<PaymentBatch[]>([...this.batchSeed]);
-  private readonly farmers$ = new BehaviorSubject<FarmerRecord[]>([...this.farmerSeed]);
+  // When USE_MOCK is false, start empty — the real API call fills these.
+  //
+  // Seeded directly from the imported mock constants (not via an intermediate
+  // `this.xSeed` field) — under this repo's Vitest/esbuild test builder,
+  // specific combinations of test entry-point bundles have been observed to
+  // execute class-field initializers out of declaration order, leaving a
+  // same-class field referenced via `this.` still `undefined` at the point a
+  // later field's initializer runs. Referencing the module-level constant
+  // directly removes that cross-field ordering dependency entirely.
+  private readonly batches$ = new BehaviorSubject<PaymentBatch[]>(USE_MOCK ? [...MOCK_PAYMENT_BATCHES] : []);
+  private readonly farmers$ = new BehaviorSubject<FarmerRecord[]>(USE_MOCK ? [...(MOCK_PAYMENT_FARMERS as FarmerRecord[])] : []);
 
   // HttpClient is Angular's tool for making HTTP requests (GET, POST, DELETE, etc.)
   constructor(
@@ -332,13 +68,30 @@ export class PaymentBatchService {
   // timeout(3000) = if the server takes more than 3 seconds, give up (don't freeze the UI).
   // catchError = if the request fails for any reason, do nothing — the seed data stays.
   getBatches(): Observable<PaymentBatch[]> {
-    this.http.get<PaymentBatch[]>(API_ENDPOINTS.BRANCH.BATCHES).pipe(
-      timeout(3000),
-      tap(rows => this.batches$.next(rows)), // on success: replace seed with real data
-      catchError(() => of(null)),            // on failure: silently ignore
-    ).subscribe();
+    if (!USE_MOCK) {
+      this.http.get<PaymentBatch[]>(API_ENDPOINTS.BRANCH.BATCHES).pipe(
+        timeout(3000),
+        tap(rows => this.batches$.next(rows)), // on success: replace seed with real data
+        catchError(() => of(null)),            // on failure: silently ignore
+      ).subscribe();
+    }
     const branchId = this.session.branchId();
     return this.batches$.pipe(map(rows => rows.filter(b => b.branchId === branchId)));
+  }
+
+  // Per-status batch counts for the logged-in branch, for dashboard tiles.
+  // Rejected is deliberately excluded — it's a terminal off-ramp, not part of
+  // the active pipeline. Every remaining key is always present, even at 0.
+  getBatchStatusCounts(): Observable<Record<ActiveBatchStatus, number>> {
+    return this.getBatches().pipe(
+      map(batches => {
+        const counts = { Draft: 0, 'Pending Approval': 0, Approved: 0, Disbursed: 0 } as Record<ActiveBatchStatus, number>;
+        for (const b of batches) {
+          if (b.status in counts) counts[b.status as ActiveBatchStatus]++;
+        }
+        return counts;
+      }),
+    );
   }
 
   // Changes a batch's status in memory and then tries to sync it to the API.
@@ -352,20 +105,34 @@ export class PaymentBatchService {
     this.batches$.next(updated);
 
     // Fire-and-forget HTTP PATCH — we don't wait for it, UI already updated above.
-    this.http.patch(API_ENDPOINTS.BRANCH.BATCH_BY_ID(id), { status }).pipe(
-      timeout(3000),
-      catchError(() => of(null)),
-    ).subscribe();
+    if (!USE_MOCK) {
+      this.http.patch(API_ENDPOINTS.BRANCH.BATCH_BY_ID(id), { status }).pipe(
+        timeout(3000),
+        catchError(() => of(null)),
+      ).subscribe();
+    }
   }
 
   // Removes a batch from the list immediately, then tells the API.
   deleteBatch(id: string): void {
     this.batches$.next(this.batches$.value.filter(b => b.id !== id));
 
-    this.http.delete(API_ENDPOINTS.BRANCH.BATCH_BY_ID(id)).pipe(
-      timeout(3000),
-      catchError(() => of(null)),
-    ).subscribe();
+    if (!USE_MOCK) {
+      this.http.delete(API_ENDPOINTS.BRANCH.BATCH_BY_ID(id)).pipe(
+        timeout(3000),
+        catchError(() => of(null)),
+      ).subscribe();
+    }
+  }
+
+  // Available seasons for the batch-create form dropdown.
+  getSeasons(): string[] {
+    return ['Season A 2024', 'Season B 2024', 'Season A 2025'];
+  }
+
+  // Available commodity filters for the batch-create form dropdown.
+  getCommodities(): string[] {
+    return ['All Commodities', 'Coffee', 'Maize'];
   }
 
   // Display name for the branch the current session belongs to — used wherever the
@@ -393,8 +160,8 @@ export class PaymentBatchService {
   matchFarmers(criteria: BatchFilterCriteria): { eligible: FarmerRecord[]; excluded: FarmerRecord[] } {
     const filtered = this.applyFilter(this.farmersInOwnBranch(), criteria);
     return {
-      eligible: filtered.filter(f => f.hasBankDetails),      // can be paid
-      excluded: filtered.filter(f => !f.hasBankDetails),     // missing bank info
+      eligible: filtered.filter(f => this.isPayable(f)),
+      excluded: filtered.filter(f => !this.isPayable(f)),
     };
   }
 
@@ -419,10 +186,12 @@ export class PaymentBatchService {
     // Add to the live list immediately — the table re-renders without waiting for the API.
     this.batches$.next([...this.batches$.value, batch]);
 
-    this.http.post<PaymentBatch>(API_ENDPOINTS.BRANCH.BATCHES, batch).pipe(
-      timeout(3000),
-      catchError(() => of(batch)),
-    ).subscribe();
+    if (!USE_MOCK) {
+      this.http.post<PaymentBatch>(API_ENDPOINTS.BRANCH.BATCHES, batch).pipe(
+        timeout(3000),
+        catchError(() => of(batch)),
+      ).subscribe();
+    }
 
     return batch; // return it so the component can show the batch ID in the success banner
   }
@@ -432,7 +201,7 @@ export class PaymentBatchService {
   getFarmersForBatch(batchId: string): FarmerRecord[] {
     const batch = this.getBatchById(batchId);
     if (!batch) return [];
-    return this.applyFilter(this.farmersInOwnBranch(), batch).filter(f => f.hasBankDetails);
+    return this.applyFilter(this.farmersInOwnBranch(), batch).filter(f => this.isPayable(f));
   }
 
   // Exposes the farmer pool as an Observable, scoped to the logged-in branch —
@@ -441,11 +210,13 @@ export class PaymentBatchService {
   // read matchFarmers()/getFarmersForBatch() synchronously should call this first
   // (fire-and-forget) so farmers$ has a chance to hold real data before they're read.
   getAllFarmers(): Observable<FarmerRecord[]> {
-    this.http.get<FarmerRecord[]>(API_ENDPOINTS.BRANCH.PAYMENT_FARMERS).pipe(
-      timeout(3000),
-      tap(rows => this.farmers$.next(rows)),
-      catchError(() => of(null)),
-    ).subscribe();
+    if (!USE_MOCK) {
+      this.http.get<FarmerRecord[]>(API_ENDPOINTS.BRANCH.PAYMENT_FARMERS).pipe(
+        timeout(3000),
+        tap(rows => this.farmers$.next(rows)),
+        catchError(() => of(null)),
+      ).subscribe();
+    }
     const branchId = this.session.branchId();
     return this.farmers$.pipe(map(rows => rows.filter(f => f.branchId === branchId)));
   }
@@ -457,11 +228,13 @@ export class PaymentBatchService {
   // Every branch's batches, unfiltered. Same instant-local + background-refresh
   // pattern as getBatches() — just without the branchId filter at the end.
   getAllBatchesAcrossBranches(): Observable<PaymentBatch[]> {
-    this.http.get<PaymentBatch[]>(API_ENDPOINTS.COOPERATIVE.PAYMENT_BATCHES).pipe(
-      timeout(3000),
-      tap(rows => this.batches$.next(rows)),
-      catchError(() => of(null)),
-    ).subscribe();
+    if (!USE_MOCK) {
+      this.http.get<PaymentBatch[]>(API_ENDPOINTS.COOPERATIVE.PAYMENT_BATCHES).pipe(
+        timeout(3000),
+        tap(rows => this.batches$.next(rows)),
+        catchError(() => of(null)),
+      ).subscribe();
+    }
     return this.batches$.asObservable();
   }
 
@@ -473,11 +246,13 @@ export class PaymentBatchService {
 
   // Every branch's farmers, unfiltered.
   getAllFarmersAcrossBranches(): Observable<FarmerRecord[]> {
-    this.http.get<FarmerRecord[]>(API_ENDPOINTS.COOPERATIVE.PAYMENT_FARMERS).pipe(
-      timeout(3000),
-      tap(rows => this.farmers$.next(rows)),
-      catchError(() => of(null)),
-    ).subscribe();
+    if (!USE_MOCK) {
+      this.http.get<FarmerRecord[]>(API_ENDPOINTS.COOPERATIVE.PAYMENT_FARMERS).pipe(
+        timeout(3000),
+        tap(rows => this.farmers$.next(rows)),
+        catchError(() => of(null)),
+      ).subscribe();
+    }
     return this.farmers$.asObservable();
   }
 
@@ -486,7 +261,7 @@ export class PaymentBatchService {
     const batch = this.getBatchByIdAcrossBranches(batchId);
     if (!batch) return [];
     const inBranch = this.farmers$.value.filter(f => f.branchId === batch.branchId);
-    return this.applyFilter(inBranch, batch).filter(f => f.hasBankDetails);
+    return this.applyFilter(inBranch, batch).filter(f => this.isPayable(f));
   }
 
   // Buckets farmers by deliveryDate, then within each day by session (in the fixed
@@ -523,6 +298,14 @@ export class PaymentBatchService {
   }
 
   // ── Private helpers ────────────────────────────────────────────────────────
+
+  // A farmer is payable only once BOTH conditions hold: bank details are on
+  // file AND their onboarding was actually approved. Pending/Rejected/
+  // Suspended farmers must never be matched into a batch, even if their
+  // bank details are otherwise complete.
+  private isPayable(f: FarmerRecord): boolean {
+    return f.hasBankDetails && f.status === 'Active';
+  }
 
   private farmersInOwnBranch(): FarmerRecord[] {
     const branchId = this.session.branchId();

@@ -67,11 +67,11 @@
     </app-alert>
   </div>
 
-  <div class="filters-row">
-    <div class="search-box">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8" />
-        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+  <div class="filters-bar">
+    <div class="search-input">
+      <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+        <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
       </svg>
       <input
         type="text"
@@ -85,6 +85,9 @@
   <app-data-table
     [columns]="cols"
     [rows]="filteredItems"
+    [trackByFn]="trackById"
+    [clickable]="true"
+    (rowClick)="viewItem($event)"
     [paginate]="true"
     emptyIcon="box"
     emptyTitle="No stock items"
@@ -105,5 +108,118 @@
       }">{{ $any(row).quantity | number }}</span>
     </ng-template>
 
+    <ng-template appCell="actions" let-row>
+      <span (click)="$event.stopPropagation()">
+        <app-button
+          type="button"
+          variant="secondary"
+          size="sm"
+          iconLeft="+"
+          (clicked)="openAddQuantity($any(row))">
+          Add Stock
+        </app-button>
+      </span>
+    </ng-template>
+
   </app-data-table>
 </div>
+
+<app-modal
+  [(isOpen)]="showViewModal"
+  [title]="selectedItem ? selectedItem.name : ''"
+  subtitle="Stock item details"
+  size="md"
+  (closed)="closeView()">
+
+  <div body *ngIf="selectedItem">
+    <dl class="detail-grid">
+      <div class="detail-row">
+        <dt>CATEGORY</dt>
+        <dd>{{ selectedItem.category }}</dd>
+      </div>
+      <div class="detail-row">
+        <dt>QUANTITY AVAILABLE</dt>
+        <dd>{{ selectedItem.quantity | number }} {{ selectedItem.unit }}</dd>
+      </div>
+      <div class="detail-row">
+        <dt>MIN. THRESHOLD</dt>
+        <dd>{{ selectedItem.minThreshold | number }} {{ selectedItem.unit }}</dd>
+      </div>
+      <div class="detail-row">
+        <dt>UNIT PRICE</dt>
+        <dd>UGX {{ selectedItem.unitPrice | number }}</dd>
+      </div>
+      <div class="detail-row">
+        <dt>TOTAL VALUE</dt>
+        <dd>UGX {{ (selectedItem.quantity * selectedItem.unitPrice) | number }}</dd>
+      </div>
+      <div class="detail-row">
+        <dt>STATUS</dt>
+        <dd>{{ selectedItem.stockStatus | titlecase }}</dd>
+      </div>
+      <div class="detail-row" *ngIf="selectedItem.supplierName">
+        <dt>SUPPLIER</dt>
+        <dd>{{ selectedItem.supplierName }}</dd>
+      </div>
+      <div class="detail-row" *ngIf="selectedItem.batchReference">
+        <dt>BATCH REFERENCE</dt>
+        <dd>{{ selectedItem.batchReference }}</dd>
+      </div>
+      <div class="detail-row">
+        <dt>ENTRY DATE</dt>
+        <dd>{{ selectedItem.updatedAt }}</dd>
+      </div>
+    </dl>
+  </div>
+
+  <div footer>
+    <app-button variant="ghost" size="md" type="button" (clicked)="closeView()">Close</app-button>
+    <app-button variant="primary" size="md" type="button" (clicked)="switchToAddQuantity()">
+      Add Stock
+    </app-button>
+  </div>
+</app-modal>
+
+<app-modal
+  [(isOpen)]="showAddQtyModal"
+  [title]="selectedItem ? selectedItem.name : ''"
+  subtitle="Add quantity to this item"
+  size="sm"
+  (closed)="closeAddQuantity()">
+
+  <div body *ngIf="selectedItem">
+    <dl class="detail-grid">
+      <div class="detail-row">
+        <dt>CURRENT QUANTITY</dt>
+        <dd>{{ selectedItem.quantity | number }} {{ selectedItem.unit }}</dd>
+      </div>
+
+      <div class="detail-row">
+        <dt>QUANTITY TO ADD</dt>
+        <dd>
+          <app-input title="add-quantity" type="number" [(ngModel)]="addQtyForm.delta" placeholder="0"></app-input>
+        </dd>
+      </div>
+
+      <div class="detail-row">
+        <dt>REASON</dt>
+        <dd>
+          <app-input title="add-quantity-reason" [(ngModel)]="addQtyForm.reason" placeholder="e.g. New delivery"></app-input>
+        </dd>
+      </div>
+    </dl>
+  </div>
+
+  <div footer>
+    <app-button variant="ghost" size="md" type="button" (clicked)="closeAddQuantity()">Cancel</app-button>
+    <app-button
+      variant="primary"
+      size="md"
+      type="button"
+      [disabled]="!canSubmitAddQuantity()"
+      [loading]="addQtySubmitting"
+      (clicked)="submitAddQuantity()">
+      Add Stock
+    </app-button>
+  </div>
+</app-modal>

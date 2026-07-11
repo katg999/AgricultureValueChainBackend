@@ -1,5 +1,12 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
+import {
+  GRADE_OPTIONS,
+  DEFAULT_FLAT_PRICES,
+  GRADE_MULTIPLIERS,
+  ALL_BRANCH_IDS,
+} from '../mock/mock-cooperative';
+import { USE_MOCK } from '../mock/mock-config';
 
 export interface FlatCommodityPrice {
   commodity: string;
@@ -20,31 +27,7 @@ export interface GradeOption {
   name: string;
 }
 
-export const GRADE_OPTIONS: GradeOption[] = [
-  { code: 'A', name: 'Premium'   },
-  { code: 'B', name: 'Standard'  },
-  { code: 'C', name: 'Low Grade' },
-  { code: 'R', name: 'Rejected'  },
-];
-
-const DEFAULT_FLAT_PRICES: FlatCommodityPrice[] = [
-  { commodity: 'Maize',  pricePerKg: 2_500 },
-  { commodity: 'Coffee', pricePerKg: 6_000 },
-  { commodity: 'Beans',  pricePerKg: 2_500 },
-  { commodity: 'Rice',   pricePerKg: 3_500 },
-];
-
-const GRADE_MULTIPLIERS = [
-  { code: 'A', name: 'Premium',   mult: 1.30 },
-  { code: 'B', name: 'Standard',  mult: 1.00 },
-  { code: 'C', name: 'Low Grade', mult: 0.70 },
-  { code: 'R', name: 'Rejected',  mult: 0.00 },
-];
-
-const ALL_BRANCH_IDS = [
-  'BR-KLA', 'BR-JIN', 'BR-MBA', 'BR-FTP',
-  'BR-ADJ', 'BR-GUL', 'BR-MBL', 'BR-KIB', 'BR-LIR', 'BR-MBA2',
-];
+export { GRADE_OPTIONS };
 
 function buildDefaultGradePrices(): GradeCommodityPrice[] {
   let id = 0;
@@ -70,9 +53,10 @@ function buildDefaultGradePrices(): GradeCommodityPrice[] {
 export class CooperativePricingService {
 
   private readonly _useGrades = new BehaviorSubject<boolean>(false);
-  private readonly _flatPrices = new BehaviorSubject<FlatCommodityPrice[]>([...DEFAULT_FLAT_PRICES]);
+  // When USE_MOCK is false, start empty — real API calls fill these.
+  private readonly _flatPrices = new BehaviorSubject<FlatCommodityPrice[]>(USE_MOCK ? [...DEFAULT_FLAT_PRICES] : []);
   private readonly _branchFlatPrices = new BehaviorSubject<Map<string, FlatCommodityPrice[]>>(new Map());
-  private readonly _gradePrices = new BehaviorSubject<GradeCommodityPrice[]>(buildDefaultGradePrices());
+  private readonly _gradePrices = new BehaviorSubject<GradeCommodityPrice[]>(USE_MOCK ? buildDefaultGradePrices() : []);
 
   readonly useGrades$: Observable<boolean> = this._useGrades.asObservable();
 

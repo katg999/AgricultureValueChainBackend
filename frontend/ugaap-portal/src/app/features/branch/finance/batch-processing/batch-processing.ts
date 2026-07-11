@@ -11,7 +11,6 @@ import { Router } from '@angular/router';
 import { BehaviorSubject, combineLatest, map, Observable, shareReplay } from 'rxjs';
 
 import { PaymentBatchService } from '../services/payment-batch.service';
-import { PaymentExportService } from '../services/payment-export.service';
 import { PaymentBatch, BatchStatus } from '../models/batch.models';
 import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
 import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
@@ -37,7 +36,6 @@ export class BatchProcessingComponent implements OnInit, OnDestroy {
     { key: 'id',              header: 'Batch ID',     class: 'mono' },
     { key: 'batchName',       header: 'Batch Name' },
     { key: 'season',          header: 'Season' },
-    { key: 'dateRange',       header: 'Date Range',   class: 'mono' },
     { key: 'commodityFilter', header: 'Commodity' },
     { key: 'branch',          header: 'Branch' },
     { key: 'farmerCount',     header: 'Farmers',      align: 'right' },
@@ -63,7 +61,6 @@ export class BatchProcessingComponent implements OnInit, OnDestroy {
   ];
 
   private readonly svc = inject(PaymentBatchService);
-  private readonly exportSvc = inject(PaymentExportService);
   private readonly router = inject(Router);
 
   // filterState$ holds the current search+status values as a reactive stream.
@@ -117,13 +114,6 @@ export class BatchProcessingComponent implements OnInit, OnDestroy {
 
   deleteBatch(batch: PaymentBatch): void {
     this.svc.deleteBatch(batch.id);
-    this.openActionMenuId = null;
-  }
-
-  // Builds and downloads the bank bulk-payment CSV for this batch.
-  // Only available once a batch is past Draft — Draft means the batch isn't finalised yet.
-  exportPaymentFile(batch: PaymentBatch): void {
-    this.exportSvc.exportBatchPaymentFile(batch);
     this.openActionMenuId = null;
   }
 

@@ -4,7 +4,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import Chart from 'chart.js/auto';
-import { ReportsStateService, CustomReportConfig } from '../../../../core/services/reports-state.service';
+import { ReportConfigService, CustomReportConfig } from '../../../../core/services/reports-state.service';
 import { ExportService } from '../../../../core/services/export.service';
 import { TableComponent, TableColumn } from '../../../../shared/components/table/table.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge';
@@ -13,42 +13,9 @@ import { ChartCardComponent } from '../../../../shared/components/chart-card/cha
 import { ExportDropdownComponent } from '../../../../shared/components/export-dropdown/export-dropdown.component';
 import { CustomReportBuilderComponent } from '../custom-report-builder/custom-report-builder.component';
 
-type BadgeVariant = 'active' | 'pending' | 'inactive' | 'suspended' | 'overdue' | 'settled' | 'partial' | 'verified' | 'failed' | 'draft' | 'open' | 'closed' | 'healthy' | 'low' | 'info';
+import { ReportsService } from '../../../../core/services/reports.service';
 
-const MOCK_DATA: Record<string, any[]> = {
-  deliveries: [
-    { branch: 'Hoima', farmer: 'Okello John', date: '2026-05-15', deliveryId: 'DEL-001', quantity: 12.4, grade: 'A', gradeCode: 'A1', value: '3,720,000', paymentStatus: 'Paid', gradedBy: 'Mugisha S.', status: 'Graded' },
-    { branch: 'Masindi', farmer: 'Mugisha Peter', date: '2026-05-14', deliveryId: 'DEL-002', quantity: 8.6, grade: 'B', gradeCode: 'B2', value: '2,150,000', paymentStatus: 'Paid', gradedBy: 'Nakato R.', status: 'Paid' },
-    { branch: 'Gulu', farmer: 'Nakato Sarah', date: '2026-05-14', deliveryId: 'DEL-003', quantity: 15.2, grade: 'A', gradeCode: 'A2', value: '4,560,000', paymentStatus: 'Pending', gradedBy: 'Otim A.', status: 'Graded' },
-    { branch: 'Lira', farmer: 'Apio Grace', date: '2026-05-13', deliveryId: 'DEL-004', quantity: 7.8, grade: 'C', gradeCode: 'C1', value: '1,560,000', paymentStatus: 'Pending', gradedBy: 'Lubega P.', status: 'Pending' },
-    { branch: 'Mbale', farmer: 'Otim Charles', date: '2026-05-13', deliveryId: 'DEL-005', quantity: 10.5, grade: 'A', gradeCode: 'A1', value: '3,150,000', paymentStatus: 'Paid', gradedBy: 'Ogen C.', status: 'Paid' },
-    { branch: 'Hoima', farmer: 'Lubega James', date: '2026-05-12', deliveryId: 'DEL-006', quantity: 14.1, grade: 'B', gradeCode: 'B1', value: '3,525,000', paymentStatus: 'Pending', gradedBy: 'Mugisha S.', status: 'Graded' },
-    { branch: 'Soroti', farmer: 'Atukunda Mary', date: '2026-05-11', deliveryId: 'DEL-007', quantity: 11.8, grade: 'A', gradeCode: 'A2', value: '3,540,000', paymentStatus: 'Paid', gradedBy: 'Apio T.', status: 'Paid' },
-  ],
-  grading: [
-    { branch: 'Hoima', gradeA: 129, gradeB: 56, gradeC: 18, rejected: 12, total: 215, qualityScore: 87, gradedBy: 'Mugisha S.' },
-    { branch: 'Masindi', gradeA: 64, gradeB: 48, gradeC: 21, rejected: 9, total: 142, qualityScore: 82, gradedBy: 'Nakato R.' },
-    { branch: 'Gulu', gradeA: 44, gradeB: 32, gradeC: 14, rejected: 8, total: 98, qualityScore: 78, gradedBy: 'Otim A.' },
-    { branch: 'Lira', gradeA: 39, gradeB: 28, gradeC: 12, rejected: 8, total: 87, qualityScore: 75, gradedBy: 'Lubega P.' },
-    { branch: 'Mbale', gradeA: 34, gradeB: 24, gradeC: 10, rejected: 8, total: 76, qualityScore: 73, gradedBy: 'Ogen C.' },
-    { branch: 'Soroti', gradeA: 28, gradeB: 20, gradeC: 9, rejected: 7, total: 64, qualityScore: 70, gradedBy: 'Apio T.' },
-  ],
-  payments: [
-    { farmer: 'Okello John', branch: 'Hoima', delivered: 24.5, value: '7,350,000', paid: '7,350,000', outstanding: '0', status: 'Settled' },
-    { farmer: 'Mugisha Peter', branch: 'Masindi', delivered: 21.3, value: '5,325,000', paid: '3,000,000', outstanding: '2,325,000', status: 'Partial' },
-    { farmer: 'Nakato Sarah', branch: 'Gulu', delivered: 18.7, value: '5,610,000', paid: '5,610,000', outstanding: '0', status: 'Settled' },
-    { farmer: 'Apio Grace', branch: 'Lira', delivered: 16.2, value: '3,240,000', paid: '0', outstanding: '3,240,000', status: 'Pending' },
-    { farmer: 'Otim Charles', branch: 'Mbale', delivered: 14.8, value: '4,440,000', paid: '4,440,000', outstanding: '0', status: 'Settled' },
-    { farmer: 'Kamukama Denis', branch: 'Soroti', delivered: 12.1, value: '3,630,000', paid: '2,000,000', outstanding: '1,630,000', status: 'Partial' },
-  ],
-  members: [
-    { name: 'Okello John', branch: 'Hoima', registered: '2023-03-15', deliveries: 8, totalValue: '24,000,000', lastActive: '2026-05-15', status: 'Active' },
-    { name: 'Mugisha Peter', branch: 'Masindi', registered: '2022-11-20', deliveries: 6, totalValue: '15,000,000', lastActive: '2026-05-14', status: 'Active' },
-    { name: 'Nakato Sarah', branch: 'Gulu', registered: '2023-06-10', deliveries: 5, totalValue: '18,000,000', lastActive: '2026-05-14', status: 'Active' },
-    { name: 'Apio Grace', branch: 'Lira', registered: '2024-01-05', deliveries: 3, totalValue: '9,000,000', lastActive: '2026-04-20', status: 'Inactive' },
-    { name: 'Otim Charles', branch: 'Mbale', registered: '2022-08-22', deliveries: 7, totalValue: '21,000,000', lastActive: '2026-05-13', status: 'Active' },
-  ],
-};
+type BadgeVariant = 'active' | 'pending' | 'inactive' | 'suspended' | 'overdue' | 'settled' | 'partial' | 'verified' | 'failed' | 'draft' | 'open' | 'closed' | 'healthy' | 'low' | 'info';
 
 @Component({
   selector: 'app-custom-report-view',
@@ -77,8 +44,9 @@ export class CustomReportViewComponent implements OnInit, AfterViewInit, OnDestr
 
   constructor(
     private router: Router,
-    private stateService: ReportsStateService,
+    private stateService: ReportConfigService,
     private exportService: ExportService,
+    private reportsService: ReportsService,
   ) {}
 
   ngOnInit(): void {
@@ -104,7 +72,7 @@ export class CustomReportViewComponent implements OnInit, AfterViewInit, OnDestr
 
   private buildTableData(): void {
     if (!this.config) return;
-    const raw = MOCK_DATA[this.config.dataSource] || [];
+    const raw = this.reportsService.getCustomReportData(this.config.dataSource);
     const selectedKeys = this.config.columns.filter(c => c.selected).map(c => c.key);
     this.tableData = raw.map(row => {
       const filtered: any = {};
@@ -146,39 +114,39 @@ export class CustomReportViewComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   private initTrendChart(): void {
+    const { labels, data } = this.reportsService.getDeliveryTrendSeries('monthly');
     this.initChart('cv-trend-chart', 'cv-trend', {
       type: 'line',
       data: {
-        labels: ['Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May'],
+        labels,
         datasets: [{
-          label: 'Volume (MT)',
-          data: [92, 108, 134, 156, 148, 215],
-          borderColor: '#F25D27',
-          backgroundColor: 'rgba(242,93,39,0.08)',
+          label: 'Volume (MT)', data,
+          borderColor: '#F25D27', backgroundColor: 'rgba(242,93,39,0.08)',
           fill: true, tension: 0.4, borderWidth: 2.5,
           pointBackgroundColor: '#F25D27', pointRadius: 4,
-        }]
+        }],
       },
       options: {
         responsive: true, maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
-          tooltip: { backgroundColor: '#200B26', titleColor: '#fff', bodyColor: '#E5E7EB', padding: 10 }
+          tooltip: { backgroundColor: '#200B26', titleColor: '#fff', bodyColor: '#E5E7EB', padding: 10 },
         },
         scales: {
           x: { grid: { color: '#F3F4F6' }, ticks: { color: '#9CA3AF', font: { family: 'Inter', size: 11 } } },
-          y: { beginAtZero: true, grid: { color: '#F3F4F6' }, ticks: { color: '#9CA3AF', font: { family: 'Inter', size: 11 } } }
-        }
-      }
+          y: { beginAtZero: true, grid: { color: '#F3F4F6' }, ticks: { color: '#9CA3AF', font: { family: 'Inter', size: 11 } } },
+        },
+      },
     });
   }
 
   private initDistChart(): void {
+    const { labels, data } = this.reportsService.getDeliveryStatusSplit();
     const centerPlugin = {
       id: 'centerText',
       beforeDraw: (chart: Chart) => {
-        const data = chart.data.datasets[0].data as number[];
-        const total = data.reduce((s, v) => s + (v as number), 0);
+        const vals = chart.data.datasets[0].data as number[];
+        const total = vals.reduce((s, v) => s + (v as number), 0);
         const { ctx, chartArea } = chart as any;
         if (!chartArea) return;
         ctx.save();
@@ -188,65 +156,66 @@ export class CustomReportViewComponent implements OnInit, AfterViewInit, OnDestr
         ctx.textBaseline = 'middle';
         ctx.fillText(String(total), (chartArea.left + chartArea.right) / 2, (chartArea.top + chartArea.bottom) / 2);
         ctx.restore();
-      }
+      },
     };
     this.initChart('cv-dist-chart', 'cv-dist', {
       type: 'doughnut',
       data: {
-        labels: ['Pending', 'Graded', 'Paid'],
-        datasets: [{ data: [45, 230, 265], backgroundColor: ['#F59E0B', '#10B981', '#3B82F6'], borderWidth: 0 }]
+        labels,
+        datasets: [{ data, backgroundColor: ['#F59E0B', '#10B981', '#3B82F6'], borderWidth: 0 }],
       },
       options: {
         cutout: '65%', responsive: true, maintainAspectRatio: false,
         plugins: {
           legend: { position: 'bottom', labels: { font: { family: 'Inter', size: 12 }, padding: 16 } },
-          tooltip: { backgroundColor: '#200B26', titleColor: '#fff', bodyColor: '#E5E7EB' }
-        }
+          tooltip: { backgroundColor: '#200B26', titleColor: '#fff', bodyColor: '#E5E7EB' },
+        },
       },
-      plugins: [centerPlugin]
+      plugins: [centerPlugin],
     });
   }
 
   private initBranchChart(): void {
+    const { labels, data } = this.reportsService.getDeliveryByBranch();
     this.initChart('cv-branch-chart', 'cv-branch', {
       type: 'bar',
       data: {
-        labels: ['Hoima', 'Masindi', 'Gulu', 'Lira', 'Mbale', 'Soroti'],
-        datasets: [{ label: 'Volume (MT)', data: [215, 142, 98, 87, 76, 64], backgroundColor: '#F25D27', borderRadius: 6 }]
+        labels,
+        datasets: [{ label: 'Volume (MT)', data, backgroundColor: '#F25D27', borderRadius: 6 }],
       },
       options: {
         responsive: true, maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
-          tooltip: { backgroundColor: '#200B26', titleColor: '#fff', bodyColor: '#E5E7EB' }
+          tooltip: { backgroundColor: '#200B26', titleColor: '#fff', bodyColor: '#E5E7EB' },
         },
         scales: {
           x: { grid: { display: false }, ticks: { color: '#9CA3AF', font: { family: 'Inter', size: 11 } } },
-          y: { beginAtZero: true, grid: { color: '#F3F4F6' }, ticks: { color: '#9CA3AF', font: { family: 'Inter', size: 11 } } }
-        }
-      }
+          y: { beginAtZero: true, grid: { color: '#F3F4F6' }, ticks: { color: '#9CA3AF', font: { family: 'Inter', size: 11 } } },
+        },
+      },
     });
   }
 
   private initPerformersChart(): void {
+    const { labels, data } = this.reportsService.getTopFarmersDelivery();
     this.initChart('cv-perf-chart', 'cv-perf', {
       type: 'bar',
       data: {
-        labels: ['Ogenga Patrick', 'Okello John', 'Mugisha Peter', 'Nakato Sarah', 'Atukunda Mary'],
-        datasets: [{ label: 'Qty (MT)', data: [24.5, 21.3, 18.7, 16.2, 14.8], backgroundColor: '#F25D27', borderRadius: 6 }]
+        labels,
+        datasets: [{ label: 'Qty (MT)', data, backgroundColor: '#F25D27', borderRadius: 6 }],
       },
       options: {
-        indexAxis: 'y' as const,
-        responsive: true, maintainAspectRatio: false,
+        indexAxis: 'y' as const, responsive: true, maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
-          tooltip: { backgroundColor: '#200B26', titleColor: '#fff', bodyColor: '#E5E7EB' }
+          tooltip: { backgroundColor: '#200B26', titleColor: '#fff', bodyColor: '#E5E7EB' },
         },
         scales: {
           x: { beginAtZero: true, grid: { color: '#F3F4F6' }, ticks: { color: '#9CA3AF', font: { family: 'Inter', size: 11 } } },
-          y: { grid: { display: false }, ticks: { color: '#374151', font: { family: 'Inter', size: 11 } } }
-        }
-      }
+          y: { grid: { display: false }, ticks: { color: '#374151', font: { family: 'Inter', size: 11 } } },
+        },
+      },
     });
   }
 

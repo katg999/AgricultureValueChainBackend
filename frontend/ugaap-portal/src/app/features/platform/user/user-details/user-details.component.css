@@ -1,14 +1,8 @@
-/**
+﻿/**
  * User Details Page Styles
  * Uses UGAAP design tokens
  */
 
-.page {
-  min-height: 100vh;
-  background: var(--surface-low);
-  padding: 40px 20px;
-  font-family: var(--font-human);
-}
 
 .page-container {
   max-width: 1200px;

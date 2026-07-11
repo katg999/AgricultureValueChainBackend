@@ -9,6 +9,7 @@ export const REPORTS_ROUTES: Routes = [
   },
   {
     path: 'custom-report-view',
+    data: { title: 'Custom Report' },
     loadComponent: () =>
       import('./custom-report-view/custom-report-view.component')
         .then(m => m.CustomReportViewComponent),

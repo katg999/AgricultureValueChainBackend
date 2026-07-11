@@ -13,7 +13,7 @@
     </thead>
     <tbody>
       <tr
-        *ngFor="let row of displayedRows"
+        *ngFor="let row of displayedRows; trackBy: resolvedTrackBy"
         [class.row-clickable]="clickable"
         (click)="onRowClick(row)">
         <td
@@ -41,7 +41,7 @@
     </div>
 
     <div class="pagination-controls">
-      <button class="page-btn" [disabled]="currentPage === 1" (click)="prevPage()">
+      <button title="Previous Page" class="page-btn" [disabled]="currentPage === 1" (click)="prevPage()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
 
@@ -49,6 +49,7 @@
         <span *ngIf="page === -1" class="page-ellipsis">…</span>
         <button
           *ngIf="page !== -1"
+          title="Go to Page {{ page }}"
           class="page-btn"
           [class.page-btn-active]="page === currentPage"
           (click)="goToPage(page)">
@@ -56,7 +57,7 @@
         </button>
       </ng-container>
 
-      <button class="page-btn" [disabled]="currentPage === totalPages" (click)="nextPage()">
+      <button title="Next Page" class="page-btn" [disabled]="currentPage === totalPages" (click)="nextPage()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
     </div>
@@ -69,5 +70,6 @@
   [title]="emptyTitle"
   [message]="emptyMessage"
   [actionLabel]="emptyActionLabel ?? ''"
-  [route]="emptyRoute ?? ''">
+  [route]="emptyRoute ?? ''"
+  (actionClick)="emptyAction.emit()">
 </app-empty-state>

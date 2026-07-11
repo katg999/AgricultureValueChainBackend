@@ -1,54 +1,23 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { from } from 'rxjs';
+import { fetchRoleFilterOptions, fetchCooperationOptions } from '../../../../core/mock/mock-reference-data';
 
-// Shared components
-import { StatsCardComponent } from '../../../../shared/components/stats-card/stats-card.component';
+import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
 import { BadgeComponent } from '../../../../shared/components/badge/badge';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
 import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
+import { PlatformUsersService, PlatformUser } from '../../../../core/services/platform-users.service';
 
-/**
- * User interface
- */
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  role: string;
-  organization: string;
-  lastLogin: string;
-  avatar?: string;
-}
+export type { PlatformUser as User };
 
-/**
- * Allowed badge variants used by getRoleBadgeVariant
- */
-type BadgeVariant = 'info' | 'active' | 'pending' | 'inactive' | 'suspended' | 
-                    'overdue' | 'settled' | 'partial' | 'verified' | 
+type BadgeVariant = 'info' | 'active' | 'pending' | 'inactive' | 'suspended' |
+                    'overdue' | 'settled' | 'partial' | 'verified' |
                     'failed' | 'draft' | 'open' | 'closed' | 'healthy' | 'low';
 
-/**
- * Users List Component
- * 
- * Displays all platform and cooperative admin users in a table.
- * Features search, filtering, pagination, and quick actions.
- * 
- * Features:
- * - Statistics cards (Total, Active, Inactive, Locked)
- * - Search by name, ID, or manager
- * - Filter by role and cooperation
- * - Sortable table columns
- * - Pagination
- * - Row actions (view, edit, delete)
- * - Add new user button
- * 
- * Flow:
- * List → Add User / View User Details
- */
 @Component({
   selector: 'app-users-list',
   standalone: true,
@@ -56,7 +25,7 @@ type BadgeVariant = 'info' | 'active' | 'pending' | 'inactive' | 'suspended' |
     CommonModule,
     RouterModule,
     FormsModule,
-    StatsCardComponent,
+    StatCardComponent,
     BadgeComponent,
     ButtonComponent,
     DataTableComponent,
@@ -67,41 +36,14 @@ type BadgeVariant = 'info' | 'active' | 'pending' | 'inactive' | 'suspended' |
 })
 export class UsersListComponent implements OnInit {
 
-  /**
-   * Search query
-   */
-  searchQuery = '';
+  private usersService = inject(PlatformUsersService);
 
-  /**
-   * Selected role filter
-   */
-  selectedRole = 'All Roles';
+  searchQuery          = '';
+  selectedRole         = 'All Roles';
+  selectedCooperation  = 'All Cooperations';
 
-  /**
-   * Selected cooperation filter
-   */
-  selectedCooperation = 'All Cooperations';
-
-  /**
-   * Role options
-   */
-  roleOptions = [
-    'All Roles',
-    'PLATFORM ADMIN',
-    'COOPERATIVE ADMIN',
-    'LOGISTICS MANAGER',
-    'ACCOUNTANT'
-  ];
-
-  /**
-   * Cooperation options
-   */
-  cooperationOptions = [
-    'All Cooperations',
-    'UGAAP Central',
-    'Kasese Coffee Coop',
-    'Mubende Warehouse Central'
-  ];
+  roleOptions:        string[] = [];
+  cooperationOptions: string[] = [];
 
   userCols: TableColumn[] = [
     { key: 'name',         header: 'NAME' },
@@ -113,52 +55,12 @@ export class UsersListComponent implements OnInit {
     { key: 'actions',      header: 'ACTIONS', width: '80px' },
   ];
 
-  /**
-   * Users data
-   */
-  users: User[] = [
-    {
-      id: '1',
-      name: 'Sarah Namubiru',
-      email: 's.namubiru@ugaap-ug',
-      phone: '+25670144567­8',
-      role: 'PLATFORM ADMIN',
-      organization: 'UGAAP Central',
-      lastLogin: '2 mins ago'
-    },
-    {
-      id: '2',
-      name: 'Sarah Namubiru',
-      email: 's.namubiru@ugaap-ug',
-      phone: '+25670144567­8',
-      role: 'COOPERATIVE ADMIN',
-      organization: 'Kasese Coffee Coop',
-      lastLogin: '2 mins ago'
-    },
-    {
-      id: '3',
-      name: 'Sarah Namubiru',
-      email: 's.namubiru@ugaap-ug',
-      phone: '+25670144567­8',
-      role: 'PLATFORM ADMIN',
-      organization: 'UGAAP Central',
-      lastLogin: '2 mins ago'
-    },
-    {
-      id: '4',
-      name: 'Sarah Namubiru',
-      email: 's.namubiru@ugaap-ug',
-      phone: '+25670144567­8',
-      role: 'COOPERATIVE ADMIN',
-      organization: 'Kasese Coffee Coop',
-      lastLogin: '2 mins ago'
-    }
-  ];
+  users: PlatformUser[] = [];
 
   currentPage = 1;
   readonly itemsPerPage = 5;
 
-  get filteredUsers(): User[] {
+  get filteredUsers(): PlatformUser[] {
     const q = this.searchQuery.trim().toLowerCase();
     if (!q) return this.users;
     return this.users.filter(u =>
@@ -169,12 +71,18 @@ export class UsersListComponent implements OnInit {
     );
   }
 
-  get paginatedUsers(): User[] {
+  get paginatedUsers(): PlatformUser[] {
     const start = (this.currentPage - 1) * this.itemsPerPage;
     return this.filteredUsers.slice(start, start + this.itemsPerPage);
   }
 
   get totalItems(): number { return this.filteredUsers.length; }
+
+  // ── Stat card counts — derived from the loaded users array ───────────────
+  get totalUsers():    number { return this.users.length; }
+  get activeUsers():   number { return this.users.filter(u => u.status === 'active').length; }
+  get inactiveUsers(): number { return this.users.filter(u => u.status === 'inactive').length; }
+  get lockedAccounts():number { return this.users.filter(u => u.status === 'locked').length; }
 
   get startIndex(): number { return this.totalItems === 0 ? 0 : (this.currentPage - 1) * this.itemsPerPage + 1; }
 
@@ -188,12 +96,14 @@ export class UsersListComponent implements OnInit {
   prevPage(): void { if (this.currentPage > 1) this.currentPage--; }
   nextPage(): void { if (this.endIndex < this.totalItems) this.currentPage++; }
 
-  constructor(
-    private router: Router,
-  ) {}
+  constructor(private router: Router) {}
 
   ngOnInit(): void {
-    // Initialize component
+    // Load filter dropdown options from async mock fetch (swap for real HTTP calls when API is ready)
+    from(fetchRoleFilterOptions()).subscribe(v   => this.roleOptions        = v);
+    from(fetchCooperationOptions()).subscribe(v  => this.cooperationOptions = v);
+
+    this.usersService.list().subscribe(users => { this.users = users; });
   }
 
   /**
@@ -203,108 +113,51 @@ export class UsersListComponent implements OnInit {
     this.router.navigate(['/platform/users/add-user']);
   }
 
-  /**
-   * Handle table row click
-   */
-  onRowClicked(user: User): void {
+  onRowClicked(user: PlatformUser): void {
     this.router.navigate(['/platform/users/user', user.id]);
   }
 
-  /**
-   * Handle sort change
-   */
   onSortChanged(event: { column: string; direction: 'asc' | 'desc' }): void {
     console.log('Sort changed:', event);
-    // TODO: Implement sorting
   }
 
-  /**
-   * Handle search
-   */
-  onSearch(): void {
-    this.currentPage = 1;
-  }
+  onSearch(): void { this.currentPage = 1; }
+  onRoleFilterChange(): void { /* TODO: filter */ }
+  onCooperationFilterChange(): void { /* TODO: filter */ }
 
-  /**
-   * Handle role filter change
-   */
-  onRoleFilterChange(): void {
-    console.log('Role filter:', this.selectedRole);
-    // TODO: Implement filtering
-  }
-
-  /**
-   * Handle cooperation filter change
-   */
-  onCooperationFilterChange(): void {
-    console.log('Cooperation filter:', this.selectedCooperation);
-    // TODO: Implement filtering
-  }
-
-  /**
-   * View user details
-   */
-  viewUser(user: User, event: Event): void {
+  viewUser(user: PlatformUser, event: Event): void {
     event.stopPropagation();
     this.router.navigate(['/platform/users/user', user.id]);
   }
 
-  /**
-   * More actions menu
-   */
-  moreActions(user: User, event: Event): void {
+  moreActions(user: PlatformUser, event: Event): void {
     event.stopPropagation();
-    console.log('More actions for:', user);
-    // TODO: Implement actions menu
+    this.toggleActionsMenu(user);
   }
 
-/**
- * Get role badge variant
- */
-getRoleBadgeVariant(role: string): BadgeVariant {
-  switch (role?.toLowerCase()) {
-    case 'admin':
-      return 'active';
-    case 'moderator':
-      return 'info';
-    case 'user':
-      return 'healthy';
-    // Add more mappings...
-    default:
-      return 'info';   // fallback that exists in the union
-  }
-}
+  getRoleBadgeVariant(_role: string): BadgeVariant { return 'info'; }
 
-  /**
-   * Get user initials for avatar
-   */
   getUserInitials(name: string): string {
-    return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .substring(0, 2);
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
   }
 
-selectedUser: User | null = null;
+  selectedUser: PlatformUser | null = null;
 
-toggleActionsMenu(user: User) {
-  this.selectedUser = this.selectedUser === user ? null : user;
-}
+  toggleActionsMenu(user: PlatformUser): void {
+    this.selectedUser = this.selectedUser === user ? null : user;
+  }
 
-editUser(user: User) {
-  this.selectedUser = null;
-  this.router.navigate(['/platform/users/edit', user.id]); // you'll need to add this route
-}
-deleteUser(user: User): void {
+  editUser(user: PlatformUser): void {
     this.selectedUser = null;
-    const confirmed = confirm(`Are you sure you want to delete "${user.name}"?`);
-    if (confirmed) {
-      // For now, just remove from the local array (simulate deletion)
-      this.users = this.users.filter(u => u.id !== user.id);
-      alert(`${user.name} has been deleted (front-end only).`);
+    this.router.navigate(['/platform/users/edit', user.id]);
+  }
+
+  deleteUser(user: PlatformUser): void {
+    this.selectedUser = null;
+    if (confirm(`Are you sure you want to delete "${user.name}"?`)) {
+      this.usersService.delete(user.id).subscribe(() => {
+        this.users = this.users.filter(u => u.id !== user.id);
+      });
     }
   }
-
 }

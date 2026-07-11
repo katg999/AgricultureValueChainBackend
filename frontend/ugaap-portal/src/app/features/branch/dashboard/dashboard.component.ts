@@ -1,7 +1,8 @@
 // features/branch/dashboard/dashboard.component.ts
 //
-// Branch staff home screen — today's collection and grading snapshot.
-// Focused on what the field agent needs right now at this branch.
+// Branch staff home screen.
+// All data comes from BranchDashboardService — swap mock Observables
+// for real HTTP calls there without touching this component.
 
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -10,16 +11,7 @@ import { RouterModule } from '@angular/router';
 import { StatCardComponent, StatCardData } from '../../../shared/components/stat-card/stat-card.component';
 import { ActivityItemComponent, ActivityData } from '../../../shared/components/activity-item/activity-item.component';
 import { SessionService } from '../../../core/services/session.service';
-
-interface TodayDelivery {
-  ref:     string;
-  farmer:  string;
-  weight:  string;
-  grade:   string;
-  amount:  string;
-  time:    string;
-  status:  'graded' | 'pending' | 'queued';
-}
+import { BranchDashboardService, TodayDelivery } from '../../../core/services/branch-dashboard.service';
 
 @Component({
   selector: 'app-branch-dashboard',
@@ -30,93 +22,29 @@ interface TodayDelivery {
 })
 export class BranchDashboardComponent implements OnInit {
 
-  private session = inject(SessionService);
-  readonly user   = this.session.currentUser;
+  private session            = inject(SessionService);
+  private dashboard          = inject(BranchDashboardService);
 
+  readonly user = this.session.currentUser;
   get userName(): string { return this.user()?.fullName ?? 'Branch Staff'; }
 
-  // ── KPI stat cards ────────────────────────────────────────────────────────
+  stats:             StatCardData[]    = [];
+  deliveries:        TodayDelivery[]   = [];
+  recentActivities:  ActivityData[]    = [];
 
-  // Thresholds are hardcoded for now — the shape matches what the backend
-  // will eventually supply per stat. Tapping a card opens its route.
-  stats: StatCardData[] = [
-    {
-      label:   "Today's Collections",
-      value:   '2.4 MT',
-      icon:    'box',
-      trend:   '+0.8 MT from yesterday',
-      trendUp: true,
-      route:   '/branch/collections',
-    },
-    {
-      label:      'Grading Queue',
-      value:      '18',
-      icon:       'clock',
-      // Queue grows → degrade: ≥10 warning, ≥25 critical
-      thresholds: { warning: 10, critical: 25, direction: 'above' },
-      route:      '/branch/collections',
-    },
-    {
-      label:      'Stock on Hand',
-      value:      '15.6 MT',
-      icon:       'box',
-      trend:      'Within capacity',
-      trendUp:    true,
-      // Stock falls → degrade: ≤5 MT warning, ≤2 MT critical
-      thresholds: { warning: 5, critical: 2, direction: 'below' },
-      route:      '/branch/inventory/current-stock',
-    },
-    {
-      label:   'Active Farmers',
-      value:   '142',
-      icon:    'farmer',
-      trend:   '+3 this week',
-      trendUp: true,
-      route:   '/branch/farmers',
-    },
-  ];
+  ngOnInit(): void {
+    this.dashboard.getStats().subscribe(stats => {
+      this.stats = stats as StatCardData[];
+    });
 
-  // ── Today's deliveries ────────────────────────────────────────────────────
+    this.dashboard.getTodayDeliveries().subscribe(deliveries => {
+      this.deliveries = deliveries;
+    });
 
-  deliveries: TodayDelivery[] = [
-    { ref: 'DEL-9041', farmer: 'John Tumwesigye',    weight: '320 kg', grade: 'A',  amount: 'UGX 1,600K', time: '10:15', status: 'graded'  },
-    { ref: 'DEL-9040', farmer: 'Rose Atukunda',      weight: '180 kg', grade: 'B+', amount: 'UGX 810K',   time: '10:02', status: 'graded'  },
-    { ref: 'DEL-9039', farmer: 'Paul Ategeka',       weight: '260 kg', grade: 'A',  amount: 'UGX 1,300K', time: '09:44', status: 'graded'  },
-    { ref: 'DEL-9038', farmer: 'Deborah Kembabazi',  weight: '95 kg',  grade: '—',  amount: '—',           time: '09:30', status: 'pending' },
-    { ref: 'DEL-9037', farmer: 'Fred Turyamureeba',  weight: '410 kg', grade: 'A+', amount: 'UGX 2,255K', time: '09:10', status: 'graded'  },
-  ];
-
-  // ── Activity feed ─────────────────────────────────────────────────────────
-
-  recentActivities: ActivityData[] = [
-    {
-      title:     'New delivery recorded',
-      subtitle:  'John Tumwesigye · 320 kg · Grade A',
-      timestamp: '10 mins ago',
-      color:     '#10B981',
-    },
-    {
-      title:     'Farmer registered',
-      subtitle:  'Christine Nanyonjo added to branch roster',
-      timestamp: '1 hr ago',
-      action:    'View Profile',
-      color:     '#3B82F6',
-    },
-    {
-      title:     'Moisture test flagged',
-      subtitle:  'DEL-9038 — above threshold, pending re-test',
-      timestamp: '2 hrs ago',
-      color:     '#F59E0B',
-    },
-    {
-      title:     'Stock level updated',
-      subtitle:  'Warehouse capacity at 68%',
-      timestamp: '3 hrs ago',
-      color:     '#9CA3AF',
-    },
-  ];
-
-  // ── Helpers ───────────────────────────────────────────────────────────────
+    this.dashboard.getRecentActivities().subscribe(activities => {
+      this.recentActivities = activities as ActivityData[];
+    });
+  }
 
   statusClass(s: TodayDelivery['status']): string {
     return `status--${s}`;
@@ -126,11 +54,7 @@ export class BranchDashboardComponent implements OnInit {
     return { graded: 'GRADED', pending: 'PENDING', queued: 'IN QUEUE' }[s] ?? s;
   }
 
-  ngOnInit(): void {
-    // TODO: replace mock data with API calls
-  }
-
   recordDelivery(): void {
-    // Navigation handled by routerLink
+    // Navigation handled by routerLink in the template
   }
 }

@@ -30,6 +30,5 @@ export class ConfigurationComponent {
   openPaymentRules():  void { alert('Payment Rules — coming soon.'); }
   openCreditRules():   void { alert('Credit Rules — coming soon.'); }
   openSessions():     void { this.router.navigate(['/cooperative/sessions']); }
-  openMakerChecker():  void { alert('Maker-Checker Approvals — coming soon.'); }
 
 }

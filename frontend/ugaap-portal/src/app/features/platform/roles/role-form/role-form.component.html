@@ -1,19 +1,15 @@
-<app-form-wizard
-  [title]="isEditMode ? 'Edit role' : 'Create role'"
-  [steps]="steps"
-  [currentStep]="currentStep"
-  (stepSelected)="goToStep($event)">
+<div class="page">
+<form [formGroup]="roleForm" (ngSubmit)="saveRole()">
 
-  <form [formGroup]="roleForm" (ngSubmit)="saveRole()">
+  <app-form-shell
+    [title]="isEditMode ? 'Edit Role' : 'Create Role'"
+    subtitle="Define the role's identity and assign permissions.">
 
-    <!-- ── STEP 0: Role details ── -->
-    <section *ngIf="currentStep === 0" class="form-panel" aria-labelledby="step0-heading">
-      <div class="panel-header">
-        <h2 id="step0-heading" class="panel-title">Role details</h2>
-        <p class="panel-sub">Name and describe what this role is for</p>
-      </div>
+    <!-- ── 1. ROLE DETAILS ── -->
+    <app-form-section [number]="1" title="Role Details" iconName="shield"
+                      desc="Name and describe what this role is for">
 
-      <div class="field-grid field-grid--2">
+      <div class="fields-grid cols-2">
         <app-input
           label="Role name"
           placeholder="e.g. Logistics Manager"
@@ -23,7 +19,7 @@
           formControlName="name">
         </app-input>
 
-        <div class="field-stack">
+        <div class="input-group">
           <app-input
             label="Tenant ID"
             placeholder="e.g. ugaap-farmers"
@@ -36,11 +32,11 @@
         </div>
       </div>
 
-      <div class="field-group">
-        <label class="field-label">Description <span class="required-mark">*</span></label>
+      <div class="input-group mt-16">
+        <label class="input-label">Description <span class="required-mark">*</span></label>
         <textarea
           class="form-input"
-          placeholder="Brief description of what this role can do..."
+          placeholder="Brief description of what this role can do…"
           formControlName="description"
           [class.input-error]="getFieldError('description')"
           rows="3"></textarea>
@@ -48,61 +44,26 @@
           {{ getFieldError('description') }}
         </p>
       </div>
-    </section>
+    </app-form-section>
 
-    <!-- ── STEP 1: Permissions ── -->
-    <section *ngIf="currentStep === 1" class="form-panel" aria-labelledby="step1-heading">
-      <div class="panel-header">
-        <h2 id="step1-heading" class="panel-title">Permissions</h2>
-        <p class="panel-sub">
-          {{ selectedPermissionsCount }} permission{{ selectedPermissionsCount === 1 ? '' : 's' }} selected —
-          users only see sidebar entries they hold permissions for
-        </p>
-      </div>
+    <!-- ── 2. PERMISSIONS ── -->
+    <app-form-section [number]="2" title="Permissions" iconName="list"
+                      [desc]="permissionsDesc">
 
-      <app-permission-tabs
-        scope="platform"
-        [(selected)]="selectedPermissions">
+      <app-permission-tabs scope="platform" [(selected)]="selectedPermissions">
       </app-permission-tabs>
 
       <div *ngIf="errorMessage" class="save-error" role="alert">{{ errorMessage }}</div>
-    </section>
+    </app-form-section>
 
-    <!-- ── Bottom nav ── -->
-    <div class="form-nav">
-      <app-button variant="ghost" size="md" type="button" (clicked)="cancel()">
-        Cancel
-      </app-button>
+  </app-form-shell>
 
-      <div class="form-nav__right">
-        <app-button
-          *ngIf="currentStep > 0"
-          variant="ghost"
-          size="md"
-          type="button"
-          (clicked)="prevStep()">
-          ← Back
-        </app-button>
+  <div class="form-actions">
+    <button type="button" class="btn-secondary" (click)="cancel()">Cancel</button>
+    <app-button variant="primary" size="lg" type="submit" [disabled]="isLoading">
+      {{ isLoading ? 'Saving…' : (isEditMode ? 'Update role' : 'Create role') }}
+    </app-button>
+  </div>
 
-        <app-button
-          *ngIf="currentStep < steps.length - 1"
-          variant="primary"
-          size="md"
-          type="button"
-          (clicked)="nextStep()">
-          Next →
-        </app-button>
-
-        <app-button
-          *ngIf="currentStep === steps.length - 1"
-          variant="primary"
-          size="md"
-          type="submit"
-          [disabled]="isLoading">
-          {{ isLoading ? 'Saving…' : (isEditMode ? 'Update role' : 'Create role') }}
-        </app-button>
-      </div>
-    </div>
-
-  </form>
-</app-form-wizard>
+</form>
+</div>

@@ -1,269 +1,299 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { forkJoin } from 'rxjs';
 
-import { ButtonComponent } from '../../../shared/components/button/button.component';
-import { API_ENDPOINTS }   from '../../../core/constants/api-endpoints';
-import { ToastService }    from '../../../core/services/toast.service';
-import { PermissionsService } from '../../../core/services/permissions.service';
+import { ToastService } from '../../../core/services/toast.service';
+import { BranchService, BranchResponse } from '../../../core/services/branch.service';
+import { CommodityService, CommodityResponse } from '../../../core/services/commodity.service';
+import { GradeService, GradeResponse } from '../../../core/services/grade.service';
+import { PriceService, PriceResponse } from '../../../core/services/price.service';
+import { SessionService } from '../../../core/services/session.service';
+
 import {
-  CooperativePricingService,
-  FlatCommodityPrice,
-  GradeCommodityPrice,
-} from '../../../core/services/cooperative-pricing.service';
+  DataTableComponent,
+  TableColumn,
+} from '../../../shared/components/data-table/data-table.component';
+import { CellDirective } from '../../../shared/components/data-table/cell.directive';
+import { ButtonComponent } from '../../../shared/components/button/button.component';
+import { ModalComponent } from '../../../shared/components/modal/modal.component';
+import { InputComponent } from '../../../shared/components/input/input.component';
 
-// Branch is used for the branch selector dropdown in grade mode.
-export interface Branch {
-  id:         string;
-  name:       string;
-  region:     string;
-  gradeCount: number;
+// ── Row shapes derived from PriceResponse for display ──────────────────────────
+interface FlatPriceRow {
+  id: string;
+  commodityId: string;
+  commodity: string;
+  pricePerKg: number;
+  branch: string; // branch NAME (matches what's stored on the backend)
+}
+
+interface GradePriceRow {
+  id: string;
+  commodityId: string;
+  commodity: string;
+  gradeId: string;
+  gradeCode: string;
+  gradeName: string;
+  pricePerKg: number;
+  branch: string;
 }
 
 @Component({
   selector: 'app-edit-prices',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    DataTableComponent,
+    CellDirective,
+    ButtonComponent,
+    ModalComponent,
+    InputComponent,
+  ],
   templateUrl: './edit-prices.component.html',
   styleUrl: './edit-prices.component.css',
 })
 export class EditPricesComponent implements OnInit {
+  private fb = inject(FormBuilder);
+  private toast = inject(ToastService);
+  private branchService = inject(BranchService);
+  private commodityService = inject(CommodityService);
+  private gradeService = inject(GradeService);
+  private priceService = inject(PriceService);
+  private session = inject(SessionService);
 
-  private http         = inject(HttpClient);
-  private route        = inject(ActivatedRoute);
-  private toast        = inject(ToastService);
-  private permissions  = inject(PermissionsService);
-  // The pricing service is the single source of truth for cooperative prices.
-  private pricingSvc   = inject(CooperativePricingService);
-  router               = inject(Router);
+  // ── Mode toggle ────────────────────────────────────────────────────────────
+  gradeMode = signal(false);
 
-  // ── Permissions ────────────────────────────────────────────────────────────
-
-  // View permission: can see price tables but not edit them.
-  get canViewCommodityPrices(): boolean {
-    return this.permissions.hasAny([
-      'configuration.prices.commodity.view',
-      'configuration.prices.commodity.edit',
-    ]);
+  toggleMode(): void {
+    this.gradeMode.update((v) => !v);
+    this.closeModal();
   }
 
-  // Edit permission: can change prices and save.
-  get canEditCommodityPrices(): boolean {
-    return this.permissions.has('configuration.prices.commodity.edit');
+  // ── Loading state ────────────────────────────────────────────────────────
+  isLoading = signal(true);
+
+  // ── Datasets (now loaded from the backend, not seeded) ──────────────────
+  flatEntries = signal<FlatPriceRow[]>([]);
+  gradeEntries = signal<GradePriceRow[]>([]);
+
+  get activeRows(): (FlatPriceRow | GradePriceRow)[] {
+    return this.gradeMode() ? this.gradeEntries() : this.flatEntries();
   }
 
-  // ── Grade mode toggle ──────────────────────────────────────────────────────
-
-  // Reflects the cooperative-wide setting from the pricing service.
-  // Using a getter means the template always reads the live value.
-  get useGrades(): boolean { return this.pricingSvc.useGrades; }
-
-  toggleGrades(): void {
-    this.pricingSvc.setUseGrades(!this.pricingSvc.useGrades);
-    // When switching modes, reset the branch selection and grade price table.
-    this.selectedBranch.set('');
-    this.gradePrices.set([]);
-  }
-
-  // ── Flat commodity prices (grade mode OFF) ─────────────────────────────────
-
-  // Local editable copy — committed to the service only when Save is clicked.
-  flatPrices          = signal<FlatCommodityPrice[]>([]);
-  savingFlat          = signal(false);
-  newCommodityName    = '';
-  newCommodityPrice: number | null = null;
-  addCommodityError   = '';
-  showAddForm         = false;
-  // '' means cooperative-wide default; a branchId means branch-specific override.
-  selectedFlatBranch  = signal('');
-
-  addCommodity(): void {
-    const name = this.newCommodityName.trim();
-    if (!name) {
-      this.addCommodityError = 'Commodity name is required.';
-      return;
+  // ── Table columns ──────────────────────────────────────────────────────────
+  get columns(): TableColumn[] {
+    const cols: TableColumn[] = [{ key: 'commodity', header: 'Commodity' }];
+    if (this.gradeMode()) {
+      cols.push({ key: 'grade', header: 'Grade' });
     }
-    if (!this.newCommodityPrice || this.newCommodityPrice <= 0) {
-      this.addCommodityError = 'Enter a valid price greater than 0.';
-      return;
-    }
-    const duplicate = this.flatPrices().some(
-      p => p.commodity.toLowerCase() === name.toLowerCase()
-    );
-    if (duplicate) {
-      this.addCommodityError = `"${name}" is already in the list.`;
-      return;
-    }
-    this.flatPrices.update(list => [
-      ...list,
-      { commodity: name, pricePerKg: this.newCommodityPrice! },
-    ]);
-    this.newCommodityName  = '';
-    this.newCommodityPrice = null;
-    this.addCommodityError = '';
-    this.showAddForm       = false;
+    return [
+      ...cols,
+      { key: 'pricePerKg', header: 'Price / kg (UGX)', align: 'right' },
+      { key: 'branch', header: 'Branch' },
+      { key: 'actions', header: '', width: '80px' },
+    ];
   }
 
-  removeCommodity(commodity: string): void {
-    this.flatPrices.update(list => list.filter(p => p.commodity !== commodity));
+  // ── Reference data — loaded from backend ────────────────────────────────
+  commodityOptions: CommodityResponse[] = [];
+  gradeOptions: GradeResponse[] = [];
+  branchOptions: BranchResponse[] = [];
+
+  branchLabel(name: string): string {
+    return name;
   }
-
-  onFlatBranchChange(branchId: string): void {
-    this.selectedFlatBranch.set(branchId);
-    // Reload editable copy from the service — branch override if set, else default.
-    this.flatPrices.set(this.pricingSvc.getFlatPrices(branchId || undefined).map(p => ({ ...p })));
-    this.showAddForm      = false;
-    this.addCommodityError = '';
-  }
-
-  saveFlatPrices(): void {
-    this.savingFlat.set(true);
-    const branchId = this.selectedFlatBranch() || undefined;
-    this.pricingSvc.updateFlatPrices(this.flatPrices(), branchId);
-    // Simulate the async network round-trip — no dedicated endpoint yet.
-    setTimeout(() => {
-      this.savingFlat.set(false);
-      const target = branchId
-        ? (this.branches().find(b => b.id === branchId)?.name ?? branchId)
-        : 'all branches';
-      this.toast.success('Commodity prices updated', `Flat prices saved for ${target}.`);
-    }, 400);
-  }
-
-  // ── Grade prices (grade mode ON) ───────────────────────────────────────────
-
-  branches       = signal<Branch[]>([]);
-  selectedBranch = signal('');
-  // Local editable copy of grade prices for the currently selected branch.
-  gradePrices    = signal<GradeCommodityPrice[]>([]);
-  saving         = signal(false);
-  error          = signal<string | null>(null);
-
-  // Used by the commodity filter dropdown above the grade price table.
-  gradeCommodityFilter = '';
-
-  // Unique list of commodity names present in the current branch's grade prices.
-  // Feeds the filter dropdown without needing to hardcode commodity names.
-  uniqueCommodities = computed(() => {
-    const seen = new Set<string>();
-    return this.gradePrices().filter(p => {
-      if (seen.has(p.commodity)) return false;
-      seen.add(p.commodity);
-      return true;
-    }).map(p => p.commodity);
-  });
-
-  // The grade price rows visible in the table after applying the commodity filter.
-  filteredGradePrices = computed(() => {
-    const filter = this.gradeCommodityFilter;
-    return filter
-      ? this.gradePrices().filter(p => p.commodity === filter)
-      : this.gradePrices();
-  });
-
-  private readonly mockBranches: Branch[] = [
-    { id: 'BR-KLA', name: 'Kampala Central Branch', region: 'Central Region',  gradeCount: 4 },
-    { id: 'BR-JIN', name: 'Jinja Branch',            region: 'Eastern Region',  gradeCount: 4 },
-    { id: 'BR-MBA', name: 'Mbarara Branch',          region: 'Western Region',  gradeCount: 4 },
-    { id: 'BR-FTP', name: 'Fort Portal Branch',      region: 'Western Region',  gradeCount: 4 },
-    { id: 'BR-ADJ', name: 'Adjumani Branch',         region: 'Northern Region', gradeCount: 4 },
-    { id: 'BR-GUL', name: 'Gulu Branch',             region: 'Northern Region', gradeCount: 4 },
-  ];
-
-  // ── Lifecycle ──────────────────────────────────────────────────────────────
 
   ngOnInit(): void {
-    this.loadBranches();
+    this.loadAll();
+  }
 
-    // Load cooperative-default flat prices into the local editable copy.
-    this.flatPrices.set(this.pricingSvc.getFlatPrices().map(p => ({ ...p })));
-
-    // If the URL has ?branch=... pre-select that branch (deep-link support).
-    const branchParam = this.route.snapshot.queryParamMap.get('branch');
-    if (branchParam) {
-      this.selectedBranch.set(branchParam);
-      this.loadGradePricesForBranch(branchParam);
+  private loadAll(): void {
+    const tenantId = this.session.tenantId();
+    if (!tenantId) {
+      this.toast.error('No tenant context', 'Cannot load pricing data without a tenant context.');
+      this.isLoading.set(false);
+      return;
     }
-  }
 
-  loadBranches(): void {
-    // Seed immediately so the dropdown is never empty while the request is in flight.
-    this.branches.set(this.mockBranches);
-    this.http.get<Branch[]>(API_ENDPOINTS.COOPERATIVE.BRANCHES).subscribe({
-      next: data => this.branches.set(data),
-      // On error keep the mock data already shown — no extra assignment needed.
-    });
-  }
-
-  onBranchChange(branchId: string): void {
-    this.selectedBranch.set(branchId);
-    this.gradePrices.set([]);
-    this.gradeCommodityFilter = '';
-    if (branchId) this.loadGradePricesForBranch(branchId);
-  }
-
-  // Loads grade prices for the selected branch from the pricing service (mock-first).
-  loadGradePricesForBranch(branchId: string): void {
-    // Try the API first; on failure fall back to the in-memory service data.
-    this.http.get<GradeCommodityPrice[]>(`${API_ENDPOINTS.COOPERATIVE.BRANCHES}/${branchId}/grade-prices`).subscribe({
-      next:  data => this.gradePrices.set(data),
-      error: ()   => {
-        // Deep copy so edits in the table don't immediately mutate the service state.
-        this.gradePrices.set(this.pricingSvc.getGradePrices(branchId).map(p => ({ ...p })));
+    this.isLoading.set(true);
+    forkJoin({
+      commodities: this.commodityService.list(),
+      grades: this.gradeService.list(),
+      branches: this.branchService.listBranches(tenantId),
+      prices: this.priceService.getAll(),
+    }).subscribe({
+      next: ({ commodities, grades, branches, prices }) => {
+        this.commodityOptions = commodities;
+        this.gradeOptions = grades;
+        this.branchOptions = branches;
+        this.splitPrices(prices);
+        this.isLoading.set(false);
+      },
+      error: () => {
+        this.toast.error(
+          'Failed to load pricing data',
+          'Could not reach the configuration service.',
+        );
+        this.isLoading.set(false);
       },
     });
   }
 
-  // ── Quick actions ───────────────────────────────────────────────────────────
+  private splitPrices(prices: PriceResponse[]): void {
+    const flat: FlatPriceRow[] = [];
+    const grade: GradePriceRow[] = [];
 
-  increaseAllByPercent(): void {
-    const raw = prompt('Enter percentage increase (e.g. 5 for +5%)');
-    const pct = parseFloat(raw ?? '');
-    if (isNaN(pct)) return;
-    this.gradePrices.update(ps =>
-      ps.map(p => ({
-        ...p,
-        // Round to nearest 50 UGX after the increase.
-        pricePerKg: Math.round(p.pricePerKg * (1 + pct / 100) / 50) * 50,
-      })),
-    );
-  }
+    for (const p of prices) {
+      const commodity = this.commodityOptions.find((c) => c.code === p.commodityCode);
+      const commodityId = commodity?.id ?? '';
 
-  resetGradePrices(): void {
-    // Reload from the service — discards any unsaved edits.
-    const branchId = this.selectedBranch();
-    if (branchId) {
-      this.gradePrices.set(this.pricingSvc.getGradePrices(branchId).map(p => ({ ...p })));
+      if (p.gradeCode) {
+        const gradeRef = this.gradeOptions.find((g) => g.code === p.gradeCode);
+        grade.push({
+          id: p.id,
+          commodityId,
+          commodity: p.commodityName,
+          gradeId: gradeRef?.id ?? '',
+          gradeCode: p.gradeCode,
+          gradeName: p.gradeName ?? '',
+          pricePerKg: p.newPrice,
+          branch: p.branchName,
+        });
+      } else {
+        flat.push({
+          id: p.id,
+          commodityId,
+          commodity: p.commodityName,
+          pricePerKg: p.newPrice,
+          branch: p.branchName,
+        });
+      }
     }
+
+    this.flatEntries.set(flat);
+    this.gradeEntries.set(grade);
   }
 
-  // ── Save grade prices ───────────────────────────────────────────────────────
+  // ── Modal ──────────────────────────────────────────────────────────────────
+  showModal = signal(false);
+  editingId = signal<string | null>(null);
+  isSaving = signal(false);
 
-  saveGradePrices(): void {
-    this.saving.set(true);
-    this.error.set(null);
+  form = this.fb.group({
+    commodityId: ['', Validators.required],
+    gradeId: [''],
+    pricePerKg: [null as number | null, [Validators.required, Validators.min(1)]],
+    branch: ['', Validators.required], // holds the branch NAME, not an id
+  });
 
-    const branchId = this.selectedBranch();
-    const payload  = { branchId, prices: this.gradePrices() };
+  get modalTitle(): string {
+    return this.editingId() ? 'Edit Price Entry' : 'Add Price Entry';
+  }
 
-    this.http.put(API_ENDPOINTS.COOPERATIVE.PRICING, payload).subscribe({
+  get modalSubtitle(): string {
+    return this.gradeMode()
+      ? 'Set a price for a commodity and quality grade combination.'
+      : 'Set a flat price for a commodity at a branch.';
+  }
+
+  openAdd(): void {
+    this.editingId.set(null);
+    this.form.reset();
+    this.syncGradeValidator();
+    this.showModal.set(true);
+  }
+
+  openEdit(row: FlatPriceRow | GradePriceRow): void {
+    this.editingId.set(row.id);
+    const g = row as GradePriceRow;
+    this.form.patchValue({
+      commodityId: row.commodityId,
+      gradeId: g.gradeId ?? '',
+      pricePerKg: row.pricePerKg,
+      branch: row.branch,
+    });
+    this.syncGradeValidator();
+    this.showModal.set(true);
+  }
+
+  closeModal(): void {
+    this.showModal.set(false);
+    this.editingId.set(null);
+    this.form.reset();
+  }
+
+  save(): void {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    this.isSaving.set(true);
+    const v = this.form.value;
+    const commodity = this.commodityOptions.find((c) => c.id === v.commodityId);
+    if (!commodity) {
+      this.isSaving.set(false);
+      return;
+    }
+
+    const request$ = this.gradeMode()
+      ? this.priceService.setGradePrice({
+          commodityId: v.commodityId!,
+          gradeId: v.gradeId!,
+          pricePerKg: v.pricePerKg!,
+          branchName: v.branch!,
+        })
+      : this.priceService.setFlatPrice({
+          commodityId: v.commodityId!,
+          pricePerKg: v.pricePerKg!,
+          branchName: v.branch!,
+        });
+
+    request$.subscribe({
       next: () => {
-        // Update the in-memory store so new deliveries immediately use these prices.
-        this.pricingSvc.updateGradePrices(branchId, this.gradePrices());
-        this.saving.set(false);
-        this.toast.success('Grade prices updated', 'Prices saved for ' + branchId + '.');
-        this.router.navigate(['/cooperative/grade-config']);
+        this.isSaving.set(false);
+        this.toast.success(
+          this.editingId() ? 'Price updated' : 'Price added',
+          `${commodity.name} price has been saved successfully.`,
+        );
+        this.closeModal();
+        this.loadAll(); // refresh from backend rather than mutating local state
       },
-      error: err => {
-        const msg = err?.error?.message ?? 'Could not save prices. Please try again.';
-        // Still update the in-memory store so the session isn't blocked by a missing API.
-        this.pricingSvc.updateGradePrices(branchId, this.gradePrices());
-        this.saving.set(false);
-        this.error.set(msg);
-        this.toast.success('Prices saved locally', 'API not available — prices saved in this session.');
+      error: () => {
+        this.isSaving.set(false);
+        this.toast.error('Save failed', 'Could not save the price entry. Please try again.');
       },
     });
+  }
+
+  deleteRow(row: FlatPriceRow | GradePriceRow): void {
+    // No DELETE endpoint exists yet on PriceController — flag for backend work.
+    this.toast.error('Not yet supported', 'Deleting price entries is not yet available.');
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  formatUGX(value: number): string {
+    return new Intl.NumberFormat('en-UG').format(value);
+  }
+
+  getFieldError(field: string): string {
+    const c = this.form.get(field);
+    if (c?.touched && c.errors) {
+      if (c.errors['required']) return 'This field is required';
+      if (c.errors['min']) return 'Price must be greater than 0';
+    }
+    return '';
+  }
+
+  private syncGradeValidator(): void {
+    const ctrl = this.form.get('gradeId')!;
+    if (this.gradeMode()) {
+      ctrl.setValidators([Validators.required]);
+    } else {
+      ctrl.clearValidators();
+    }
+    ctrl.updateValueAndValidity();
   }
 }

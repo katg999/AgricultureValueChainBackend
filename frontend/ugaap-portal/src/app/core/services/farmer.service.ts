@@ -1,8 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
+import { USE_MOCK } from '../mock/mock-config';
+import { MOCK_FARMERS } from '../mock/mock-farmer';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // FORM-FACING TYPES (what the Angular form/template works with)
@@ -32,6 +34,13 @@ export interface FarmerPaymentMethod {
 export interface FarmerProduction {
   commodity: string;
   livestock: string;
+}
+
+// Add this interface near the top with the other interfaces
+export interface FarmerSearchResult {
+  memberId: string;
+  fullName: string;
+  branchId: string | null;
 }
 
 export interface FarmerRegistrationForm {
@@ -282,6 +291,21 @@ export class FarmerService {
       tap((res) => console.log('[FarmerService.getById] raw response:', res)),
       map((res) => this.toFarmerProfile(res.data)),
     );
+  }
+
+  // ── Search ───────────────────────────────────────────────────────────────
+  search(query: string): Observable<FarmerSearchResult[]> {
+    if (USE_MOCK) {
+      const term = query.trim().toLowerCase();
+      return of(
+        MOCK_FARMERS
+          .filter((f) => f.name.toLowerCase().includes(term))
+          .map((f) => ({ memberId: f.id, fullName: f.name, branchId: f.branchId })),
+      );
+    }
+    return this.http.get<FarmerSearchResult[]>(`${API_ENDPOINTS.MEMBERS.REGISTER}/search`, {
+      params: { query },
+    });
   }
 
   // ── List ─────────────────────────────────────────────────────────────────

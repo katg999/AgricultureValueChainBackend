@@ -12,12 +12,11 @@ import {
   FormBuilder, Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
 
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { AlertComponent }  from '../../../../shared/components/alert/alert.component';
-import { API_ENDPOINTS }   from '../../../../core/constants/api-endpoints';
 import { ToastService }    from '../../../../core/services/toast.service';
+import { GradingService }  from '../../../../core/services/grading.service';
 
 @Component({
   selector: 'app-grade-form',
@@ -28,11 +27,11 @@ import { ToastService }    from '../../../../core/services/toast.service';
 })
 export class GradeFormComponent implements OnInit {
 
-  private fb     = inject(FormBuilder);
-  private http   = inject(HttpClient);
-  private route  = inject(ActivatedRoute);
-  private router = inject(Router);
-  private toast  = inject(ToastService);
+  private fb       = inject(FormBuilder);
+  private grading  = inject(GradingService);
+  private route    = inject(ActivatedRoute);
+  private router   = inject(Router);
+  private toast    = inject(ToastService);
 
   form = this.fb.group({
     name:        ['', Validators.required],
@@ -58,9 +57,7 @@ export class GradeFormComponent implements OnInit {
   }
 
   private loadGrade(id: string): void {
-    this.http.get<{ name: string; code: string; description: string }>(
-      `${API_ENDPOINTS.COOPERATIVE.GRADING}/${id}`
-    ).subscribe({
+    this.grading.fetchById(id).subscribe({
       next:  g   => this.form.patchValue(g),
       error: err => this.error.set(err?.error?.message ?? 'Could not load grade.'),
     });
@@ -73,9 +70,10 @@ export class GradeFormComponent implements OnInit {
     this.error.set(null);
 
     const id = this.route.snapshot.paramMap.get('id');
+    const formValue = this.form.value as { name: string; code: string; description: string };
     const req$ = id
-      ? this.http.put(`${API_ENDPOINTS.COOPERATIVE.GRADING}/${id}`, this.form.value)
-      : this.http.post(API_ENDPOINTS.COOPERATIVE.GRADING, this.form.value);
+      ? this.grading.updateGrade(id, formValue)
+      : this.grading.createGrade(formValue);
 
     req$.subscribe({
       next: () => {

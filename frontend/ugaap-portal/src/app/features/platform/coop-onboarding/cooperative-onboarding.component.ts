@@ -1,36 +1,23 @@
-// features/platform/coop-onboarding/cooperative-onboarding.component.ts
-//
-// Cooperative onboarding — sets up a new cooperative on the platform.
-//
-// Layout follows the shared <app-form-wizard> shell (the farmer-register
-// design): cooperative info → bank details → default branch → review.
-// On activation the payload (including bank details for disbursements) is
-// posted to the cooperatives endpoint, then the flow continues into
-// maker-checker account creation.
+// Cooperative onboarding — single-page form that creates the cooperative,
+// its default branch, bank details, and both admin (Admin 1 / Admin 2) accounts
+// in one submission.  No step wizard; all validation runs at final submit.
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Title } from '@angular/platform-browser';
+import { finalize, timeout } from 'rxjs';
 
-import { FormWizardComponent } from '../../../shared/components/form-wizard/form-wizard.component';
-// Shared components
-import { StepperComponent, Step } from '../../../shared/components/stepper/stepper.component';
-import { InputComponent }  from '../../../shared/components/input/input.component';
+import { FormShellComponent } from '../../../shared/components/form-wizard/form-wizard.component';
+import { FormSectionComponent } from '../../../shared/components/form-section/form-section.component';
+import { InputComponent } from '../../../shared/components/input/input.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
-import { ModalComponent }  from '../../../shared/components/modal/modal.component';
-import { AlertComponent }  from '../../../shared/components/alert/alert.component';
-import { CooperativeService } from '../../../core/services/cooperative.service';
-
-/** Form controls validated before leaving each step */
-const STEP_FIELDS: string[][] = [
-  ['name', 'registrationNumber', 'address', 'country',
-   'contactPersonName', 'contactPersonPhone', 'contactPersonEmail'],
-  ['bankName', 'accountName', 'accountNumber'],
-  ['defaultBranchName'],
-  [],   // review
-];
+import { ModalComponent } from '../../../shared/components/modal/modal.component';
+import { AlertComponent } from '../../../shared/components/alert/alert.component';
+import { PlatformCooperativesService } from '../../../core/services/platform-cooperatives.service';
+import { ToastService } from '../../../core/services/toast.service';
+import { FormFeedbackService } from '../../../core/services/form-feedback.service';
 
 @Component({
   selector: 'app-cooperative-onboarding',
@@ -39,140 +26,163 @@ const STEP_FIELDS: string[][] = [
     CommonModule,
     RouterModule,
     ReactiveFormsModule,
-    StepperComponent,
+    FormShellComponent,
+    FormSectionComponent,
     InputComponent,
     ButtonComponent,
     ModalComponent,
-    AlertComponent,
+    //AlertComponent,
   ],
   templateUrl: './cooperative-onboarding.component.html',
   styleUrls: ['./cooperative-onboarding.component.css'],
 })
 export class CooperativeOnboardingComponent implements OnInit {
-  // ── Stepper ───────────────────────────────────────────────
-  readonly steps: Step[] = [
-    { label: 'Identity', number: '01' },
-    { label: 'Address',  number: '02' },
-    { label: 'Branch',   number: '03' },
-    { label: 'Bank',     number: '04' },
-    { label: 'Review',   number: '05' },
-  ];
-  currentStep = 0;
-
-  isSaving = false;
-
   profileForm!: FormGroup;
 
-  // Field groups per step, used for step-level validation
-  private stepFields: string[][] = [
-    ['name', 'registrationNumber'],
-    ['address', 'country'],
-    ['defaultBranchName'],
-    ['accountName', 'accountNumber'],
-    [],
-  ];
+  // Admin photo previews — stored as base64 strings, not part of the FormGroup
+  admin1Photo = '';
+  admin2Photo = '';
+  admin1PhotoName = '';
+  admin2PhotoName = '';
 
-  // ── Save progress ─────────────────────────────────────────
-  saveProgress(): void {
-    this.isSaving = true;
-    // Replace with: PATCH /cooperative/onboarding/draft
-    setTimeout(() => {
-      this.isSaving = false;
-      this.router.navigate(['/platform/cooperatives']);
-    }, 600);
-  }
-
-  // ── Modal ─────────────────────────────────────────────────
+  // Modal + loading state
   showConfirmModal = false;
   isLoading = false;
-  errorMessage = '';
+
+  private readonly fieldLabels: Record<string, string> = {
+    name: 'Cooperative Name',
+    registrationNumber: 'Registration Number',
+    defaultBranchName: 'Default Branch Name',
+    address: 'Address',
+    country: 'Country',
+    accountName: 'Account Name',
+    accountNumber: 'Account Number',
+    admin1FullName: 'Admin 1 Full Name',
+    admin1Email: 'Admin 1 Email',
+    admin1Phone: 'Admin 1 Phone',
+    admin2FullName: 'Admin 2 Full Name',
+    admin2Email: 'Admin 2 Email',
+    admin2Phone: 'Admin 2 Phone',
+  };
+
+  // Gender options shared by both admin sections
+  readonly genderOptions = ['Female', 'Male', 'Other', 'Prefer not to say'];
 
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private cooperativeService: CooperativeService,
+    private cooperativeService: PlatformCooperativesService,
     private titleService: Title,
+    private toast: ToastService,
+    private feedback: FormFeedbackService,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
-    this.titleService.setTitle('Cooperative Onboarding | UGAAP');
+    this.titleService.setTitle('New Cooperative | UGAAP');
     this.initProfileForm();
   }
 
-  // ── Init form ─────────────────────────────────────────────
+  // ── Form initialisation ───────────────────────────────────────────────────
 
   initProfileForm(): void {
     this.profileForm = this.fb.group({
+      // Section 1 — Identity
       name: ['', Validators.required],
       registrationNumber: ['', Validators.required],
+      defaultBranchName: ['', Validators.required],
+      defaultBranchLocation: [''],
+
+      // Section 2 — Address
       address: ['', Validators.required],
       country: ['', Validators.required],
       poBox: [''],
       websiteUrl: [''],
-      contactPersonName:  [''],
-      contactPersonPhone: [''],
-      contactPersonEmail: ['', Validators.email],
 
-      // Default branch — created automatically on activation
-      defaultBranchName:     ['', Validators.required],
-      defaultBranchLocation: [''],
+      // Section 4 — Bank Account (fixed to Pearl Bank)
+      bankName: ['Pearl Bank'],
+      bankBranch: [''],
+      accountName: ['', Validators.required],
+      accountNumber: ['', [Validators.required, Validators.pattern(/^\d{6,20}$/)]],
 
-      // Bank details — fixed to Pearl Bank (formerly Post Bank Uganda)
-      bankName:            ['Pearl Bank'],
-      bankBranch:          [''],
-      accountName:         ['', Validators.required],
-      accountNumber:       ['', [Validators.required, Validators.pattern(/^\d{6,20}$/)]],
-      mobileMoneyProvider: [''],
-      mobileMoneyNumber:   [''],
+      // Section 5 — Admin 1 (formerly Maker)
+      admin1FullName: ['', Validators.required],
+      admin1Email: ['', [Validators.required, Validators.email]],
+      admin1Phone: ['', Validators.required],
+      admin1DateOfBirth: [''],
+      admin1NationalId: ['', Validators.pattern(/^[A-Z0-9]{14}$/)],
+      admin1Gender: ['Female'],
+
+      // Section 6 — Admin 2 (formerly Checker)
+      admin2FullName: ['', Validators.required],
+      admin2Email: ['', [Validators.required, Validators.email]],
+      admin2Phone: ['', Validators.required],
+      admin2DateOfBirth: [''],
+      admin2NationalId: ['', Validators.pattern(/^[A-Z0-9]{14}$/)],
+      admin2Gender: ['Female'],
     });
   }
 
-  // ── Step navigation ───────────────────────────────────────
+  // ── Photo handling — Admin 1 ──────────────────────────────────────────────
 
-  /** Validate current step's fields then advance one step */
-  nextStep(): void {
-    const fields = this.stepFields[this.currentStep] ?? [];
-    let valid = true;
-    for (const field of fields) {
-      const ctrl = this.profileForm.get(field);
-      ctrl?.markAsTouched();
-      if (ctrl?.invalid) valid = false;
-    }
-    if (!valid) return;
-    this.currentStep = Math.min(this.currentStep + 1, this.steps.length - 1);
+  onAdmin1PhotoSelect(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (file) this.handleAdminPhoto(file, 1);
+    (event.target as HTMLInputElement).value = '';
   }
 
-  previousStep(): void {
-    this.currentStep = Math.max(this.currentStep - 1, 0);
+  onAdmin1PhotoDrop(event: DragEvent): void {
+    event.preventDefault();
+    const file = event.dataTransfer?.files?.[0];
+    if (file) this.handleAdminPhoto(file, 1);
   }
 
-  /** Sidebar clicks: backward always allowed, forward gated by validation */
-  goToStep(index: number): void {
-    if (index <= this.currentStep) {
-      this.currentStep = index;
-      return;
-    }
-    if (this.validateStep(this.currentStep)) {
-      this.currentStep = index;
-    }
+  removeAdmin1Photo(): void {
+    this.admin1Photo = '';
+    this.admin1PhotoName = '';
   }
 
-  private validateStep(step: number): boolean {
-    const fields = STEP_FIELDS[step] ?? [];
-    let valid = true;
-    for (const field of fields) {
-      const ctrl = this.profileForm.get(field);
-      ctrl?.markAsTouched();
-      if (ctrl?.invalid) valid = false;
-    }
-    return valid;
+  // ── Photo handling — Admin 2 ──────────────────────────────────────────────
+
+  onAdmin2PhotoSelect(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (file) this.handleAdminPhoto(file, 2);
+    (event.target as HTMLInputElement).value = '';
   }
 
-  // ── Modal ─────────────────────────────────────────────────
+  onAdmin2PhotoDrop(event: DragEvent): void {
+    event.preventDefault();
+    const file = event.dataTransfer?.files?.[0];
+    if (file) this.handleAdminPhoto(file, 2);
+  }
+
+  removeAdmin2Photo(): void {
+    this.admin2Photo = '';
+    this.admin2PhotoName = '';
+  }
+
+  private handleAdminPhoto(file: File, which: 1 | 2): void {
+    const maxBytes = 5 * 1024 * 1024; // 5 MB
+    if (!['image/jpeg', 'image/png'].includes(file.type) || file.size > maxBytes) return;
+
+    if (which === 1) this.admin1PhotoName = file.name;
+    else this.admin2PhotoName = file.name;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === 'string' ? reader.result : '';
+      if (which === 1) this.admin1Photo = result;
+      else this.admin2Photo = result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // ── Modal ─────────────────────────────────────────────────────────────────
 
   openConfirmModal(): void {
     if (this.profileForm.invalid) {
       this.profileForm.markAllAsTouched();
+      this.feedback.formError(this.profileForm, this.fieldLabels);
       return;
     }
     this.showConfirmModal = true;
@@ -182,71 +192,92 @@ export class CooperativeOnboardingComponent implements OnInit {
     this.showConfirmModal = false;
   }
 
-  // ── Submit (navigate to Maker & Checker creation) ────────
+  // ── Submit ────────────────────────────────────────────────────────────────
 
   activateCooperative(): void {
     if (this.profileForm.invalid) {
       this.profileForm.markAllAsTouched();
+      this.feedback.formError(this.profileForm, this.fieldLabels);
       return;
     }
 
     this.isLoading = true;
-    this.errorMessage = '';
-    this.showConfirmModal = false;
+
+    const v = this.profileForm.value;
 
     const payload = {
-      name: this.profileForm.value.name,
-      registrationNumber: this.profileForm.value.registrationNumber,
-      address: this.profileForm.value.address,
-      contactPersonName: this.profileForm.value.contactPersonName,
-      contactPersonPhone: this.profileForm.value.contactPersonPhone,
-      contactPersonEmail: this.profileForm.value.contactPersonEmail,
-      poBox: this.profileForm.value.poBox,
-      websiteUrl: this.profileForm.value.websiteUrl,
-      country: this.profileForm.value.country,
-      defaultBranchName: this.profileForm.value.defaultBranchName,
-      defaultBranchLocation: this.profileForm.value.defaultBranchLocation,
+      name: v.name,
+      registrationNumber: v.registrationNumber,
+      address: v.address,
+      country: v.country,
+      poBox: v.poBox,
+      websiteUrl: v.websiteUrl,
+      defaultBranchName: v.defaultBranchName,
+      defaultBranchLocation: v.defaultBranchLocation,
 
       bankDetails: {
-        bankName: this.profileForm.value.bankName,
-        bankBranch: this.profileForm.value.bankBranch,
-        accountName: this.profileForm.value.accountName,
-        accountNumber: this.profileForm.value.accountNumber,
-        mobileMoneyProvider: this.profileForm.value.mobileMoneyProvider,
-        mobileMoneyNumber: this.profileForm.value.mobileMoneyNumber,
+        bankName: v.bankName,
+        bankBranch: v.bankBranch,
+        accountName: v.accountName,
+        accountNumber: v.accountNumber,
+      },
+
+      // Admin accounts sent as part of the cooperative creation payload
+      admin1: {
+        fullName: v.admin1FullName,
+        email: v.admin1Email,
+        phone: v.admin1Phone,
+        dateOfBirth: v.admin1DateOfBirth,
+        nationalId: v.admin1NationalId,
+        gender: v.admin1Gender,
+        photoBase64: this.admin1Photo || null,
+      },
+      admin2: {
+        fullName: v.admin2FullName,
+        email: v.admin2Email,
+        phone: v.admin2Phone,
+        dateOfBirth: v.admin2DateOfBirth,
+        nationalId: v.admin2NationalId,
+        gender: v.admin2Gender,
+        photoBase64: this.admin2Photo || null,
       },
     };
 
-    this.cooperativeService.createCooperative(payload).subscribe({
-      next: (res) => {
-        this.isLoading = false;
-
-        this.router.navigate(['/platform/maker-checker'], {
-          state: {
-            cooperative: res,
-            message: `Cooperative "${payload.name}" created successfully`,
-          },
-        });
-      },
-
-      error: (err) => {
-        this.isLoading = false;
-        console.error('Create cooperative failed:', err);
-        this.errorMessage =
-          err?.error?.message ?? 'You do not have permission to create a cooperative.';
-      },
-    });
+    this.cooperativeService
+      .createCooperative(payload)
+      .pipe(
+        timeout(30_000),
+        finalize(() => {
+          this.isLoading = false;
+        }),
+      )
+      .subscribe({
+        next: () => {
+          this.showConfirmModal = false;
+          this.toast.success(
+            'Cooperative activated',
+            `${v.name} has been registered and both admin accounts created.`,
+          );
+          this.router.navigate(['/platform/cooperatives']);
+        },
+        error: (err: unknown) => {
+          this.feedback.serverError(err);
+        },
+      });
   }
 
-  // ── Helpers ───────────────────────────────────────────────
+  // ── Helpers ───────────────────────────────────────────────────────────────
 
   getFieldError(fieldName: string): string {
     const control = this.profileForm.get(fieldName);
     if (control?.touched && control?.errors) {
       if (control.errors['required']) return 'This field is required';
       if (control.errors['email']) return 'Invalid email format';
-      if (control.errors['pattern'] && fieldName === 'accountNumber')
-        return 'Account number must be 6–20 digits';
+      if (control.errors['pattern']) {
+        if (fieldName === 'accountNumber') return 'Account number must be 6–20 digits';
+        if (fieldName === 'admin1NationalId' || fieldName === 'admin2NationalId')
+          return 'Must be exactly 14 alphanumeric characters';
+      }
     }
     return '';
   }

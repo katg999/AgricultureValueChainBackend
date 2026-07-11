@@ -35,9 +35,9 @@ export class BatchCreateComponent implements OnInit {
     this.batchService.getAllFarmers().subscribe();
   }
 
-  // Static dropdown options — hardcoded for now, would come from an API later.
-  seasons = ['Season A 2024', 'Season B 2024', 'Season A 2025'];
-  commodities = ['All Commodities', 'Coffee', 'Maize'];
+  // Dropdown options sourced from service — swap for an API call when ready.
+  readonly seasons = this.batchService.getSeasons();
+  readonly commodities = this.batchService.getCommodities();
 
   // A branch can only ever create a batch for itself — shown read-only for context,
   // not a choice. batchService derives the actual branchId from the session, not this.

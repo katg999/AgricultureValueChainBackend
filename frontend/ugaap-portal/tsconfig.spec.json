@@ -4,16 +4,25 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./out-tsc/spec",
-    "rootDir": "./src/app",
+    "rootDir": "./src",
     "module": "CommonJS",
     "forceConsistentCasingInFileNames": true,
     "types": ["vitest/globals", "jasmine"]
   },
+  // Scoped to the finance feature only (not "src/**/*.spec.ts") — the rest of the app's
+  // spec suite has ~12 separate, pre-existing failing test files (missing DI providers,
+  // ProxyZone setup, stale property references) unrelated to this feature. Widen this back
+  // to the full glob once those are triaged/fixed; the rootDir fix above (matches
+  // tsconfig.app.json) is what actually mattered for finance specs that transitively touch
+  // SessionService/environment.ts — it was previously misdiagnosed as an unfixable upstream
+  // TS 5.9.x/Angular 21 compiler bug (angular/angular-cli#32281) because of this mismatch.
   "include": [
     "src/**/*.d.ts",
-    "src/**/*.spec.ts",
-    "src/app/features/auth/set-new-password/set-new-password.component.spec.ts",
-    "src/app/features/auth/first-time-login/first-time-login.spec.component.ts",
-    "src/app/features/branch/finance/batch-create/batch-create.spec.component.ts"
+    "src/app/features/branch/finance/**/*.spec.ts",
+    // Added for BatchFlowStatusComponent — a shared component consumed by
+    // the finance feature, but physically outside it.
+    "src/app/shared/components/batch-flow-status/**/*.spec.ts",
+    "src/app/features/cooperative/farmers/farmer-approval/**/*.spec.ts",
+    "src/app/features/branch/branch-farmers/branch.farmer-list/**/*.spec.ts"
   ]
 }

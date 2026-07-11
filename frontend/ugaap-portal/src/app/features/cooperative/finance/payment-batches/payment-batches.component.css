@@ -1,9 +1,8 @@
-:host { display: block; font-family: var(--font-human); }
+﻿:host { display: block; font-family: var(--font-human); }
 .mono { font-family: var(--font-technical); }
 
 .pb-page {
   min-height: 100vh;
-  padding: 24px;
   background: var(--surface-low);
   color: var(--secondary);
 }
@@ -159,6 +158,5 @@
 }
 
 @media (max-width: 768px) {
-  .pb-page { padding: 16px; }
-  .pb-title { font-size: 22px; }
+  .pb-page .pb-title { font-size: 22px; }
 }

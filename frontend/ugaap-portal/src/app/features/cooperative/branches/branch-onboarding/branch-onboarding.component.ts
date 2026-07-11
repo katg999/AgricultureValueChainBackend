@@ -2,18 +2,19 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { finalize } from 'rxjs';
 
-// remove HttpClient import, add BranchService
 import { BranchService, BranchCreatePayload } from '../../../../core/services/branch.service';
+import { SessionService } from '../../../../core/services/session.service';
 
-// Shared components
-import { StepperComponent, Step } from '../../../../shared/components/stepper/stepper.component';
+// Shared UI components used in the template
+import { FormShellComponent } from '../../../../shared/components/form-wizard/form-wizard.component';
+import { FormSectionComponent } from '../../../../shared/components/form-section/form-section.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 import { AlertComponent } from '../../../../shared/components/alert/alert.component';
 import { ToastService } from '../../../../core/services/toast.service';
-import { API_ENDPOINTS } from '../../../../core/constants/api-endpoints';
 
 @Component({
   selector: 'app-branch-onboarding',
@@ -22,7 +23,8 @@ import { API_ENDPOINTS } from '../../../../core/constants/api-endpoints';
     CommonModule,
     RouterModule,
     ReactiveFormsModule,
-    StepperComponent,
+    FormShellComponent,
+    FormSectionComponent,
     InputComponent,
     ButtonComponent,
     ModalComponent,
@@ -32,32 +34,17 @@ import { API_ENDPOINTS } from '../../../../core/constants/api-endpoints';
   styleUrls: ['./branch-onboarding.component.css'],
 })
 export class BranchOnboardingComponent implements OnInit {
-  // ── Stepper ───────────────────────────────────────────────
-  steps: Step[] = [
-    { label: 'IDENTITY', number: '01' },
-    { label: 'LOCATION', number: '02' },
-    { label: 'CONTACT',  number: '03' },
-    { label: 'MANAGER',  number: '04' },
-    { label: 'REVIEW',   number: '05' },
-  ];
 
-  currentStep = 0;
-
-  // ── Forms ─────────────────────────────────────────────────
+  // ── Form ──────────────────────────────────────────────────
   branchForm!: FormGroup;
 
-  // ── Modal ─────────────────────────────────────────────────
+  // ── UI state ──────────────────────────────────────────────
   showConfirmModal = false;
-
-  // ── Loading states ────────────────────────────────────────
   isLoading = false;
-  isSaving = false;
+  errorMessage = '';
 
-  private toast = inject(ToastService);
-
-  // ── Error & success ───────────────────────────────────────
-  errorMessage: string = '';
-  submitSuccess: boolean = false;
+  private toast   = inject(ToastService);
+  private session = inject(SessionService);
 
   constructor(
     private fb: FormBuilder,
@@ -69,115 +56,115 @@ export class BranchOnboardingComponent implements OnInit {
     this.initBranchForm();
   }
 
-  // ── Init form ─────────────────────────────────────────────
+  // ── Form setup ────────────────────────────────────────────
+
   initBranchForm(): void {
     this.branchForm = this.fb.group({
-      tenantId: ['', []],
+      tenantId: [''],
+
+      // Identity
       branchName: ['', [Validators.required, Validators.minLength(3)]],
+      // Reg number must be uppercase letters and digits only (e.g., KAS001)
       branchRegistrationNumber: ['', [Validators.required, Validators.pattern(/^[A-Z0-9]+$/)]],
+
+      // Location
       location: ['', Validators.required],
       region: ['', Validators.required],
       country: ['', Validators.required],
       establishedDate: ['', Validators.required],
+
+      // Address
       address: ['', [Validators.required, Validators.minLength(10)]],
-      poBox: ['', [Validators.required, Validators.minLength(5)]],
+      poBox: ['', [Validators.required, Validators.minLength(5), Validators.pattern(/^[A-Za-z0-9\s.,\-\/]+$/)]],
+
+      // Manager
       managerName: ['', [Validators.required, Validators.minLength(3)]],
       managerEmail: ['', [Validators.required, Validators.email]],
-      managerPhone: ['', [Validators.required, Validators.pattern(/^\+\d{1,3}\d{4,14}$/)]]
+      // Phone must include country code: +[1–3 digits][4–14 digits]
+      managerPhone: ['', [Validators.required, Validators.pattern(/^\+\d{1,3}\d{4,14}$/)]],
     });
   }
 
-  // ── Navigation ────────────────────────────────────────────
-  nextStep(): void {
-    if (!this.isStepValid(this.currentStep)) return;
-    this.currentStep++;
-  }
-
-  previousStep(): void {
-    this.currentStep--;
-  }
-
-  // ── Step validation ───────────────────────────────────────
-
-  private readonly STEP_FIELDS: Record<number, string[]> = {
-    0: ['branchName', 'branchRegistrationNumber'],
-    1: ['location', 'region', 'country', 'establishedDate'],
-    2: ['address', 'poBox'],
-    3: ['managerName', 'managerEmail', 'managerPhone'],
-  };
-
-  private isStepValid(step: number): boolean {
-    const fields = this.STEP_FIELDS[step] ?? [];
-    let valid = true;
-    for (const field of fields) {
-      const control = this.branchForm.get(field);
-      if (control?.invalid) {
-        control.markAsTouched();
-        valid = false;
-      }
-    }
-    return valid;
-  }
-
   // ── Modal ─────────────────────────────────────────────────
+
   openConfirmModal(): void {
-    this.showConfirmModal = true;
+    if (this.branchForm.invalid) {
+      // Touch every field so red error messages appear on screen
+      this.branchForm.markAllAsTouched();
+      return;
+    }
     this.errorMessage = '';
+    this.showConfirmModal = true;
   }
 
   closeConfirmModal(): void {
     this.showConfirmModal = false;
   }
 
-  // ── Register branch ───────────────────────────────────────
+  // ── Submit ────────────────────────────────────────────────
+
   registerBranch(): void {
     this.errorMessage = '';
-    this.router.navigate(['/cooperative/branches/dashboard'], {
-      state: {
-        newBranch: {
-          name:        this.formValue.branchName,
-          location:    `${this.formValue.location}, ${this.formValue.region}`,
-          branchCode:  this.formValue.branchRegistrationNumber,
-          country:     this.formValue.country,
-          managerName: this.formValue.managerName,
-        },
+    this.isLoading = true;
+
+    const tenantId = this.session.tenantId() ?? '';
+    const v = this.formValue;
+
+    const payload: BranchCreatePayload = {
+      name:               v.branchName,
+      tenantId,
+      registrationNumber: v.branchRegistrationNumber,
+      location:           v.location,
+      region:             v.region,
+      country:            v.country,
+      establishedDate:    v.establishedDate,
+      address:            v.address,
+      poBox:              v.poBox,
+      websiteUrl:         '',
+    };
+
+    this.branchService.createBranch(payload).pipe(
+      finalize(() => {
+        this.isLoading = false;
+        this.showConfirmModal = false;
+      }),
+    ).subscribe({
+      next: (branch) => {
+        this.toast.success(`Branch "${branch.name}" created successfully`);
+        this.router.navigate(['/cooperative/branches/dashboard']);
+      },
+      error: (err) => {
+        this.errorMessage = err?.error?.message ?? 'Failed to create branch. Please try again.';
       },
     });
   }
 
-  // ── Save progress ─────────────────────────────────────────
-  saveProgress(): void {
-    this.isSaving = true;
-    setTimeout(() => {
-      this.isSaving = false;
-      this.toast.success(
-        'Progress saved',
-        'Your branch details have been saved. You can continue later.',
-      );
-    }, 1000);
-  }
+  // ── Field error messages ──────────────────────────────────
 
-  // ── Field error helper ────────────────────────────────────
   getFieldError(fieldName: string): string {
     const control = this.branchForm.get(fieldName);
-    if (control?.touched && control?.errors) {
-      if (control.errors['required']) return 'This field is required';
-      if (control.errors['email']) return 'Invalid email format';
-      if (control.errors['pattern']) {
-        // Custom messages per field
-        if (fieldName === 'branchRegistrationNumber') return 'Only uppercase letters and numbers allowed (e.g., KAS001)';
-        if (fieldName === 'managerPhone') return 'Include country code (e.g., +256712345678)';
-        return 'Invalid format';
-      }
-      if (control.errors['minlength']) {
-        const requiredLength = control.errors['minlength'].requiredLength;
-        return `Minimum ${requiredLength} characters required`;
-      }
+    if (!control?.touched || !control?.errors) return '';
+
+    if (control.errors['required']) return 'This field is required';
+    if (control.errors['email']) return 'Invalid email format';
+    if (control.errors['pattern']) {
+      if (fieldName === 'branchRegistrationNumber')
+        return 'Only uppercase letters and numbers allowed (e.g., KAS001)';
+      if (fieldName === 'managerPhone')
+        return 'Include country code (e.g., +256712345678)';
+      if (fieldName === 'poBox')
+        return 'Only letters, numbers, spaces, periods, commas, and hyphens allowed';
+      return 'Invalid format';
+    }
+    if (control.errors['minlength']) {
+      const required = control.errors['minlength'].requiredLength;
+      return `Minimum ${required} characters required`;
     }
     return '';
   }
 
-  // ── Form value getter ─────────────────────────────────────
+  // ── Convenience getter ────────────────────────────────────
+
   get formValue() {
     return this.branchForm.value;
   }

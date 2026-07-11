@@ -1,6 +1,5 @@
-.stock-disbursed-page {
+﻿.stock-disbursed-page {
   min-height: 100%;
-  padding: 32px 16px;
   background: var(--surface-low);
 }
 
@@ -26,8 +25,8 @@
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 14px;
-  margin-bottom: 20px;
+  gap: 8px;
+  margin-bottom: 12px;
   align-items: stretch;
 }
 
@@ -393,12 +392,7 @@
   margin: 16px 0;
 }
 
-@media (max-width: 900px) {
-  .stock-disbursed-page {
-    padding: 16px;
-  }
-
-  .bottom-row {
+@media (max-width: 900px) {  .bottom-row {
     flex-direction: column;
   }
 

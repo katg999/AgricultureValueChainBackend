@@ -28,6 +28,7 @@ export class DataTableComponent implements AfterContentInit, OnInit, OnChanges {
   @Input() columns: TableColumn[] = [];
   @Input() rows: unknown[] = [];
   @Input() clickable = false;
+  @Input() trackByFn: ((index: number, item: unknown) => unknown) | null = null;
 
   @Input() paginate = false;
   @Input() defaultPageSize = 10;
@@ -39,6 +40,7 @@ export class DataTableComponent implements AfterContentInit, OnInit, OnChanges {
   @Input() emptyRoute?: string;
 
   @Output() rowClick = new EventEmitter<unknown>();
+  @Output() emptyAction = new EventEmitter<void>();
 
   @ContentChildren(CellDirective) private cellDefs!: QueryList<CellDirective>;
   private cellMap = new Map<string, TemplateRef<{ $implicit: unknown }>>();
@@ -111,4 +113,11 @@ export class DataTableComponent implements AfterContentInit, OnInit, OnChanges {
   onRowClick(row: unknown): void {
     if (this.clickable) this.rowClick.emit(row);
   }
+
+  // Falls back to index-based tracking (Angular's implicit default) when the
+  // caller doesn't supply one — callers with a stable row id should always pass
+  // trackByFn, otherwise every data refresh destroys and rebuilds every row.
+  resolvedTrackBy = (index: number, row: unknown): unknown => {
+    return this.trackByFn ? this.trackByFn(index, row) : index;
+  };
 }

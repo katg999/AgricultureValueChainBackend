@@ -1,69 +1,35 @@
-<div class="page-shell">
+<!--
+  Farmer Registration — numbered-section layout via app-form-shell + app-form-section.
+  Uses template-driven forms (ngModel) — no form group wrapper needed.
 
-  <!--  Loading state -->
+  Sections:
+    1. Personal Details   — name, ID, phone, email, gender, DOB, photo
+    2. Farm Details       — location, village, GPS, irrigation, land area, ownership
+    3. Payment Method     — bank / Wendi wallet / mobile money
+    4. Production         — commodity, livestock
+-->
+
+<div class="farmer-register-wrap">
+
+  <!-- Loading state while fetching farmer in edit mode -->
   <p *ngIf="loadingFarmer" class="loading-hint">
     <span class="loading-dot"></span>
     Loading farmer profile…
   </p>
 
-  <div class="wizard-card" *ngIf="!loadingFarmer">
+  <ng-container *ngIf="!loadingFarmer">
 
-    <!--LEFT COLUMN — stepper -->
-    <aside class="stepper-col">
-      <div class="wizard-brand">
-        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-          <rect width="32" height="32" rx="8" fill="#F25D27"/>
-          <path d="M8 22 Q16 6 24 22" stroke="#fff" stroke-width="2.5"
-                stroke-linecap="round" fill="none"/>
-          <circle cx="16" cy="11" r="2.5" fill="#fff"/>
-        </svg>
-        <span class="wizard-brand-name">UGAAP</span>
-      </div>
+    <app-form-shell
+      [title]="isEditMode ? 'Edit Farmer Profile' : 'New Farmer'"
+      subtitle="Fill in all sections below, then register when ready.">
 
-      <p class="wizard-title">
-        {{ isEditMode ? 'Edit farmer profile' : 'Register farmer' }}
-      </p>
+      <!-- ── 1. PERSONAL DETAILS ── -->
+      <app-form-section [number]="1" title="Personal Details" iconName="user"
+                        desc="Basic identity and contact information">
 
-      <nav class="step-list" aria-label="Form steps">
-        <button
-          *ngFor="let step of steps; let i = index"
-          class="step-item"
-          [class.step--done]="i < currentStep"
-          [class.step--active]="i === currentStep"
-          [attr.aria-current]="i === currentStep ? 'step' : null"
-          (click)="goToStep(i)"
-          type="button">
-
-          <span class="step-bubble" aria-hidden="true">
-            <!-- checkmark when done -->
-            <svg *ngIf="i < currentStep" width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M2.5 7L5.5 10L11.5 4" stroke="white" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <!-- number when active or future -->
-            <span *ngIf="i >= currentStep">{{ i + 1 }}</span>
-          </span>
-
-          <span class="step-label">{{ step.label }}</span>
-        </button>
-      </nav>
-
-      <p class="step-counter">Step {{ currentStep + 1 }} of {{ steps.length }}</p>
-    </aside>
-
-    <!--RIGHT COLUMN — form panels-->
-    <div class="form-col">
-
-      <!-- ── STEP 0: Personal Details ── -->
-      <section *ngIf="currentStep === 0" class="form-panel" aria-labelledby="step0-heading">
-        <div class="panel-header">
-          <h2 id="step0-heading" class="panel-title">Personal details</h2>
-          <p class="panel-sub">Basic identity and contact information</p>
-        </div>
-
-        <div class="field-grid field-grid--2">
+        <div class="fields-grid cols-4">
           <app-input
-            label="Full name"
+            label="Full Name"
             placeholder="e.g. Sarah Namubiru"
             type="text"
             [required]="true"
@@ -73,32 +39,30 @@
           </app-input>
 
           <app-input
-            label="National ID number"
-            placeholder="12345678901234"
+            label="National ID Number"
+            placeholder="e.g. CM95012A345B6C"
             type="text"
             [required]="true"
+            [uppercase]="true"
+            hint="14 alphanumeric characters"
             [error]="formErrors['nationalIdNumber']"
             [(ngModel)]="form.nationalIdNumber"
             name="nationalIdNumber">
           </app-input>
-        </div>
-
-        <div class="field-grid field-grid--2">
-          <div class="field-stack">
-            <app-input
-              label="Phone number"
-              placeholder="+256 700 000000"
-              type="tel"
-              [required]="true"
-              [error]="formErrors['phoneNumber']"
-              [(ngModel)]="form.phoneNumber"
-              name="phoneNumber">
-            </app-input>
-            <p class="field-hint">Valid MTN or Airtel Uganda number required</p>
-          </div>
 
           <app-input
-            label="Email address"
+            label="Phone Number"
+            placeholder="e.g. 0700000000"
+            type="tel"
+            [required]="true"
+            hint="Exactly 10 digits, no spaces or country code"
+            [error]="formErrors['phoneNumber']"
+            [(ngModel)]="form.phoneNumber"
+            name="phoneNumber">
+          </app-input>
+
+          <app-input
+            label="Email Address"
             placeholder="sarah.n@emtech.co.ug"
             type="email"
             [required]="true"
@@ -108,17 +72,16 @@
           </app-input>
         </div>
 
-        <div class="field-grid field-grid--2">
-          <div class="field-group">
-            <label class="field-label">Gender <span class="required-mark">*</span></label>
+        <div class="fields-grid cols-2 mt-16">
+          <div class="input-group">
+            <label class="input-label">Gender <span class="required-mark">*</span></label>
             <select title="select gender" [(ngModel)]="form.gender" name="gender" class="form-select">
               <option *ngFor="let g of genderOptions" [value]="g">{{ g }}</option>
             </select>
           </div>
 
           <app-input
-            label="Date of birth"
-            placeholder="DD/MM/YYYY"
+            label="Date of Birth"
             type="date"
             [required]="true"
             [error]="formErrors['dateOfBirth']"
@@ -127,63 +90,49 @@
           </app-input>
         </div>
 
-        <!-- Photo upload -->
-        <div class="field-group">
-          <div class="photo-section">
-            <div class="photo-section__header">
-              <label class="field-label">Profile photo</label>
-              <span class="optional-badge">Optional</span>
-            </div>
-
-            <div class="photo-drop"
-                 (dragover)="$event.preventDefault()"
-                 (drop)="onPhotoDrop($event)"
-                 [class.photo-drop--has-image]="form.photoPreviewUrl">
-
-              
-              <!--preview-->
-              <div *ngIf="form.photoPreviewUrl" class="photo-preview">
-                <img [src]="form.photoPreviewUrl" alt="Farmer photo">
-                <button type="button" class="photo-remove" (click)="removeFarmerPhoto()"
-                        aria-label="Remove photo">
-                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                    <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.8"
-                          stroke-linecap="round"/>
-                  </svg>
-                </button>
-              </div>
-
-              <!-- Upload prompt -->
-              <div *ngIf="!form.photoPreviewUrl" class="photo-prompt">
-                <input type="file" id="farmerPhoto" accept="image/*"
-                       (change)="onPhotoSelected($event)" hidden>
-                <label for="farmerPhoto" class="photo-prompt__label">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"
-                          stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  </svg>
-                  <span>Click to upload</span>
-                  <span class="photo-prompt__sub">or drag and drop · JPG, PNG up to 2 MB</span>
-                </label>
-              </div>
-            </div>
-
-            <p class="field-hint">Clear front-facing photo required for KYC</p>
-            <p *ngIf="photoError" class="field-error">{{ photoError }}</p>
+        <!-- Profile photo (full width) -->
+        <div class="input-group mt-16">
+          <div class="photo-header">
+            <label class="input-label">Profile Photo</label>
+            <span class="optional-badge">Optional</span>
           </div>
-        </div>
-      </section>
 
-      <!--STEP 1: Farm Specifications -->
-      <section *ngIf="currentStep === 1" class="form-panel" aria-labelledby="step1-heading">
-        <div class="panel-header">
-          <h2 id="step1-heading" class="panel-title">Farm specifications</h2>
-          <p class="panel-sub">Location, land size, and growing conditions</p>
+          <div class="photo-input-row">
+            <input type="file" id="farmerPhoto" accept="image/*" (change)="onPhotoSelected($event)" hidden>
+
+            <input type="text" class="form-input photo-filename"
+                   [value]="photoFileName"
+                   placeholder="No file chosen"
+                   readonly>
+
+            <label for="farmerPhoto"
+                   class="btn-upload"
+                   (dragover)="$event.preventDefault()"
+                   (drop)="onPhotoDrop($event)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"
+                      stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+              </svg>
+              Upload
+            </label>
+
+            <button *ngIf="form.photoPreviewUrl" type="button" class="btn-photo-clear"
+                    (click)="removeFarmerPhoto()" aria-label="Remove photo">✕</button>
+          </div>
+
+          <p class="hint-text">Clear front-facing photo required for KYC · JPG, PNG up to 2 MB</p>
+          <p *ngIf="photoError" class="error-text">{{ photoError }}</p>
         </div>
 
-        <div class="field-grid field-grid--2">
-          <div class="field-group">
-            <label class="field-label">Farm location <span class="required-mark">*</span></label>
+      </app-form-section>
+
+      <!-- ── 2. FARM DETAILS ── -->
+      <app-form-section [number]="2" title="Farm Details" iconName="home"
+                        desc="Location, land size, and growing conditions">
+
+        <div class="fields-grid cols-4">
+          <div class="input-group">
+            <label class="input-label">Farm Location <span class="required-mark">*</span></label>
             <select title="select farm location" [(ngModel)]="form.farmLocation"
                     name="farmLocation" class="form-select">
               <option *ngFor="let loc of locationOptions" [value]="loc">{{ loc }}</option>
@@ -199,22 +148,18 @@
             [(ngModel)]="form.village"
             name="village">
           </app-input>
-        </div>
 
-        <div class="field-grid field-grid--2">
-          <div class="field-stack">
-            <app-input
-              label="GPS coordinates"
-              placeholder="e.g. 0.3476 N, 32.5825 E"
-              type="text"
-              [(ngModel)]="form.gpsCoordinates"
-              name="gpsCoordinates">
-            </app-input>
-            <p class="field-hint">Survey plots are created inside each cooperative portal</p>
-          </div>
+          <app-input
+            label="GPS Coordinates"
+            placeholder="e.g. 0.3476 N, 32.5825 E"
+            type="text"
+            hint="Survey plots are created inside each cooperative portal"
+            [(ngModel)]="form.gpsCoordinates"
+            name="gpsCoordinates">
+          </app-input>
 
-          <div class="field-group">
-            <label class="field-label">Irrigation source <span class="required-mark">*</span></label>
+          <div class="input-group">
+            <label class="input-label">Irrigation Source <span class="required-mark">*</span></label>
             <select title="select irrigation source" [(ngModel)]="form.irrigationSource"
                     name="irrigationSource" class="form-select">
               <option *ngFor="let opt of irrigationOptions" [value]="opt">{{ opt }}</option>
@@ -222,11 +167,9 @@
           </div>
         </div>
 
-        <div class="field-grid field-grid--2">
-          <div class="field-group">
-            <label class="field-label">
-              Total land area (hectares) <span class="required-mark">*</span>
-            </label>
+        <div class="fields-grid cols-2 mt-16">
+          <div class="input-group">
+            <label class="input-label">Total Land Area (ha) <span class="required-mark">*</span></label>
             <input
               class="form-input"
               [class.input-error]="formErrors['totalLandArea']"
@@ -236,15 +179,11 @@
               placeholder="e.g. 5.5"
               min="0"
               step="0.1" />
-            <p *ngIf="formErrors['totalLandArea']" class="field-error">
-              {{ formErrors['totalLandArea'] }}
-            </p>
+            <p *ngIf="formErrors['totalLandArea']" class="error-text">{{ formErrors['totalLandArea'] }}</p>
           </div>
 
-          <div class="field-group">
-            <label class="field-label">
-              Land ownership type <span class="required-mark">*</span>
-            </label>
+          <div class="input-group">
+            <label class="input-label">Land Ownership Type <span class="required-mark">*</span></label>
             <select title="select land ownership type" [(ngModel)]="form.landOwnershipType"
                     name="landOwnershipType" class="form-select">
               <option *ngFor="let opt of landOwnershipOptions" [value]="opt">{{ opt }}</option>
@@ -252,27 +191,15 @@
           </div>
         </div>
 
-        <!-- Farm aerial map -->
-        <!-- <div class="farm-map-wrapper">
-          <img [src]="farmImageUrl" alt="Farm aerial view" class="farm-map-img">
-          <div class="farm-map-overlay">
-            <span class="map-badge">&#x1F4CD;&nbsp;Awaiting GPS capture</span>
-          </div>
-        </div> -->
-      </section>
+      </app-form-section>
 
-      <!--STEP 2: Payment Method -->
-      <section *ngIf="currentStep === 2" class="form-panel" aria-labelledby="step2-heading">
-        <div class="panel-header">
-          <h2 id="step2-heading" class="panel-title">Preferred payment method</h2>
-          <p class="panel-sub">How this farmer receives disbursements</p>
-        </div>
+      <!-- ── 3. PAYMENT METHOD ── -->
+      <app-form-section [number]="3" title="Payment Method" iconName="card"
+                        desc="How this farmer receives disbursements">
 
-        <!-- Payment type selector -->
         <div class="payment-tabs" role="radiogroup" aria-label="Payment type">
           <label class="payment-tab" [class.payment-tab--active]="form.paymentMethod.type === 'bank'">
-            <input type="radio" name="paymentMethodType" value="bank"
-                   [(ngModel)]="form.paymentMethod.type">
+            <input type="radio" name="paymentMethodType" value="bank" [(ngModel)]="form.paymentMethod.type">
             <span class="payment-tab__icon">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M3 10h18M3 6l9-3 9 3M3 10v10a1 1 0 001 1h16a1 1 0 001-1V10"
@@ -284,8 +211,7 @@
           </label>
 
           <label class="payment-tab" [class.payment-tab--active]="form.paymentMethod.type === 'wendi_wallet'">
-            <input type="radio" name="paymentMethodType" value="wendi_wallet"
-                   [(ngModel)]="form.paymentMethod.type">
+            <input type="radio" name="paymentMethodType" value="wendi_wallet" [(ngModel)]="form.paymentMethod.type">
             <span class="payment-tab__icon">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M20 7H4a2 2 0 00-2 2v8a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"
@@ -294,16 +220,14 @@
               </svg>
             </span>
             <span class="payment-tab__name">Wendi wallet</span>
-            <span class="payment-tab__sub">14-digit number</span>
+            <span class="payment-tab__sub">Linked to phone number</span>
           </label>
 
           <label class="payment-tab" [class.payment-tab--active]="form.paymentMethod.type === 'mobile_money'">
-            <input type="radio" name="paymentMethodType" value="mobile_money"
-                   [(ngModel)]="form.paymentMethod.type">
+            <input type="radio" name="paymentMethodType" value="mobile_money" [(ngModel)]="form.paymentMethod.type">
             <span class="payment-tab__icon">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <rect x="7" y="2" width="10" height="20" rx="2"
-                      stroke="currentColor" stroke-width="1.8"/>
+                <rect x="7" y="2" width="10" height="20" rx="2" stroke="currentColor" stroke-width="1.8"/>
                 <path d="M11 18h2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
               </svg>
             </span>
@@ -314,20 +238,19 @@
 
         <!-- Bank sub-form -->
         <ng-container *ngIf="form.paymentMethod.type === 'bank'">
-          <div class="field-grid field-grid--2">
-            <div class="field-group">
-              <label class="field-label">Bank name <span class="required-mark">*</span></label>
+          <div class="fields-grid cols-2 mt-16">
+            <div class="input-group">
+              <label class="input-label">Bank Name <span class="required-mark">*</span></label>
               <select title="select bank" [(ngModel)]="form.paymentMethod.bankName"
-                      name="bankName" class="form-select"
-                      [class.input-error]="formErrors['bankName']">
+                      name="bankName" class="form-select" [class.input-error]="formErrors['bankName']">
                 <option value="" disabled>Select a bank</option>
                 <option *ngFor="let bank of bankOptions" [value]="bank">{{ bank }}</option>
               </select>
-              <p *ngIf="formErrors['bankName']" class="field-error">{{ formErrors['bankName'] }}</p>
+              <p *ngIf="formErrors['bankName']" class="error-text">{{ formErrors['bankName'] }}</p>
             </div>
 
             <app-input
-              label="Bank branch"
+              label="Bank Branch"
               placeholder="e.g. Kampala Road Branch"
               type="text"
               [required]="true"
@@ -335,9 +258,11 @@
               [(ngModel)]="form.paymentMethod.bankBranch"
               name="bankBranch">
             </app-input>
+          </div>
 
+          <div class="fields-grid cols-2 mt-16">
             <app-input
-              label="Account holder name"
+              label="Account Holder Name"
               placeholder="e.g. Sarah Namubiru"
               type="text"
               [required]="true"
@@ -346,138 +271,144 @@
               name="bankAccountHolderName">
             </app-input>
 
-            <div class="field-stack">
-              <app-input
-                label="Account number"
-                placeholder="e.g. 123456789012"
-                type="text"
-                [required]="true"
-                [error]="formErrors['bankAccountNumber']"
-                [(ngModel)]="form.paymentMethod.bankAccountNumber"
-                name="bankAccountNumber">
-              </app-input>
-              <p class="field-hint">Must be exactly 12 digits</p>
-            </div>
+            <app-input
+              label="Account Number"
+              placeholder="e.g. 123456789012"
+              type="text"
+              [required]="true"
+              hint="Must be exactly 12 digits"
+              [error]="formErrors['bankAccountNumber']"
+              [(ngModel)]="form.paymentMethod.bankAccountNumber"
+              name="bankAccountNumber">
+            </app-input>
           </div>
         </ng-container>
 
         <!-- Wendi Wallet sub-form -->
         <ng-container *ngIf="form.paymentMethod.type === 'wendi_wallet'">
-          <div class="field-stack">
-            <app-input
-              label="Wendi wallet number"
-              placeholder="e.g. 12345678901234"
-              type="text"
-              [required]="true"
-              [error]="formErrors['wendiWalletNumber']"
-              [(ngModel)]="form.paymentMethod.wendiWalletNumber"
-              name="wendiWalletNumber">
-            </app-input>
-            <p class="field-hint" *ngIf="!formErrors['wendiWalletNumber']">
-              Must be exactly 14 digits
-            </p>
+          <div class="input-group mt-16">
+            <label class="input-label">Wendi Wallet Number</label>
+            <input title="Wendi wallet number" class="form-input readonly-input"
+                   type="tel" [value]="form.phoneNumber" readonly>
+            <p class="hint-text">Auto-filled from the phone number entered above</p>
           </div>
         </ng-container>
 
         <!-- Mobile Money sub-form -->
         <ng-container *ngIf="form.paymentMethod.type === 'mobile_money'">
-          <div class="field-grid field-grid--1">
-            <div class="field-group">
-              <label class="field-label">Provider</label>
-              <div class="provider-row">
-                <label class="radio-pill" [class.radio-pill--active]="form.paymentMethod.mobileMoneyProvider === 'mtn'">
-                  <input type="radio" name="mmProvider" value="mtn"
-                         [(ngModel)]="form.paymentMethod.mobileMoneyProvider">
-                  MTN Mobile Money
-                </label>
-                <label class="radio-pill" [class.radio-pill--active]="form.paymentMethod.mobileMoneyProvider === 'airtel'">
-                  <input type="radio" name="mmProvider" value="airtel"
-                         [(ngModel)]="form.paymentMethod.mobileMoneyProvider">
-                  Airtel Money
-                </label>
-              </div>
-            </div>
-            <div class="field-group">
-              <label class="field-label">Mobile money number</label>
-              <input title="Mobile money number" class="form-input readonly-field"
-                     type="tel" [value]="form.phoneNumber" readonly>
-              <p class="field-hint">Auto-filled from phone number above</p>
+          <div class="input-group mt-16">
+            <label class="input-label">Provider</label>
+            <div class="provider-row">
+              <label class="radio-pill" [class.radio-pill--active]="form.paymentMethod.mobileMoneyProvider === 'mtn'">
+                <input type="radio" name="mmProvider" value="mtn" [(ngModel)]="form.paymentMethod.mobileMoneyProvider">
+                MTN Mobile Money
+              </label>
+              <label class="radio-pill" [class.radio-pill--active]="form.paymentMethod.mobileMoneyProvider === 'airtel'">
+                <input type="radio" name="mmProvider" value="airtel" [(ngModel)]="form.paymentMethod.mobileMoneyProvider">
+                Airtel Money
+              </label>
             </div>
           </div>
+
+          <div class="input-group mt-16">
+            <label class="input-label">Mobile Money Number</label>
+            <input title="Mobile money number" class="form-input readonly-input"
+                   type="tel" [value]="form.phoneNumber" readonly>
+            <p class="hint-text">Auto-filled from the phone number entered above</p>
+          </div>
         </ng-container>
-      </section>
 
-      <!-- STEP 3: Production Details-->
-      <section *ngIf="currentStep === 3" class="form-panel" aria-labelledby="step3-heading">
-        <div class="panel-header">
-          <h2 id="step3-heading" class="panel-title">Production details</h2>
-          <p class="panel-sub">Crops grown and livestock on the farm</p>
-        </div>
+      </app-form-section>
 
-        <!-- Primary commodity -->
-        <div class="field-group">
+      <!-- ── 4. PRODUCTION ── -->
+      <app-form-section [number]="4" title="Production" iconName="globe"
+                        desc="Crops grown and livestock on the farm">
+
+        <div class="fields-grid cols-2">
           <app-input
-            label="Commodity to deliver"
+            label="Commodity to Deliver"
             placeholder="e.g. Coffee, Maize, Beans…"
             type="text"
+            hint="The main crop this farmer delivers — appears on their farmer record"
             [(ngModel)]="form.production.commodity"
             name="commodity">
           </app-input>
-          <p class="field-hint">The main crop this farmer delivers — this appears on their record in the farmer list</p>
-        </div>
 
-        <!-- Livestock -->
-        <div class="field-group">
           <app-input
-            label="Livestock kept"
+            label="Livestock Kept"
             placeholder="e.g. Cattle, Goats, Pigs…"
             type="text"
+            hint="Animals kept on the farm — appears on the farmer's record"
             [(ngModel)]="form.production.livestock"
             name="livestock">
           </app-input>
-          <p class="field-hint">Animals kept on the farm — this appears on the farmer's record</p>
         </div>
 
-        <!-- Save error -->
-        <div *ngIf="saveError" class="save-error" role="alert">
-          {{ saveError }}
-        </div>
-      </section>
+      </app-form-section>
 
-      <!-- BOTTOM NAV — back / next / save -->
-      <div class="form-nav">
-        <app-button variant="ghost" size="md" (clicked)="onCancel()">
-          Cancel
-        </app-button>
+    </app-form-shell>
 
-        <div class="form-nav__right">
-          <app-button
-            *ngIf="currentStep > 0"
-            variant="ghost"
-            size="md"
-            (clicked)="prevStep()">
-            ← Back
-          </app-button>
+    <div class="form-actions">
+      <button type="button" class="btn-secondary" (click)="onCancel()">Cancel</button>
+      <app-button
+        variant="primary"
+        size="lg"
+        (clicked)="onSave()"
+        [loading]="isSaving"
+        loadingText="Saving…">
+        {{ isEditMode ? 'Save Changes' : 'Register Farmer' }}
+      </app-button>
+    </div>
 
-          <app-button
-            *ngIf="currentStep < steps.length - 1"
-            variant="primary"
-            size="md"
-            (clicked)="nextStep()">
-            Next →
-          </app-button>
+  </ng-container>
 
-          <app-button
-            *ngIf="currentStep === steps.length - 1"
-            variant="primary"
-            size="md"
-            (clicked)="onSave()"
-            [disabled]="isSaving || loadingFarmer">
-            {{ isSaving ? 'Saving…' : (isEditMode ? 'Save changes' : 'Register farmer') }}
-          </app-button>
-        </div>
-      </div>
+</div>
 
-    </div><!-- /form-col -->
-  </div><!-- /wizard-card -->
-</div><!-- /page-shell -->
+<!-- ── REVIEW & CONFIRM MODAL ── -->
+<app-modal
+  [isOpen]="showConfirmModal"
+  title="Review & Confirm"
+  subtitle="Check the details below before registering."
+  size="lg"
+  [closeOnBackdrop]="!isSaving"
+  [closeOnEsc]="!isSaving"
+  (closed)="showConfirmModal = false">
+
+  <div class="review-layout">
+    <div class="review-group">
+      <h4 class="review-group-title">Personal Details</h4>
+      <hr class="review-divider">
+      <div class="review-row-item"><span class="rl">Full Name</span><span class="rv">{{ form.fullName || '—' }}</span></div>
+      <div class="review-row-item"><span class="rl">National ID</span><span class="rv">{{ form.nationalIdNumber || '—' }}</span></div>
+      <div class="review-row-item"><span class="rl">Phone</span><span class="rv">{{ form.phoneNumber || '—' }}</span></div>
+      <div class="review-row-item"><span class="rl">Email</span><span class="rv">{{ form.emailAddress || '—' }}</span></div>
+      <div class="review-row-item"><span class="rl">Gender</span><span class="rv">{{ form.gender || '—' }}</span></div>
+      <div class="review-row-item"><span class="rl">Date of Birth</span><span class="rv">{{ form.dateOfBirth || '—' }}</span></div>
+    </div>
+
+    <div class="review-group">
+      <h4 class="review-group-title">Farm Details</h4>
+      <hr class="review-divider">
+      <div class="review-row-item"><span class="rl">Location</span><span class="rv">{{ form.farmLocation || '—' }}</span></div>
+      <div class="review-row-item"><span class="rl">Village / Town</span><span class="rv">{{ form.village || '—' }}</span></div>
+      <div class="review-row-item"><span class="rl">Land Area (acres)</span><span class="rv">{{ form.totalLandArea ?? '—' }}</span></div>
+      <div class="review-row-item"><span class="rl">Irrigation</span><span class="rv">{{ form.irrigationSource || '—' }}</span></div>
+    </div>
+
+    <div class="review-group">
+      <h4 class="review-group-title">Payment Method</h4>
+      <hr class="review-divider">
+      <div class="review-row-item"><span class="rl">Method</span><span class="rv">{{ reviewPaymentSummary }}</span></div>
+    </div>
+  </div>
+
+  <div class="modal-actions" footer>
+    <button type="button" class="btn-secondary" [disabled]="isSaving" (click)="showConfirmModal = false">
+      Edit
+    </button>
+    <app-button variant="primary" size="md" [loading]="isSaving" loadingText="Saving…" (clicked)="onConfirmSave()">
+      {{ isEditMode ? 'Save Changes' : 'Register Farmer' }}
+    </app-button>
+  </div>
+
+</app-modal>

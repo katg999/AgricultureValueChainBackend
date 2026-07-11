@@ -1,12 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Title } from '@angular/platform-browser';
 
-// Shared components
 import { TableComponent, TableColumn } from '../../../shared/components/table/table.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
+import { StatCardComponent, StatCardData } from '../../../shared/components/stat-card/stat-card.component';
+// import { PlatformCooperativesService } from '../services/platform-cooperatives.service';
 
 /**
  * Cooperative interface
@@ -19,29 +20,11 @@ interface Cooperative {
   branches: number;
   activeFarmers: number;
   season: string;
-  status: 'active' | 'pending' | 'suspended';
+  status: 'active' | 'pending' | 'suspended' | 'rejected' | 'deleted';
   onboardingProgress: number;
   lastActivity: string;
 }
 
-/**
- * Cooperatives List Component
- * 
- * Displays all registered cooperatives in a table view.
- * Provides search, filter, and navigation to onboarding.
- * 
- * Features:
- * - Searchable cooperative list
- * - Status filtering
- * - Country filtering
- * - Add new cooperative
- * - Export report
- * - Click to view details
- * 
- * Flow:
- * List → Click "Add organisation" → Onboarding flow
- * List → Click row → Cooperative details
- */
 @Component({
   selector: 'app-cooperatives-list',
   standalone: true,
@@ -50,16 +33,16 @@ interface Cooperative {
     RouterModule,
     FormsModule,
     TableComponent,
-    ButtonComponent
+    ButtonComponent,
+    StatCardComponent,
   ],
   templateUrl: './cooperatives-list.component.html',
   styleUrls: ['./cooperatives-list.component.css']
 })
 export class CooperativesListComponent implements OnInit {
 
-  /**
-   * Table columns configuration
-   */
+  // private coopsService = inject(PlatformCooperativesService);
+
   columns: TableColumn[] = [
     { key: 'name', label: 'ORGANISATION NAME', sortable: true, width: '25%' },
     { key: 'country', label: 'COUNTRY', sortable: true, width: '12%' },
@@ -70,64 +53,11 @@ export class CooperativesListComponent implements OnInit {
     { key: 'onboarding', label: 'ONBOARDING', width: '13%' }
   ];
 
-  /**
-   * Cooperative data
-   */
-  cooperatives: Cooperative[] = [
-    {
-      id: 'COOP-UG-092',
-      name: 'Banyankole Kweterana',
-      code: 'COOP-UG-092',
-      country: 'Uganda',
-      branches: 12,
-      activeFarmers: 4250,
-      season: 'Harvest Q3',
-      status: 'active',
-      onboardingProgress: 100,
-      lastActivity: '2 mins ago'
-    },
-    {
-      id: 'COOP-UG-089',
-      name: 'Bugisu Cooperative Union',
-      code: 'COOP-UG-089',
-      country: 'Uganda',
-      branches: 28,
-      activeFarmers: 15800,
-      season: 'Post-Harvest',
-      status: 'pending',
-      onboardingProgress: 75,
-      lastActivity: '1 hour ago'
-    },
-    {
-      id: 'COOP-UG-112',
-      name: 'West Acholi Cooperative',
-      code: 'COOP-UG-112',
-      country: 'Uganda',
-      branches: 8,
-      activeFarmers: 2100,
-      season: 'Planting',
-      status: 'suspended',
-      onboardingProgress: 100,
-      lastActivity: '2 days ago'
-    },
-    {
-      id: 'COOP-UG-015',
-      name: 'Nyari-Kigyezi Cooperative',
-      code: 'COOP-UG-015',
-      country: 'Uganda',
-      branches: 15,
-      activeFarmers: 6720,
-      season: 'Harvest Q3',
-      status: 'active',
-      onboardingProgress: 100,
-      lastActivity: '45 mins ago'
-    }
-  ];
-
-  /**
-   * Filtered data for display
-   */
+  cooperatives: Cooperative[] = [];
   filteredCooperatives: Cooperative[] = [];
+
+  /** Summary stat cards — computed once, updated after any mutation */
+  stats: StatCardData[] = [];
 
   /**
    * Search query
@@ -149,44 +79,57 @@ export class CooperativesListComponent implements OnInit {
    */
   isLoading = false;
 
-  // ADDED for export 
-  /**
-   * Export loading state
-   */
   isExporting = false;
 
   constructor(private router: Router, private titleService: Title) {}
 
   ngOnInit(): void {
     this.titleService.setTitle('Cooperatives List | UGAAP');
-    // Initialize filtered data
     this.filteredCooperatives = [...this.cooperatives];
+    this.stats = this.buildStats();
   }
 
-  /**
-   * Handle search input
-   */
-  onSearch(): void {
-    this.applyFilters();
+  private buildStats(): StatCardData[] {
+    const count = (s: Cooperative['status']) =>
+      this.cooperatives.filter(c => c.status === s).length;
+    return [
+      {
+        label:  'Active',
+        value:  count('active'),
+        icon:   'check',
+        trend:  'Fully onboarded',
+        trendUp: true,
+        status: 'active',
+      },
+      {
+        label:   'Pending Review',
+        value:   count('pending'),
+        icon:    'clock',
+        trend:   'Awaiting approval',
+        trendUp: false,
+        status:  'warning',
+      },
+      {
+        label:   'Rejected',
+        value:   count('rejected'),
+        icon:    'alert',
+        trend:   'Requires follow-up',
+        trendUp: false,
+        status:  'critical',
+      },
+      {
+        label:  'Deleted',
+        value:  count('deleted'),
+        icon:   'settings',
+        trend:  'Archived records',
+      },
+    ];
   }
 
-  /**
-   * Handle status filter change
-   */
-  onStatusChange(): void {
-    this.applyFilters();
-  }
+  onSearch(): void { this.applyFilters(); }
+  onStatusChange(): void { this.applyFilters(); }
+  onCountryChange(): void { this.applyFilters(); }
 
-  /**
-   * Handle country filter change
-   */
-  onCountryChange(): void {
-    this.applyFilters();
-  }
-
-  /**
-   * Apply all filters
-   */
   applyFilters(): void {
     let filtered = [...this.cooperatives];
 
@@ -302,30 +245,22 @@ export class CooperativesListComponent implements OnInit {
    */
   getStatusVariant(status: string): 'active' | 'pending' | 'suspended' {
     switch (status) {
-      case 'active':
-        return 'active';
-      case 'pending':
-        return 'pending';
-      case 'suspended':
-        return 'suspended';
-      default:
-        return 'pending';
+      case 'active':    return 'active';
+      case 'pending':   return 'pending';
+      case 'rejected':  return 'suspended';
+      case 'deleted':   return 'suspended';
+      default:          return 'pending';
     }
   }
 
-  /**
-   * Get display text for status
-   */
   getStatusText(status: string): string {
     switch (status) {
-      case 'active':
-        return 'ACTIVE';
-      case 'pending':
-        return 'PENDING SETUP';
-      case 'suspended':
-        return 'SUSPENDED';
-      default:
-        return status.toUpperCase();
+      case 'active':    return 'ACTIVE';
+      case 'pending':   return 'PENDING SETUP';
+      case 'suspended': return 'SUSPENDED';
+      case 'rejected':  return 'REJECTED';
+      case 'deleted':   return 'DELETED';
+      default:          return status.toUpperCase();
     }
   }
 

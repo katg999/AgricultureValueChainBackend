@@ -4,19 +4,10 @@ import { Subject, takeUntil } from 'rxjs';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 
 import { Season } from '../../branch/collections/branch.delivery.model';
-import { BatchRecord, BatchStatus } from '../../branch/finance/batch.model';
+import { BatchRecord, BatchStatus } from './batch-record.model';
 import { BatchService } from '../../branch/finance/batch.service';
+import { BranchService } from '../../../core/services/branch.service';
 // import { StatCardComponent } from '../../../shared/components/stat-card/stat-card.component';
-
-const BRANCH_NAMES: Record<string, string> = {
-  'BR-MBL': 'Mbale West',
-  'BR-MBA': 'Mbarara South',
-  'BR-GUL': 'Gulu North',
-  'BR-KIB': 'Kiboga Central',
-  'BR-LIR': 'Lira Town',
-  'BR-FTP': 'Fort Portal West',
-  'BR-ADJ': 'Adjumani East',
-};
 
 export interface BranchBatchGroup {
   branchId: string;
@@ -52,7 +43,10 @@ export class CooperativeFinanceComponent implements OnInit, OnDestroy {
   viewMode: 'summary' | 'batches' = 'summary';
   readonly statusOptions: BatchStatus[] = ['pending', 'processed', 'settled'];
 
-  constructor(private readonly batchService: BatchService) {}
+  constructor(
+    private readonly batchService: BatchService,
+    private readonly branchService: BranchService,
+  ) {}
 
   ngOnInit(): void {
     this.batchService.batches$
@@ -79,7 +73,7 @@ export class CooperativeFinanceComponent implements OnInit, OnDestroy {
     }
     return Array.from(map.entries()).map(([branchId, batches]) => ({
       branchId,
-      branchName: BRANCH_NAMES[branchId] ?? branchId,
+      branchName: this.branchService.getBranchDisplayName(branchId),
       batches,
     }));
   }

@@ -16,6 +16,7 @@ import { catchError, timeout } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { SessionService } from './session.service';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
+import { USE_MOCK } from '../mock/mock-config';
 import {
   SeasonWindow,
   SeasonStatus,
@@ -38,7 +39,7 @@ export class SeasonConfigService {
     private readonly session: SessionService,
   ) {
     this.loadFromStorage();
-    this.refreshFromServer();
+    if (!USE_MOCK) this.refreshFromServer();
   }
 
   getWindows(): SeasonWindow[] {
@@ -144,6 +145,7 @@ export class SeasonConfigService {
   }
 
   private syncToServer(): void {
+    if (USE_MOCK) return;
     this.http.put(API_ENDPOINTS.COOPERATIVE.SEASON_CONFIG, {
       windows: this.windowsSignal(),
       status:  this.statusSignal(),

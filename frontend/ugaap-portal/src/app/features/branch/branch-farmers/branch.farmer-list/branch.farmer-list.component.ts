@@ -1,26 +1,35 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { BehaviorSubject, combineLatest, map, Observable, Subject, takeUntil } from 'rxjs';
 
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
-import { InputComponent } from '../../../../shared/components/input/input.component';
 import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
 import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
 import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
 import { FarmerListItem, FarmerService } from '../../../shared-farmer-domain/farmer.service';
+import { BranchDashboardService } from '../../../../core/services/branch-dashboard.service';
 
 @Component({
   selector: 'app-branch.farmer-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonComponent, InputComponent, StatCardComponent, DataTableComponent, CellDirective],
+  imports: [CommonModule, FormsModule, ButtonComponent, StatCardComponent, DataTableComponent, CellDirective],
   templateUrl: './branch.farmer-list.component.html',
   styleUrl: './branch.farmer-list.component.css',
 })
 export class BranchFarmerListComponent implements OnInit, OnDestroy {
   searchQuery = '';
   openKebabId: string | null = null;
+  selectedStatus = '';
+
+  readonly statusTabs: Array<{ label: string; value: string }> = [
+    { label: 'All',       value: '' },
+    { label: 'Pending',   value: 'Pending' },
+    { label: 'Active',    value: 'Active' },
+    { label: 'Rejected',  value: 'Rejected' },
+    { label: 'Suspended', value: 'Suspended' },
+  ];
 
   cols: TableColumn[] = [
     { key: 'id',               header: 'FARMER ID',        class: 'farmer-id' },
@@ -33,7 +42,7 @@ export class BranchFarmerListComponent implements OnInit, OnDestroy {
     { key: 'actions',          header: '',                 width: '60px' },
   ];
 
-  readonly collectionProgress = 78;
+  collectionProgress = 0; // loaded from BranchDashboardService
 
   farmers$!: Observable<FarmerListItem[]>;
   filteredFarmers$!: Observable<FarmerListItem[]>;
@@ -41,7 +50,8 @@ export class BranchFarmerListComponent implements OnInit, OnDestroy {
   error: string | null = null;
 
   private readonly destroy$ = new Subject<void>();
-  private readonly filterState$ = new BehaviorSubject({ searchQuery: '' });
+  private readonly filterState$ = new BehaviorSubject({ searchQuery: '', selectedStatus: '' });
+  private readonly branchDash = inject(BranchDashboardService);
 
   constructor(
     private router: Router,
@@ -56,6 +66,11 @@ export class BranchFarmerListComponent implements OnInit, OnDestroy {
       map(([farmers, filter]) => this.filterFarmers(farmers, filter)),
     );
 
+    // Pull collection progress from the service instead of hardcoding it
+    this.branchDash.getFarmersStats().subscribe(s => {
+      this.collectionProgress = s.collectionProgress;
+    });
+
     this.refresh();
   }
 
@@ -66,7 +81,12 @@ export class BranchFarmerListComponent implements OnInit, OnDestroy {
   }
 
   applyFilter(): void {
-    this.filterState$.next({ searchQuery: this.searchQuery });
+    this.filterState$.next({ searchQuery: this.searchQuery, selectedStatus: this.selectedStatus });
+  }
+
+  setStatusFilter(status: string): void {
+    this.selectedStatus = status;
+    this.applyFilter();
   }
 
   refresh(): void {
@@ -94,7 +114,7 @@ export class BranchFarmerListComponent implements OnInit, OnDestroy {
   }
 
   onAddFarmer(): void {
-    this.router.navigate(['./register'], { relativeTo: this.route }).then((success) => {
+    this.router.navigate(['../register'], { relativeTo: this.route }).then((success) => {
       console.log('Navigation result:', success);
       console.log('Current URL after nav:', this.router.url);
     });
@@ -133,19 +153,20 @@ export class BranchFarmerListComponent implements OnInit, OnDestroy {
 
   private filterFarmers(
     farmers: FarmerListItem[],
-    filter: { searchQuery: string },
+    filter: { searchQuery: string; selectedStatus: string },
   ): FarmerListItem[] {
     const q = filter.searchQuery.trim().toLowerCase();
-    if (!q) return farmers;
 
-    return farmers.filter(
-      (farmer) =>
+    return farmers.filter(farmer => {
+      const matchStatus = !filter.selectedStatus || farmer.status === filter.selectedStatus;
+      const matchSearch = !q ||
         farmer.id.toLowerCase().includes(q) ||
         farmer.name.toLowerCase().includes(q) ||
         farmer.branch.toLowerCase().includes(q) ||
         farmer.primaryCommodity.toLowerCase().includes(q) ||
         farmer.status.toLowerCase().includes(q) ||
-        farmer.stage.toLowerCase().includes(q),
-    );
+        farmer.stage.toLowerCase().includes(q);
+      return matchStatus && matchSearch;
+    });
   }
 }

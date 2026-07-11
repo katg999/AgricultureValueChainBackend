@@ -1,21 +1,24 @@
-<app-form-wizard
-  [title]="isEditMode ? 'Edit agent' : 'Register agent'"
-  [steps]="steps"
-  [currentStep]="currentStep"
-  (stepSelected)="goToStep($event)">
+<!--
+  Agent Form (Register / Edit) — numbered-section layout via app-form-shell + app-form-section.
 
-  <form [formGroup]="agentForm" (ngSubmit)="saveAgent()">
+  Sections:
+    1. Agent Details  — full name, national ID, phone, email
+    2. Assignment     — role, branch
+-->
 
-    <!-- ── STEP 0: Agent details ── -->
-    <section *ngIf="currentStep === 0" class="form-panel" aria-labelledby="step0-heading">
-      <div class="panel-header">
-        <h2 id="step0-heading" class="panel-title">Agent details</h2>
-        <p class="panel-sub">Identity and contact information</p>
-      </div>
+<form [formGroup]="agentForm" (ngSubmit)="saveAgent()">
 
-      <div class="field-grid field-grid--2">
+  <app-form-shell
+    [title]="isEditMode ? 'Edit Agent' : 'Register Agent'"
+    [subtitle]="isEditMode ? 'Update the details below and save.' : 'Fill in both sections below, then register the agent.'">
+
+    <!-- ── 1. AGENT DETAILS ── -->
+    <app-form-section [number]="1" title="Agent Details" iconName="user"
+                      desc="Identity and contact information">
+
+      <div class="fields-grid cols-4">
         <app-input
-          label="Full name"
+          label="Full Name"
           placeholder="e.g. Moses Byaruhanga"
           type="text"
           [required]="true"
@@ -28,26 +31,24 @@
           placeholder="e.g. CM900421003XKE"
           type="text"
           [required]="true"
+          [uppercase]="true"
+          hint="14 alphanumeric characters"
           [error]="getFieldError('nationalId')"
           formControlName="nationalId">
         </app-input>
-      </div>
-
-      <div class="field-grid field-grid--2">
-        <div class="field-stack">
-          <app-input
-            label="Phone number"
-            placeholder="+256712345678"
-            type="tel"
-            [required]="true"
-            [error]="getFieldError('phone')"
-            formControlName="phone">
-          </app-input>
-          <p class="field-hint">Include country code</p>
-        </div>
 
         <app-input
-          label="Email address"
+          label="Phone Number"
+          placeholder="+256712345678"
+          type="tel"
+          [required]="true"
+          hint="Include country code"
+          [error]="getFieldError('phone')"
+          formControlName="phone">
+        </app-input>
+
+        <app-input
+          label="Email Address"
           placeholder="e.g. moses@cooperative.ug"
           type="email"
           [required]="true"
@@ -55,18 +56,15 @@
           formControlName="email">
         </app-input>
       </div>
-    </section>
+    </app-form-section>
 
-    <!-- ── STEP 1: Assignment ── -->
-    <section *ngIf="currentStep === 1" class="form-panel" aria-labelledby="step1-heading">
-      <div class="panel-header">
-        <h2 id="step1-heading" class="panel-title">Assignment</h2>
-        <p class="panel-sub">Role and the branch this agent works under</p>
-      </div>
+    <!-- ── 2. ASSIGNMENT ── -->
+    <app-form-section [number]="2" title="Assignment" iconName="briefcase"
+                      desc="Role and the branch this agent works under">
 
-      <div class="field-grid field-grid--2">
+      <div class="fields-grid cols-2">
         <div class="field-group">
-          <label class="field-label">Agent role <span class="required-mark">*</span></label>
+          <label class="field-label">Agent Role <span class="required-mark">*</span></label>
           <select title="select agent role" class="form-select" formControlName="role">
             <option value="field_agent">Field Agent</option>
             <option value="collection_clerk">Collection Clerk</option>
@@ -88,43 +86,59 @@
           </p>
         </div>
       </div>
-    </section>
+    </app-form-section>
 
-    <!-- ── Bottom nav ── -->
-    <div class="form-nav">
-      <app-button variant="ghost" size="md" type="button" (clicked)="cancel()">
-        Cancel
-      </app-button>
+  </app-form-shell>
 
-      <div class="form-nav__right">
-        <app-button
-          *ngIf="currentStep > 0"
-          variant="ghost"
-          size="md"
-          type="button"
-          (clicked)="prevStep()">
-          ← Back
-        </app-button>
+  <div class="form-actions">
+    <button type="button" class="btn-secondary" (click)="cancel()">
+      Cancel
+    </button>
+    <app-button
+      variant="primary"
+      size="lg"
+      type="submit">
+      {{ isEditMode ? 'Save Changes' : 'Register Agent' }}
+    </app-button>
+  </div>
 
-        <app-button
-          *ngIf="currentStep < steps.length - 1"
-          variant="primary"
-          size="md"
-          type="button"
-          (clicked)="nextStep()">
-          Next →
-        </app-button>
+</form>
 
-        <app-button
-          *ngIf="currentStep === steps.length - 1"
-          variant="primary"
-          size="md"
-          type="submit"
-          [disabled]="isSaving">
-          {{ isSaving ? 'Saving…' : (isEditMode ? 'Save changes' : 'Register agent') }}
-        </app-button>
-      </div>
+<!-- ── REVIEW & CONFIRM MODAL ── -->
+<app-modal
+  [isOpen]="showConfirmModal"
+  title="Review & Confirm"
+  subtitle="Check the details below before saving."
+  size="lg"
+  [closeOnBackdrop]="!isSaving"
+  [closeOnEsc]="!isSaving"
+  (closed)="showConfirmModal = false">
+
+  <div class="review-layout">
+    <div class="review-group">
+      <h4 class="review-group-title">Agent Details</h4>
+      <hr class="review-divider">
+      <div class="review-row-item"><span class="rl">Full Name</span><span class="rv">{{ agentForm.value.fullName || '—' }}</span></div>
+      <div class="review-row-item"><span class="rl">National ID</span><span class="rv">{{ agentForm.value.nationalId || '—' }}</span></div>
+      <div class="review-row-item"><span class="rl">Phone</span><span class="rv">{{ agentForm.value.phone || '—' }}</span></div>
+      <div class="review-row-item"><span class="rl">Email</span><span class="rv">{{ agentForm.value.email || '—' }}</span></div>
     </div>
 
-  </form>
-</app-form-wizard>
+    <div class="review-group">
+      <h4 class="review-group-title">Assignment</h4>
+      <hr class="review-divider">
+      <div class="review-row-item"><span class="rl">Role</span><span class="rv">{{ reviewRoleLabel }}</span></div>
+      <div class="review-row-item"><span class="rl">Branch</span><span class="rv">{{ reviewBranchName }}</span></div>
+    </div>
+  </div>
+
+  <div class="modal-actions" footer>
+    <button type="button" class="btn-secondary" [disabled]="isSaving" (click)="showConfirmModal = false">
+      Edit
+    </button>
+    <app-button variant="primary" size="md" [loading]="isSaving" loadingText="Saving…" (clicked)="onConfirmSave()">
+      {{ isEditMode ? 'Save Changes' : 'Register Agent' }}
+    </app-button>
+  </div>
+
+</app-modal>

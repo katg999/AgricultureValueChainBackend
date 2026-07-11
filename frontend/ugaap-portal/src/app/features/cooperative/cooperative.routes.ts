@@ -156,6 +156,7 @@ export const COOPERATIVE_ROUTES: Routes = [
   // Multi-step setup wizard — accessible from cooperative admin context
   {
     path: 'onboarding',
+    data: { title: 'Cooperative Setup', subtitle: 'Complete your cooperative registration' },
     loadComponent: () =>
       import('../platform/coop-onboarding/cooperative-onboarding.component')
         .then(m => m.CooperativeOnboardingComponent),
@@ -177,6 +178,7 @@ export const COOPERATIVE_ROUTES: Routes = [
   // Shown after a cooperative is successfully activated
   {
     path: 'activation-success',
+    data: { title: 'Activation Complete' },
     loadComponent: () =>
       import('./activation-success/activation-success.component')
         .then(m => m.ActivationSuccessComponent),

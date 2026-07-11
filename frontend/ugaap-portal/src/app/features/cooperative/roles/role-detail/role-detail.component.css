@@ -1,10 +1,4 @@
-.page {
-  background: var(--surface-low);
-  padding: 40px 20px;
-  font-family: var(--font-human);
-  min-height: 100%;
-}
-
+﻿
 .page-container {
   max-width: 1100px;
   margin: 0 auto;

@@ -103,12 +103,11 @@ public class AuthService {
                 5,
                 TimeUnit.MINUTES
         );
-        // TODO: replace with real emailService.send() once wired(Send OTP email)
+        log.info(">>>>>> DEV OTP for {} : {} <<<<<<", credentials.getEmail(), otp);
         try {
             emailService.sendOtp(credentials.getEmail(), otp);
-        } catch (IOException e) {
-            log.error("Failed to send OTP email to {}: {}", credentials.getEmail(), e.getMessage());
-            throw new AuthException("Failed to send OTP email. Please try again.");
+        } catch (Exception e) {
+            log.warn("Email sending skipped ({}). Use the OTP logged above.", e.getMessage());
         }
 
         saveAuditLog(credentials.getUserId(), credentials.getEmail(),

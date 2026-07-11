@@ -2,23 +2,16 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { from } from 'rxjs';
+import { fetchCooperativeRoleFilterOptions, fetchCooperationOptions } from '../../../../core/mock/mock-reference-data';
 
-import { StatsCardComponent } from '../../../../shared/components/stats-card/stats-card.component';
+import { StatCardComponent } from '../../../../shared/components/stat-card/stat-card.component';
 import { BadgeComponent }     from '../../../../shared/components/badge/badge';
 import { ButtonComponent }    from '../../../../shared/components/button/button.component';
 import { ToastService }       from '../../../../core/services/toast.service';
 import { DataTableComponent, TableColumn } from '../../../../shared/components/data-table/data-table.component';
 import { CellDirective } from '../../../../shared/components/data-table/cell.directive';
-
-export interface User {
-  id:           string;
-  name:         string;
-  email:        string;
-  phone:        string;
-  role:         string;
-  organization: string;
-  lastLogin:    string;
-}
+import { UsersService, User } from '../users.service';
 
 type BadgeVariant = 'info' | 'active' | 'pending' | 'inactive' | 'suspended' |
                     'overdue' | 'settled' | 'partial' | 'verified' |
@@ -27,12 +20,13 @@ type BadgeVariant = 'info' | 'active' | 'pending' | 'inactive' | 'suspended' |
 @Component({
   selector: 'app-users-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, StatsCardComponent, BadgeComponent, ButtonComponent, DataTableComponent, CellDirective],
+  imports: [CommonModule, RouterModule, FormsModule, StatCardComponent, BadgeComponent, ButtonComponent, DataTableComponent, CellDirective],
   templateUrl: './users-list.component.html',
   styleUrls: ['./users-list.component.css'],
 })
 export class UsersListComponent implements OnInit {
 
+  private usersService = inject(UsersService);
   private router = inject(Router);
   private toast  = inject(ToastService);
 
@@ -43,8 +37,8 @@ export class UsersListComponent implements OnInit {
   itemsPerPage        = 4;
   totalItems          = 12;
 
-  readonly roleOptions        = ['All Roles', 'MANAGER', 'COOPERATIVE ADMIN', 'LOGISTICS MANAGER', 'ACCOUNTANT'];
-  readonly cooperationOptions = ['All Cooperations', 'UGAAP Central', 'Kasese Coffee Coop', 'Mubende Warehouse Central'];
+  roleOptions:        string[] = [];
+  cooperationOptions: string[] = [];
 
   cols: TableColumn[] = [
     { key: 'name',         header: 'NAME' },
@@ -56,14 +50,18 @@ export class UsersListComponent implements OnInit {
     { key: 'actions',      header: 'ACTIONS' },
   ];
 
-  users: User[] = [
-    { id: '1', name: 'Sarah Namubiru',   email: 's.namubiru@ugaap.co.ug',  phone: '+256 701 445 678', role: 'COOPERATIVE ADMIN', organization: 'UGAAP Central',            lastLogin: '2 mins ago' },
-    { id: '2', name: 'James Okello',     email: 'j.okello@ugaap.co.ug',    phone: '+256 754 123 456', role: 'LOGISTICS MANAGER', organization: 'Kasese Coffee Coop',        lastLogin: '1 hour ago' },
-    { id: '3', name: 'Mary Atim',        email: 'm.atim@ugaap.co.ug',      phone: '+256 772 987 654', role: 'ACCOUNTANT',        organization: 'Mubende Warehouse Central', lastLogin: 'Yesterday'  },
-    { id: '4', name: 'Robert Ssemakula', email: 'r.ssemakula@ugaap.co.ug', phone: '+256 700 654 321', role: 'COOPERATIVE ADMIN', organization: 'Kasese Coffee Coop',        lastLogin: '3 days ago' },
-  ];
+  users: User[] = [];
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    // Load filter dropdown options from async mock fetch (swap for real HTTP calls when API is ready)
+    from(fetchCooperativeRoleFilterOptions()).subscribe(v   => this.roleOptions        = v);
+    from(fetchCooperationOptions()).subscribe(v  => this.cooperationOptions = v);
+
+    this.usersService.users$.subscribe(users => this.users = users);
+    this.usersService.list().subscribe({
+      error: () => this.toast.error('Failed to load users', 'Could not reach the server. Please try again.'),
+    });
+  }
 
   addNewUser(): void {
     this.router.navigate(['/cooperative/users/add-user']);
@@ -86,6 +84,12 @@ export class UsersListComponent implements OnInit {
   onSearch(): void {}
   onRoleFilterChange(): void {}
   onCooperationFilterChange(): void {}
+
+  // ── Stat card counts — derived from the loaded users array ───────────────
+  get totalUsers():    number { return this.users.length; }
+  get activeUsers():   number { return this.users.filter(u => u.status === 'active').length; }
+  get inactiveUsers(): number { return this.users.filter(u => u.status === 'inactive').length; }
+  get lockedAccounts():number { return this.users.filter(u => u.status === 'locked').length; }
 
   getRoleBadgeVariant(role: string): BadgeVariant {
     const r = role?.toLowerCase();

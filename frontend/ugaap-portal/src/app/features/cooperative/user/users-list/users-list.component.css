@@ -1,14 +1,8 @@
-/**
+﻿/**
  * Users List Page Styles
  * Uses UGAAP design tokens
  */
 
-.page {
-  min-height: 100vh;
-  background: var(--surface-low);
-  padding: 40px 20px;
-  font-family: var(--font-human);
-}
 
 .page-container {
   max-width: 1400px;
@@ -22,7 +16,7 @@
 .page-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   margin-bottom: 32px;
 }
 
@@ -50,8 +44,8 @@
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  margin-bottom: 32px;
+  gap: 16px;
+  margin-bottom: 24px;
   align-items: stretch;
 }
 
@@ -61,7 +55,7 @@
 
 .filters-bar {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr 1fr;
   gap: 16px;
   margin-bottom: 24px;
 }
@@ -96,6 +90,7 @@
 }
 
 .filter-select {
+  width: 100%;
   height: 48px;
   padding: 0 16px;
   border: 1px solid #E8E6ED;
@@ -288,6 +283,11 @@
 
   .filters-bar {
     grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+  }
+
+  .filters-bar .search-input {
+    grid-column: 1 / -1;
   }
 }
 

@@ -18,9 +18,9 @@
           <label>Grade *</label>
           <select title="select-grade" formControlName="grade">
             <option value="">— Select Grade —</option>
-            <option value="A">A – Premium</option>
-            <option value="B">B – Standard</option>
-            <option value="C">C – Below Standard</option>
+            @for (g of grades(); track g.code) {
+              <option [value]="g.code">{{ g.name }}</option>
+            }
           </select>
         </div>
         <div class="field">

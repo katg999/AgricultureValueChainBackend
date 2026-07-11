@@ -2,7 +2,9 @@ import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { from } from 'rxjs';
 import { finalize } from 'rxjs/operators';
+import { fetchStockCategories, fetchStockUnits } from '../../../../core/mock/mock-reference-data';
 
 import { ToastService } from '../../../../core/services/toast.service';
 import { BadgeComponent } from '../../../../shared/components/badge/badge';
@@ -90,8 +92,8 @@ export class RequestStockComponent implements OnInit {
   cancellingRequest = false;
 
   // ── Select options ────────────────────────────────────────────────────────
-  readonly categories = ['FERTILIZER', 'SEEDS', 'EQUIPMENT', 'PACKAGING', 'TOOLS'];
-  readonly units = ['Bags', 'Kgs', 'Units', 'Sacks', 'Pieces'];
+  categories: string[] = [];
+  units:      string[] = [];
   readonly urgencyOptions: { value: RequestUrgency; label: string }[] = [
     { value: 'low',    label: 'Low'    },
     { value: 'medium', label: 'Medium' },
@@ -104,6 +106,10 @@ export class RequestStockComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // Load select options from async mock fetch (swap for real HTTP calls when API is ready)
+    from(fetchStockCategories()).subscribe(v => this.categories = v);
+    from(fetchStockUnits()).subscribe(v      => this.units      = v);
+
     this.inventoryService.listStockRequests().subscribe(rows => {
       this.requests = rows;
       this.applyFilters();
@@ -292,7 +298,7 @@ export class RequestStockComponent implements OnInit {
     }
   }
 
-  trackById(_: number, row: StockRequest): string { return row.id; }
+  trackById(_: number, row: unknown): string { return (row as StockRequest).id; }
 
   get today(): string { return new Date().toISOString().slice(0, 10); }
 

@@ -1,0 +1,87 @@
+<div class="page" *ngIf="role; else notFound">
+  <div class="page-container">
+
+    <!-- Back link -->
+    <button class="back-btn" (click)="goBack()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      Roles
+    </button>
+
+    <!-- Role summary card -->
+    <div class="role-summary-card">
+      <div class="role-summary-left">
+        <div class="role-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="role-summary-name">
+            {{ role.name }}
+            <span class="badge" [class.badge-system]="role.isSystem" [class.badge-custom]="!role.isSystem">
+              {{ role.isSystem ? 'System' : 'Custom' }}
+            </span>
+          </div>
+          <p class="role-summary-desc">{{ role.description }}</p>
+        </div>
+      </div>
+      <div class="role-summary-stats">
+        <div class="stat-item">
+          <span class="stat-value">{{ role.permissionsCount }}</span>
+          <span class="stat-label">Permissions</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value">{{ role.usersCount }}</span>
+          <span class="stat-label">Users</span>
+        </div>
+      </div>
+      <app-button
+        variant="secondary"
+        size="md"
+        [disabled]="role.isSystem"
+        [title]="role.isSystem ? 'System roles cannot be edited' : ''"
+        (clicked)="editRole()">
+        Edit Role
+      </app-button>
+    </div>
+
+    <!-- Users table -->
+    <div class="section-header">
+      <h2 class="section-title">Users assigned to this role</h2>
+    </div>
+
+    <app-data-table
+      [columns]="userCols"
+      [rows]="users"
+      [clickable]="true"
+      [paginate]="true"
+      emptyIcon="users"
+      emptyTitle="No users assigned"
+      emptyMessage="No users are currently assigned to this role."
+      (rowClick)="viewUser($any($event))">
+
+      <ng-template appCell="name" let-row>
+        <div class="user-name-cell">
+          <div class="user-avatar">{{ $any(row).name[0] }}</div>
+          {{ $any(row).name }}
+        </div>
+      </ng-template>
+
+      <ng-template appCell="assignedAt" let-row>
+        {{ $any(row).assignedAt | date:'mediumDate' }}
+      </ng-template>
+
+    </app-data-table>
+
+  </div>
+</div>
+
+<ng-template #notFound>
+  <div class="page">
+    <div class="page-container">
+      <p class="not-found">Role not found.</p>
+    </div>
+  </div>
+</ng-template>

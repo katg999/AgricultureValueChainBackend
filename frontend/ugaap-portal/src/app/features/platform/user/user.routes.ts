@@ -1,43 +1,39 @@
 import { Routes } from '@angular/router';
+import { permissionGuard } from '../../../core/guards/permission.guard';
 
-// Platform-scoped user management routes.
-// Mounted at /platform/users via platform.routes.ts → { path: 'users', loadChildren: ... }
-// All imports are relative to THIS file's location (features/platform/user/).
+// Platform user management routes.
+// Mounted at /platform/users via platform.routes.ts.
 
 export const USER_ROUTES: Routes = [
 
-  // Default — users list
-  // URL: /platform/users
+  // Users list — inherits parent title 'User Management'; no override needed
   {
     path: '',
-    title: 'Users List' + ' | UGAAP',
+    title: 'Users List | UGAAP',
+    canActivate: [permissionGuard],
+    data: { permissions: ['users.view'] },
     loadComponent: () =>
       import('./users-list/users-list.component')
         .then(m => m.UsersListComponent),
-    
   },
 
-  // Add new user
-  // URL: /platform/users/add-user
   {
     path: 'add-user',
-    title: 'Add User' + ' | UGAAP',
+    title: 'Add User | UGAAP',
+    canActivate: [permissionGuard],
+    data: { permissions: ['users.create'], title: 'Add User', subtitle: 'Create a new platform administrator account' },
     loadComponent: () =>
       import('./add-user/add-user.component')
         .then(m => m.AddUserComponent),
-     
   },
 
-  // User detail view
-  // URL: /platform/users/user/:id
   {
     path: 'user/:id',
-    title: 'User',
+    title: 'User | UGAAP',
+    canActivate: [permissionGuard],
+    data: { permissions: ['users.view'], title: 'User Details' },
     loadComponent: () =>
       import('./user-details/user-details.component')
         .then(m => m.UserDetailsComponent),
-     
   },
-
-  
 ];

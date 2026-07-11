@@ -1,186 +1,162 @@
-<!-- 
-  Add New User Page
-  
-  Form for creating new users with personal and account details
+<!--
+  Add New User — two-section form using app-form-shell / app-form-section.
+
+  Sections:
+    1. Personal Details — name, email, phone, DOB, national ID, gender
+    2. Account Access   — role, OTP toggle
 -->
 
-<div class="page">
-  <div class="page-container">
-    
-    <!-- Page Header -->
-    <div class="page-header">
-      <app-logo size="sm" [showSubtitle]="false"></app-logo>
-    </div>
+<form [formGroup]="userForm" (ngSubmit)="saveUser()">
 
-    <form [formGroup]="userForm" (ngSubmit)="saveUser()">
+  <app-form-shell title="Add New User"
+                  subtitle="Fill in personal details and account access below.">
 
-      <!-- SECTION 1: PERSONAL DETAILS -->
-      <app-info-card title="PERSONAL DETAILS">
-        
-        <!-- Full Name -->
-        <div class="form-row">
-          <app-input
-            label="Full name"
-            type="text"
-            placeholder="e.g. Sarah Namubiru"
-            formControlName="fullName"
-            [required]="true"
-            [error]="getFieldError('fullName')">
-          </app-input>
-        </div>
+    <!-- ── 1. PERSONAL DETAILS ── -->
+    <app-form-section [number]="1" title="Personal Details" iconName="user"
+                      desc="Name, contact info and identification">
 
-        <!-- Email & Phone -->
-        <div class="form-row form-row-2col">
-          <app-input
-            label="Email address"
-            type="email"
-            placeholder="sarah.n@emtech.co.ug"
-            formControlName="email"
-            [required]="true"
-            [error]="getFieldError('email')">
-          </app-input>
+      <div class="fields-grid cols-2">
+        <app-input
+          label="Full Name"
+          type="text"
+          placeholder="e.g. Sarah Namubiru"
+          formControlName="fullName"
+          [required]="true"
+          [error]="getFieldError('fullName')">
+        </app-input>
 
-          <app-input
-            label="Phone number"
-            type="tel"
-            placeholder="+256 700 000000"
-            formControlName="phone"
-            [required]="true"
-            hint="Must be a valid MTN or Airtel Uganda number for OTP delivery"
-            [error]="getFieldError('phone')">
-          </app-input>
-        </div>
-
-        <!-- Date of Birth & National ID -->
-        <div class="form-row form-row-2col">
-          <app-input
-            label="Date of birth"
-            type="date"
-            placeholder="YYYY-MM-DD"
-            formControlName="dateOfBirth"
-            hint="Format: YYYY-MM-DD">
-          </app-input>
-
-          <app-input
-            label="National ID number"
-            type="text"
-            placeholder="CF9200000XXX"
-            formControlName="nationalId">
-          </app-input>
-        </div>
-
-        <!-- Gender -->
-        <div class="form-row">
-          <div class="form-field">
-            <label class="form-label">Gender</label>
-            <select title="gender" class="form-select" formControlName="gender">
-              <option *ngFor="let gender of genderOptions" [value]="gender">
-                {{ gender }}
-              </option>
-            </select>
-          </div>
-        </div>
-
-      </app-info-card>
-
-      <!-- SECTION 2: ACCOUNT ACCESS -->
-      <app-info-card title="ACCOUNT ACCESS" >
-        
-        <!-- Role -->
-        <div class="form-row">
-          <div class="form-field">
-            <label class="form-label">Role <span class="required">*</span></label>
-            <select title="role" class="form-select" formControlName="role">
-              <!-- Default placeholder option -->
-              <option value="" disabled selected>Select a role</option> 
-              <option *ngFor="let role of roleOptions" [value]="role">
-                {{ role }}
-              </option>
-            </select>
-            <p class="field-note">Branch users are created inside each cooperative portal</p>
-          </div>
-        </div>
-
-
-        <!-- Temporary Password & Confirm - USING REUSABLE INPUT COMPONENT -->
-        <div class="form-row form-row-2col">
-          
-          <!-- Temporary Password -->
-          <app-input
-            label="Temporary password"
-            type="password"
-            placeholder="••••••••"
-            formControlName="tempPassword"
-            [required]="true"
-            [error]="getFieldError('tempPassword')">
-          </app-input>
-
-          <!-- Confirm Password -->
-          <app-input
-            label="Confirm temporary password"
-            type="password"
-            placeholder="••••••••"
-            formControlName="confirmPassword"
-            [required]="true"
-            [error]="getFieldError('confirmPassword')">
-          </app-input>
-
-        </div>
-
-        <!-- Password Strength Meter -->
-        <app-password-strength
-          [password]="currentPassword"
-          [showLabel]="true">
-        </app-password-strength>
-
-        <!-- Toggle Options -->
-        <div class="toggles-section">
-          
-          <!-- Send Welcome Email -->
-          <!-- <app-toggle-switch
-            label="Send welcome email with login credentials"
-            description="The user will receive their temporary password and a link to set a permanent password on first login."
-            [(ngModel)]="sendWelcomeEmail"
-            [ngModelOptions]="{standalone: true}">
-          </app-toggle-switch> -->
-
-          <!-- Require OTP -->
-          <app-toggle-switch
-            label="Require OTP verification on first login"
-            description="Recommended, the user must verify their phone number before accessing the platform."
-            [(ngModel)]="requireOTP"
-            [ngModelOptions]="{standalone: true}">
-          </app-toggle-switch>
-
-        </div>
-
-        <!-- Warning Alert -->
-        <app-alert variant="warning">
-          <p> This user will be prompted to change their temporary password on first login. Make sure the phone number is correct before saving, it is used for OTP delivery.</p>
-        </app-alert>
-
-      </app-info-card>
-
-      <!-- Actions -->
-      <div class="form-actions">
-        <button 
-          type="button"
-          class="btn-cancel"
-          (click)="cancel()">
-          Cancel
-        </button>
-
-        <app-button
-          type="submit"
-          variant="primary"
-          size="lg"
-          [loading]="isLoading"
-          loadingText="Saving...">
-          Save user
-        </app-button>
+        <app-input
+          label="Email Address"
+          type="email"
+          placeholder="sarah.n@emtech.co.ug"
+          formControlName="email"
+          [required]="true"
+          [error]="getFieldError('email')">
+        </app-input>
       </div>
 
-    </form>
+      <div class="fields-grid cols-2 mt-16">
+        <app-input
+          label="Phone Number"
+          type="tel"
+          placeholder="+256 700 000000"
+          formControlName="phone"
+          [required]="true"
+          hint="Valid MTN or Airtel Uganda number — used for OTP delivery"
+          [error]="getFieldError('phone')">
+        </app-input>
 
+        <div class="input-group">
+          <label class="input-label">Gender</label>
+          <select class="form-select" formControlName="gender" title="Gender">
+            <option *ngFor="let g of genderOptions" [value]="g">{{ g }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="fields-grid cols-2 mt-16">
+        <app-input
+          label="Date of Birth"
+          type="date"
+          formControlName="dateOfBirth"
+          hint="Optional">
+        </app-input>
+
+        <app-input
+          label="National ID Number"
+          type="text"
+          placeholder="e.g. CM95012A345B6C"
+          formControlName="nationalId"
+          [uppercase]="true"
+          hint="Optional — 14 alphanumeric characters if provided"
+          [error]="getFieldError('nationalId')">
+        </app-input>
+      </div>
+
+    </app-form-section>
+
+    <!-- ── 2. ACCOUNT ACCESS ── -->
+    <app-form-section [number]="2" title="Account Access" iconName="lock"
+                      desc="Role and login settings">
+
+      <div class="fields-grid cols-2">
+        <div class="input-group">
+          <label class="input-label">Role <span class="required">*</span></label>
+          <select class="form-select" formControlName="role" title="Role">
+            <option value="" disabled>Select a role</option>
+            <option *ngFor="let r of roleOptions" [value]="r">{{ r }}</option>
+          </select>
+          <span class="hint-text">Branch users are created inside each cooperative portal</span>
+        </div>
+      </div>
+
+      <div class="mt-16">
+        <app-toggle-switch
+          label="Require OTP verification on first login"
+          description="Recommended — the user must verify their phone number before accessing the platform."
+          [(ngModel)]="requireOTP"
+          [ngModelOptions]="{standalone: true}">
+        </app-toggle-switch>
+      </div>
+
+      <div class="mt-16">
+        <app-alert variant="info">
+          <p>A welcome email with login instructions will be sent to the email address above.
+             Ensure the phone number is correct — it is used for OTP delivery.</p>
+        </app-alert>
+      </div>
+
+    </app-form-section>
+
+  </app-form-shell>
+
+  <!-- ── ACTIONS ── -->
+  <div class="form-actions">
+    <button type="button" class="btn-cancel" (click)="cancel()">Cancel</button>
+    <app-button type="submit" variant="primary" size="lg">
+      Review &amp; Save
+    </app-button>
   </div>
-</div>
+
+</form>
+
+<!-- ── REVIEW & CONFIRM MODAL ── -->
+<app-modal
+  [isOpen]="showConfirmModal"
+  title="Review & Confirm"
+  subtitle="Check the details below before creating this user."
+  size="lg"
+  [closeOnBackdrop]="!isLoading"
+  [closeOnEsc]="!isLoading"
+  (closed)="showConfirmModal = false">
+
+  <div class="review-layout">
+    <div class="review-group">
+      <h4 class="review-group-title">Personal Details</h4>
+      <hr class="review-divider">
+      <div class="review-row-item"><span class="rl">Full Name</span><span class="rv">{{ userForm.value.fullName || '—' }}</span></div>
+      <div class="review-row-item"><span class="rl">Email</span><span class="rv">{{ userForm.value.email || '—' }}</span></div>
+      <div class="review-row-item"><span class="rl">Phone</span><span class="rv">{{ userForm.value.phone || '—' }}</span></div>
+      <div class="review-row-item"><span class="rl">National ID</span><span class="rv">{{ userForm.value.nationalId || '—' }}</span></div>
+      <div class="review-row-item"><span class="rl">Gender</span><span class="rv">{{ userForm.value.gender || '—' }}</span></div>
+      <div class="review-row-item"><span class="rl">Date of Birth</span><span class="rv">{{ userForm.value.dateOfBirth || '—' }}</span></div>
+    </div>
+
+    <div class="review-group">
+      <h4 class="review-group-title">Account Access</h4>
+      <hr class="review-divider">
+      <div class="review-row-item"><span class="rl">Role</span><span class="rv">{{ userForm.value.role || '—' }}</span></div>
+      <div class="review-row-item"><span class="rl">Password</span><span class="rv">Sent via welcome email</span></div>
+    </div>
+  </div>
+
+  <div class="modal-actions" footer>
+    <button type="button" class="btn-secondary" [disabled]="isLoading" (click)="showConfirmModal = false">
+      Edit
+    </button>
+    <app-button variant="primary" size="md" [loading]="isLoading" loadingText="Saving…" (clicked)="onConfirmSave()">
+      Create User
+    </app-button>
+  </div>
+
+</app-modal>

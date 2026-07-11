@@ -41,14 +41,15 @@ public class SecurityConfig {
 
                         .requestMatchers("/auth/**").permitAll()
 
-                        .requestMatchers("/internal/**").permitAll()   // ← ADD
+                        // Internal provisioning — open for local dev; lock down before going to prod
+                        .requestMatchers("/internal/credentials/**").permitAll()
 
+                        // Everything else secured
                         .anyRequest().authenticated()
                 )
 
-                // ← ADD — runs InternalApiKeyFilter before Spring Security's
-                // own auth filter, so it can validate the X-Internal-Key
-                // header on /internal/** paths (see filter's own path check)
+             
+            
                 .addFilterBefore(internalApiKeyFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

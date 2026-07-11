@@ -1,20 +1,15 @@
 import { Routes } from '@angular/router';
+import { permissionGuard } from '../../core/guards/permission.guard';
 
 // BRANCH_ROUTES defines every page a branch staff member can visit.
-// Angular reads this array and decides which component to show based on the URL.
-//
-// loadComponent / loadChildren use dynamic imports — the component file is only
-// downloaded from the server when the user actually navigates to that route.
-// This keeps the initial page load fast (lazy loading).
 export const BRANCH_ROUTES: Routes = [
   {
-    // If someone navigates to just '/branch', send them straight to the dashboard.
     path: '',
     redirectTo: 'dashboard',
-    pathMatch: 'full', // 'full' = only redirect if the path matches EXACTLY (not partially)
+    pathMatch: 'full',
   },
 
-  // ── Dashboard ────────────────────────────────────────────────────────────────
+  //  Dashboard — no guard; every authenticated branch user sees their dashboard
   {
     path: 'dashboard',
     data: { title: 'Dashboard', subtitle: 'Your branch at a glance' },
@@ -23,25 +18,26 @@ export const BRANCH_ROUTES: Routes = [
         .then(m => m.BranchDashboardComponent),
   },
 
-  // ── Collections ──────────────────────────────────────────────────────────────
+  // Collections 
   {
     path: 'collections',
-    data: { title: 'Collections', subtitle: 'Delivery batches recorded at your branch' },
+    canActivate: [permissionGuard],
+    data: { title: 'Collections', subtitle: 'Delivery batches recorded at your branch', permissionModule: 'collections' },
     loadChildren: () =>
       import('./collections/branch.collections.routes')
         .then(m => m.BRANCH_COLLECTIONS_ROUTES),
   },
   {
-    // Old URL alias — if anything still links to 'branch-collections', redirect silently.
     path: 'branch-collections',
     redirectTo: 'collections',
     pathMatch: 'full',
   },
 
-  // ── Farmers ──────────────────────────────────────────────────────────────────
+  //  Farmers 
   {
     path: 'farmers',
-    data: { title: 'Farmers', subtitle: 'Farmers registered at your branch' },
+    canActivate: [permissionGuard],
+    data: { title: 'Farmers', subtitle: 'Farmers registered at your branch', permissionModule: 'farmers' },
     loadChildren: () =>
       import('./branch-farmers/branch.farmers.routes')
         .then(m => m.BRANCH_FARMERS_ROUTES),
@@ -52,39 +48,48 @@ export const BRANCH_ROUTES: Routes = [
     pathMatch: 'full',
   },
 
-  // ── Finance ──────────────────────────────────────────────────────────────────
-  // Finance doesn't use loadChildren because each page is a standalone component.
-  // We just flatten the routes here instead of a separate routes file.
+  // ── Finance 
   {
-    // '/branch/finance' alone → redirect to the batch list
     path: 'finance',
     redirectTo: 'finance/batch-processing',
     pathMatch: 'full',
   },
   {
     path: 'finance/batch-create',
-    data: { title: 'Create Batch' },
+    canActivate: [permissionGuard],
+    data: { title: 'Create Batch', permissions: ['finance.batches.create'] },
     loadComponent: () =>
       import('./finance/batch-create/batch-create.component')
         .then(m => m.BatchCreateComponent),
   },
   {
     path: 'finance/batch-processing',
-    data: { title: 'Payment Batches', subtitle: 'Batch farmer payments for disbursement' },
+    canActivate: [permissionGuard],
+    data: { title: 'Payment Batches', subtitle: 'Batch farmer payments for disbursement', permissions: ['finance.view', 'finance.batches.create'] },
     loadComponent: () =>
       import('./finance/batch-processing/batch-processing')
         .then(m => m.BatchProcessingComponent),
   },
   {
+    path: 'finance/disbursements',
+    canActivate: [permissionGuard],
+    data: { title: 'Disbursements', subtitle: 'Approved batches ready for farmer payout', permissions: ['finance.view'] },
+    loadComponent: () =>
+      import('./finance/disbursements/disbursements')
+        .then(m => m.DisbursementsComponent),
+  },
+  {
     path: 'finance/farmers',
-    data: { title: 'Batch Farmers' },
+    canActivate: [permissionGuard],
+    data: { title: 'Batch Farmers', permissions: ['finance.view'] },
     loadComponent: () =>
       import('./finance/all-batch-farmers/all-batch-farmers.component')
         .then(m => m.AllBatchFarmersComponent),
   },
   {
     path: 'finance/batch/:id/farmers',
-    data: { title: 'Batch Farmers' },
+    canActivate: [permissionGuard],
+    data: { title: 'Batch Farmers', permissions: ['finance.view'] },
     loadComponent: () =>
       import('./finance/batch-farmers/batch-farmers.component')
         .then(m => m.BatchFarmersComponent),
@@ -93,7 +98,8 @@ export const BRANCH_ROUTES: Routes = [
   // ── Inventory ────────────────────────────────────────────────────────────────
   {
     path: 'inventory',
-    data: { title: 'Inventory', subtitle: 'Inputs and stock at your branch' },
+    canActivate: [permissionGuard],
+    data: { title: 'Inventory', subtitle: 'Inputs and stock at your branch', permissionModule: 'inventory' },
     loadChildren: () =>
       import('./inventory/inventory.routes')
         .then(m => m.INVENTORY_ROUTES),
@@ -102,7 +108,8 @@ export const BRANCH_ROUTES: Routes = [
   // ── Daily Grading ────────────────────────────────────────────────────────────
   {
     path: 'daily-grading',
-    data: { title: 'Daily Grading', subtitle: 'Record graded produce for today' },
+    canActivate: [permissionGuard],
+    data: { title: 'Daily Grading', subtitle: 'Record graded produce for today', permissions: ['collections.grade'] },
     loadComponent: () =>
       import('./daily-grading/daily-grading.component')
         .then(m => m.DailyGradingComponent),
