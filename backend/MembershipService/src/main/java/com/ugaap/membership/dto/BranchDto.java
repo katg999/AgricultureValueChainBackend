@@ -20,20 +20,26 @@ public class BranchDto {
         @NotBlank(message = "Tenant ID is required")
         private String tenantId;
 
-        private String location;
-        private String branchCode;
+        @NotBlank(message = "Registration number is required")
         private String registrationNumber;
-        private String address;
-        private String poBox;
-        private String websiteUrl;
-        private String country;
+
+        @NotBlank(message = "Town/Area is required")
+        private String location;
+
+        @NotBlank(message = "Region is required")
         private String region;
+
+        @NotBlank(message = "Country is required")
+        private String country;
+
+        @NotBlank(message = "Established date is required")
         private String establishedDate;
-        private String contactPersonName;
-        private String contactPersonPhone;
-        private String contactPersonEmail;
-        private String defaultBranchName;
-        private String defaultBranchLocation;
+
+        @NotBlank(message = "Physical address is required")
+        private String address;
+
+        @NotBlank(message = "P.O. Box is required")
+        private String poBox;
     }
 
     @Data
@@ -44,6 +50,12 @@ public class BranchDto {
         private String tenantId;
         private String location;
         private String branchCode;
+        private String registrationNumber;
+        private String region;
+        private String country;
+        private String establishedDate;
+        private String address;
+        private String poBox;
         private String status;
         private String createdAt;
     }

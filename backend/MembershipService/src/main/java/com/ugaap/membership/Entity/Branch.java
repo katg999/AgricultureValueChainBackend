@@ -9,6 +9,7 @@ import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.ParamDef;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -60,6 +61,27 @@ public class Branch {
 
     @Column(name = "tenant_id", nullable = false)
     private String tenantId;
+
+    // ── Identity ───────────────────────────────────────────────
+    @Column(name = "registration_number", unique = true)
+    private String registrationNumber;
+
+    // ── Location details ───────────────────────────────────────
+    @Column(name = "region")
+    private String region;
+
+    @Column(name = "country")
+    private String country;
+
+    @Column(name = "established_date")
+    private LocalDate establishedDate;
+
+    // ── Address ──────────────────────────────────────────────
+    @Column(name = "address")
+    private String address;
+
+    @Column(name = "po_box")
+    private String poBox;
 
     public enum BranchStatus {
         ACTIVE, INACTIVE, SUSPENDED

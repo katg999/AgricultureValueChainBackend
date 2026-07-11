@@ -2,11 +2,11 @@ package com.ugaap.membership.service;
 
 import com.ugaap.membership.dto.CooperativeDto;
 import com.ugaap.membership.Entity.Cooperative;
-import com.ugaap.membership.Entity.Branch;
 import com.ugaap.membership.repository.BranchRepository;
 import com.ugaap.membership.repository.CooperativeRepository;
 import com.ugaap.shared.security.RlsContextApplier;
 import lombok.RequiredArgsConstructor;
+import com.ugaap.membership.Entity.Branch;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,7 +18,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.text.Normalizer;
 import java.util.List;
-import java.util.UUID;
 import java.util.regex.Pattern;
 
 @Service
@@ -161,6 +160,7 @@ public class CooperativeService {
                     response.setName(c.getName());
                     response.setRegistrationNumber(c.getRegistrationNumber());
                     response.setAddress(c.getAddress());
+                    response.setCountry(c.getCountry());
                     response.setAccountName(c.getAccountName());
                     response.setAccountNumber(c.getAccountNumber());
                     response.setBankBranch(c.getBankBranch());

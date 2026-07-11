@@ -5,12 +5,13 @@ import com.ugaap.membership.Entity.Cooperative;
 import com.ugaap.membership.dto.BranchDto;
 import com.ugaap.membership.repository.BranchRepository;
 import com.ugaap.membership.repository.CooperativeRepository;
-import com.ugaap.shared.Exception.AuthException; //look here when fixing these errors
+import com.ugaap.shared.Exception.AuthException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,11 +34,9 @@ public class BranchService {
                         "Cooperative not found for tenantId: "
                                 + request.getTenantId()));
 
-        String branchCode = request.getBranchCode() != null
-                ? request.getBranchCode().toUpperCase()
-                : (request.getTenantId() + "-"
-                   + request.getName().replaceAll("\\s+", "-")
-        ).toUpperCase();
+        String branchCode = (request.getTenantId() + "-"
+                + request.getName().replaceAll("\\s+", "-"))
+                .toUpperCase();
 
         Branch branch = Branch.builder()
                 .cooperative(cooperative)
@@ -45,6 +44,12 @@ public class BranchService {
                 .name(request.getName())
                 .location(request.getLocation())
                 .branchCode(branchCode)
+                .registrationNumber(request.getRegistrationNumber())
+                .region(request.getRegion())
+                .country(request.getCountry())
+                .establishedDate(parseDate(request.getEstablishedDate()))
+                .address(request.getAddress())
+                .poBox(request.getPoBox())
                 .status(Branch.BranchStatus.ACTIVE)
                 .build();
 
@@ -69,6 +74,16 @@ public class BranchService {
         return mapToResponse(branch);
     }
 
+    private LocalDate parseDate(String date) {
+        if (date == null || date.isBlank()) return null;
+        try {
+            return LocalDate.parse(date);
+        } catch (Exception e) {
+            log.warn("Invalid establishedDate format '{}', ignoring", date);
+            return null;
+        }
+    }
+
     private BranchDto.Response mapToResponse(Branch branch) {
         return BranchDto.Response.builder()
                 .branchId(branch.getBranchId().toString())
@@ -76,6 +91,13 @@ public class BranchService {
                 .tenantId(branch.getTenantId())
                 .location(branch.getLocation())
                 .branchCode(branch.getBranchCode())
+                .registrationNumber(branch.getRegistrationNumber())
+                .region(branch.getRegion())
+                .country(branch.getCountry())
+                .establishedDate(branch.getEstablishedDate() != null
+                        ? branch.getEstablishedDate().toString() : null)
+                .address(branch.getAddress())
+                .poBox(branch.getPoBox())
                 .status(branch.getStatus().name())
                 .createdAt(branch.getCreatedAt() != null
                         ? branch.getCreatedAt().toString() : null)

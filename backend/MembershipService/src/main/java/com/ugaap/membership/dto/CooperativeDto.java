@@ -83,6 +83,7 @@ public class CooperativeDto {
         private String address;
         private String accountName;
         private String accountNumber;
+        private String country;
         private String bankBranch;
         private String status;
         private String createdAt;
