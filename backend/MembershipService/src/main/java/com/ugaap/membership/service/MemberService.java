@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.security.SecureRandom;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -32,6 +33,16 @@ public class MemberService {
     private final BranchRepository branchRepository;
 
 
+
+    private static final SecureRandom RANDOM = new SecureRandom();
+
+    private String generateMemberCode() {
+        String code;
+        do {
+            code = String.format("%05d", RANDOM.nextInt(100000)); // 00000–99999
+        } while (memberRepository.existsByMemberCode(code));
+        return code;
+    }
 
 
     //Register a UGAAP FARMER
@@ -80,6 +91,7 @@ public class MemberService {
                 .fullName(request.getFullName())
                 .nationalId(request.getNationalId())
                 .phoneNumber(request.getPhoneNumber())
+                .memberCode(generateMemberCode())
                 .gender(request.getGender())
                 .email(request.getEmail())
                 .dateOfBirth(request.getDateOfBirth())
@@ -223,11 +235,18 @@ public class MemberService {
         return buildResponse(member, branchName);
     }
 
+    public MemberDto.Response getMemberByCode(String memberCode) {
+        Member member = memberRepository.findByMemberCode(memberCode)
+                .orElseThrow(() -> new AuthException("Member not found: " + memberCode));
+        return mapToResponse(member);
+    }
+
 
     private MemberDto.Response buildResponse(Member member, String branchName) {
         return MemberDto.Response.builder()
                 .memberId(member.getMemberId().toString())
                 .fullName(member.getFullName())
+                .memberCode(member.getMemberCode())
                 .nationalId(member.getNationalId())
                 .phoneNumber(member.getPhoneNumber())
                 .gender(member.getGender().name())

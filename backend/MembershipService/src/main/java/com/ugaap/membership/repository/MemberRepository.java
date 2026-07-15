@@ -22,6 +22,9 @@ public interface MemberRepository extends JpaRepository<Member, UUID> {
     List<Member> findAllByTenantIdAndBranchId(
             String tenantId, UUID branchId);
 
+    boolean existsByMemberCode(String memberCode);
+    Optional<Member> findByMemberCode(String memberCode);
+
     long countByTenantId(String tenantId);
 
     long countByTenantIdAndBranchId(String tenantId, UUID branchId);

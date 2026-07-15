@@ -35,15 +35,10 @@ public class MemberDto {
         @NotNull(message = "Gender is required")
         private Member.Gender gender;
 
-
-
-
         @NotNull(message = "IrrigationSource is required")
         private Member.IrrigationSource irrigationSource;
 
         private String email;
-
-        private String branchName;
 
         private LocalDate dateOfBirth;
 
@@ -66,6 +61,8 @@ public class MemberDto {
 
         private String commodityToDeliver;
         private String livestockKept;
+
+
 
        //payment details
        @NotNull(message = "Payment method is required")
@@ -97,6 +94,7 @@ public class MemberDto {
     public static class Response {
         private String memberId;
         private String fullName;
+        private String memberCode;
         private String nationalId;
         private String phoneNumber;
         private String gender;

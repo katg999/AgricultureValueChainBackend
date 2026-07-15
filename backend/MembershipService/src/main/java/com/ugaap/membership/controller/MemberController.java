@@ -91,4 +91,12 @@ public class MemberController {
             @RequestParam String query) {
         return ResponseEntity.ok(memberService.searchFarmers(query));
     }
+
+
+    @GetMapping("/code/{memberCode}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<MemberDto.Response> getMemberByCode(
+            @PathVariable String memberCode) {
+        return ResponseEntity.ok(memberService.getMemberByCode(memberCode));
+    }
 }

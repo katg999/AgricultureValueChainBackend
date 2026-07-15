@@ -40,6 +40,10 @@ public class Member {
     @Column(name = "gender", nullable = false)
     private Gender gender;
 
+    
+    @Column(name = "member_code", unique = true, nullable = false, length = 5)
+    private String memberCode;
+
 
     @Enumerated(EnumType.STRING)
     @Column(name = "irrigation_source", nullable = true)
