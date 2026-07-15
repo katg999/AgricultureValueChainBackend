@@ -5,6 +5,7 @@ import com.ugaap.membership.Entity.Cooperative;
 import com.ugaap.membership.Entity.Member;
 import com.ugaap.membership.dto.FarmerSearchResultDTO;
 import com.ugaap.membership.dto.MemberDto;
+import com.ugaap.membership.repository.BranchRepository;
 import com.ugaap.membership.repository.CooperativeRepository;
 import com.ugaap.membership.repository.MemberRepository;
 import com.ugaap.shared.Exception.AuthException; //Look here
@@ -15,9 +16,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
+import com.ugaap.membership.Entity.Branch;
 
 @Slf4j
 @Service
@@ -27,6 +29,7 @@ public class MemberService {
     private final MemberRepository     memberRepository;
     private final CooperativeRepository cooperativeRepository;
     private final MinioService         minioService;
+    private final BranchRepository branchRepository;
 
 
 
@@ -122,16 +125,23 @@ public class MemberService {
 
     // ── List members ──────────────────────────────────────────
 
-    public List<MemberDto.Response> listMembers(
-            String tenantId, String branchId) {
-
+    public List<MemberDto.Response> listMembers(String tenantId, String branchId) {
         List<Member> members = branchId != null
-                ? memberRepository.findAllByTenantIdAndBranchId(
-                tenantId, UUID.fromString(branchId))
+                ? memberRepository.findAllByTenantIdAndBranchId(tenantId, UUID.fromString(branchId))
                 : memberRepository.findAllByTenantId(tenantId);
 
+        Set<UUID> branchIds = members.stream()
+                .map(Member::getBranchId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        Map<UUID, String> branchNamesById = branchIds.isEmpty()
+                ? Map.of()
+                : branchRepository.findAllByBranchIdIn(branchIds).stream()
+                  .collect(Collectors.toMap(Branch::getBranchId, Branch::getName));
+
         return members.stream()
-                .map(this::mapToResponse)
+                .map(m -> buildResponse(m, branchNamesById.get(m.getBranchId())))
                 .toList();
     }
 
@@ -205,6 +215,16 @@ public class MemberService {
     // ── Helper ────────────────────────────────────────────────
 
     private MemberDto.Response mapToResponse(Member member) {
+        String branchName = member.getBranchId() != null
+                ? branchRepository.findById(member.getBranchId())
+                  .map(Branch::getName)
+                  .orElse(null)
+                : null;
+        return buildResponse(member, branchName);
+    }
+
+
+    private MemberDto.Response buildResponse(Member member, String branchName) {
         return MemberDto.Response.builder()
                 .memberId(member.getMemberId().toString())
                 .fullName(member.getFullName())
@@ -212,14 +232,12 @@ public class MemberService {
                 .phoneNumber(member.getPhoneNumber())
                 .gender(member.getGender().name())
                 .email(member.getEmail())
-                .dateOfBirth(member.getDateOfBirth() != null
-                        ? member.getDateOfBirth().toString() : null)
+                .dateOfBirth(member.getDateOfBirth() != null ? member.getDateOfBirth().toString() : null)
                 .profilePhotoUrl(member.getProfilePhotoUrl())
-                .farmLocation(member.getFarmLocation().name())
+                .farmLocation(member.getFarmLocation() != null ? member.getFarmLocation().name() : null)
                 .villageTown(member.getVillageTown())
                 .totalLandAreaHectares(member.getTotalLandAreaHectares())
-                .cooperativeId(member.getCooperative()
-                        .getCooperativeId().toString())
+                .cooperativeId(member.getCooperative().getCooperativeId().toString())
                 .tenantId(member.getTenantId())
                 .paymentMethodType(member.getPaymentMethodType() != null ? member.getPaymentMethodType().name() : null)
                 .bankName(member.getBankName())
@@ -231,15 +249,10 @@ public class MemberService {
                 .commodityToDeliver(member.getCommodityToDeliver())
                 .livestockKept(member.getLivestockKept())
                 .branchId(member.getBranchId() != null ? member.getBranchId().toString() : null)
-                .farmLocation(
-                member.getFarmLocation() != null
-                        ? member.getFarmLocation().name()
-                        : null
-        )
+                .branchName(branchName)
                 .status(member.getStatus().name())
                 .registeredBy(member.getRegisteredBy())
-                .createdAt(member.getCreatedAt() != null
-                        ? member.getCreatedAt().toString() : null)
+                .createdAt(member.getCreatedAt() != null ? member.getCreatedAt().toString() : null)
                 .build();
     }
 

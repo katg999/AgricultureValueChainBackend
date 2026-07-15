@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -19,6 +20,9 @@ public interface BranchRepository extends JpaRepository<Branch, UUID> {
     Optional<Branch> findByBranchCode(String branchCode);
     List<Branch> findAllByTenantId(String tenantId);
 
+
+    // BranchRepository.java — add this line
+    List<Branch> findAllByBranchIdIn(Collection<UUID> branchIds);
     boolean existsByBranchCode(String branchCode);
 
     boolean existsByBranchCodeAndTenantId(String branchCode, String tenantId);

@@ -36,10 +36,14 @@ public class MemberDto {
         private Member.Gender gender;
 
 
+
+
         @NotNull(message = "IrrigationSource is required")
         private Member.IrrigationSource irrigationSource;
 
         private String email;
+
+        private String branchName;
 
         private LocalDate dateOfBirth;
 
@@ -118,6 +122,7 @@ public class MemberDto {
         private String commodityToDeliver;
         private String livestockKept;
         private String paymentMethodType;
+        private String branchName;
 
     }
 }
